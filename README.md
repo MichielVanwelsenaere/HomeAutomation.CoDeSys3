@@ -9,7 +9,7 @@ The goal? One word: reduncancy!
 # Architecture
 Core processing is executed in the (robust) PLC. Meaning that events like reading pushbuttons/switches, updating outputs is executed in the PLC logic. To enable integration with external software the PLC sends out events to a MQTT broker when events occur (like pushbutton events, outputs that change states). MQTT subscriptions are enabled as well to allow control from the outside to control outputs (for example).
 
-![GeneralArchitecture](./docs/_img/HomeAutomation.GeneralArchitecture.svg)
+![GeneralArchitecture](./docs/_img/HomeAutomation.GeneralArchitecture.jpg)
 
 # Software Architecture
 
