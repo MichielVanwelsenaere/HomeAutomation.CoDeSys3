@@ -11,14 +11,16 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 1. Download CoDeSys3 from the [CoDeSys store](https://store.codesys.com/). Note that you need to create an account in order to be able to download the installer.
 2. Install your device target package. Steps explained in this [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s&t=135s), steps might differ slightly depending on your device target.
-    - Common device target package: [WAGO-PFC200](https://store.codesys.com/codesys-control-for-pfc200-sl.html)
     - Common device target package: [WAGO-PFC100](https://store.codesys.com/codesys-control-for-pfc100-sl.html)
+    - Common device target package: [WAGO-PFC200](https://store.codesys.com/codesys-control-for-pfc200-sl.html)
+
+Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. Using the free version the PLC is able to run the CodeSys runtime for 2 hours after which the program stops running. A license is required to remove this limitation.
 
 ### __Building the project__
 
 1. Clone the repository and open the *HomeAutomation.project* file in CoDeSys. Ignore the warnings about missing libraries (will be fixed in next steps) and don't update any existing libraries.
 
-2. Go to the *Libraries* menu and press *Download missing libraries*:
+2. Go to the *Libraries* menu, press *Download missing libraries* and install all missing libraries:
 
 ![Download Missing Libraries](./_img/GettingStartedGuide/DownloadMissingLibraries.png)
 
@@ -26,7 +28,7 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 ![Install Libraries](./_img/GettingStartedGuide/InstallLibraries.png)
 
-4. The `IoDrvPfc200` library gives some issues in general. Remove it and reinstall it from the Library Repository:
+4. In case the `IoDrvPfc200` library gives issues. Remove it and reinstall it from the Library Repository:
 
 ![Fix IoDrvPfc200](./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc.png)
 
@@ -34,7 +36,7 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 6. Download the missing device description:
 
-![]()
+![Download Missing Device Description](./_img/GettingStartedGuide/DownloadMissingDeviceDescription.png)
 
 7. Build the project (F11)!
 
@@ -42,7 +44,11 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 
 ### __Updating the project to your PLC configuration__
+As the IO modules installed on your PLC will most likely differ from the ones configured in the project an update is required.
 
+WIP
 
 ### __Adjusting the home automation logic to your needs__
+
+WIP
 
