@@ -20,19 +20,21 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 
 1. Clone the repository and open the *HomeAutomation.project* file in CoDeSys. Ignore the warnings about missing libraries (will be fixed in next steps) and don't update any existing libraries.
 
-2. Go to the *Libraries* menu, press *Download missing libraries* and install all missing libraries:
+2. Go to the *Library Manager* menu, press *Download missing libraries* and install all missing libraries:
 
 ![Download Missing Libraries](./_img/GettingStartedGuide/DownloadMissingLibraries.png)
 
-3. Go to the *Libraries* menu and install all libraries from the [src/Libraries](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/tree/feature/GettingStartedGuide/src/Libaries) folder.
+3. Go to the *Library Manager* menu and install all libraries from the [src/Libraries](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/tree/feature/GettingStartedGuide/src/Libraries) folder.
 
 ![Install Libraries](./_img/GettingStartedGuide/InstallLibraries.png)
 
 4. In case the `IoDrvPfc200` library gives issues. Remove it and reinstall it from the Library Repository:
 
-![Fix IoDrvPfc200](./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc.png)
+![Fix IoDrvPfc200 Step 1](./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step1.png)
+![Fix IoDrvPfc200 Step 2](./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step2.png)
+![Fix IoDrvPfc200 Step 3](./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step3.png)
 
-5. If there is still an *Download missing libraries* button in the Library manager: press it untill all missing libraries are downloaded.
+5. If there is still an *Download missing libraries* button in the Library manager. This should fix the last missing libraries.
 
 6. Download the missing device description:
 
