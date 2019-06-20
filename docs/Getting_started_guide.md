@@ -29,10 +29,14 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 ![Install Libraries](./_img/GettingStartedGuide/InstallLibraries.png)
 
 4. In case the `IoDrvPfc200` library gives issues. Remove it and reinstall it from the Library Repository:
+    - Remove the existing Library</br>
+    <img src="./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step1.png" alt="drawing" width="750"/>
 
-![Fix IoDrvPfc200 Step 1](./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step1.png)
-![Fix IoDrvPfc200 Step 2](./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step2.png)
-![Fix IoDrvPfc200 Step 3](./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step3.png)
+    - Select *Add library* and then *Advanced...*</br>
+    <img src="./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step2.png" alt="drawing" width="750"/>
+
+    - Seach for the *IoDrvPfc200* and add it (step might vary depending on your Device target)</br>
+    <img src="./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step3.png" alt="drawing" width="750"/>
 
 5. If there is still an *Download missing libraries* button in the Library manager. This should fix the last missing libraries.
 
