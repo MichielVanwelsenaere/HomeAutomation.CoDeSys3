@@ -52,7 +52,21 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 ### __Updating the project to your PLC configuration__
 As the IO modules installed on your PLC will most likely differ from the ones configured in the project an update is required.
 
-WIP
+1. Turn on your PLC with a netwerk cable plugged in. Make sure that the device you are using to follow this steps is on the same network.
+
+2. From the *Device* section in the project select *Scan network..* and Select your PLC:</br>
+<img src="./_img/GettingStartedGuide/ScanningAndConnectingToPLC.png" alt="Scan network and connect to PLC" width="750"/>
+
+3. From the module configuration section in the project, perform *Scan for Devices..*</br>
+<img src="./_img/GettingStartedGuide/ScanningToUpdateModules.png" alt="Scan to update modules" width="450"/>
+
+4. Set the *Show Differences to Project* checkbox.</br>
+<img src="./_img/GettingStartedGuide/ScanningToUpdateModulesShowDifferences.png" alt="Scan to update modules show differences" width="750"/>
+
+5. Using to the tools in the middle of the screen, update the project *Configured Devices* to the *Scanned Devices*.</br>
+<img src="./_img/GettingStartedGuide/ScanningToUpdateModulesPerformUpdate.png" alt="Scan to update modules perform update" width="750"/>
+
+Executing the steps above will most likely introduce build errors, this is normal! The current program uses every input and output of the configured devices. By adjusting/removing them this naturally causes build issues. These build issues will be fixed in the next topic where the program logic is adjusted to your PLC configuration.
 
 ### __Adjusting the home automation logic to your needs__
 
