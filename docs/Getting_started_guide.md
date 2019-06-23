@@ -3,14 +3,14 @@
 ### __Getting to know CoDeSys3__
 If you have experience with programming in CodeSys3 you can skip this part. Otherwise, it's adviced to gain some experience by checking the sources below:
 
-- Setup environment and creation first project: [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s&t=135s)
+- Setup environment and creation first project: [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s)
 - CoDeSys start guide (uses CoDeSys 2.3 but principles still applicable): [YouTube playlist](https://www.youtube.com/watch?v=WP9pUfBi6Pw&list=PL08CDB741463CA7B4&index=1)
 - CoDeSys Sequential Function Charts Explained: [YouTube video](https://www.youtube.com/watch?v=eP42t9O5drk)
 
 ### __Setup CoDeSys3__
 
 1. Download CoDeSys3 from the [CoDeSys store](https://store.codesys.com/). Note that you need to create an account in order to be able to download the installer.
-2. Install your device target package. Steps explained in this [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s&t=135s), steps might differ slightly depending on your device target.
+2. Install your device target package. Steps explained in this [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s), steps might differ slightly depending on your device target.
     - Common device target package: [WAGO-PFC100](https://store.codesys.com/codesys-control-for-pfc100-sl.html)
     - Common device target package: [WAGO-PFC200](https://store.codesys.com/codesys-control-for-pfc200-sl.html)
 
@@ -118,3 +118,17 @@ To update the *Persistant Variables* if you created or removed Function Blocks p
 <img src="./_img/GettingStartedGuide/PersistentVars_AddAllInstancePaths.png" alt="Output switch logic" width="750"/>
 
 This will add all *PERSIST* variables form the project. Note that the project needs to be build before being able to perform this step.
+
+
+### __Uploading and running the project__
+To upload and run the project on your PLC perform the following steps:
+1. From the menu, select *online* and then *login*:</br>
+<img src="./_img/GettingStartedGuide/UploadToPLC.png" alt="select online and then login" width="600"/>
+
+1. Select *Login with download* and press *OK*:</br>
+<img src="./_img/GettingStartedGuide/UploadToPLC_options.png" alt="login with download" width="600"/>
+
+1. *Start* the application on your PLC:</br>
+<img src="./_img/GettingStartedGuide/UploadToPLC_start.png" alt="start the application" width="400"/>
+
+Note that you might need to rescann your network from the *Device Communications* tab to execute this steps successfully. 
