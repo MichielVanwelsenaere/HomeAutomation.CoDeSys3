@@ -70,15 +70,52 @@ Executing the steps above will most likely introduce build errors, this is norma
 
 ### __Adjusting the home automation logic to your needs__
 
-- mqtt config
+<u>MQTT config</u>
 
-- naming modules inputs
+Update the configured MQTT broker IP and port to connect to your broker:
+<img src="./_img/GettingStartedGuide/MQTTConfig.png" alt="Update MQTT config" width="750"/>
 
-- input
+<u>Naming modules</u>
 
-- output
+Select you input and output modules and create a variable for each input and output. Adviced approach *DO_{Digital Outputnumer}* and *DI_{Digital Inputnumber}*:
 
-- persistant variables
+<img src="./_img/GettingStartedGuide/ModuleVariableConfig.png" alt="Update MQTT config" width="750"/>
 
-WIP
+<u>Pushbutton Input Logic</u>
 
+For each input linked to a pushbutton a function block needs to be created:
+<img src="./_img/GettingStartedGuide/InputPushbuttonLogic.png" alt="Input pushbutton logic" width="750"/>
+
+To get started:
+1. Remove all existing *FB_DI_PB_XXX* function blocks except the first one.
+1. In the *MAIN_INIT* action remove all references to *FB_DI_PB_XXX* function blocks except the first one.
+1. In the *READ_PUSHBUTTONS* action remove all references to *FB_DI_PB_XXX* function blocks except the first one.
+1. In the *READ_PUSHBUTTONS* action update *FB_DI_PB_001* to read the physical input variable created in the previous step *"Naming modules"*.
+
+For more information on the *FB_INPUT_PUSHBUTTON_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_INPUT_PUSHBUTTON_MQTT).
+
+<u>Output Switch Logic</u>
+
+For each input linked to a pushbutton a function block needs to be created:
+<img src="./_img/GettingStartedGuide/OutputSwitchLogic.png" alt="Output switch logic" width="750"/>
+
+To get started:
+1. Remove all existing *FB_DO_SW_XXX* function blocks except the first one.
+1. In the *MAIN_INIT* action remove all references to *FB_DO_SW_XXX* function blocks except the first one.
+1. In the *WRITE_SWITCHES* action remove all references to *FB_DO_SW_XXX* function blocks except the first one.
+1. In the *WRITE_SWITCHES* action update *FB_DO_SW_001* to write the physical output variable created in the previous step *"Naming modules"*.
+1. Link the input pushbutton from previous step to switch the *FB_DO_SW_001* output to toggle the output when the pushbutton receives a single press: `TOGGLE	:=FB_DI_PB_001.SINGLE`
+
+For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_OUTPUT_SWITCH_MQTT).
+
+<u>Persistant Variables</u>
+
+In order to be able to maintain the state of the outputs through power cycles *Persistant Variables* are used.
+To update the *Persistant Variables* if you created or removed Function Blocks perform the following steps:
+1. Go the *Peristant Variables* and remove everything:
+<img src="./_img/GettingStartedGuide/PersistentVars_RemoveAll.png" alt="Output switch logic" width="750"/>
+
+1. Go to *Declarations* and select *Add all instance paths*
+<img src="./_img/GettingStartedGuide/PersistentVars_AddAllInstancePaths.png" alt="Output switch logic" width="750"/>
+
+This will add all *PERSIST* variables form the project. Note that the project needs to be build before being able to perform this step.
