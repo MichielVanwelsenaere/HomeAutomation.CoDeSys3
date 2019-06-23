@@ -27,6 +27,15 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Output changes to high** | The digtal output changes state to high. | `TRUE` | 2 | `FALSE` | yes
 | **Output changes to low** | The digtal output changes state to low. | `FALSE` | 2 | `FALSE` | yes
 
+### __MQTT Subscription Behaviour__
+Requires method call `InitMQTT` to enable MQTT capabilities.
+Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
+
+| Command | Description | expected payload | Additional notes | 
+|:-------------|:------------------|:------------------|:------------------|
+| **Change output to high** | Request to change output to high. | `TRUE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
+| **Change output to low** | Request to change output to low. | `FALSE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
+
 ### __Code example__
 
 - variables initiation:
