@@ -21,6 +21,15 @@ OUTPUT(S)
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB: sets the topic to publish to and sets the pointer to the `MQTTPublishQueue`.
 
+### __MQTT Event Behaviour__
+
+| Event | Description | MQTT payload | QOS | Retain flag |
+|:-------------|:------------------|:------------------|:------------------|:--------------------------|
+| **Rising edge** | A signal change from low to high is detected on input `BS`. | `ON` | 2 | `TRUE` |
+| **Falling edge** | A signal change from high to low is detected on input `BS`. | `OFF` | 2 | `TRUE` |
+
+
+
 ### __Code example__
 
 - variables initiation:

@@ -2,9 +2,6 @@
 
 ### __General__
 Can be switched using pulses that are high for one clock cycle (for example from `FB_INPUT_PUSHBUTTON_MQTT`), maintains output state through powercycles.
-Requires method call `InitMQTT` to enable MQTT capabilities.
-Sends ouput state on startup to the `MQTTPublishQueue`.
-Sends events `TRUE`, `FALSE` to the `MQTTPublishQueue`.
 
 ### __Block diagram__
 
@@ -21,6 +18,14 @@ OUTPUT(S)
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB: sets the topic to publish to, sets the topic to subscribe to, registers to the callbackcollector and sets the pointer to the `MQTTPublishQueue`.
 - PublishRecived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+
+### __MQTT Event Behaviour__
+Requires method call `InitMQTT` to enable MQTT capabilities.
+
+| Event | Description | MQTT payload | QOS | Retain flag | Published on startup |
+|:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
+| **Output changes to high** | The digtal output changes state to high. | `TRUE` | 2 | `FALSE` | yes
+| **Output changes to low** | The digtal output changes state to low. | `FALSE` | 2 | `FALSE` | yes
 
 ### __Code example__
 
