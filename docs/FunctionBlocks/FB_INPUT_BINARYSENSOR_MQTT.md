@@ -14,9 +14,9 @@ INPUT(S)
 
 OUTPUT(S)
 - Q: follows the input `BS` but debounced.
-- EVENT: output high for one clock cycle when any event occurs on input `BS`.
-- EVENT_R: output high for one clock cycle when a rising edge is detected on input `BS`.
-- EVENT_F: output high for one clock cycle when a falling edge is detected on input `BS`.
+- EVENT: output high for one clock cycle when any event occurs on debounced input `BS`.
+- EVENT_R: output high for one clock cycle when a rising edge is detected on debounced input `BS`.
+- EVENT_F: output high for one clock cycle when a falling edge is detected on debounced input `BS`.
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB: sets the topic to publish to and sets the pointer to the `MQTTPublishQueue`.
