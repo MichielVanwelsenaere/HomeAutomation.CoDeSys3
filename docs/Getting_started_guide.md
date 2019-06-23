@@ -70,18 +70,17 @@ Executing the steps above will most likely introduce build errors, this is norma
 
 ### __Adjusting the home automation logic to your needs__
 
-<u>MQTT config</u>
-
+#### MQTT config
 Update the configured MQTT broker IP and port to connect to your broker:
 <img src="./_img/GettingStartedGuide/MQTTConfig.png" alt="Update MQTT config" width="750"/>
 
-<u>Naming modules</u>
+#### Naming modules
 
 Select you input and output modules and create a variable for each input and output. Adviced approach *DO_{Digital Outputnumer}* and *DI_{Digital Inputnumber}*:
 
 <img src="./_img/GettingStartedGuide/ModuleVariableConfig.png" alt="Update MQTT config" width="750"/>
 
-<u>Pushbutton Input Logic</u>
+#### Pushbutton Input Logic
 
 For each input linked to a pushbutton a function block needs to be created:
 <img src="./_img/GettingStartedGuide/InputPushbuttonLogic.png" alt="Input pushbutton logic" width="750"/>
@@ -94,7 +93,7 @@ To get started:
 
 For more information on the *FB_INPUT_PUSHBUTTON_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_INPUT_PUSHBUTTON_MQTT).
 
-<u>Output Switch Logic</u>
+#### Output Switch Logic
 
 For each input linked to a pushbutton a function block needs to be created:
 <img src="./_img/GettingStartedGuide/OutputSwitchLogic.png" alt="Output switch logic" width="750"/>
@@ -108,7 +107,7 @@ To get started:
 
 For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_OUTPUT_SWITCH_MQTT).
 
-<u>Persistant Variables</u>
+#### Persistant Variables
 
 In order to be able to maintain the state of the outputs through power cycles *Persistant Variables* are used.
 To update the *Persistant Variables* if you created or removed Function Blocks perform the following steps:
