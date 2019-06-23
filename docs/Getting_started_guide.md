@@ -70,5 +70,15 @@ Executing the steps above will most likely introduce build errors, this is norma
 
 ### __Adjusting the home automation logic to your needs__
 
+- mqtt config
+
+- naming modules inputs
+
+- input
+
+- output
+
+- persistant variables
+
 WIP
 
