@@ -51,7 +51,8 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 ```
 
 ### __Home Assistant yaml__
-To integrate with Home Assistant use the yaml code below in your MQTT sensors config:
+To integrate with Home Assistant use the yaml code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+
 ```yaml
 - platform: MQTT
   name: "FB_DI_PB_001"
