@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-06-21T15:43:27.5129769" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-06-21T15:43:03.6882466">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-06-23T21:16:58.9128724" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-06-23T21:16:13.7108671">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2126,6 +2126,180 @@ END_IF
               </addData>
             </pou>
           </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="FB_INPUT_BINARYSENSOR_MQTT" pouType="functionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="BS">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <outputVars>
+                  <variable name="Q">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Follows the input but debounced </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="EVENT">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Event outputs only high for on clock cycle </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="EVENT_R">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="EVENT_F">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </outputVars>
+                <localVars>
+                  <variable name="InitMqttDone">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="MqttPublishTopicPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MqttPublishTopicSuffix">
+                    <type>
+                      <string length="15" />
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="FB_DEBOUNCE">
+                    <type>
+                      <derived name="OSCAT_BUILDING.DEBOUNCE" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> to debounce the physical input </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="FB_R_TRIG">
+                    <type>
+                      <derived name="Standard.R_TRIG" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> to detect a rising edge on the debounced signal </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="FB_F_TRIG">
+                    <type>
+                      <derived name="Standard.F_TRIG" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> to detect a falling edge on the debounced signal </xhtml>
+                    </documentation>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DEBOUNCE(IN := BS,	
+	TD := T#50MS, (* 2x cyle + 10ms *)
+	PM := FALSE,
+	Q=&gt;Q);
+
+FB_R_TRIG(CLK := FB_DEBOUNCE.Q);
+FB_F_TRIG(CLK := FB_DEBOUNCE.Q);
+
+EVENT := FB_R_TRIG.Q OR FB_F_TRIG.Q;
+EVENT_R := FB_R_TRIG.Q;
+EVENT_F := FB_F_TRIG.Q;
+
+IF FB_R_TRIG.Q AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'ON',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF
+
+IF FB_F_TRIG.Q AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'OFF',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="InitMqtt" ObjectId="f110376d-54c8-434e-96eb-1aaf4c222164">
+                    <interface>
+                      <inputVars>
+                        <variable name="MQTTPublishPrefix">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                        <variable name="MQTTTopicSuffix">
+                          <type>
+                            <string length="15" />
+                          </type>
+                        </variable>
+                        <variable name="pMqttPublishQueue">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <derived name="FB_MqttPublishQueue" />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                      </inputVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+THIS^.MqttPublishTopicSuffix := MQTTTopicSuffix;
+
+InitMqttDone := TRUE;</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                  <ObjectId>ca9d988f-3694-4978-bb99-efe82355ffa6</ObjectId>
+                </data>
+              </addData>
+            </pou>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
             <Libraries>
               <Library Name="#IoStandard" Namespace="IoStandard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="true" DefaultResolution="IoStandard, 3.5.13.0 (System)" />
@@ -2201,6 +2375,9 @@ END_IF
             <Object Name="FB_OUTPUT_SWITCH_MQTT" ObjectId="6b9f6e87-1d59-463d-821a-1ca879dcd434">
               <Object Name="InitMqtt" ObjectId="b0eb0a8e-ef00-4bf5-a167-d207444fa21e" />
               <Object Name="PublishRecived" ObjectId="54e02ede-e4c8-453a-857f-58e1bf13249b" />
+            </Object>
+            <Object Name="FB_INPUT_BINARYSENSOR_MQTT" ObjectId="ca9d988f-3694-4978-bb99-efe82355ffa6">
+              <Object Name="InitMqtt" ObjectId="f110376d-54c8-434e-96eb-1aaf4c222164" />
             </Object>
           </Folder>
           <Object Name="MqttVariables" ObjectId="4f9cb91a-49cd-4924-912b-f57a11772a7e" />
