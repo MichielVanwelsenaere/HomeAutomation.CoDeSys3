@@ -2,8 +2,6 @@
 
 ### __General__
 Reads out a digital input and sets a single, double or long output high for one cyclus when a single, double or long press has been detected on the input.
-Requires method call `InitMQTT` to enable MQTT capabilities.
-Sends events `SINGLE`, `DOUBLE`, `LONG` to the `MQTTPublishQueue`.
 
 ### __Block diagram__
 
@@ -19,6 +17,15 @@ OUTPUT(S)
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB: sets the topic to publish to and sets the pointer to the `MQTTPublishQueue`.
+
+### __MQTT Event Behaviour__
+Requires method call `InitMQTT` to enable MQTT capabilities.
+
+| Event | Description | MQTT payload | QOS | Retain flag | Published on startup |
+|:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
+| **Pushbutton single press** | A single pushbutton press is detected on input `PB`. | `SINGLE` | 2 | `FALSE` | no
+| **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `DOUBLE` | 2 | `FALSE` | no
+| **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
 
 ### __Code example__
 

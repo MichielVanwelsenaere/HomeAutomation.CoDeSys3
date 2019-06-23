@@ -2,8 +2,6 @@
 
 ### __General__
 Binary sensors gather information about the state of devices which have a "digital" return value (either 1 or 0). These can be switches, contacts, pins, etc. These sensors only have two states: *0/off/low/closed/false* and *1/on/high/open/true*
-Requires method call `InitMQTT` to enable MQTT capabilities.
-Sends events `ON` and `OFF`, to the `MQTTPublishQueue` with Retain flat set to `TRUE`.
 
 ### __Block diagram__
 
@@ -20,6 +18,16 @@ OUTPUT(S)
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB: sets the topic to publish to and sets the pointer to the `MQTTPublishQueue`.
+
+### __MQTT Event Behaviour__
+Requires method call `InitMQTT` to enable MQTT capabilities.
+
+| Event | Description | MQTT payload | QOS | Retain flag | Published on startup |
+|:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
+| **Rising edge** | A signal change from low to high is detected on input `BS`. | `ON` | 2 | `TRUE` | no
+| **Falling edge** | A signal change from high to low is detected on input `BS`. | `OFF` | 2 | `TRUE` | no
+
+
 
 ### __Code example__
 
