@@ -39,7 +39,7 @@ FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTBinarySensorPref
 
 - reading digital input for events (cyclic):
 ```
-FB_DI_BS_001(PB:= DI_001);
+FB_DI_BS_001(BS:= DI_001);
 ```
 
 - integration with `FB_OUTPUT_SWITCH_MQTT`:
