@@ -31,7 +31,7 @@ FB_DI_BS_001            :FB_INPUT_BINARYSENSOR_MQTT;
 
 - Init MQTT method call (called once during startup):
 ```
-FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* pointer to string prefix for the MQTT publish topic *)
+FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTBinarySensorPrefix),    (* pointer to string prefix for the MQTT publish topic *)
     MQTTTopicSuffix := 'FB_DI_BS_001',                                  (* value to suffix the the MQTT topic, should be unique for each FB *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
@@ -47,12 +47,12 @@ FB_DI_BS_001(PB:= DI_001);
 FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
     PRIOHIGH:=      FALSE,                  (* brings the output high regardless of other input values *)
     PRIOLOW:=       FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
-    TOGGLE:=        FB_DI_BS_001.EVENT     (* for toggling the output *)	
+    TOGGLE:=        FB_DI_BS_001.EVENT      (* for toggling the output *)	
 );
 ```
 
 ### __Home Assistant yaml__
-To integrate with Home Assistant use the yaml code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor/) config:
+To integrate with Home Assistant use the yaml code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor.mqtt/) config:
 
 ```yaml
 - platform: MQTT
