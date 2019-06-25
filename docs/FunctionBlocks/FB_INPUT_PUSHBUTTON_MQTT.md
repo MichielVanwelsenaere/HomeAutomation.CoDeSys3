@@ -1,7 +1,7 @@
 ## FB_INPUT_PUSHBUTTON_MQTT
 
 ### __General__
-Reads out a digital input and sets a single, double or long output high for one cyclus when a single, double or long press has been detected on the input.
+Reads out a digital input and sets a single, double or long output high for one cycle when one of those events has been detected on the configured input.
 
 ### __Block diagram__
 
@@ -16,7 +16,7 @@ OUTPUT(S)
 - LONG: output high for one clock cycle when a long push is detected on input `PB`.
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the topic to publish to and sets the pointer to the `MQTTPublishQueue`.
+- InitMQTT: enables MQTT events on the FB. Sets the topic to publish to and sets the pointer to the `MQTTPublishQueue`.
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -57,10 +57,10 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 );
 ```
 
-### __Home Assistant yaml__
-To integrate with Home Assistant use the yaml code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+### __Home Assistant YAML__
+To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
-```yaml
+```YAML
 - platform: MQTT
   name: "FB_DI_PB_001"
   state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"

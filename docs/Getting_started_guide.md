@@ -1,7 +1,7 @@
 ## Getting started guide
 
 ### __Getting to know CoDeSys3__
-If you have experience with programming in CodeSys3 you can skip this part. Otherwise, it's adviced to gain some experience by checking the sources below:
+If you have experience with programming in CodeSys3 you can skip this part. Otherwise, it's advised to gain some experience by checking the sources below:
 
 - Setup environment and creation first project: [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s)
 - CoDeSys start guide (uses CoDeSys 2.3 but principles still applicable): [YouTube playlist](https://www.youtube.com/watch?v=WP9pUfBi6Pw&list=PL08CDB741463CA7B4&index=1)
@@ -9,7 +9,7 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 ### __Setup CoDeSys3__
 
-1. Download CoDeSys3 from the [CoDeSys store](https://store.codesys.com/). Note that you need to create an account in order to be able to download the installer.
+1. Download CoDeSys3 from the [CoDeSys store](https://store.codesys.com/). Note that you need to create an account to be able to download the installer.
 2. Install your device target package. Steps explained in this [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s), steps might differ slightly depending on your device target.
     - Common device target package: [WAGO-PFC100](https://store.codesys.com/codesys-control-for-pfc100-sl.html)
     - Common device target package: [WAGO-PFC200](https://store.codesys.com/codesys-control-for-pfc200-sl.html)
@@ -18,7 +18,7 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 
 ### __Building the project__
 
-1. Clone the repository and open the *HomeAutomation.project* file in CoDeSys. Ignore the warnings about missing libraries (will be fixed in next steps) and don't update any existing libraries.
+1. Clone the repository and open the *HomeAutomation.project* file in CoDeSys. Ignore the warnings about missing libraries (will be fixed in the next steps) and don't update any existing libraries.
 
 2. Go to the *Library Manager* menu, press *Download missing libraries* and install all missing libraries:
 
@@ -52,7 +52,7 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 ### __Updating the configured devices to your PLC device configuration__
 As the IO modules installed on your PLC will most likely differ from the ones configured in the project an update is required.
 
-1. Turn on your PLC with a netwerk cable plugged in. Make sure that the device you are using to follow this steps is on the same network.
+1. Turn on your PLC with a network cable plugged in. Make sure that the device you are using to follow this steps is on the same network.
 
 2. From the *Device* section in the project select *Scan network..* and Select your PLC:</br>
 <img src="./_img/GettingStartedGuide/ScanningAndConnectingToPLC.png" alt="Scan network and connect to PLC" width="750"/>
@@ -109,15 +109,15 @@ For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [d
 
 #### Persistant Variables
 
-In order to be able to maintain the state of the outputs through power cycles *Persistant Variables* are used.
-To update the *Persistant Variables* if you created or removed Function Blocks perform the following steps:
-1. Go the *Peristant Variables* and remove everything:
+In order to be able to maintain the state of the outputs through power cycles *Persistent Variables* are used.
+To update the *Persistent Variables* if you created or removed Function Blocks perform the following steps:
+1. Go the *Persistent Variables* and remove everything:
 <img src="./_img/GettingStartedGuide/PersistentVars_RemoveAll.png" alt="Output switch logic" width="750"/>
 
 1. Go to *Declarations* and select *Add all instance paths*
 <img src="./_img/GettingStartedGuide/PersistentVars_AddAllInstancePaths.png" alt="Output switch logic" width="750"/>
 
-This will add all *PERSIST* variables form the project. Note that the project needs to be build before being able to perform this step.
+This will add all *PERSIST* variables form the project. Note that the project needs to be built before being able to perform this step.
 
 
 ### __Uploading and running the project__
@@ -131,4 +131,4 @@ To upload and run the project on your PLC perform the following steps:
 1. *Start* the application on your PLC:</br>
 <img src="./_img/GettingStartedGuide/UploadToPLC_start.png" alt="start the application" width="400"/>
 
-Note that you might need to rescann your network from the *Device Communications* tab to execute this steps successfully. 
+Note that you might need to rescan your network from the *Device Communications* tab to execute these steps successfully. 
