@@ -2,7 +2,7 @@
 
 ### __General Overview__
 The software is designed to have a loosely coupled architecture making it possible to add new home automation functionality without the need to worry about the MQTT communication to much.
-This results in a seperate task for the main home automation task and a task to handle the MQTT communication to the broker. A global variable list is used to share memory objects between the two tasks enabling communication.
+This results in a separate task for the main home automation task and a task to handle the MQTT communication to the broker. A global variable list is used to share memory objects between the two tasks enabling communication.
 
 ![SoftwareArchitecture](./_img/SoftwareArchitecture.svg)
 
@@ -17,7 +17,7 @@ The main task is build using a SFC (Sequential Function Chart) with the followin
 3. `WRITE_SWITCHES`: action ran continously after `READ_PUSHBUTTONS` to switch outputs using the results from `READ_PUSHBUTTONS`.
 
 Each of the Function Blocks (FB's) used to read inputs and switch outputs has a reference to a `MQTTPublishQueue` which is used to queue events to send to the MQTT broker.
-The events are send towards the broker in the MQTT Task which has a lower priority so it never interferes with the main task which does the critical work.
+The events are sent towards the broker in the MQTT Task which has a lower priority so it never interferes with the main task which does the critical work.
 
 ### __MQTT Task (PLC_PRG_MQTT)__
 The main task is build using a SFC (Sequential Function Chart) with the following actions:

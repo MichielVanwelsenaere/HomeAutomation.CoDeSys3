@@ -59,10 +59,10 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 );
 ```
 
-### __Home Assistant yaml__
-To integrate with Home Assistant use the yaml code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor.mqtt/) config:
+### __Home Assistant YAML__
+To integrate with Home Assistant use the YAML code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor.mqtt/) config:
 
-```yaml
+```YAML
 - platform: MQTT
   name: "FB_DI_BS_001"
   state_topic: "WAGO-PFC200/Out/DigitalInputs/BinarySensors/FB_DI_BS_001"
