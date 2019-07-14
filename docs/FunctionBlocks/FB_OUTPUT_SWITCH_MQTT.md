@@ -16,7 +16,7 @@ OUTPUT(S)
 - OUT: output to switch digital output on and off. Can be connected to a relay for example. 
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the topic to publish to, sets the topic to subscribe to, registers to the callbackcollector and sets the pointer to the `MQTTPublishQueue`.
+- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic & subscribe topic, registers to the callbackcollector and sets the pointer to the `MQTTPublishQueue`.
 - PublishRecived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
 ### __MQTT Event Behaviour__
@@ -38,7 +38,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 | **Change output to high** | Request to change output to high. | `TRUE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
 | **Change output to low** | Request to change output to low. | `FALSE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
 
-MQTT subscription topic is a concatination of the subscribe prefix and the function block name. 
+MQTT subscription topic is a concatination of the subscribe prefix variable and the function block name. 
 
 ### __Code example__
 

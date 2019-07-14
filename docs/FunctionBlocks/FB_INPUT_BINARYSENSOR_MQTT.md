@@ -17,7 +17,7 @@ OUTPUT(S)
 - EVENT_F: output high for one clock cycle when a falling edge is detected on debounced input `BS`.
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the topic to publish to and sets the pointer to the `MQTTPublishQueue`.
+- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`.
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -27,7 +27,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Rising edge** | A signal change from low to high is detected on input `BS`. | `ON` | 2 | `TRUE` | no
 | **Falling edge** | A signal change from high to low is detected on input `BS`. | `OFF` | 2 | `TRUE` | no
 
-MQTT publish topic is a concatination of the publish prefix and the function block name. 
+MQTT publish topic is a concatination of the publish prefix variable and the function block name. 
 
 ### __Code example__
 
