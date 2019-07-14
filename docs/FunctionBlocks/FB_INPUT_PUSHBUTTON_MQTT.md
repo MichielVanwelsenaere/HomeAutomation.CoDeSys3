@@ -27,6 +27,8 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `DOUBLE` | 2 | `FALSE` | no
 | **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
 
+MQTT publish topic is a concatination of the publish prefix and the function block name. 
+
 ### __Code example__
 
 - variables initiation:
@@ -38,10 +40,10 @@ FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_MQTT;
 - Init MQTT method call (called once during startup):
 ```
 FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* pointer to string prefix for the MQTT publish topic *)
-    MQTTTopicSuffix := 'FB_DI_PB_001',                                  (* value to suffix the the MQTT topic, should be unique for each FB *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
 ```
+The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001`.
 
 - reading digital input for events (cyclic):
 ```
