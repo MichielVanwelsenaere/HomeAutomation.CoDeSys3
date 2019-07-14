@@ -40,7 +40,7 @@ FB_DI_BS_001            :FB_INPUT_BINARYSENSOR_MQTT;
 - Init MQTT method call (called once during startup):
 ```
 FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTBinarySensorPrefix),    (* pointer to string prefix for the MQTT publish topic *)
-    pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)          (* pointer to MQTTPublishQueue to send a new MQTT event *)
+    pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)                          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
 ```
 The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/BinarySensors/FB_DI_BS_001` (MQTTBinarySensorPrefix variable + function block name).
