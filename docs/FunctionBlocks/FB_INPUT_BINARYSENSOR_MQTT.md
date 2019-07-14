@@ -40,7 +40,6 @@ FB_DI_BS_001            :FB_INPUT_BINARYSENSOR_MQTT;
 - Init MQTT method call (called once during startup):
 ```
 FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTBinarySensorPrefix),    (* pointer to string prefix for the MQTT publish topic *)
-    MQTTTopicSuffix := 'FB_DI_BS_001',                                  (* value to suffix the the MQTT topic, should be unique for each FB *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
 ```
