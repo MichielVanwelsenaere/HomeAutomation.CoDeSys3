@@ -16,7 +16,7 @@ OUTPUT(S)
 - OUT: output to switch digital output on and off. Can be connected to a relay for example. 
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the topic to publish to, sets the topic to subscribe to, registers to the callbackcollector and sets the pointer to the `MQTTPublishQueue`.
+- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic & subscribe topic, registers to the callbackcollector and sets the pointer to the `MQTTPublishQueue`.
 - PublishRecived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
 ### __MQTT Event Behaviour__
@@ -27,6 +27,8 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Output changes to high** | The digtal output changes state to high. | `TRUE` | 2 | `FALSE` | yes
 | **Output changes to low** | The digtal output changes state to low. | `FALSE` | 2 | `FALSE` | yes
 
+MQTT publish topic is a concatination of the publish prefix and the function block name. 
+
 ### __MQTT Subscription Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
@@ -35,6 +37,8 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 |:-------------|:------------------|:------------------|:------------------|
 | **Change output to high** | Request to change output to high. | `TRUE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
 | **Change output to low** | Request to change output to low. | `FALSE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
+
+MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
 ### __Code example__
 
@@ -54,6 +58,8 @@ FB_DO_SW_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),             
     pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_SWITCH_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
 );
 ```
+The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalOutputs/FB_DO_SW_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/DigitalOutputs/FB_DO_SW_001` (MQTTSubSwitchPrefix variable + function block name).
+
 
 - checking for events to switch the digital output (cyclic):
 ```

@@ -16,7 +16,7 @@ OUTPUT(S)
 - LONG: output high for one clock cycle when a long push is detected on input `PB`.
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB. Sets the topic to publish to and sets the pointer to the `MQTTPublishQueue`.
+- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`.
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -26,6 +26,8 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Pushbutton single press** | A single pushbutton press is detected on input `PB`. | `SINGLE` | 2 | `FALSE` | no
 | **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `DOUBLE` | 2 | `FALSE` | no
 | **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
+
+MQTT publish topic is a concatenation of the publish prefix variable and the function block name. 
 
 ### __Code example__
 
@@ -38,10 +40,10 @@ FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_MQTT;
 - Init MQTT method call (called once during startup):
 ```
 FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* pointer to string prefix for the MQTT publish topic *)
-    MQTTTopicSuffix := 'FB_DI_PB_001',                                  (* value to suffix the the MQTT topic, should be unique for each FB *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
 ```
+The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name).
 
 - reading digital input for events (cyclic):
 ```

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-06-23T21:16:58.9128724" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-06-23T21:16:13.7108671">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-07-14T20:41:33.5400272" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-07-14T20:39:19.1406962">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -689,63 +689,61 @@ FB_DI_PB_048(PB:= DI_048);</xhtml>
                     <ST>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml">(* INIT DIGITAL INPUT STUFF *)
 FB_DI_PB_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	(* pointer to string prefix for the mqtt publish topic *)
-	MQTTTopicSuffix := 'FB_DI_PB_001',									(* value to suffix the the MQTT topic, should be unique for each FB *)
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)		(* pointer to MqttPublishQueue to send a new Mqtt event *)
 );
-FB_DI_PB_002.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_002',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_003.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_003',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_004.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_004',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_005.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_005',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_006.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_006',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_007.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_007',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_008.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_008',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_009.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_009',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_010.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_010',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_011.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_011',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_012.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_012',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_013.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_013',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_014.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_014',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_015.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_015',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_016.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	MQTTTopicSuffix := 'FB_DI_PB_016',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_002.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_003.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_004.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_005.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_006.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_007.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_008.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_009.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_010.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_011.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_012.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_013.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_014.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_015.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_016.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
 
 (* INIT DIGITAL OUTPUT STUFF *)
 FB_DO_SW_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),					(* pointer to string prefix for the mqtt publish topic *)
 	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),									(* pointer to string prefix for the mqtt subscribe topic *)
-	MQTTTopicSuffix := 'FB_DO_SW_001',													(* value to suffix the the MQTT topic, should be unique for each FB *)
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						(* pointer to MqttPublishQueue to send a new Mqtt event *)
 	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT)	(* pointer to CallbackCollector to receive Mqtt subscription events *)
 );
-FB_DO_SW_002.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_002',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_003.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_003',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_004.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_004',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_005.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_005',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_006.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_006',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_007.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_007',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_008.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_008',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_009.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_009',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_010.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_010',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_011.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_011',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_012.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_012',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_013.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_013',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_014.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_014',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_015.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_015',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_016.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_016',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_017.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_017',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_018.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_018',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_019.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_019',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_020.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_020',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_021.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_021',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_022.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_022',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_023.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_023',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_024.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_024',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_025.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_025',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_026.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_026',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_027.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_027',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_028.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_028',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_029.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_029',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_030.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_030',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_031.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_031',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	MQTTTopicSuffix := 'FB_DO_SW_032',	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));</xhtml>
+FB_DO_SW_002.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_003.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_004.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_005.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_006.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_007.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_008.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_009.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_010.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_011.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_012.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_013.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_014.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_015.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_016.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_017.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_018.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_019.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_020.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_021.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_022.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_023.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_024.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_025.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_026.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_027.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_028.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_029.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_030.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_031.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));</xhtml>
                     </ST>
                   </body>
                   <addData>
@@ -982,6 +980,22 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
                   </variable>
                 </outputVars>
                 <localVars>
+                  <variable name="InstanceName">
+                    <type>
+                      <string />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="instance-path" Value="" />
+                          <Attribute Name="noinit" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+                    </documentation>
+                  </variable>
                   <variable name="InitMqttDone">
                     <type>
                       <BOOL />
@@ -1016,6 +1030,13 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
                     </type>
                   </variable>
                 </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                    <Attributes>
+                      <Attribute Name="reflection" Value="" />
+                    </Attributes>
+                  </data>
+                </addData>
               </interface>
               <body>
                 <ST>
@@ -1069,11 +1090,6 @@ END_IF</xhtml>
                             </pointer>
                           </type>
                         </variable>
-                        <variable name="MQTTTopicSuffix">
-                          <type>
-                            <string length="15" />
-                          </type>
-                        </variable>
                         <variable name="pMqttPublishQueue">
                           <type>
                             <pointer>
@@ -1084,12 +1100,25 @@ END_IF</xhtml>
                           </type>
                         </variable>
                       </inputVars>
+                      <localVars>
+                        <variable name="InstanceNamePt">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                      </localVars>
                     </interface>
                     <body>
                       <ST>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-THIS^.MqttPublishTopicSuffix := MQTTTopicSuffix;
+
+InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 
 InitMqttDone := TRUE;</xhtml>
                       </ST>
@@ -1140,6 +1169,22 @@ InitMqttDone := TRUE;</xhtml>
                   </variable>
                 </outputVars>
                 <localVars>
+                  <variable name="InstanceName">
+                    <type>
+                      <string />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="instance-path" Value="" />
+                          <Attribute Name="noinit" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+                    </documentation>
+                  </variable>
                   <variable name="Startup">
                     <type>
                       <BOOL />
@@ -1207,6 +1252,11 @@ InitMqttDone := TRUE;</xhtml>
                     <Inheritance>
                       <Implements>SD_MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
                     </Inheritance>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                    <Attributes>
+                      <Attribute Name="reflection" Value="" />
+                    </Attributes>
                   </data>
                 </addData>
               </interface>
@@ -1277,11 +1327,6 @@ PreviousState := OUT;</xhtml>
                             </pointer>
                           </type>
                         </variable>
-                        <variable name="MQTTTopicSuffix">
-                          <type>
-                            <string length="15" />
-                          </type>
-                        </variable>
                         <variable name="pMqttPublishQueue">
                           <type>
                             <pointer>
@@ -1301,13 +1346,26 @@ PreviousState := OUT;</xhtml>
                           </type>
                         </variable>
                       </inputVars>
+                      <localVars>
+                        <variable name="InstanceNamePt">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                      </localVars>
                     </interface>
                     <body>
                       <ST>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,MQTTTopicSuffix);
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-THIS^.MqttPublishTopicSuffix := MQTTTopicSuffix;
+
+InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
+THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);
 
 // register the FB agains the collector so mqtt events can be received
 pMqttCallbackCollector^.put(instance:= THIS^);
@@ -1337,8 +1395,12 @@ InitMqttDone := TRUE;</xhtml>
                     </interface>
                     <body>
                       <ST>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml">//check if the packet is for this FB
-IF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishRecived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
 	//mark the interface call from the collector as done
 	PublishRecived := TRUE;
 	//now process the data
@@ -2165,6 +2227,22 @@ END_IF
                   </variable>
                 </outputVars>
                 <localVars>
+                  <variable name="InstanceName">
+                    <type>
+                      <string />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="instance-path" Value="" />
+                          <Attribute Name="noinit" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+                    </documentation>
+                  </variable>
                   <variable name="InitMqttDone">
                     <type>
                       <BOOL />
@@ -2218,6 +2296,13 @@ END_IF
                     </documentation>
                   </variable>
                 </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                    <Attributes>
+                      <Attribute Name="reflection" Value="" />
+                    </Attributes>
+                  </data>
+                </addData>
               </interface>
               <body>
                 <ST>
@@ -2266,11 +2351,6 @@ END_IF</xhtml>
                             </pointer>
                           </type>
                         </variable>
-                        <variable name="MQTTTopicSuffix">
-                          <type>
-                            <string length="15" />
-                          </type>
-                        </variable>
                         <variable name="pMqttPublishQueue">
                           <type>
                             <pointer>
@@ -2281,12 +2361,25 @@ END_IF</xhtml>
                           </type>
                         </variable>
                       </inputVars>
+                      <localVars>
+                        <variable name="InstanceNamePt">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                      </localVars>
                     </interface>
                     <body>
                       <ST>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-THIS^.MqttPublishTopicSuffix := MQTTTopicSuffix;
+
+InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 
 InitMqttDone := TRUE;</xhtml>
                       </ST>
