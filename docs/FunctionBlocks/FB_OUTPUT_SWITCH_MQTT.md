@@ -38,7 +38,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 | **Change output to high** | Request to change output to high. | `TRUE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
 | **Change output to low** | Request to change output to low. | `FALSE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
 
-MQTT subscription topic is a concatination of the subscribe prefix variable and the function block name. 
+MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
 ### __Code example__
 

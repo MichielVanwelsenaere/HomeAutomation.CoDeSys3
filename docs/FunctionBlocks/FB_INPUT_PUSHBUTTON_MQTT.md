@@ -27,7 +27,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `DOUBLE` | 2 | `FALSE` | no
 | **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
 
-MQTT publish topic is a concatination of the publish prefix variable and the function block name. 
+MQTT publish topic is a concatenation of the publish prefix variable and the function block name. 
 
 ### __Code example__
 
