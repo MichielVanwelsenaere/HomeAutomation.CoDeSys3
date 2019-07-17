@@ -68,6 +68,8 @@ As the IO modules installed on your PLC will most likely differ from the ones co
 
 Executing the steps above will most likely introduce build errors, this is normal! The current program uses every input and output of the configured device modules. By adjusting/removing them this naturally causes build issues. These build issues will be fixed in the next topic where the program logic is adjusted to your PLC configuration.
 
+Make sure to update the PLC device configuration to your exact PLC device setup in order to avoid issues. 
+
 ### __Adjusting the home automation logic to your needs__
 
 #### MQTT config
@@ -91,7 +93,7 @@ To get started:
 1. In the *READ_PUSHBUTTONS* action remove all references to *FB_DI_PB_XXX* function blocks except the first one.
 1. In the *READ_PUSHBUTTONS* action update *FB_DI_PB_001* to read the physical input variable created in the previous step *"Naming modules"*.
 
-For more information on the *FB_INPUT_PUSHBUTTON_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_INPUT_PUSHBUTTON_MQTT).
+For more information on the *FB_INPUT_PUSHBUTTON_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_INPUT_PUSHBUTTON_MQTT.md).
 
 #### Output Switch Logic
 
@@ -105,7 +107,7 @@ To get started:
 1. In the *WRITE_SWITCHES* action update *FB_DO_SW_001* to write the physical output variable created in the previous step *"Naming modules"*.
 1. Link the input pushbutton from previous step to switch the *FB_DO_SW_001* output to toggle the output when the pushbutton receives a single press: `TOGGLE	:=FB_DI_PB_001.SINGLE`
 
-For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_OUTPUT_SWITCH_MQTT).
+For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_OUTPUT_SWITCH_MQTT.md).
 
 #### Persistant Variables
 
@@ -131,4 +133,4 @@ To upload and run the project on your PLC perform the following steps:
 1. *Start* the application on your PLC:</br>
 <img src="./_img/GettingStartedGuide/UploadToPLC_start.png" alt="start the application" width="400"/>
 
-Note that you might need to rescan your network from the *Device Communications* tab to execute these steps successfully. 
+Note that you might need to rescan your network from the *Device Communications* tab to execute these steps successfully. In addition make sure that the physical switch on your PLC is in _'RUN'_ mode (if applicable).
