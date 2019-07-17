@@ -133,4 +133,4 @@ To upload and run the project on your PLC perform the following steps:
 1. *Start* the application on your PLC:</br>
 <img src="./_img/GettingStartedGuide/UploadToPLC_start.png" alt="start the application" width="400"/>
 
-Note that you might need to rescan your network from the *Device Communications* tab to execute these steps successfully. In addition make sure that your PLC is in _'RUN'_ mode.
+Note that you might need to rescan your network from the *Device Communications* tab to execute these steps successfully. In addition make sure that the physical switch on your PLC is in _'RUN'_ mode (if applicable).
