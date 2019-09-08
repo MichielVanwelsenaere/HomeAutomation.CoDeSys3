@@ -17,6 +17,7 @@ OUTPUT(S)
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`.
+- ConfigureFunctionBlock: configures the time parameter specifing the decoding time for long key press. Defaults to 400mS.
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.

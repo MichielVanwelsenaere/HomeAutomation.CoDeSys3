@@ -9,6 +9,9 @@ TODO:
 
 INPUT(S)
 - PB: digital input linked to the signal wire of a pushbutton.
+- VAL:
+- SET:
+- RST:
 
 OUTPUT(S)
 - SINGLE: output high for one clock cycle when a single push is detected on input `PB`.
@@ -19,8 +22,19 @@ OUTPUT(S)
 - OUT: dimmer value, datatype byte. 
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`.
-- ConfigureDimmer: configures the dimmer with your prefered configurations
+- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`. If dimmer values are not required as MQTT output, set `OutputDimmer` to `FALSE`.
+- ConfigureDimmer: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
+    - `T_Debounce`: 
+    - `T_Reconfig`:
+    - `T_On_Max`:
+    - `T_Dimm_Start`:
+    - `T_Dimm`:
+    - `Min_On`:
+    - `Max_On`:
+    - `Soft_Dimm`:
+    - `Dbl_Toggle`:
+    - `Rst_Out`:
+    - `T_Long`: configures the time parameter specifing the decoding time for long key press. Defaults to 400mS. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`.
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
