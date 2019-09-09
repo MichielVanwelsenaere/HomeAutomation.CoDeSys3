@@ -1,7 +1,7 @@
 ## FB_INPUT_PUSHBUTTON_DIMMER_MQTT
 
 ### __General__
-Big brother of FB_INPUT_PUSHBUTTON_MQTT with additional functionality to output a realtime dimmer value (range 0-255).
+Big brother of input function block [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md) with additional functionality to output a realtime dimmer value (range 0-255).
 
 ### __Block diagram__
 
@@ -17,8 +17,8 @@ OUTPUT(S)
 - SINGLE: output high for one clock cycle when a single push is detected on input `PB`.
 - DOUBLE: output high for one clock cycle when a double push is detected on input `PB`.
 - LONG: output high for one clock cycle when a long push is detected on input `PB`.
-- Q: output
-- DBL: double-click output
+- Q: output.
+- DBL: double-click output.
 - OUT: dimmer value, datatype byte. 
 
 METHOD(S)
