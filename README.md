@@ -27,7 +27,8 @@ More information on the software architecture [here](./docs/SoftwareArchitecture
 
 # FAQ
 
-- [Getting started Guide](./docs/Getting_started_guide.md)
+- [Getting started guide](./docs/Getting_started_guide.md)
+- [I'm missing some functionality](./docs/Missing_functionality.md)
 
 # Libraries
 
