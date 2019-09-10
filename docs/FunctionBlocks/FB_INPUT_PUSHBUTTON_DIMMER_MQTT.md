@@ -19,13 +19,13 @@ OUTPUT(S)
 - LONG: output high for one clock cycle when a long push is detected on input `PB`.
 - Q: output.
 - DBL: double-click output.
-- OUT: dimmer value, datatype byte. 
+- OUT: dimmer value, byte datatype. 
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`. If dimmer values are not required as MQTT output, set `OutputDimmer` to `FALSE`.
+- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`. If dimmer values are not required as MQTT output, set `OutputDimmer` to `FALSE`. Also provides the option to specify the MQTT QoS for the realtime emitted MQTT events on the dimmer. 
 - ConfigureDimmer: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
     - `T_Debounce`: debounce time for input PB, defaults to 10ms.
-    - `T_Reconfig`:  reconfguration time, defaults to 10S
+    - `T_Reconfig`:  reconfguration time, defaults to 10S.
     - `T_On_Max`: start limitation, defaults to 0ms.
     - `T_Dimm_Start`: reaction time to dim, defaults to 400ms.
     - `T_Dimm`: time for a dimming ramps, defaults to 3s.
@@ -37,7 +37,7 @@ METHOD(S)
     - `T_Long`: configures the time parameter specifing the decoding time for long key press. Defaults to 400mS. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`.
 
 ### __Function Block Behaviour__
-This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events for single, double, long and dimmer events. To fully understand it's logic it's adviced to give the documentation present in [the OSCAT building library docs](http://www.oscat.de/images/OSCATBuilding/oscat_building100_en.pdf) a good read (page 52).
+This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events for single, double, long and dimmer events. To fully understand it's logic it's advised to give the documentation present in [the OSCAT building library docs](http://www.oscat.de/images/OSCATBuilding/oscat_building100_en.pdf) a good read (page 52).
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -49,7 +49,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
 | **Output changes: Q**   | A change is detected on output `Q`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: DBL**   | A change is detected on output `DBL`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
-| **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `0-255` | 2 | `FALSE` | no
+| **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `0-255` | configured in method call `InitMQTT` | `FALSE` | no
 
 MQTT publish topic is a concatenation of the publish prefix variable and the function block name.
 
@@ -67,7 +67,8 @@ FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_DIMMER_MQTT;
 ```
 FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* pointer to string prefix for the MQTT publish topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),         (* pointer to MQTTPublishQueue to send a new MQTT event *)
-    TRUE                                                                (* specify whether dimmer value should be outputted on MQTT topic *)
+    TRUE,                                                               (* specify whether dimmer value should be outputted on MQTT topic *)
+    SD_MQTT.QoS.ExactlyOnce                                             (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
 );
 ```
 The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name). Note that for the outputs `Q`, `DBL` and `OUT` the MQTT publish topic has an additional concatination being the name of the output. For example: `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/OUT`.
