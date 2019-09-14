@@ -27,20 +27,20 @@ METHOD(S)
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     - `OutputDimmer`: datatype *BOOL*, specify whether the DIM values (0-255) should be outputted as MQTT events.
     - `Qos_Dimm`: datatype *SD_MQTT.QoS*, MQTT QoS of the DIM MQTT events.
-    - `Delta_Dimm`: datatype *INT*, resolution of the MQTT DIM events. For example: specifying value *5* will configure the FB to only emmit an MQTT event when the DIM output differs *5* or more then it's previous value.
+    - `Delta_Dimm`: datatype *INT*, resolution of the MQTT DIM events. For example: specifying value *5* will configure the FB to only emit an MQTT event when the DIM output differs *5* or more than its previous value.
 
 - ConfigureDimmer: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
     - `T_Debounce`: debounce time for input PB, defaults to 10ms.
-    - `T_Reconfig`:  reconfguration time, defaults to 10S.
+    - `T_Reconfig`:  reconfiguration time, defaults to 10S.
     - `T_On_Max`: start limitation, defaults to 0ms.
     - `T_Dimm_Start`: reaction time to dim, defaults to 400ms.
     - `T_Dimm`: time for a dimming ramps, defaults to 3s.
     - `Min_On`: minimum value of output DIM at startup, defaults to 50.
     - `Max_On`: maximum value of output DIM at startup, defaults to 255.
     - `Soft_Dimm`: if TRUE dimming begins after ON and at 0. 
-    - `Dbl_Toggle`: if TRUE the output DBL isinverted at each double-click, defaults to FALSE.
+    - `Dbl_Toggle`: if TRUE the output DBL is inverted at each double-click, defaults to FALSE.
     - `Rst_Out`: if input Rst is TRUE, ouput DIM is set to 0, defaults to FALSE.
-    - `T_Long`: configures the time parameter specifing the decoding time for long key press. Defaults to 400mS. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`.
+    - `T_Long`: configures the time parameter specifying the decoding time for long key press. Defaults to 400mS. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`.
 
 ### __Function Block Behaviour__
 This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events for single, double, long and dimmer events. To fully understand it's logic it's advised to give the documentation present in [the OSCAT building library docs](http://www.oscat.de/images/OSCATBuilding/oscat_building100_en.pdf) a good read (page 52).
@@ -85,7 +85,7 @@ The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInpu
 FB_DI_PB_001(PB:= DI_001);
 ```
 
-- integration with `?`: There's currently no integration with an output function block possible as there's currently no output function block that supports dimming values. Got some hardware laying around that supports dimming on an output? Open [a git issue on the repo](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/issues/new) and let's collaborate on it! 
+- integration with `?`: There's currently no integration with an output function block possible as there's simply no output function block that supports dimming values. Got some hardware laying around that supports dimming on an output? Open [a git issue on the repo](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/issues/new) and let's collaborate on it! 
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
