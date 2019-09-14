@@ -10,7 +10,7 @@ Big brother of input function block [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBU
 INPUT(S)
 - PB: digital input linked to the signal wire of a pushbutton.
 - VAL: byte value for SET operation.
-- SET: input for switching output OUT to input VAL value.
+- SET: input for switching output DIM to input VAL value.
 - RST: input to switch of the output.
 
 OUTPUT(S)
@@ -19,21 +19,27 @@ OUTPUT(S)
 - LONG: output high for one clock cycle when a long push is detected on input `PB`.
 - Q: output.
 - DBL: double-click output.
-- OUT: dimmer value, byte datatype. 
+- DIM: dimmer value, byte datatype. 
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`. If dimmer values are not required as MQTT output, set `OutputDimmer` to `FALSE`. Also provides the option to specify the MQTT QoS for the realtime emitted MQTT events on the dimmer. 
+- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
+    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix automatically set to FB name. 
+    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
+    - `OutputDimmer`: datatype *BOOL*, specify whether the DIM values (0-255) should be outputted as MQTT events.
+    - `Qos_Dimm`: datatype *SD_MQTT.QoS*, MQTT QoS of the DIM MQTT events.
+    - `Delta_Dimm`: datatype *INT*, resolution of the MQTT DIM events. For example: specifying value *5* will configure the FB to only emmit an MQTT event when the DIM output differs *5* or more then it's previous value.
+
 - ConfigureDimmer: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
     - `T_Debounce`: debounce time for input PB, defaults to 10ms.
     - `T_Reconfig`:  reconfguration time, defaults to 10S.
     - `T_On_Max`: start limitation, defaults to 0ms.
     - `T_Dimm_Start`: reaction time to dim, defaults to 400ms.
     - `T_Dimm`: time for a dimming ramps, defaults to 3s.
-    - `Min_On`: minimum value of output OUT at startup, defaults to 50.
-    - `Max_On`: maximum value of output OUT at startup, defaults to 255.
+    - `Min_On`: minimum value of output DIM at startup, defaults to 50.
+    - `Max_On`: maximum value of output DIM at startup, defaults to 255.
     - `Soft_Dimm`: if TRUE dimming begins after ON and at 0. 
     - `Dbl_Toggle`: if TRUE the output DBL isinverted at each double-click, defaults to FALSE.
-    - `Rst_Out`: if input Rst is TRUE, ouput OUT is set to 0, defaults to FALSE.
+    - `Rst_Out`: if input Rst is TRUE, ouput DIM is set to 0, defaults to FALSE.
     - `T_Long`: configures the time parameter specifing the decoding time for long key press. Defaults to 400mS. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`.
 
 ### __Function Block Behaviour__
@@ -49,7 +55,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
 | **Output changes: Q**   | A change is detected on output `Q`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: DBL**   | A change is detected on output `DBL`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
-| **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `0-255` | configured in method call `InitMQTT` | `FALSE` | no
+| **Output changes: DIM**   | A change is detected on output `DIM`. (*) | `0-255` | configured in method call `InitMQTT` | `FALSE` | no
 
 MQTT publish topic is a concatenation of the publish prefix variable and the function block name.
 
@@ -68,10 +74,11 @@ FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_DIMMER_MQTT;
 FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* pointer to string prefix for the MQTT publish topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),         (* pointer to MQTTPublishQueue to send a new MQTT event *)
     TRUE,                                                               (* specify whether dimmer value should be outputted on MQTT topic *)
-    SD_MQTT.QoS.ExactlyOnce                                             (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
+    SD_MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
+    5                                                                   (* specify the resolution for the dimmer mqtt events *)    
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name). Note that for the outputs `Q`, `DBL` and `OUT` the MQTT publish topic has an additional concatination being the name of the output. For example: `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/OUT`.
+The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name). Note that for the outputs `Q`, `DBL` and `DIM` the MQTT publish topic has an additional concatination being the name of the output. For example: `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM`.
 
 - reading digital input for events (cyclic):
 ```
@@ -109,10 +116,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
   payload_not_available: "offline"
-# To receive state of output OUT
+# To receive state of output DIM
 - platform: MQTT
-  name: "FB_DI_PB_001_OUT"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/OUT"
+  name: "FB_DI_PB_001_DIM"
+  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM"
   qos: 2
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
