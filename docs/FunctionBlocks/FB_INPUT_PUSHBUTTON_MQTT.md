@@ -16,7 +16,11 @@ OUTPUT(S)
 - LONG: output high for one clock cycle when a long push is detected on input `PB`.
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic and sets the pointer to the `MQTTPublishQueue`.
+- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
+    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
+    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
+
+- ConfigureFunctionBlock: configures the time parameter specifing the decoding time for long key press. Defaults to 400ms.
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.

@@ -16,7 +16,12 @@ OUTPUT(S)
 - OUT: output to switch digital output on and off. Can be connected to a relay for example. 
 
 METHOD(S)
-- InitMQTT: enables MQTT events on the FB: sets the MQTT publish topic & subscribe topic, registers to the callbackcollector and sets the pointer to the `MQTTPublishQueue`.
+- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
+    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
+    - `MQTTSubscribePrefix`: datatype *POINTER TO STRING*, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name. 
+    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
+    - `pMqttCallbackCollector`: datatype *SD_MQTT.CallbackCollector*, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
+    
 - PublishRecived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
 ### __MQTT Event Behaviour__

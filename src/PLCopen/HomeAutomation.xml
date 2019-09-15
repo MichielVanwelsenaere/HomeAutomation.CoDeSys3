@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-07-14T20:41:33.5400272" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-07-14T20:39:19.1406962">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-09-15T22:26:03.1615621" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-09-14T18:34:49.0498979">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -96,8 +96,6 @@
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="2487535909" />
-                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
@@ -196,7 +194,7 @@
                   </variable>
                   <variable name="FB_DI_PB_009">
                     <type>
-                      <derived name="FB_INPUT_PUSHBUTTON_MQTT" />
+                      <derived name="FB_INPUT_PUSHBUTTON_DIMMER_MQTT" />
                     </type>
                   </variable>
                   <variable name="FB_DI_PB_010">
@@ -698,7 +696,7 @@ FB_DI_PB_005.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublis
 FB_DI_PB_006.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
 FB_DI_PB_007.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
 FB_DI_PB_008.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
-FB_DI_PB_009.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+FB_DI_PB_009.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), TRUE, SD_MQTT.QoS.ExactlyOnce, 5);
 FB_DI_PB_010.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
 FB_DI_PB_011.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
 FB_DI_PB_012.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
@@ -1029,6 +1027,17 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
                       <derived name="OSCAT_BUILDING.CLICK_MODE" />
                     </type>
                   </variable>
+                  <variable name="T_Long">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#400ms" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
+                    </documentation>
+                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -1041,12 +1050,11 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DETECTPUSH(
-	IN:=PB , 
+	IN:= PB, 	
 	SINGLE=&gt; SINGLE, 
 	DOUBLE=&gt; DOUBLE, 
-	LONG=&gt; , 
 	TP_LONG=&gt; LONG, 
-	T_LONG:= T#400MS);
+	T_LONG:= T_Long);
 	
 IF FB_DETECTPUSH.SINGLE AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
@@ -1121,6 +1129,28 @@ InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 
 THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 
 InitMqttDone := TRUE;</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="ConfigureFunctionBlock" ObjectId="1e5a108a-ca87-4e25-a968-0c7bd437b17e">
+                    <interface>
+                      <inputVars>
+                        <variable name="T_Long">
+                          <type>
+                            <TIME />
+                          </type>
+                          <documentation>
+                            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
+                          </documentation>
+                        </variable>
+                      </inputVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_Long:=T_Long;</xhtml>
                       </ST>
                     </body>
                     <addData />
@@ -1699,7 +1729,7 @@ EMPTY := TRUE;</xhtml>
                       <string />
                     </type>
                     <initialValue>
-                      <simpleValue value="'192.168.1.16:1883'" />
+                      <simpleValue value="'192.168.1.25:1883'" />
                     </initialValue>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> variables for MQTT configuration </xhtml>
@@ -2393,6 +2423,498 @@ InitMqttDone := TRUE;</xhtml>
               </addData>
             </pou>
           </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="FB_INPUT_PUSHBUTTON_DIMMER_MQTT" pouType="functionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="PB">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="SET">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="VAL">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="RST">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <outputVars>
+                  <variable name="DIM">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="DBL">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="Q">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="SINGLE">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="DOUBLE">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="LONG">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </outputVars>
+                <localVars>
+                  <variable name="InstanceName">
+                    <type>
+                      <string />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="instance-path" Value="" />
+                          <Attribute Name="noinit" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="InitMqttDone">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="MqttPublishTopicPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MqttPublishTopicSuffix">
+                    <type>
+                      <string length="15" />
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="FB_DIMMER">
+                    <type>
+                      <derived name="OSCAT_BUILDING.DIMM_I" />
+                    </type>
+                  </variable>
+                  <variable name="OutputDimmer">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="Qos_Dimm">
+                    <type>
+                      <derived name="SD_MQTT.QoS" />
+                    </type>
+                  </variable>
+                  <variable name="Delta_Dimm">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="FB_DETECTPUSH">
+                    <type>
+                      <derived name="OSCAT_BUILDING.CLICK_MODE" />
+                    </type>
+                  </variable>
+                  <variable name="PreviousDim">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Vars to detect statechanges on outputs </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PreviousQ">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PreviousDBL">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="T_Debounce">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#10ms" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="T_Reconfig">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#10s0ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_On_Max">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#0ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_Dimm_Start">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#400ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_Dimm">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#3s0ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Min_On">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="50" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Max_On">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="255" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Soft_Dimm">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TRUE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Dbl_Toggle">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Rst_Out">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_Long">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#400ms" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
+                    </documentation>
+                  </variable>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                    <Attributes>
+                      <Attribute Name="reflection" Value="" />
+                    </Attributes>
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DIMMER(
+	IN:= PB,
+	SET:= SET,
+	VAL:= VAL,
+	RST:= RST,
+	OUT:= DIM,
+	T_DEBOUNCE:= T_Debounce,
+	T_RECONFIG:= T_Reconfig,
+	T_ON_MAX:= T_On_Max,
+	T_DIMM_START:= T_Dimm_Start,
+	T_DIMM:= T_Dimm,
+	MIN_ON:= Min_On,
+	MAX_ON:= Max_On,
+	SOFT_DIMM:= Soft_Dimm,
+	DBL_TOGGLE:= Dbl_Toggle,
+	RST_OUT:= Rst_Out,
+	Q=&gt; Q,
+	DBL=&gt; DBL);
+	
+FB_DETECTPUSH(
+	IN:= PB, 	
+	SINGLE=&gt; SINGLE, 
+	DOUBLE=&gt; DOUBLE, 
+	TP_LONG=&gt; LONG, 
+	T_LONG:= T_long);
+	
+IF (ABS(BYTE_TO_INT(PreviousDim) - BYTE_TO_INT(DIM)) &gt;= Delta_Dimm OR PB = FALSE) AND DIM &lt;&gt; PreviousDim AND InitMqttDone AND OutputDimmer THEN
+	PreviousDim:=DIM;
+	pMqttPublishQueue^.AddMessage(		
+		Payload := BYTE_TO_STRING(DIM),
+		Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/DIM'),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := FALSE
+	);
+END_IF
+
+IF FB_DIMMER.Q &lt;&gt; PreviousQ AND InitMqttDone THEN
+	PreviousQ:=FB_DIMMER.Q;
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(FB_DIMMER.Q),
+		Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/Q'),
+		Qos := Qos_Dimm,
+		MqttRetain := TRUE
+	);
+END_IF
+
+IF FB_DIMMER.DBL &lt;&gt; PreviousDBL AND InitMqttDone THEN
+	PreviousDBL:=FB_DIMMER.DBL;
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(FB_DIMMER.DBL),
+		Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/DBL'),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF
+
+IF FB_DETECTPUSH.SINGLE AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'SINGLE',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := FALSE
+	);
+END_IF
+
+IF FB_DETECTPUSH.DOUBLE AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'DOUBLE',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := FALSE
+	);
+END_IF
+
+IF FB_DETECTPUSH.TP_LONG AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'LONG',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := FALSE
+	);
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="InitMqtt" ObjectId="92d445ea-f1e6-4e82-af7a-d5cb8a0a9c1d">
+                    <interface>
+                      <inputVars>
+                        <variable name="MQTTPublishPrefix">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                        <variable name="pMqttPublishQueue">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <derived name="FB_MqttPublishQueue" />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                        <variable name="OutputDimmer">
+                          <type>
+                            <BOOL />
+                          </type>
+                        </variable>
+                        <variable name="Qos_Dimm">
+                          <type>
+                            <derived name="SD_MQTT.QoS" />
+                          </type>
+                        </variable>
+                        <variable name="Delta_Dimm">
+                          <type>
+                            <INT />
+                          </type>
+                        </variable>
+                      </inputVars>
+                      <localVars>
+                        <variable name="InstanceNamePt">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                      </localVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+
+InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
+
+THIS^.OutputDimmer:=OutputDimmer;
+THIS^.Qos_Dimm:=Qos_Dimm;
+THIS^.Delta_Dimm:=Delta_Dimm;
+
+InitMqttDone := TRUE;</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="ConfigureFunctionBlock" ObjectId="90d48068-2884-4b1f-9b73-f21356569b1b">
+                    <interface>
+                      <inputVars>
+                        <variable name="T_Debounce">
+                          <type>
+                            <TIME />
+                          </type>
+                          <documentation>
+                            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                          </documentation>
+                        </variable>
+                        <variable name="T_Reconfig">
+                          <type>
+                            <TIME />
+                          </type>
+                        </variable>
+                        <variable name="T_On_Max">
+                          <type>
+                            <TIME />
+                          </type>
+                        </variable>
+                        <variable name="T_Dimm_Start">
+                          <type>
+                            <TIME />
+                          </type>
+                        </variable>
+                        <variable name="T_Dimm">
+                          <type>
+                            <TIME />
+                          </type>
+                        </variable>
+                        <variable name="Min_On">
+                          <type>
+                            <BYTE />
+                          </type>
+                        </variable>
+                        <variable name="Max_On">
+                          <type>
+                            <BYTE />
+                          </type>
+                        </variable>
+                        <variable name="Soft_Dimm">
+                          <type>
+                            <BOOL />
+                          </type>
+                        </variable>
+                        <variable name="Dbl_Toggle">
+                          <type>
+                            <BOOL />
+                          </type>
+                        </variable>
+                        <variable name="Rst_Out">
+                          <type>
+                            <BOOL />
+                          </type>
+                        </variable>
+                        <variable name="T_Long">
+                          <type>
+                            <TIME />
+                          </type>
+                          <documentation>
+                            <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
+                          </documentation>
+                        </variable>
+                      </inputVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_Debounce:=T_Debounce;
+THIS^.T_Reconfig:=T_Reconfig;
+THIS^.T_On_Max:=T_On_Max;
+THIS^.T_Dimm_Start:=T_Dimm_Start;
+THIS^.T_Dimm:=T_Dimm;
+THIS^.Min_On:=Min_On;
+THIS^.Max_On:=Max_On;
+
+THIS^.T_Long:=T_Long;</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                  <ObjectId>cdfaad6f-339b-483a-b900-7f4706aa9106</ObjectId>
+                </data>
+              </addData>
+            </pou>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
             <Libraries>
               <Library Name="#IoStandard" Namespace="IoStandard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="true" DefaultResolution="IoStandard, 3.5.13.0 (System)" />
@@ -2452,6 +2974,7 @@ InitMqttDone := TRUE;</xhtml>
           <Folder Name="Artifacts">
             <Object Name="FB_INPUT_PUSHBUTTON_MQTT" ObjectId="fbe26336-bbdb-4602-a5ed-1620dbfb925d">
               <Object Name="InitMqtt" ObjectId="a05cf0a9-2685-45de-aeba-f1b0a6b85af7" />
+              <Object Name="ConfigureFunctionBlock" ObjectId="1e5a108a-ca87-4e25-a968-0c7bd437b17e" />
             </Object>
             <Folder Name="MQTT">
               <Object Name="FB_MqttPublishQueue" ObjectId="e6132ec6-e338-480e-a002-5ef8a35407a6">
@@ -2471,6 +2994,10 @@ InitMqttDone := TRUE;</xhtml>
             </Object>
             <Object Name="FB_INPUT_BINARYSENSOR_MQTT" ObjectId="ca9d988f-3694-4978-bb99-efe82355ffa6">
               <Object Name="InitMqtt" ObjectId="f110376d-54c8-434e-96eb-1aaf4c222164" />
+            </Object>
+            <Object Name="FB_INPUT_PUSHBUTTON_DIMMER_MQTT" ObjectId="cdfaad6f-339b-483a-b900-7f4706aa9106">
+              <Object Name="InitMqtt" ObjectId="92d445ea-f1e6-4e82-af7a-d5cb8a0a9c1d" />
+              <Object Name="ConfigureFunctionBlock" ObjectId="90d48068-2884-4b1f-9b73-f21356569b1b" />
             </Object>
           </Folder>
           <Object Name="MqttVariables" ObjectId="4f9cb91a-49cd-4924-912b-f57a11772a7e" />
