@@ -26,8 +26,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QOS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **Rising edge** | A signal change from low to high is detected on input `BS`. | `ON` | 2 | `TRUE` | no
-| **Falling edge** | A signal change from high to low is detected on input `BS`. | `OFF` | 2 | `TRUE` | no
+| **input changes: BS**   | A change is detected on input `BS`. (*) | `ON/OFF` | 2 | `TRUE` | no
 
 MQTT publish topic is a concatenation of the publish prefix variable and the function block name. 
 
