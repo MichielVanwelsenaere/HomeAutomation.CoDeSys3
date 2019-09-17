@@ -5,7 +5,7 @@ Big brother of input function block [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBU
 
 ### __Block diagram__
 
-![FB_INPUT_PUSHBUTTON_DIMMER_MQTT](../_img/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.svg)
+<img src="../_img/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.svg" width="350">
 
 INPUT(S)
 - PB: digital input linked to the signal wire of a pushbutton.
@@ -17,6 +17,7 @@ OUTPUT(S)
 - SINGLE: output high for one clock cycle when a single push is detected on input `PB`.
 - DOUBLE: output high for one clock cycle when a double push is detected on input `PB`.
 - LONG: output high for one clock cycle when a long push is detected on input `PB`.
+- P_LONG: output becomes high when a long push is detected on input `PB`, remains high as long as `PB` remains high.
 - Q: output.
 - DBL: double-click output.
 - DIM: dimmer value, byte datatype. 
@@ -53,6 +54,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Pushbutton single press** | A single pushbutton press is detected on input `PB`. | `SINGLE` | 2 | `FALSE` | no
 | **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `DOUBLE` | 2 | `FALSE` | no
 | **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
+| **Output changes: P_LONG**   | A change is detected on output `P_LONG`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: Q**   | A change is detected on output `Q`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: DBL**   | A change is detected on output `DBL`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: DIM**   | A change is detected on output `DIM`. (*) | `0-255` | configured in method call `InitMQTT` | `FALSE` | no
@@ -120,6 +122,14 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
 - platform: MQTT
   name: "FB_DI_PB_001_DIM"
   state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+# To receive state of output P_LONG
+- platform: MQTT
+  name: "FB_DI_PB_001_P_LONG"
+  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
   qos: 2
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"

@@ -5,7 +5,7 @@ Can be switched using pulses that are high for one clock cycle (for example from
 
 ### __Block diagram__
 
-![FB_OUTPUT_SWITCH_MQTT](../_img/FB_OUTPUT_SWITCH_MQTT.svg)
+<img src="../_img/FB_OUTPUT_SWITCH_MQTT.svg" width="350">
 
 INPUT(S)
 - TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
@@ -29,8 +29,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QOS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **Output changes to high** | The digtal output changes state to high. | `TRUE` | 2 | `FALSE` | yes
-| **Output changes to low** | The digtal output changes state to low. | `FALSE` | 2 | `FALSE` | yes
+| **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `TRUE/FALSE` | 2 | `FALSE` | yes
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
