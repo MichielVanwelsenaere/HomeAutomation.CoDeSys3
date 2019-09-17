@@ -5,7 +5,7 @@ Reads out a digital input and sets a single, double or long output high for one 
 
 ### __Block diagram__
 
-![FB_INPUT_PUSHBUTTON_MQTT](../_img/FB_INPUT_PUSHBUTTON_MQTT.svg)
+<img src="../_img/FB_INPUT_PUSHBUTTON_MQTT.svg" width="350">
 
 INPUT(S)
 - PB: digital input linked to the signal wire of a pushbutton.

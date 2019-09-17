@@ -5,7 +5,7 @@ Big brother of input function block [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBU
 
 ### __Block diagram__
 
-![FB_INPUT_PUSHBUTTON_DIMMER_MQTT](../_img/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.svg)
+<img src="../_img/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.svg" width="350">
 
 INPUT(S)
 - PB: digital input linked to the signal wire of a pushbutton.

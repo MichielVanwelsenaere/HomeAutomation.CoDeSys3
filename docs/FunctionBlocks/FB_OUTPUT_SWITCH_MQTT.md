@@ -5,7 +5,7 @@ Can be switched using pulses that are high for one clock cycle (for example from
 
 ### __Block diagram__
 
-![FB_OUTPUT_SWITCH_MQTT](../_img/FB_OUTPUT_SWITCH_MQTT.svg)
+<img src="../_img/FB_OUTPUT_SWITCH_MQTT.svg" width="350">
 
 INPUT(S)
 - TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
