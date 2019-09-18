@@ -29,7 +29,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QOS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `TRUE/FALSE` | 2 | `FALSE` | yes
+| **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
