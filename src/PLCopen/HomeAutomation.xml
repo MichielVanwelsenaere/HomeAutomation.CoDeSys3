@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-09-15T22:26:03.1615621" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-09-14T18:34:49.0498979">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-09-24T08:37:07.9508841" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-09-24T08:36:45.8540667">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -96,6 +96,8 @@
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
+                <Attribute Name="checksumnoinit_override" Value="2487535909" />
+                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
@@ -976,6 +978,11 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
                       <BOOL />
                     </type>
                   </variable>
+                  <variable name="P_LONG">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
                 </outputVars>
                 <localVars>
                   <variable name="InstanceName">
@@ -1027,6 +1034,16 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
                       <derived name="OSCAT_BUILDING.CLICK_MODE" />
                     </type>
                   </variable>
+                  <variable name="P_LONG_R_TRIG">
+                    <type>
+                      <derived name="Standard.R_TRIG" />
+                    </type>
+                  </variable>
+                  <variable name="P_LONG_F_TRIG">
+                    <type>
+                      <derived name="Standard.F_TRIG" />
+                    </type>
+                  </variable>
                   <variable name="T_Long">
                     <type>
                       <TIME />
@@ -1054,7 +1071,11 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
 	SINGLE=&gt; SINGLE, 
 	DOUBLE=&gt; DOUBLE, 
 	TP_LONG=&gt; LONG, 
+	LONG=&gt; P_LONG,
 	T_LONG:= T_Long);
+	
+P_LONG_R_TRIG(CLK:=FB_DETECTPUSH.LONG);
+P_LONG_F_TRIG(CLK:=FB_DETECTPUSH.LONG);
 	
 IF FB_DETECTPUSH.SINGLE AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
@@ -1080,6 +1101,15 @@ IF FB_DETECTPUSH.TP_LONG AND InitMqttDone THEN
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
 		Qos := SD_MQTT.QoS.ExactlyOnce,
 		MqttRetain := FALSE
+	);
+END_IF
+
+IF (P_LONG_R_TRIG.Q OR P_LONG_F_TRIG.Q) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(FB_DETECTPUSH.LONG),
+		Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),'/P_LONG'),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
 	);
 END_IF</xhtml>
                 </ST>
@@ -1312,17 +1342,7 @@ ELSIF(TOGGLE) THEN
 	OUT:=NOT(OUT);
 END_IF;
 
-
-
-IF Startup AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(OUT),
-		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
-		Qos := SD_MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-	Startup := FALSE;
-ELSIF(PreviousState &lt;&gt; OUT) AND InitMqttDone THEN
+IF(PreviousState &lt;&gt; OUT) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(OUT),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -1407,7 +1427,7 @@ InitMqttDone := TRUE;</xhtml>
                   </Method>
                 </data>
                 <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-                  <Method name="PublishRecived" ObjectId="54e02ede-e4c8-453a-857f-58e1bf13249b">
+                  <Method name="PublishReceived" ObjectId="54e02ede-e4c8-453a-857f-58e1bf13249b">
                     <interface>
                       <returnType>
                         <BOOL />
@@ -1428,11 +1448,11 @@ InitMqttDone := TRUE;</xhtml>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
 IF NOT(InitMqttDone) THEN
 	//mark the interface call from the collector as done
-	PublishRecived := TRUE;
+	PublishReceived := TRUE;
 //check if the packet is for this FB
 ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
 	//mark the interface call from the collector as done
-	PublishRecived := TRUE;
+	PublishReceived := TRUE;
 	//now process the data
 	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
 		MqttHighRequest := TRUE;
@@ -1729,7 +1749,7 @@ EMPTY := TRUE;</xhtml>
                       <string />
                     </type>
                     <initialValue>
-                      <simpleValue value="'192.168.1.25:1883'" />
+                      <simpleValue value="'192.168.1.36:1883'" />
                     </initialValue>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> variables for MQTT configuration </xhtml>
@@ -1742,6 +1762,10 @@ EMPTY := TRUE;</xhtml>
                     <initialValue>
                       <simpleValue value="'WAGO-PFC200'" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> use the below for username password authentication to broker 
+ broker					:STRING:='user:password@192.168.1.36:1883'; </xhtml>
+                    </documentation>
                   </variable>
                   <variable name="MQTTClient">
                     <type>
@@ -2479,6 +2503,11 @@ InitMqttDone := TRUE;</xhtml>
                       <BOOL />
                     </type>
                   </variable>
+                  <variable name="P_LONG">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
                 </outputVars>
                 <localVars>
                   <variable name="InstanceName">
@@ -2548,6 +2577,16 @@ InitMqttDone := TRUE;</xhtml>
                   <variable name="FB_DETECTPUSH">
                     <type>
                       <derived name="OSCAT_BUILDING.CLICK_MODE" />
+                    </type>
+                  </variable>
+                  <variable name="P_LONG_R_TRIG">
+                    <type>
+                      <derived name="Standard.R_TRIG" />
+                    </type>
+                  </variable>
+                  <variable name="P_LONG_F_TRIG">
+                    <type>
+                      <derived name="Standard.F_TRIG" />
                     </type>
                   </variable>
                   <variable name="PreviousDim">
@@ -2699,6 +2738,9 @@ FB_DETECTPUSH(
 	TP_LONG=&gt; LONG, 
 	T_LONG:= T_long);
 	
+P_LONG_R_TRIG(CLK:=FB_DETECTPUSH.LONG);
+P_LONG_F_TRIG(CLK:=FB_DETECTPUSH.LONG);
+	
 IF (ABS(BYTE_TO_INT(PreviousDim) - BYTE_TO_INT(DIM)) &gt;= Delta_Dimm OR PB = FALSE) AND DIM &lt;&gt; PreviousDim AND InitMqttDone AND OutputDimmer THEN
 	PreviousDim:=DIM;
 	pMqttPublishQueue^.AddMessage(		
@@ -2753,6 +2795,15 @@ IF FB_DETECTPUSH.TP_LONG AND InitMqttDone THEN
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
 		Qos := SD_MQTT.QoS.ExactlyOnce,
 		MqttRetain := FALSE
+	);
+END_IF
+
+IF (P_LONG_R_TRIG.Q OR P_LONG_F_TRIG.Q) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(FB_DETECTPUSH.LONG),
+		Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),'/P_LONG'),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
 	);
 END_IF</xhtml>
                 </ST>
@@ -2935,11 +2986,11 @@ THIS^.T_Long:=T_Long;</xhtml>
               <Library Name="BUILDING, 1.0.0.0 (OSCAT)" Namespace="OSCAT_BUILDING" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <Library Name="#CommonTypsFunctions" Namespace="CommonTypesAndFunctions" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Common Helper for development, * (Stefan Dreyer)" />
               <Library Name="OSCAT NETWORK, 1.30 (OSCAT)" Namespace="OSCAT_NETWORK" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-              <Library Name="#SD_MQTT" Namespace="SD_MQTT" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="MQTT, * (Stefan Dreyer)" />
               <Library Name="#BreakpointLogging" Namespace="BPLog" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="Breakpoint Logging Functions, 3.5.5.0 (3S - Smart Software Solutions GmbH)" />
               <Library Name="#3SLicense" Namespace="_3S_LICENSE" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="3SLicense, 0.0.0.0 (3S - Smart Software Solutions GmbH)" ResolverGuid="97c3b452-d9fa-4ac2-9d0c-3d420aa6d95b" />
               <Library Name="#CDS_MemMan" Namespace="CMM" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="CDS_MemMan, 3.3.2.0 (3S - Smart Software Solutions GmbH)" />
               <Library Name="Element Collections, 3.5.14.0 (3S - Smart Software Solutions GmbH)" Namespace="COL" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+              <Library Name="MQTT, 1.1.0.0 (Stefan Dreyer)" Namespace="SD_MQTT" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
                   <ObjectId>1f1166ba-ce55-40de-a774-1179e27627c8</ObjectId>
@@ -2990,7 +3041,7 @@ THIS^.T_Long:=T_Long;</xhtml>
             </Folder>
             <Object Name="FB_OUTPUT_SWITCH_MQTT" ObjectId="6b9f6e87-1d59-463d-821a-1ca879dcd434">
               <Object Name="InitMqtt" ObjectId="b0eb0a8e-ef00-4bf5-a167-d207444fa21e" />
-              <Object Name="PublishRecived" ObjectId="54e02ede-e4c8-453a-857f-58e1bf13249b" />
+              <Object Name="PublishReceived" ObjectId="54e02ede-e4c8-453a-857f-58e1bf13249b" />
             </Object>
             <Object Name="FB_INPUT_BINARYSENSOR_MQTT" ObjectId="ca9d988f-3694-4978-bb99-efe82355ffa6">
               <Object Name="InitMqtt" ObjectId="f110376d-54c8-434e-96eb-1aaf4c222164" />
