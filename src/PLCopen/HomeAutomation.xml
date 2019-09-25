@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-09-24T08:37:07.9508841" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-09-24T08:36:45.8540667">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-09-25T12:05:55.175299" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-09-25T12:04:41.7554185">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -1342,13 +1342,14 @@ ELSIF(TOGGLE) THEN
 	OUT:=NOT(OUT);
 END_IF;
 
-IF(PreviousState &lt;&gt; OUT) AND InitMqttDone THEN
+IF(PreviousState &lt;&gt; OUT) OR Startup AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(OUT),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
 		Qos := SD_MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
-	);
+	);	
+	Startup:=FALSE;
 END_IF	
 
 PreviousState := OUT;</xhtml>
