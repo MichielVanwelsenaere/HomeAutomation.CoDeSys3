@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-09-25T12:05:55.175299" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-09-25T12:04:41.7554185">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-09-27T19:36:57.5173579" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-09-27T19:26:43.1649176">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -96,7 +96,7 @@
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="2487535909" />
+                <Attribute Name="checksumnoinit_override" Value="598735182" />
                 <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
@@ -573,6 +573,14 @@
                       <derived name="FB_OUTPUT_SWITCH_MQTT" />
                     </type>
                   </variable>
+                  <variable name="FB_DO_COVER_001">
+                    <type>
+                      <derived name="FB_OUTPUT_COVER_MQTT" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> COVER FUNCTION BLOCKS </xhtml>
+                    </documentation>
+                  </variable>
                 </localVars>
               </interface>
               <actions>
@@ -614,8 +622,8 @@ FB_DO_SW_027(OUT =&gt; DO_027		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FA
 FB_DO_SW_028(OUT =&gt; DO_028		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
 FB_DO_SW_029(OUT =&gt; DO_029		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
 FB_DO_SW_030(OUT =&gt; DO_030		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_031(OUT =&gt; DO_031		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_032(OUT =&gt; DO_032		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
+(* FB_DO_SW_031(OUT =&gt; DO_031		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_032(OUT =&gt; DO_032		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				); *)
 </xhtml>
                     </ST>
                   </body>
@@ -742,13 +750,31 @@ FB_DO_SW_027.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
 FB_DO_SW_028.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
 FB_DO_SW_029.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
 FB_DO_SW_030.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_031.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));</xhtml>
+(* FB_DO_SW_031.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));*)
+
+FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT), SD_MQTT.QoS.ExactlyOnce, 5);</xhtml>
                     </ST>
                   </body>
                   <addData>
                     <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
                       <ObjectId>f5b06497-3f42-4150-9639-33f5f16d160a</ObjectId>
+                    </data>
+                  </addData>
+                </action>
+                <action name="MOVE_COVERS">
+                  <body>
+                    <ST>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DO_COVER_001(
+	UP:=FB_DI_PB_013.P_LONG,
+	DN:=FB_DI_PB_015.P_LONG,
+	T_UP:=T#10S
+	);</xhtml>
+                    </ST>
+                  </body>
+                  <addData>
+                    <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                      <ObjectId>0179406e-0243-4248-bd15-86bda23b0ead</ObjectId>
                     </data>
                   </addData>
                 </action>
@@ -839,7 +865,7 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
                       </data>
                     </addData>
                   </step>
-                  <actionBlock localId="8">
+                  <actionBlock localId="9">
                     <position x="0" y="0" />
                     <connectionPointIn>
                       <connection refLocalId="5" />
@@ -874,20 +900,35 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
                         </data>
                       </addData>
                     </action>
+                    <action localId="8" qualifier="N" duration="" indicator="">
+                      <relPosition x="0" y="0" />
+                      <reference name="MOVE_COVERS" />
+                      <connectionPointOut />
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                          <attributes xmlns="">
+                            <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">MOVE_COVERS</attribute>
+                            <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                            <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                            <attribute guid="e174fc0d-80b0-4a9e-a530-ca239c249a50">N</attribute>
+                          </attributes>
+                        </data>
+                      </addData>
+                    </action>
                   </actionBlock>
-                  <inVariable localId="9">
+                  <inVariable localId="10">
                     <position x="0" y="0" />
                     <connectionPointOut />
                     <expression>TRUE</expression>
                   </inVariable>
-                  <transition localId="10">
+                  <transition localId="11">
                     <position x="0" y="0" />
                     <connectionPointIn>
                       <connection refLocalId="5" formalParameter="sfc" />
                     </connectionPointIn>
                     <condition>
                       <connectionPointIn>
-                        <connection refLocalId="9" />
+                        <connection refLocalId="10" />
                       </connectionPointIn>
                     </condition>
                     <addData>
@@ -902,10 +943,10 @@ FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
                       </data>
                     </addData>
                   </transition>
-                  <jumpStep localId="11" targetName="Main">
+                  <jumpStep localId="12" targetName="Main">
                     <position x="0" y="0" />
                     <connectionPointIn>
-                      <connection refLocalId="10" />
+                      <connection refLocalId="11" />
                     </connectionPointIn>
                     <addData>
                       <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
@@ -2967,6 +3008,856 @@ THIS^.T_Long:=T_Long;</xhtml>
               </addData>
             </pou>
           </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="_RMP_B" pouType="functionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="DIR">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> true = up </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="E">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TRUE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="TR">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+                <inOutVars>
+                  <variable name="RMP">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                </inOutVars>
+                <localVars>
+                  <variable name="tx">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="tl">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="tn">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="init">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="last_dir">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="start">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* read system timer *)
+tx := DWORD_TO_TIME(OSCAT_BASIC.T_PLC_MS());
+
+IF E AND init AND (dir = last_dir) AND (RMP &lt;&gt; SEL(DIR, 0, 255)) AND TR = tn THEN
+	RMP := OSCAT_BASIC.FRMP_B(start, DIR, tx - tl, TR);
+ELSE
+	init := TRUE;
+	tl := tx;
+	tn := tr;
+	start := RMP;
+END_IF;
+last_dir := dir;
+
+
+
+(* revison history
+hm	22. oct. 2008	rev 1.0
+	original version
+
+hm	20. nov. 2008	rev 1.1
+	set default for E to be TRUE
+	added init
+
+hm	19. nov. 2011	rev 1.2
+	new code
+*)</xhtml>
+                </ST>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="SetRMP" ObjectId="0c429508-613d-4d8b-ac1d-be6af669280b">
+                    <interface>
+                      <inputVars>
+                        <variable name="RMP">
+                          <type>
+                            <BYTE />
+                          </type>
+                        </variable>
+                      </inputVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(*THIS^.RMP:=RMP;*)
+THIS^.Start:=RMP;</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                  <ObjectId>32fc4ad1-2c7d-4708-b98f-2c39a9a5b022</ObjectId>
+                </data>
+              </addData>
+            </pou>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="RMP_B" pouType="functionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="SET">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PT">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="E">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TRUE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="UP">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TRUE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="RST">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <outputVars>
+                  <variable name="OUT">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="BUSY">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="HIGH">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="LOW">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </outputVars>
+                <localVars>
+                  <variable name="rmp">
+                    <type>
+                      <derived name="_RMP_B" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* generate ramp *)
+rmp(dir := UP, E := E, TR := PT, rmp := out);
+
+(* set or reset operation *)
+IF RST THEN
+	out := 0;
+ELSIF SET THEN
+	out := 255;
+END_IF;
+
+(* checks for outputs stable and reset or set busy flag *)
+low := out = 0;
+high := out = 255;
+busy := NOT (low OR high) AND E;
+
+
+(* revision history
+
+hm 5.10.2006	rev 1.1
+	added busy output
+hm 17.1.2007	rev 1.2
+	renamed input ud to up for better usability
+	deleted unused variable step
+
+hm	17.9.2007		rev 1.3
+	replaced time() with t_plc_ms() for compatibility reasons
+
+hm	28. sep 2007	rev 1.4
+	added outputs on and off
+	busy is now disabled while en is false
+	new coding for higher accuracy and performance
+
+hm	5. oct 2007	rev 1.5
+	added statements to allow for PT to be t#0s output jumps to max or min immediately
+
+hm	25. dec 2007	rev 1.6
+	improved code for better performance
+
+hm	16. oct. 2008	rev 1.7
+	improved code for better performance
+
+hm	18. oct. 2008	rev 1.8
+	added type conversion to avoid warnings
+	changed input en to e for compatibility reasons
+
+hm	23. oct. 2008	REV 	2.0
+	new code using _RMP_B
+
+*)</xhtml>
+                </ST>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="SetRMP" ObjectId="9b8400db-fe67-4268-8ea1-1678b75a3e11">
+                    <interface>
+                      <inputVars>
+                        <variable name="RMP">
+                          <type>
+                            <BYTE />
+                          </type>
+                        </variable>
+                      </inputVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=RMP;
+THIS^.rmp.SetRMP(RMP);</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                  <ObjectId>b7d56a78-ae95-4adb-ac35-453a5bb08e4d</ObjectId>
+                </data>
+              </addData>
+            </pou>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="BLIND_ACTUATOR" pouType="functionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="UP">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="DN">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="S_IN">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="T_UD">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#10s0ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_ANGLE">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#3s0ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_LOCKOUT">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#100ms" />
+                    </initialValue>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="input_constant" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                  </variable>
+                </inputVars>
+                <outputVars>
+                  <variable name="POS">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="ANG">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="QU">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="QD">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="STATUS">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                </outputVars>
+                <localVars>
+                  <variable name="position">
+                    <type>
+                      <derived name="RMP_B" />
+                    </type>
+                  </variable>
+                  <variable name="angle">
+                    <type>
+                      <derived name="RMP_B" />
+                    </type>
+                  </variable>
+                  <variable name="lock">
+                    <type>
+                      <derived name="OSCAT_BASIC.INTERLOCK" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* make sure only one motor is active at a given time *)
+lock(i1 := UP, I2 := DN, TL := T_lockout);
+
+(* ramp up or down to simulate the angle position of the blind slats *)
+angle(e := lock.Q1 OR lock.Q2, UP := lock.Q1, PT := T_Angle);
+position(e := lock.Q1 AND angle.high OR lock.Q2 AND angle.low, up := lock.Q1, PT := T_UD);
+
+(* set the outputs *)
+pos := position.Out;
+ang := angle.Out;
+
+(* set the outputs *)
+QU := lock.Q1;
+QD := lock.Q2;
+
+(* set the status output *)
+IF UP AND DN THEN
+	 status := 1;			(* error up and down together are not allowed *)
+ELSIF UP THEN
+	status := 121;
+ELSIF DN THEN
+	status := 122;
+ELSE
+	status := S_IN;
+END_IF;
+
+
+(* revision history
+hm	29. sep 2007	rev 1.0
+	original release
+
+hm	6. oct 2007	rev 1.1
+	rearanged outputs
+
+hm	18. oct. 2008	rev 1.2
+	changed calls for rmp_B because of change in RMP_B
+
+hm	27. jul. 2009	rev 1.3
+	changes status to be 12X
+
+ae	08. mar. 2010 rev 1.4	
+	at aPosition
+
+*)</xhtml>
+                </ST>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="SetPOS" ObjectId="29e3a145-48d2-42f3-97b8-461ad38b64ba">
+                    <interface>
+                      <inputVars>
+                        <variable name="POS">
+                          <type>
+                            <BYTE />
+                          </type>
+                        </variable>
+                      </inputVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.POS:=POS;
+THIS^.position.SetRMP(POS);</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                  <ObjectId>1271413f-6c87-4e9f-973e-58c158ea8e22</ObjectId>
+                </data>
+              </addData>
+            </pou>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="FB_OUTPUT_COVER_MQTT" pouType="functionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="UP">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="DN">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PI">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="SENS">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="5" />
+                    </initialValue>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="input_constant" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                  </variable>
+                  <variable name="T_LOCKOUT">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#1s0ms" />
+                    </initialValue>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="input_constant" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                  </variable>
+                  <variable name="T_UP">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#10s0ms" />
+                    </initialValue>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="input_constant" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                  </variable>
+                </inputVars>
+                <outputVars>
+                  <variable name="POS">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="MU">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="MD">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </outputVars>
+                <localVars>
+                  <variable name="InstanceName">
+                    <type>
+                      <string />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="instance-path" Value="" />
+                          <Attribute Name="noinit" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Startup">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TRUE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="InitMqttDone">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="MqttPublishTopicPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MqttPublishTopicSuffix">
+                    <type>
+                      <string length="15" />
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribeTopic">
+                    <type>
+                      <string length="50" />
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="FB_ACT">
+                    <type>
+                      <derived name="BLIND_ACTUATOR" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> FB_COVER				:OSCAT_BUILDING.BLIND_CONTROL; </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="delta">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="internal_UP">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="internal_DN">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="Qos_POS">
+                    <type>
+                      <derived name="SD_MQTT.QoS" />
+                    </type>
+                  </variable>
+                  <variable name="Delta_POS">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="UP_R_TRIG">
+                    <type>
+                      <derived name="Standard.R_TRIG" />
+                    </type>
+                  </variable>
+                  <variable name="DN_R_TRIG">
+                    <type>
+                      <derived name="Standard.R_TRIG" />
+                    </type>
+                  </variable>
+                </localVars>
+                <localVars persistent="true">
+                  <variable name="PreviousPos">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> To retain position through powercycles</xhtml>
+                    </documentation>
+                  </variable>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+                    <Inheritance>
+                      <Implements>SD_MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
+                    </Inheritance>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                    <Attributes>
+                      <Attribute Name="reflection" Value="" />
+                    </Attributes>
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
+	POS:=PreviousPos;
+	FB_ACT.SetPOS(PreviousPos);
+END_IF
+
+//check for rising flanks on the inputs to turn of automatic mode
+UP_R_TRIG(CLK:=UP);
+DN_R_TRIG(CLK:=DN);
+
+//Only one should be active to turn of automatic mode and go manual
+IF UP_R_TRIG.Q XOR DN_R_TRIG.Q THEN
+	internal_UP:=UP;
+	internal_DN:=DN;
+END_IF
+
+(* Check Position*)
+FB_ACT(T_UD:=T_UP, T_ANGLE:=T#0S, T_lockout := T_Lockout);
+
+IF internal_UP AND internal_DN THEN
+	(* automatic modus detected *)
+	(* first find correct position *)
+	IF BYTE_TO_INT(FB_ACT.pos) &lt; BYTE_TO_INT(pi) - delta THEN
+		FB_ACT.UP := TRUE;
+		FB_ACT.DN := FALSE;
+		delta := 0;
+	ELSIF BYTE_TO_INT(FB_ACT.pos) &gt; BYTE_TO_INT(pi) + delta THEN
+		FB_ACT.UP := FALSE;
+		FB_ACT.DN := TRUE;
+		delta := 0;
+	(* correct position reached *)
+	ELSE
+		FB_ACT.UP := FALSE;
+		FB_ACT.DN := FALSE;
+		delta := sens;
+	END_IF;
+ELSE
+	FB_ACT.UP := internal_UP;
+	FB_ACT.DN := internal_DN;
+END_IF;
+
+(* blind control calls blind_actuator *)
+FB_ACT(T_UD:=T_UP, T_ANGLE:=T#0S, T_lockout := T_Lockout);
+POS := FB_ACT.pos;
+MU := FB_ACT.QU;
+MD := FB_ACT.QD;
+
+IF (ABS(BYTE_TO_INT(PreviousPos) - BYTE_TO_INT(POS)) &gt;= Delta_POS  OR MU = FALSE AND MD = FALSE) AND POS &lt;&gt; PreviousPos OR Startup AND InitMqttDone THEN
+	PreviousPos:=POS;
+	pMqttPublishQueue^.AddMessage(
+		Payload := REAL_TO_STRING(OSCAT_BASIC.SCALE_B(X:=POS, I_LO:=0, I_HI:=255, O_LO:=0, O_HI:=100)),
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := Qos_POS,
+		MqttRetain := TRUE
+	);
+	Startup:=FALSE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="InitMqtt" ObjectId="bcbc7249-6b54-4cd1-a5aa-8f4df54a80c3">
+                    <interface>
+                      <inputVars>
+                        <variable name="MQTTPublishPrefix">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                        <variable name="MQTTSubscribePrefix">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                        <variable name="pMqttPublishQueue">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <derived name="FB_MqttPublishQueue" />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                        <variable name="pMqttCallbackCollector">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <derived name="SD_MQTT.CallbackCollector" />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                        <variable name="Qos_POS">
+                          <type>
+                            <derived name="SD_MQTT.QoS" />
+                          </type>
+                        </variable>
+                        <variable name="Delta_POS">
+                          <type>
+                            <INT />
+                          </type>
+                        </variable>
+                      </inputVars>
+                      <localVars>
+                        <variable name="InstanceNamePt">
+                          <type>
+                            <pointer>
+                              <baseType>
+                                <string />
+                              </baseType>
+                            </pointer>
+                          </type>
+                        </variable>
+                      </localVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+
+InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
+THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);
+
+// register the FB agains the collector so mqtt events can be received
+pMqttCallbackCollector^.put(instance:= THIS^);
+
+THIS^.Qos_POS:=Qos_POS;
+THIS^.Delta_POS:=Delta_POS;
+
+InitMqttDone := TRUE;</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="PublishReceived" ObjectId="4da03690-6698-482f-8bcf-5a0fc11a7236">
+                    <interface>
+                      <returnType>
+                        <BOOL />
+                      </returnType>
+                      <inputVars>
+                        <variable name="Data">
+                          <type>
+                            <derived name="SD_MQTT.CALLBACK_DATA" />
+                          </type>
+                          <documentation>
+                            <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                          </documentation>
+                        </variable>
+                      </inputVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//now process the data
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN
+		//Disable
+		internal_UP:=internal_DN:=FALSE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
+		THIS^.PI:=255;
+		//Enable AutoMode
+		internal_UP:=internal_DN:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN
+		THIS^.PI:=0;
+		//Enable AutoMode
+		internal_UP:=internal_DN:=TRUE;
+	ELSIF OSCAT_BASIC.IS_NUM(str:= Data.PayloadString^) THEN
+		THIS^.PI:=REAL_TO_BYTE(OSCAT_BASIC.SCALE_B(X:=STRING_TO_BYTE(Data.PayloadString^), I_LO:=0, I_HI:=100, O_LO:=0, O_HI:=255));
+		//Enable AutoMode
+		internal_UP:=internal_DN:=TRUE;
+	END_IF
+
+END_IF </xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
+                <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                  <ObjectId>e6f961c6-f5fe-45f3-9117-9a080cefb2ff</ObjectId>
+                </data>
+              </addData>
+            </pou>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
             <Libraries>
               <Library Name="#IoStandard" Namespace="IoStandard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="true" DefaultResolution="IoStandard, 3.5.13.0 (System)" />
@@ -3014,6 +3905,7 @@ THIS^.T_Long:=T_Long;</xhtml>
               <Object Name="WRITE_SWITCHES" ObjectId="bc43bd28-4a8e-408d-8fdd-b4f45ff42b62" />
               <Object Name="READ_PUSHBUTTONS" ObjectId="72c511d1-ce6f-4b43-a80f-bcc4f298eb89" />
               <Object Name="MAIN_INIT" ObjectId="f5b06497-3f42-4150-9639-33f5f16d160a" />
+              <Object Name="MOVE_COVERS" ObjectId="0179406e-0243-4248-bd15-86bda23b0ead" />
             </Object>
             <Object Name="PLC_PRG_MQTT" ObjectId="012c3962-ea65-4f8b-be5c-432a302d1a76">
               <Object Name="MQTT_INIT" ObjectId="b0c9e992-b112-47f4-aceb-f216353cefaf" />
@@ -3050,6 +3942,21 @@ THIS^.T_Long:=T_Long;</xhtml>
             <Object Name="FB_INPUT_PUSHBUTTON_DIMMER_MQTT" ObjectId="cdfaad6f-339b-483a-b900-7f4706aa9106">
               <Object Name="InitMqtt" ObjectId="92d445ea-f1e6-4e82-af7a-d5cb8a0a9c1d" />
               <Object Name="ConfigureFunctionBlock" ObjectId="90d48068-2884-4b1f-9b73-f21356569b1b" />
+            </Object>
+            <Folder Name="BaseLib">
+              <Object Name="_RMP_B" ObjectId="32fc4ad1-2c7d-4708-b98f-2c39a9a5b022">
+                <Object Name="SetRMP" ObjectId="0c429508-613d-4d8b-ac1d-be6af669280b" />
+              </Object>
+              <Object Name="RMP_B" ObjectId="b7d56a78-ae95-4adb-ac35-453a5bb08e4d">
+                <Object Name="SetRMP" ObjectId="9b8400db-fe67-4268-8ea1-1678b75a3e11" />
+              </Object>
+              <Object Name="BLIND_ACTUATOR" ObjectId="1271413f-6c87-4e9f-973e-58c158ea8e22">
+                <Object Name="SetPOS" ObjectId="29e3a145-48d2-42f3-97b8-461ad38b64ba" />
+              </Object>
+            </Folder>
+            <Object Name="FB_OUTPUT_COVER_MQTT" ObjectId="e6f961c6-f5fe-45f3-9117-9a080cefb2ff">
+              <Object Name="InitMqtt" ObjectId="bcbc7249-6b54-4cd1-a5aa-8f4df54a80c3" />
+              <Object Name="PublishReceived" ObjectId="4da03690-6698-482f-8bcf-5a0fc11a7236" />
             </Object>
           </Folder>
           <Object Name="MqttVariables" ObjectId="4f9cb91a-49cd-4924-912b-f57a11772a7e" />
