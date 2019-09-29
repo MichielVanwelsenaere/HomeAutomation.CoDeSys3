@@ -75,19 +75,19 @@ FB_DO_COVER_001				:FB_OUTPUT_COVER_MQTT;
 
 - Init MQTT method call (called once during startup):
 ```
-FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),				(* pointer to string prefix for the mqtt publish topic *)
-	MQTTSubscribePrefix:= ADR(MqttSubCoverPrefix),									(* pointer to string prefix for the mqtt subscribe topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						(* pointer to MqttPublishQueue to send a new Mqtt event *)
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT), 	(* pointer to CallbackCollector to receive Mqtt subscription events *)
-	SD_MQTT.QoS.ExactlyOnce, 														(* specify the QoS for the POS mqtt events (values 0-100) *)
-	2																				(* specify the resolution for the POS mqtt events *)
+FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),               (* pointer to string prefix for the mqtt publish topic *)
+    MQTTSubscribePrefix:= ADR(MqttSubCoverPrefix),                                  (* pointer to string prefix for the mqtt subscribe topic *)
+    pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),                     (* pointer to MqttPublishQueue to send a new Mqtt event *)
+    pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT),    (* pointer to CallbackCollector to receive Mqtt subscription events *)
+    SD_MQTT.QoS.ExactlyOnce,                                                        (* specify the QoS for the POS mqtt events (values 0-100) *)
+    2                                                                               (* specify the resolution for the POS mqtt events *)
 );
 ```
 
 - Init configuration method call (called once during startup):
 ```
-FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,								(* delay between change of direction *)
-	T_UD:=T#20S																		(* run time to move the cover completely up/down *)
+FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,                             (* delay between change of direction *)
+	T_UD:=T#20S                                                                     (* run time to move the cover completely up/down *)
 );
 ```
 
