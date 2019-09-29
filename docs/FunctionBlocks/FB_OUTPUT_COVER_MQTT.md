@@ -87,7 +87,7 @@ FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),           
 - Init configuration method call (called once during startup):
 ```
 FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,                             (* delay between change of direction *)
-	T_UD:=T#20S                                                                     (* run time to move the cover completely up/down *)
+    T_UD:=T#20S                                                                     (* run time to move the cover completely up/down *)
 );
 ```
 
