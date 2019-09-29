@@ -20,7 +20,7 @@ INPUT(S)
 - PRIO_UP: when high the cover will receive a constant signal to move up. Usage: make covers move up in case of a fire alarm for example. (*)
 - PRIO_DN: when low the cover will receive a constant signal to move down. (*)
 
-(*) When high, all incomming MQTT events will be ignored.
+(*) When high, all incomming MQTT commands will be ignored.
 
 OUTPUT(S)
 - POS: cover position value, byte datatype.
@@ -67,14 +67,40 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 ### __Code example__
 
 - variables initiation:
-
+```
+MqttPubCoverPrefix			:STRING(100) := 'WAGO-PFC200/Out/Covers/';
+MqttSubCoverPrefix			:STRING(100) := 'WAGO-PFC200/In/Covers/';
+FB_DO_COVER_001				:FB_OUTPUT_COVER_MQTT;
+```
 
 - Init MQTT method call (called once during startup):
+```
+FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),				(* pointer to string prefix for the mqtt publish topic *)
+	MQTTSubscribePrefix:= ADR(MqttSubCoverPrefix),									(* pointer to string prefix for the mqtt subscribe topic *)
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						(* pointer to MqttPublishQueue to send a new Mqtt event *)
+	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT), 	(* pointer to CallbackCollector to receive Mqtt subscription events *)
+	SD_MQTT.QoS.ExactlyOnce, 														(* specify the QoS for the POS mqtt events (values 0-100) *)
+	2																				(* specify the resolution for the POS mqtt events *)
+);
+```
+
+- Init configuration method call (called once during startup):
+```
+FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,								(* delay between change of direction *)
+	T_UD:=T#20S																		(* run time to move the cover completely up/down *)
+);
+```
 
 
-
-- checking for events to switch the digital output (cyclic):
-
+- checking for events to move the cover (cyclic):
+```
+FB_DO_COVER_001(
+	UP:=FB_DI_PB_013.P_LONG,
+	DN:=FB_DI_PB_015.P_LONG,
+	MU=>DO_031,
+	MD=>DO_032	
+	);
+```
 
 - integration with 
 
