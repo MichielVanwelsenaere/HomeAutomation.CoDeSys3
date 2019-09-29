@@ -9,8 +9,8 @@ Can be switched using pulses that are high for one clock cycle (for example from
 
 INPUT(S)
 - TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
-- PRIOHIGH: when high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIOLOW` input.
-- PRIOLOW: when high the output `OUT` is set to low, has priority over the `TOGGLE` input.
+- PRIO_HIGH: when high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input.
+- PRIO_LOW: when high the output `OUT` is set to low, has priority over the `TOGGLE` input.
 
 OUTPUT(S)
 - OUT: output to switch digital output on and off. Can be connected to a relay for example. 
@@ -22,7 +22,7 @@ METHOD(S)
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     - `pMqttCallbackCollector`: datatype *SD_MQTT.CallbackCollector*, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
     
-- PublishRecived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+- PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -39,8 +39,8 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 
 | Command | Description | expected payload | Additional notes | 
 |:-------------|:------------------|:------------------|:------------------|
-| **Change output to high** | Request to change output to high. | `TRUE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
-| **Change output to low** | Request to change output to low. | `FALSE` | Command executed when `PRIOHIGH` and `PRIOLOW` inputs are low.
+| **Change output to high** | Request to change output to high. | `TRUE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
+| **Change output to low** | Request to change output to low. | `FALSE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
@@ -68,8 +68,8 @@ The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalOutp
 - checking for events to switch the digital output (cyclic):
 ```
 FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
-    PRIOHIGH:=      FALSE,                  (* brings the output high regardless of other input values *)
-    PRIOLOW:=       FALSE                   (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
+    PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
+    PRIO_LOW:=      FALSE                   (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
     TOGGLE:=        FB_DI_PB_009.SINGLE     (* for toggling the output *)	
 );
 ```
@@ -77,8 +77,8 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 - integration with `FB_INPUT_PUSHBUTTON_MQTT`:
 ```
 FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
-    PRIOHIGH:=      FALSE,                  (* brings the output high regardless of other input values *)
-    PRIOLOW:=       FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
+    PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
+    PRIO_LOW:=      FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
     TOGGLE:=        FB_DI_PB_001.SINGLE     (* for toggling the output *)	
 );
 ```
