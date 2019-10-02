@@ -1,7 +1,7 @@
 ## FB_OUTPUT_COVER_MQTT
 
 ### __General__
-The cover function block allows you to control a covers such as a rollershutter or a garage door. Using a time variable that specifies the time to close/open a cover completely its possible to control the specific position of the cover. That specific position variable is maintained through powercycles.
+The cover function block allows you to control a covers such as a rollershutter or a garage door. Using a time variable (`T_UD`) that specifies the time to close/open a cover completely its possible to control the specific position of the cover. That specific position variable is maintained through powercycles.
 
 ----------------------------
 
@@ -14,18 +14,18 @@ The cover function block allows you to control a covers such as a rollershutter 
 <img src="../_img/FB_OUTPUT_COVER_MQTT.svg" width="350">
 
 INPUT(S)
-- UP: bool input to move the cover up.
-- DN: bool input to move the cover down.
+- UP: bool input, when high the cover moves up.
+- DN: bool input, when high the cover moves down.
 - PI: byte input, position to move cover to in automode. Automode can be enabled by maken UP and DN high simultaneous. 
-- PRIO_UP: when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. Usage: make covers move up in case of a fire alarm for example. (*)
-- PRIO_DN: when low the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (*)
+- PRIO_UP: bool input, when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. Usage: make covers move up in case of a fire alarm for example. (*)
+- PRIO_DN: bool input, when low the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (*)
 
-(*) When high, all incomming MQTT commands will be ignored.
+(*) When high, all incomming MQTT commands and the UP/DN inputs will be ignored.
 
 OUTPUT(S)
-- POS: cover position value, byte datatype.
-- MU: bool value, motor up signal.
-- MD: bool value, moter down signal.
+- POS: byte output, cover position value (range 0-255).
+- MU: bool output, motor up signal.
+- MD: bool output, moter down signal.
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
@@ -99,14 +99,22 @@ FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,                         
 - checking for events to move the cover (cyclic):
 ```
 FB_DO_COVER_001(
-	UP:=FB_DI_PB_013.P_LONG,
-	DN:=FB_DI_PB_015.P_LONG,
-	MU=>DO_031,
-	MD=>DO_032	
-	);
+    UP:=DI_001,                                                                     (* digital input to receive signal to move cover up *)
+    DN:=DI_002,                                                                     (* digital input to receive signal to move cover down *)
+    MU=>DO_001,                                                                     (* digital output to couple to cover motor up wire *)
+    MD=>DO_002                                                                      (* digital output to couple to cover motor down wire *)
+    );
 ```
 
-- integration with 
+- integration with `FB_INPUT_PUSHBUTTON_MQTT`:
+```
+FB_DO_COVER_001(
+    UP:=FB_DI_PB_001.P_LONG,                                                        (* move cover up during a longpush on input pushbutton 1 *)
+    DN:=FB_DI_PB_002.P_LONG,                                                        (* move cover down during a longpush on input pushbutton 2 *)
+    MU=>DO_001,                                                                     (* digital output to couple to cover motor up wire *)
+    MD=>DO_002                                                                      (* digital output to couple to cover motor down wire *)
+    );
+```
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
