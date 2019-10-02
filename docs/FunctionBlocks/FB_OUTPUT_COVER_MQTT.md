@@ -17,8 +17,8 @@ INPUT(S)
 - UP: bool input to move the cover up.
 - DN: bool input to move the cover down.
 - PI: byte input, position to move cover to in automode. Automode can be enabled by maken UP and DN high simultaneous. 
-- PRIO_UP: when high the cover will receive a constant signal to move up. Usage: make covers move up in case of a fire alarm for example. (*)
-- PRIO_DN: when low the cover will receive a constant signal to move down. (*)
+- PRIO_UP: when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. Usage: make covers move up in case of a fire alarm for example. (*)
+- PRIO_DN: when low the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (*)
 
 (*) When high, all incomming MQTT commands will be ignored.
 
@@ -58,11 +58,15 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 | **Open cover** | Request to open the cover. | `OPEN` | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
 | **Close cover** | Request to close the cover. | `CLOSE` | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
 | **Stop cover** | Request to stop the cover from moving. | `STOP` | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
-| **Move cover to position** | Request to move the cover to a specific position. | `0-100` (*) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
+| **Calibrate cover up** | Powers the up motor (`MU` output) for twice the time of `T_UD`. | `CAL_UP` (*) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
+| **Calibrate cover down** | Powers the down motor (`MD` output) for twice the time of `T_UD`. | `CAL_DN` (*) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
+| **Move cover to position** | Request to move the cover to a specific position. | `0-100` (**) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
-(*): `0` meaning completely closed, `100` completely open.
+(*): Usefull for calibrating the cover in case the persistent position got lost (by for example uploading a new program to the PLC). When this command is executed the cover will be powered up or down by twice the time of `T_UD` guaranteeing a correct `POS` output.
+
+(**): `0` meaning completely closed, `100` completely open.
 
 ### __Code example__
 
