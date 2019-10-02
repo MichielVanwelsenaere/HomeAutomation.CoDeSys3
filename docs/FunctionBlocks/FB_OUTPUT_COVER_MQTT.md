@@ -58,8 +58,8 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 | **Open cover** | Request to open the cover. | `OPEN` | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
 | **Close cover** | Request to close the cover. | `CLOSE` | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
 | **Stop cover** | Request to stop the cover from moving. | `STOP` | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
-| **Calibrate cover up** | Powers the up motor (`MU` output) for twice the time of `T_UD`. | `CAL_UP` (*) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
-| **Calibrate cover down** | Powers the down motor (`MD` output) for twice the time of `T_UD`. | `CAL_DN` (*) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
+| **Calibrate cover up** | Request to power the up motor (`MU` output) for twice the time of `T_UD`. | `CAL_UP` (*) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
+| **Calibrate cover down** | Request to power the down motor (`MD` output) for twice the time of `T_UD`. | `CAL_DN` (*) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
 | **Move cover to position** | Request to move the cover to a specific position. | `0-100` (**) | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low.
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
