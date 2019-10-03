@@ -2,7 +2,7 @@
 
 ### __General Overview__
 The software is designed to have a loosely coupled architecture making it possible to add new home automation functionality without the need to worry about the MQTT communication to much.
-This results in a separate task for the main home automation task and a task to handle the MQTT communication to the broker. A global variable list is used to share memory objects between the two tasks enabling communication.
+This results in a task for the main home automation logic and a seperate task to handle the MQTT communication to the broker. A global variable list is used to share memory objects between the two tasks enabling communication.
 
 ![SoftwareArchitecture](./_img/SoftwareArchitecture.svg)
 
