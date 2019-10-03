@@ -43,7 +43,7 @@ METHOD(S)
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
-| Event | Description | MQTT payload | QOS | Retain flag | Published on startup |
+| Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **Output changes: POS**   | A change is detected on output `POS`. | `0-100` | configured in method call `InitMQTT` | `TRUE` | yes
 
