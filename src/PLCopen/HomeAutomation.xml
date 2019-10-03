@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-09-27T19:36:57.5173579" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-09-27T19:26:43.1649176">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-10-03T17:23:45.7924948" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-10-02T20:10:42.5352914">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -80,6 +80,11 @@
               <xhtml xmlns="http://www.w3.org/1999/xhtml"> Shared Variables for MQTT subscribe communication </xhtml>
             </documentation>
           </variable>
+          <variable name="collector_FB_OUTPUT_COVER_MQTT">
+            <type>
+              <derived name="SD_MQTT.CallbackCollector" />
+            </type>
+          </variable>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
@@ -96,8 +101,6 @@
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="598735182" />
-                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
@@ -135,6 +138,28 @@
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
                   <ObjectId>7580db2f-a073-46d1-9a95-ca4a1d2cc921</ObjectId>
+                </data>
+              </addData>
+            </dataType>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/datatype" handleUnknown="implementation">
+            <dataType name="COVER_STATES">
+              <baseType>
+                <enum>
+                  <values>
+                    <value name="Idle" />
+                    <value name="Auto" />
+                    <value name="Manual" />
+                    <value name="Prio_up" />
+                    <value name="Prio_dn" />
+                    <value name="Calibrate_up" />
+                    <value name="Calibrate_dn" />
+                  </values>
+                </enum>
+              </baseType>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                  <ObjectId>ec8f5448-945f-424a-a8c9-9b356a449b4f</ObjectId>
                 </data>
               </addData>
             </dataType>
@@ -573,13 +598,29 @@
                       <derived name="FB_OUTPUT_SWITCH_MQTT" />
                     </type>
                   </variable>
+                  <variable name="MqttPubCoverPrefix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'WAGO-PFC200/Out/Covers/'" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> COVER FUNCTION BLOCKS </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MqttSubCoverPrefix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'WAGO-PFC200/In/Covers/'" />
+                    </initialValue>
+                  </variable>
                   <variable name="FB_DO_COVER_001">
                     <type>
                       <derived name="FB_OUTPUT_COVER_MQTT" />
                     </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> COVER FUNCTION BLOCKS </xhtml>
-                    </documentation>
                   </variable>
                 </localVars>
               </interface>
@@ -587,43 +628,41 @@
                 <action name="WRITE_SWITCHES">
                   <body>
                     <ST>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DO_SW_001(OUT	=&gt;			DO_001,										(* couple the function block to the physical output *)
-	PRIOHIGH				:=FALSE,  									(* brings the output high regardless of other input values *)
-	PRIOLOW					:=FALSE, 									(* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DO_SW_001(OUT	=&gt;		DO_001,										(* couple the function block to the physical output *)
+	PRIO_HIGH				:=FALSE,  									(* brings the output high regardless of other input values *)
+	PRIO_LOW				:=FALSE, 									(* brings the output low regardless of other input values. NOTE: PRIO_HIGH overrules PRIO_LOW input *)
 	TOGGLE					:=FB_DI_PB_009.SINGLE 						(* for toggling the output *)	
 );
 
-FB_DO_SW_002(OUT =&gt; DO_002		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FB_DI_PB_009.DOUBLE	);
-FB_DO_SW_003(OUT =&gt; DO_003		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
-FB_DO_SW_004(OUT =&gt; DO_004		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
-FB_DO_SW_005(OUT =&gt; DO_005		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
-FB_DO_SW_006(OUT =&gt; DO_006		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
-FB_DO_SW_007(OUT =&gt; DO_007		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
-FB_DO_SW_008(OUT =&gt; DO_008		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
-FB_DO_SW_009(OUT =&gt; DO_009		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_010(OUT =&gt; DO_010		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_011(OUT =&gt; DO_011		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_012(OUT =&gt; DO_012		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_013(OUT =&gt; DO_013		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_014(OUT =&gt; DO_014		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_015(OUT =&gt; DO_015		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_016(OUT =&gt; DO_016		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_017(OUT =&gt; DO_017		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_018(OUT =&gt; DO_018		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_019(OUT =&gt; DO_019		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_020(OUT =&gt; DO_020		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_021(OUT =&gt; DO_021		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_022(OUT =&gt; DO_022		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_023(OUT =&gt; DO_023		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_024(OUT =&gt; DO_024		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_025(OUT =&gt; DO_025		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_026(OUT =&gt; DO_026		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_027(OUT =&gt; DO_027		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_028(OUT =&gt; DO_028		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_029(OUT =&gt; DO_029		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_030(OUT =&gt; DO_030		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-(* FB_DO_SW_031(OUT =&gt; DO_031		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				);
-FB_DO_SW_032(OUT =&gt; DO_032		,PRIOHIGH:=FALSE			,PRIOLOW:=FALSE				,TOGGLE:=FALSE				); *)
+FB_DO_SW_002(OUT =&gt; DO_002		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FB_DI_PB_009.DOUBLE	);
+FB_DO_SW_003(OUT =&gt; DO_003		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
+FB_DO_SW_004(OUT =&gt; DO_004		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
+FB_DO_SW_005(OUT =&gt; DO_005		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
+FB_DO_SW_006(OUT =&gt; DO_006		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
+FB_DO_SW_007(OUT =&gt; DO_007		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
+FB_DO_SW_008(OUT =&gt; DO_008		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FB_DI_PB_009.LONG		);
+FB_DO_SW_009(OUT =&gt; DO_009		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_010(OUT =&gt; DO_010		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_011(OUT =&gt; DO_011		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_012(OUT =&gt; DO_012		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_013(OUT =&gt; DO_013		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_014(OUT =&gt; DO_014		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_015(OUT =&gt; DO_015		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_016(OUT =&gt; DO_016		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_017(OUT =&gt; DO_017		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_018(OUT =&gt; DO_018		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_019(OUT =&gt; DO_019		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_020(OUT =&gt; DO_020		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_021(OUT =&gt; DO_021		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_022(OUT =&gt; DO_022		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_023(OUT =&gt; DO_023		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_024(OUT =&gt; DO_024		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_025(OUT =&gt; DO_025		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_026(OUT =&gt; DO_026		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_027(OUT =&gt; DO_027		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_028(OUT =&gt; DO_028		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_029(OUT =&gt; DO_029		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
+FB_DO_SW_030(OUT =&gt; DO_030		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
 </xhtml>
                     </ST>
                   </body>
@@ -750,10 +789,19 @@ FB_DO_SW_027.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscrib
 FB_DO_SW_028.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
 FB_DO_SW_029.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
 FB_DO_SW_030.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-(* FB_DO_SW_031.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
-FB_DO_SW_032.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));*)
 
-FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT), SD_MQTT.QoS.ExactlyOnce, 5);</xhtml>
+(* INIT COVERS STUFF *)
+FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),				(* pointer to string prefix for the mqtt publish topic *)
+	MQTTSubscribePrefix:= ADR(MqttSubCoverPrefix),									(* pointer to string prefix for the mqtt subscribe topic *)
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						(* pointer to MqttPublishQueue to send a new Mqtt event *)
+	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT), 	(* pointer to CallbackCollector to receive Mqtt subscription events *)
+	SD_MQTT.QoS.ExactlyOnce, 														(* specify the QoS for the POS mqtt events (values 0-100) *)
+	2																				(* specify the resolution for the POS mqtt events *)
+);
+
+FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,								(* delay between change of direction *)
+	T_UD:=T#20S																		(* run time to move the cover completely up/down *)
+);</xhtml>
                     </ST>
                   </body>
                   <addData>
@@ -768,7 +816,8 @@ FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubsc
                       <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DO_COVER_001(
 	UP:=FB_DI_PB_013.P_LONG,
 	DN:=FB_DI_PB_015.P_LONG,
-	T_UP:=T#10S
+	MU=&gt;DO_031,
+	MD=&gt;DO_032	
 	);</xhtml>
                     </ST>
                   </body>
@@ -1196,7 +1245,7 @@ END_IF</xhtml>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
 
-InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
 THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 
 InitMqttDone := TRUE;</xhtml>
@@ -1237,7 +1286,7 @@ InitMqttDone := TRUE;</xhtml>
             <pou name="FB_OUTPUT_SWITCH_MQTT" pouType="functionBlock">
               <interface>
                 <inputVars>
-                  <variable name="PRIOHIGH">
+                  <variable name="PRIO_HIGH">
                     <type>
                       <BOOL />
                     </type>
@@ -1245,7 +1294,7 @@ InitMqttDone := TRUE;</xhtml>
                       <simpleValue value="FALSE" />
                     </initialValue>
                   </variable>
-                  <variable name="PRIOLOW">
+                  <variable name="PRIO_LOW">
                     <type>
                       <BOOL />
                     </type>
@@ -1367,9 +1416,9 @@ InitMqttDone := TRUE;</xhtml>
 	OUT := PreviousState;
 END_IF
 
-IF PRIOHIGH THEN
+IF PRIO_HIGH THEN
 	OUT:=TRUE;
-ELSIF(PRIOLOW AND NOT (PRIOHIGH)) THEN
+ELSIF(PRIO_LOW AND NOT (PRIO_HIGH)) THEN
 	OUT:= FALSE;
 ELSIF MqttHighRequest THEN
 	OUT:= TRUE;
@@ -1455,7 +1504,7 @@ PreviousState := OUT;</xhtml>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
 
-InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
 THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);
 
@@ -1942,6 +1991,11 @@ EMPTY := TRUE;</xhtml>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> variables for MQTT subscribing </xhtml>
                     </documentation>
                   </variable>
+                  <variable name="subscriber_FB_OUTPUT_COVER_MQTT">
+                    <type>
+                      <derived name="SD_MQTT.MQTTSubscribe" />
+                    </type>
+                  </variable>
                 </localVars>
               </interface>
               <actions>
@@ -1981,7 +2035,9 @@ IF NOT initMqtt THEN
 	END_FOR 
 	
 	(* INIT MQTT SUBSCRIBE STUFF *)
-	subscriber_FB_OUTPUT_SWITCH_MQTT.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
+	subscriber_FB_OUTPUT_SWITCH_MQTT.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));	
+	subscriber_FB_OUTPUT_COVER_MQTT.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
+
 END_IF
 
 </xhtml>
@@ -2073,6 +2129,14 @@ IF initMqtt THEN
 		QoSSubscribe:= SD_MQTT.QoS.ExactlyOnce, 
 		ExpectingString:= TRUE, 
 		Callback:= MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT,
+	);
+	
+	subscriber_FB_OUTPUT_COVER_MQTT(
+		Subscribe:= TRUE, 
+		Topic:= ADR('WAGO-PFC200/In/Covers/+'), 
+		QoSSubscribe:= SD_MQTT.QoS.ExactlyOnce, 
+		ExpectingString:= TRUE, 
+		Callback:= MqttVariables.collector_FB_OUTPUT_COVER_MQTT,
 	);
 END_IF
 </xhtml>
@@ -2474,7 +2538,7 @@ END_IF</xhtml>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
 
-InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
 THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 
 InitMqttDone := TRUE;</xhtml>
@@ -2906,7 +2970,7 @@ END_IF</xhtml>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
 
-InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
 THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 
 THIS^.OutputDimmer:=OutputDimmer;
@@ -3467,12 +3531,22 @@ THIS^.position.SetRMP(POS);</xhtml>
                       <BYTE />
                     </type>
                   </variable>
+                  <variable name="PRIO_UP">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PRIO_DN">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
                   <variable name="SENS">
                     <type>
                       <BYTE />
                     </type>
                     <initialValue>
-                      <simpleValue value="5" />
+                      <simpleValue value="1" />
                     </initialValue>
                     <addData>
                       <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -3497,7 +3571,7 @@ THIS^.position.SetRMP(POS);</xhtml>
                       </data>
                     </addData>
                   </variable>
-                  <variable name="T_UP">
+                  <variable name="T_UD">
                     <type>
                       <TIME />
                     </type>
@@ -3592,9 +3666,6 @@ THIS^.position.SetRMP(POS);</xhtml>
                     <type>
                       <derived name="BLIND_ACTUATOR" />
                     </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> FB_COVER				:OSCAT_BUILDING.BLIND_CONTROL; </xhtml>
-                    </documentation>
                   </variable>
                   <variable name="delta">
                     <type>
@@ -3621,14 +3692,34 @@ THIS^.position.SetRMP(POS);</xhtml>
                       <INT />
                     </type>
                   </variable>
-                  <variable name="UP_R_TRIG">
+                  <variable name="Cover_State">
                     <type>
-                      <derived name="Standard.R_TRIG" />
+                      <derived name="COVER_STATES" />
                     </type>
                   </variable>
-                  <variable name="DN_R_TRIG">
+                  <variable name="Cover_State_Timer">
                     <type>
-                      <derived name="Standard.R_TRIG" />
+                      <derived name="TOF" />
+                    </type>
+                  </variable>
+                  <variable name="MqttRequestAuto">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="MqttRequestStop">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="MqttRequestCalibrateUp">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="MqttRequestCalibrateDn">
+                    <type>
+                      <BOOL />
                     </type>
                   </variable>
                 </localVars>
@@ -3662,18 +3753,80 @@ THIS^.position.SetRMP(POS);</xhtml>
 	FB_ACT.SetPOS(PreviousPos);
 END_IF
 
-//check for rising flanks on the inputs to turn of automatic mode
-UP_R_TRIG(CLK:=UP);
-DN_R_TRIG(CLK:=DN);
+Cover_State_Timer(PT:=2 * T_UD);
+Cover_State_Timer.IN:=FALSE;
 
-//Only one should be active to turn of automatic mode and go manual
-IF UP_R_TRIG.Q XOR DN_R_TRIG.Q THEN
-	internal_UP:=UP;
-	internal_DN:=DN;
-END_IF
+
+CASE Cover_State OF
+	COVER_STATES.Idle:
+		internal_UP:=FALSE;
+		internal_DN:=FALSE;
+		//Calculate the next state
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+	COVER_STATES.Prio_up:
+		// Only power an engine for maximum twice T_UD
+		IF Cover_State_Timer.Q THEN
+			internal_UP:=TRUE;
+			internal_DN:=FALSE;
+		ELSE
+			internal_UP:=FALSE;
+			internal_DN:=FALSE;
+		END_IF
+		//Calculate the next state
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+	COVER_STATES.Prio_dn:
+		// Only power an engine for maximum twice T_UD
+		IF Cover_State_Timer.Q THEN
+			internal_UP:=FALSE;
+			internal_DN:=TRUE;
+		ELSE
+			internal_UP:=FALSE;
+			internal_DN:=FALSE;
+		END_IF
+		//Calculate the next state
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+	COVER_STATES.Auto:
+		internal_UP:=TRUE;
+		internal_DN:=TRUE;
+		//Calculate the next state
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+	COVER_STATES.Manual:
+		internal_UP:=UP;
+		internal_DN:=DN;
+		//Calculate the next state
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+	COVER_STATES.Calibrate_up:
+		// Only power an engine for maximum twice T_UD
+		IF Cover_State_Timer.Q THEN
+			internal_UP:=FALSE;
+			internal_DN:=TRUE;
+		ELSE
+			internal_UP:=FALSE;
+			internal_DN:=FALSE;
+			//Finish the request
+			MqttRequestCalibrateUp:=FALSE;
+		END_IF
+		//Calculate the next state
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+	COVER_STATES.Calibrate_dn:
+		// Only power an engine for maximum twice T_UD
+		IF Cover_State_Timer.Q THEN
+			internal_UP:=FALSE;
+			internal_DN:=TRUE;
+		ELSE
+			internal_UP:=FALSE;
+			internal_DN:=FALSE;
+			//Finish the request
+			MqttRequestCalibrateDn:=FALSE;
+		END_IF
+		//Calculate the next state
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+	ELSE
+		Cover_State:=COVER_STATES.Idle;
+END_CASE
 
 (* Check Position*)
-FB_ACT(T_UD:=T_UP, T_ANGLE:=T#0S, T_lockout := T_Lockout);
+FB_ACT(T_UD:=T_UD, T_ANGLE:=T#0S, T_lockout := T_Lockout);
 
 IF internal_UP AND internal_DN THEN
 	(* automatic modus detected *)
@@ -3698,15 +3851,15 @@ ELSE
 END_IF;
 
 (* blind control calls blind_actuator *)
-FB_ACT(T_UD:=T_UP, T_ANGLE:=T#0S, T_lockout := T_Lockout);
+FB_ACT(T_UD:=T_UD, T_ANGLE:=T#0S, T_lockout := T_Lockout);
 POS := FB_ACT.pos;
 MU := FB_ACT.QU;
 MD := FB_ACT.QD;
 
-IF (ABS(BYTE_TO_INT(PreviousPos) - BYTE_TO_INT(POS)) &gt;= Delta_POS  OR MU = FALSE AND MD = FALSE) AND POS &lt;&gt; PreviousPos OR Startup AND InitMqttDone THEN
+IF (ABS(BYTE_TO_INT(PreviousPos) - BYTE_TO_INT(POS)) &gt;= Delta_POS  OR (MU = FALSE AND MD = FALSE)) AND POS &lt;&gt; PreviousPos OR Startup AND InitMqttDone THEN
 	PreviousPos:=POS;
 	pMqttPublishQueue^.AddMessage(
-		Payload := REAL_TO_STRING(OSCAT_BASIC.SCALE_B(X:=POS, I_LO:=0, I_HI:=255, O_LO:=0, O_HI:=100)),
+		Payload := INT_TO_STRING(REAL_TO_INT(OSCAT_BASIC.SCALE_B(X:=POS, I_LO:=0, I_HI:=255, O_LO:=0, O_HI:=100))),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
 		Qos := Qos_POS,
 		MqttRetain := TRUE
@@ -3785,7 +3938,7 @@ END_IF
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
 
-InstanceNamePt := CommonTypesAndFunctions.FindLasDot(ADR(THIS^.InstanceName)) + 1;
+InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
 THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);
 
@@ -3793,7 +3946,7 @@ THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicS
 pMqttCallbackCollector^.put(instance:= THIS^);
 
 THIS^.Qos_POS:=Qos_POS;
-THIS^.Delta_POS:=Delta_POS;
+THIS^.Delta_POS:=REAL_TO_INT(OSCAT_BASIC.SCALE_B(X:=INT_TO_BYTE(Delta_POS), I_LO:=0, I_HI:=100, O_LO:=0, O_HI:=255));
 
 InitMqttDone := TRUE;</xhtml>
                       </ST>
@@ -3829,21 +3982,21 @@ ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= D
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 	//now process the data
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN
-		//Disable
-		internal_UP:=internal_DN:=FALSE;
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN			
+		THIS^.MqttRequestStop:=TRUE;
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
 		THIS^.PI:=255;
-		//Enable AutoMode
-		internal_UP:=internal_DN:=TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN
+		THIS^.MqttRequestAuto:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN		
 		THIS^.PI:=0;
-		//Enable AutoMode
-		internal_UP:=internal_DN:=TRUE;
+		THIS^.MqttRequestAuto:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CAL_UP')) THEN
+		THIS^.MqttRequestCalibrateUp:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CAL_DN')) THEN
+		THIS^.MqttRequestCalibrateDn:=TRUE;
 	ELSIF OSCAT_BASIC.IS_NUM(str:= Data.PayloadString^) THEN
 		THIS^.PI:=REAL_TO_BYTE(OSCAT_BASIC.SCALE_B(X:=STRING_TO_BYTE(Data.PayloadString^), I_LO:=0, I_HI:=100, O_LO:=0, O_HI:=255));
-		//Enable AutoMode
-		internal_UP:=internal_DN:=TRUE;
+		THIS^.MqttRequestAuto:=TRUE;
 	END_IF
 
 END_IF </xhtml>
@@ -3852,8 +4005,202 @@ END_IF </xhtml>
                     <addData />
                   </Method>
                 </data>
+                <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+                  <Method name="ConfigureFunctionBlock" ObjectId="f9798f48-5283-4e69-844c-9dd927553e43">
+                    <interface>
+                      <returnType>
+                        <BOOL />
+                      </returnType>
+                      <inputVars>
+                        <variable name="T_LOCKOUT">
+                          <type>
+                            <TIME />
+                          </type>
+                        </variable>
+                        <variable name="T_UD">
+                          <type>
+                            <TIME />
+                          </type>
+                        </variable>
+                      </inputVars>
+                    </interface>
+                    <body>
+                      <ST>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_LOCKOUT:=T_LOCKOUT;
+THIS^.T_UD:=T_UD;</xhtml>
+                      </ST>
+                    </body>
+                    <addData />
+                  </Method>
+                </data>
                 <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
                   <ObjectId>e6f961c6-f5fe-45f3-9117-9a080cefb2ff</ObjectId>
+                </data>
+              </addData>
+            </pou>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="CALC_COVER_STATE" pouType="function">
+              <interface>
+                <returnType>
+                  <derived name="COVER_STATES" />
+                </returnType>
+                <inputVars>
+                  <variable name="UP">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="DN">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PRIO_UP">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PRIO_DN">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PI">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="POS">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="MqttRequestAuto">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BOOL />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MqttRequestStop">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BOOL />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MqttRequestCalibrateUp">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BOOL />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MqttRequestCalibrateDn">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BOOL />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="CurrentState">
+                    <type>
+                      <derived name="COVER_STATES" />
+                    </type>
+                  </variable>
+                  <variable name="StateTimer">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="TOF" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="NewState">
+                    <type>
+                      <derived name="COVER_STATES" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF PRIO_UP THEN
+	NewState := COVER_STATES.Prio_up;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateUp^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSIF PRIO_DN THEN
+	NewState := COVER_STATES.Prio_dn;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateUp^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSIF UP OR DN THEN
+	NewState := COVER_STATES.Manual;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateUp^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSIF MqttRequestStop^ THEN
+	NewState := COVER_STATES.Idle;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateUp^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSIF MqttRequestAuto^ AND PI &lt;&gt; POS THEN
+	NewState := COVER_STATES.Auto;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateUp^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSIF MqttRequestAuto^ AND PI = POS THEN
+	NewState := COVER_STATES.Idle;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateUp^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSIF MqttRequestCalibrateUp^ THEN
+	NewState := COVER_STATES.Calibrate_up;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSIF MqttRequestCalibrateDn^ THEN
+	NewState := COVER_STATES.Calibrate_dn;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSE
+	NewState := COVER_STATES.Idle;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateUp^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+END_IF
+
+IF NewState &lt;&gt; CurrentState THEN
+	//Reset StateTimer
+	StateTimer^.IN:=TRUE;
+END_IF
+
+CALC_COVER_STATE := NewState;</xhtml>
+                </ST>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                  <ObjectId>0e3e058a-e6da-4090-aaf1-513339f70a04</ObjectId>
                 </data>
               </addData>
             </pou>
@@ -3876,13 +4223,13 @@ END_IF </xhtml>
               </Library>
               <Library Name="BASIC, 3.3.3.0 (OSCAT)" Namespace="OSCAT_BASIC" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <Library Name="BUILDING, 1.0.0.0 (OSCAT)" Namespace="OSCAT_BUILDING" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-              <Library Name="#CommonTypsFunctions" Namespace="CommonTypesAndFunctions" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Common Helper for development, * (Stefan Dreyer)" />
               <Library Name="OSCAT NETWORK, 1.30 (OSCAT)" Namespace="OSCAT_NETWORK" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <Library Name="#BreakpointLogging" Namespace="BPLog" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="Breakpoint Logging Functions, 3.5.5.0 (3S - Smart Software Solutions GmbH)" />
               <Library Name="#3SLicense" Namespace="_3S_LICENSE" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="3SLicense, 0.0.0.0 (3S - Smart Software Solutions GmbH)" ResolverGuid="97c3b452-d9fa-4ac2-9d0c-3d420aa6d95b" />
               <Library Name="#CDS_MemMan" Namespace="CMM" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="CDS_MemMan, 3.3.2.0 (3S - Smart Software Solutions GmbH)" />
               <Library Name="Element Collections, 3.5.14.0 (3S - Smart Software Solutions GmbH)" Namespace="COL" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <Library Name="MQTT, 1.1.0.0 (Stefan Dreyer)" Namespace="SD_MQTT" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+              <Library Name="#CommonTypsFunctions" Namespace="CommonTypesAndFunctions" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Common Helper for development, * (Stefan Dreyer)" />
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
                   <ObjectId>1f1166ba-ce55-40de-a774-1179e27627c8</ObjectId>
@@ -3953,10 +4300,13 @@ END_IF </xhtml>
               <Object Name="BLIND_ACTUATOR" ObjectId="1271413f-6c87-4e9f-973e-58c158ea8e22">
                 <Object Name="SetPOS" ObjectId="29e3a145-48d2-42f3-97b8-461ad38b64ba" />
               </Object>
+              <Object Name="COVER_STATES" ObjectId="ec8f5448-945f-424a-a8c9-9b356a449b4f" />
+              <Object Name="CALC_COVER_STATE" ObjectId="0e3e058a-e6da-4090-aaf1-513339f70a04" />
             </Folder>
             <Object Name="FB_OUTPUT_COVER_MQTT" ObjectId="e6f961c6-f5fe-45f3-9117-9a080cefb2ff">
               <Object Name="InitMqtt" ObjectId="bcbc7249-6b54-4cd1-a5aa-8f4df54a80c3" />
               <Object Name="PublishReceived" ObjectId="4da03690-6698-482f-8bcf-5a0fc11a7236" />
+              <Object Name="ConfigureFunctionBlock" ObjectId="f9798f48-5283-4e69-844c-9dd927553e43" />
             </Object>
           </Folder>
           <Object Name="MqttVariables" ObjectId="4f9cb91a-49cd-4924-912b-f57a11772a7e" />
