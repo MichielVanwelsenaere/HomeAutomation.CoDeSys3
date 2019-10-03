@@ -1,11 +1,11 @@
 ## FB_OUTPUT_COVER_MQTT
 
 ### __General__
-The cover function block allows you to control a covers such as a rollershutter or a garage door. Using a time variable (`T_UD`) that specifies the time to close/open a cover completely its possible to control the specific position of the cover. That specific position variable is maintained through powercycles.
+The cover function block allows you to control covers such as a roller shutter or a garage door. Using a time variable (`T_UD`) that specifies the time to close/open a cover completely its possible to control the specific position of the cover. That specific position variable is maintained through power cycles using a persistent variable.
 
 ----------------------------
 
-:rotating_light: Do not use this function block if the mechanical safety on your electric rollershutters hasn't been configured properly!
+:rotating_light: Do not use this function block if the mechanical safety on your electric roller shutters hasn't been configured properly!
 
 ----------------------------
 
@@ -16,20 +16,20 @@ The cover function block allows you to control a covers such as a rollershutter 
 INPUT(S)
 - UP: bool input, when high the cover moves up.
 - DN: bool input, when high the cover moves down.
-- PI: byte input, position to move cover to in automode. Automode can be enabled by maken UP and DN high simultaneous. 
+- PI: byte input, position to move the cover to in automode. Automode can be enabled by making UP and DN high simultaneous. 
 - PRIO_UP: bool input, when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. Usage: make covers move up in case of a fire alarm for example. (*)
 - PRIO_DN: bool input, when low the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (*)
 
-(*) When high, all incomming MQTT commands and the UP/DN inputs will be ignored.
+(*) When high, all incoming MQTT commands and the UP/DN inputs will be ignored.
 
 OUTPUT(S)
 - POS: byte output, cover position value (range 0-255).
 - MU: bool output, motor up signal.
-- MD: bool output, moter down signal.
+- MD: bool output, motor down signal.
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
+    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. The suffix is automatically set to FB name. 
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     - `Qos_POS`: datatype *SD_MQTT.QoS*, MQTT QoS of the POS MQTT events.
     - `Delta_POS`: datatype *INT*, resolution of the MQTT POS events. For example: specifying value *5* will configure the FB to only emit an MQTT event when the POS output differs *5* or more than its previous value. Note that the last value of output POS (when it has reached position the desired position) is always published. Even if the resolution delta hasn't been reached yet. This way the last POS value published through MQTT is always synchronized with the POS output of the FB.
@@ -64,7 +64,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
-(*): Usefull for calibrating the cover in case the persistent position got lost (by for example uploading a new program to the PLC). When this command is executed the cover will be powered up or down by twice the time of `T_UD` guaranteeing a correct `POS` output.
+(*): Useful for calibrating the cover in case the persistent position got lost (by, for example, uploading a new program to the PLC). When this command is executed the cover will be powered up or down by twice the time of `T_UD` guaranteeing a correct `POS` output.
 
 (**): `0` meaning completely closed, `100` completely open.
 
@@ -121,7 +121,7 @@ To integrate with Home Assistant use the YAML code below in your [MQTT cover](ht
 
 ```YAML
 - platform: mqtt 
-  name: "MQTT Cover" 
+  name: "FB_DO_COVER_001" 
   command_topic: "WAGO-PFC200/In/Covers/FB_DO_COVER_001" 
   position_topic: "WAGO-PFC200/Out/Covers/FB_DO_COVER_001" 
   set_position_topic: "WAGO-PFC200/In/Covers/FB_DO_COVER_001" 
