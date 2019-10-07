@@ -17,7 +17,8 @@ INPUT(S)
 - UP: bool input, when high the cover moves up.
 - DN: bool input, when high the cover moves down.
 - PI: byte input, position to move the cover to in automode. Automode can be enabled by making UP and DN high simultaneous. 
-- PRIO_UP: bool input, when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. Usage: make covers move up in case of a fire alarm for example. (*)
+- PRIO_LOCK: bool input, when high the cover will be locked in its current position ignoring all other inputs. (*)
+- PRIO_UP: bool input, when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. (*)
 - PRIO_DN: bool input, when low the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (*)
 
 (*) When high, all incoming MQTT commands and the UP/DN inputs will be ignored.

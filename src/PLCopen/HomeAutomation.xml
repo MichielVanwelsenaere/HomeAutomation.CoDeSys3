@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-10-03T17:23:45.7924948" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-10-02T20:10:42.5352914">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP14 Patch 2" creationDateTime="2019-10-07T17:01:19.2977408" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2019-10-07T14:34:50.3280809">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -3531,6 +3531,11 @@ THIS^.position.SetRMP(POS);</xhtml>
                       <BYTE />
                     </type>
                   </variable>
+                  <variable name="PRIO_LOCK">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
                   <variable name="PRIO_UP">
                     <type>
                       <BOOL />
@@ -3756,13 +3761,12 @@ END_IF
 Cover_State_Timer(PT:=2 * T_UD);
 Cover_State_Timer.IN:=FALSE;
 
-
 CASE Cover_State OF
 	COVER_STATES.Idle:
 		internal_UP:=FALSE;
 		internal_DN:=FALSE;
 		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
 	COVER_STATES.Prio_up:
 		// Only power an engine for maximum twice T_UD
 		IF Cover_State_Timer.Q THEN
@@ -3773,7 +3777,7 @@ CASE Cover_State OF
 			internal_DN:=FALSE;
 		END_IF
 		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
 	COVER_STATES.Prio_dn:
 		// Only power an engine for maximum twice T_UD
 		IF Cover_State_Timer.Q THEN
@@ -3784,17 +3788,17 @@ CASE Cover_State OF
 			internal_DN:=FALSE;
 		END_IF
 		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
 	COVER_STATES.Auto:
 		internal_UP:=TRUE;
 		internal_DN:=TRUE;
 		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
 	COVER_STATES.Manual:
 		internal_UP:=UP;
 		internal_DN:=DN;
 		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
 	COVER_STATES.Calibrate_up:
 		// Only power an engine for maximum twice T_UD
 		IF Cover_State_Timer.Q THEN
@@ -3807,7 +3811,7 @@ CASE Cover_State OF
 			MqttRequestCalibrateUp:=FALSE;
 		END_IF
 		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
 	COVER_STATES.Calibrate_dn:
 		// Only power an engine for maximum twice T_UD
 		IF Cover_State_Timer.Q THEN
@@ -3820,7 +3824,7 @@ CASE Cover_State OF
 			MqttRequestCalibrateDn:=FALSE;
 		END_IF
 		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
+		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
 	ELSE
 		Cover_State:=COVER_STATES.Idle;
 END_CASE
@@ -4056,6 +4060,11 @@ THIS^.T_UD:=T_UD;</xhtml>
                       <BOOL />
                     </type>
                   </variable>
+                  <variable name="PRIO_LOCK">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
                   <variable name="PRIO_UP">
                     <type>
                       <BOOL />
@@ -4137,7 +4146,13 @@ THIS^.T_UD:=T_UD;</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF PRIO_UP THEN
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF PRIO_LOCK THEN
+	NewState := COVER_STATES.Idle;
+	MqttRequestAuto^ := FALSE;
+	MqttRequestStop^ := FALSE;
+	MqttRequestCalibrateUp^ := FALSE;
+	MqttRequestCalibrateDn^ := FALSE;
+ELSIF PRIO_UP THEN
 	NewState := COVER_STATES.Prio_up;
 	MqttRequestAuto^ := FALSE;
 	MqttRequestStop^ := FALSE;
