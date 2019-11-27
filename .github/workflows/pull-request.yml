@@ -8,8 +8,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Verify if there are no broken links in PR
+      - uses: actions/checkout@master
       - name: Link Checker
-      - uses: peter-evans/link-checker@v1.0.0
-        uses: ./
+        uses: peter-evans/link-checker@v1.0.0
         with:
           args: -v -r *
