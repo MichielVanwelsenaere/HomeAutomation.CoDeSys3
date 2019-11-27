@@ -4,11 +4,12 @@ on:
   pull_request:
 
 jobs:
-  update_release_draft:
+  run_pull_request_checks:
     runs-on: ubuntu-latest
     steps:
       # Verify if there are no broken links in PR
       - name: Link Checker
-        uses: peter-evans/link-checker@v1.0.0
+      - uses: peter-evans/link-checker@v1.0.0
+        uses: ./
         with:
           args: -v -r *
