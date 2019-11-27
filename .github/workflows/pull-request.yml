@@ -1,0 +1,14 @@
+name: Pull Request
+
+on:
+  pull_request:
+
+jobs:
+  update_release_draft:
+    runs-on: ubuntu-latest
+    steps:
+      # Verify if there are no broken links in PR
+      - name: Link Checker
+        uses: peter-evans/link-checker@v1.0.0
+        with:
+          args: -v -r *
