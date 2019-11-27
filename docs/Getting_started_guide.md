@@ -25,7 +25,7 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 
 ![Download Missing Libraries](./_img/GettingStartedGuide/DownloadMissingLibraries.png)
 
-3. Go to the *Library Manager* menu and install all libraries from the [src/Libraries](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/tree/feature/GettingStartedGuide/src/Libraries) folder.
+3. Go to the *Library Manager* menu and install all libraries from the [src/Libraries](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/tree/master/src/Libraries) folder.
 
 ![Install Libraries](./_img/GettingStartedGuide/InstallLibraries.png)
 

@@ -1,0 +1,13 @@
+name: Pull Request
+
+on:
+  pull_request:
+
+jobs:
+  run_pull_request_checks:
+    runs-on: ubuntu-latest
+    steps:
+      # Verify if there are no broken links in PR
+      - uses: actions/checkout@master
+      - uses: gaurav-nelson/github-action-markdown-link-check@0.4.0
+        name: check for broken links
