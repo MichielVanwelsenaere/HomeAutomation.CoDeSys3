@@ -1,5 +1,3 @@
-[brokenlinkl](http://www.httpdoesnotexist.com/)
-
 # MQTT enabled CoDeSys 3 Home Automation
 This CoDeSys 3.5 project is built for home automation purposes. The goal of the approach is to perform any critical operations like reading inputs, switching light, controlling sunscreens, etc. Inside the PLC itself and make use of MQTT events to send events to an MQTT broker. Using MQTT subscriptions it's possible to send commands to the PLC to switch outputs. 
 
