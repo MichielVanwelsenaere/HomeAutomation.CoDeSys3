@@ -9,5 +9,5 @@ jobs:
     steps:
       # Verify if there are no broken links in PR
       - uses: actions/checkout@master
-      - uses: max/awesome-lint@v2.0.0
-        name: lint checker
+      - uses: gaurav-nelson/github-action-markdown-link-check@0.4.0
+        name: check for broken links
