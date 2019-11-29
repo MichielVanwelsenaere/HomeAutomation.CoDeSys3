@@ -11,3 +11,5 @@ jobs:
       - uses: actions/checkout@master
       - uses: gaurav-nelson/github-action-markdown-link-check@0.4.0
         name: check for broken links
+      - uses: rojopolis/spellcheck-github-actions@0.2.0
+        name: check for spelling errors
