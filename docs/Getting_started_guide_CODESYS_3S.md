@@ -40,15 +40,15 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 1. Return to the 'Devices' tab of the project, right click on the root item and 'Add Device':
 
-![Add device](./_img/GettingStartedGuide/AddDeviceSelection.png)
+<img src="./_img/GettingStartedGuide/AddDeviceSelection.png" alt="Add device" width="350"/>
 
 2. Add your device, in this example a WAGO PFC200 is used: 
 
-![Add device PFC200](./_img/GettingStartedGuide/AddDevicePFC200.png)
+<img src="./_img/GettingStartedGuide/AddDevicePFC200.png" alt="Add device PFC200" width="350"/>
 
 3. Remove the default application from the device:
 
-![Add device remove default application](./_img/GettingStartedGuide/AddDeviceRemoveDefaults.png)
+<img src="./_img/GettingStartedGuide/AddDeviceRemoveDefaults.png" alt="Add device remove default application" width="350"/>
 
 ### __Restoring the PLC logic__
 

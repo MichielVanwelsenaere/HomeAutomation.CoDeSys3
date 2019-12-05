@@ -31,7 +31,7 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 1. Build the project
 
-<img src="./_img/GettingStartedGuide/écockpitbuild.png" alt="écockpitbuild" width="500"/>
+<img src="./_img/GettingStartedGuide/écockpitbuild.png" alt="ecockpitbuild" width="500"/>
 
 ### __Uploading and running the project__
 To upload and run the project on your PLC perform the following steps:
