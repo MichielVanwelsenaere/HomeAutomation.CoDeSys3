@@ -14,7 +14,7 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 ### __Open the project__
 
-1. open the file with *.ecp* extension in in é!COCKPIT.
+1. open the file with *.ecp* extension in é!COCKPIT.
 
 ### __Libraries__
 

@@ -60,7 +60,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 ### __Libraries__
 
-1. Go to the *Library Manager* menu and remove all Wago libraries:
+1. Go to the *Library Manager* menu and remove all WAGO libraries:
 
 ![Remove WAGO libraries](./_img/GettingStartedGuide/RemoveWagoLibraries.png)
 
