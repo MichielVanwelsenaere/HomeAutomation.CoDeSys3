@@ -1,4 +1,4 @@
-## Getting started guide
+## Getting started guide (CODESYS 3S runtime)
 
 ### __Getting to know CoDeSys3__
 If you have experience with programming in CodeSys3 you can skip this part. Otherwise, it's advised to gain some experience by checking the sources below:
@@ -8,7 +8,7 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 - CoDeSys Sequential Function Charts Explained: [YouTube video](https://www.youtube.com/watch?v=eP42t9O5drk)
 - Getting to know the IEC 61131-3 standard: [iec 61131-3 reference](https://bitbucket.org/ntphx/iec-61131)
 
-### __Setup CoDeSys3__
+### __Setup CoDeSys 3S__
 
 1. Download CoDeSys3 from the [CoDeSys store](https://store.codesys.com/). Note that you need to create an account to be able to download the installer.
 2. Install your device target package. Steps explained in this [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s), steps might differ slightly depending on your device target.
@@ -17,9 +17,52 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. Using the free version the PLC is able to run the CodeSys runtime for 2 hours after which the program stops running. A license is required to remove this limitation.
 
-### __Building the project__
+### __Creating a project__
 
-1. Clone the repository and open the *HomeAutomation.project* file in CoDeSys. Ignore the warnings about missing libraries (will be fixed in the next steps) and don't update any existing libraries.
+1. Create a new project in CODESYS 3S.
+
+### __Restoring the project POUs__
+This will restore the basic POUs (building blocks) of the project, note that you can reuse this step to update or import new POUs in the future.
+1. Go to the POUs section of the project and select the top level item:
+
+<img src="./_img/GettingStartedGuide/RestorePOUsNavigation.png" alt="Restore POUs navigiation" width="300"/>
+
+2. Select *Project* &rarr; *Import* and browse to the CODESYS3Export folder and open the *.export* file:
+
+<img src="./_img/GettingStartedGuide/RestorePOUsToplevel.png" alt="Restore POUs top level" width="300"/>
+
+3. Import all items:
+
+<img src="./_img/GettingStartedGuide/RestorePOUsImportAll.png" alt="Restore POUs import all" width="350"/>
+
+### __Adding a device__
+This will add a device to the project, in this example a PFC200 is used. Adopt to your needs if necessary. 
+
+1. Return to the 'Devices' tab of the project, right click on the root item and 'Add Device':
+
+<img src="./_img/GettingStartedGuide/AddDeviceSelection.png" alt="Add device" width="350"/>
+
+2. Add your device, in this example a WAGO PFC200 is used: 
+
+<img src="./_img/GettingStartedGuide/AddDevicePFC200.png" alt="Add device PFC200" width="350"/>
+
+3. Remove the default application from the device:
+
+<img src="./_img/GettingStartedGuide/AddDeviceRemoveDefaults.png" alt="Add device remove default application" width="350"/>
+
+### __Restoring the PLC logic__
+
+1. select the *PlcLogic* item and go to *Project* &rarr; *Import* and browse to the CODESYS3Export folder and open the *.export* file:
+
+<img src="./_img/GettingStartedGuide/RestorePLCLogic.png" alt="Restore PLC logic" width="350"/>
+
+2. Import all items.
+
+### __Libraries__
+
+1. Go to the *Library Manager* menu and remove all WAGO libraries:
+
+![Remove WAGO libraries](./_img/GettingStartedGuide/RemoveWagoLibraries.png)
 
 2. Go to the *Library Manager* menu, press *Download missing libraries* and install all missing libraries:
 
@@ -39,15 +82,13 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
     - Seach for the *IoDrvPfc200* and add it (step might vary depending on your Device target)</br>
     <img src="./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step3.png" alt="drawing" width="750"/>
 
-5. If there is still an *Download missing libraries* button in the Library manager. This should fix the last missing libraries.
+5. In case some libraries references are not resolved because they are pointing to and older/newer version that is not installed on the system, update the placeholder:
 
-6. Download the missing device description:
+![Update Library Reference](./_img/GettingStartedGuide/UpdateLibraryPlaceholder.png)
 
-![Download Missing Device Description](./_img/GettingStartedGuide/DownloadMissingDeviceDescription.png)
+6. If there is still an *Download missing libraries* button in the Library manager. This should fix the last missing libraries.
 
-7. Build the project (F11)!
-
-![Compile Completed](./_img/GettingStartedGuide/CompileCompleted.png)
+Although all libraries are restored now, it's still not possible to build the project. Reason for this is that the IO configured in the project doesn't exist yet in the device in the project tree.
 
 
 ### __Updating the configured devices to your PLC device configuration__
@@ -121,6 +162,12 @@ To update the *Persistent Variables* if you created or removed Function Blocks p
 <img src="./_img/GettingStartedGuide/PersistentVars_AddAllInstancePaths.png" alt="Output switch logic" width="750"/>
 
 This will add all *PERSIST* variables form the project. Note that the project needs to be built before being able to perform this step.
+
+### __Building the project__
+Once all IO references in the project actually exist on the device as well you should be able to build the project:
+1. Build the project (F11)!
+
+![Compile Completed](./_img/GettingStartedGuide/CompileCompleted.png)
 
 
 ### __Uploading and running the project__
