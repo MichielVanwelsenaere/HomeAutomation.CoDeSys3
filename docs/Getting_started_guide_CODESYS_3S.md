@@ -84,7 +84,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 5. In case some libraries references are not resolved because they are pointing to and older/newer version that is not installed on the system, update the placeholder:
 
-![Update Library Reference](./_img/GettingStartedGuide/UpdateLibraryPlaceholder.png.png)
+![Update Library Reference](./_img/GettingStartedGuide/UpdateLibraryPlaceholder.png)
 
 6. If there is still an *Download missing libraries* button in the Library manager. This should fix the last missing libraries.
 
