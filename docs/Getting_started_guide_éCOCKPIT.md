@@ -34,14 +34,5 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 <img src="./_img/GettingStartedGuide/écockpitbuild.png" alt="ecockpitbuild" width="500"/>
 
 ### __Uploading and running the project__
-To upload and run the project on your PLC perform the following steps:
-1. From the menu, select *online* and then *login*:</br>
-<img src="./_img/GettingStartedGuide/UploadToPLC.png" alt="select online and then login" width="600"/>
 
-1. Select *Login with download* and press *OK*:</br>
-<img src="./_img/GettingStartedGuide/UploadToPLC_options.png" alt="login with download" width="600"/>
-
-1. *Start* the application on your PLC:</br>
-<img src="./_img/GettingStartedGuide/UploadToPLC_start.png" alt="start the application" width="400"/>
-
-Note that you might need to rescan your network from the *Device Communications* tab to execute these steps successfully. In addition make sure that the physical switch on your PLC is in _'RUN'_ mode (if applicable).
+[This video](https://www.youtube.com/watch?v=K-zUGiEQRAw) provides all instructions. 
