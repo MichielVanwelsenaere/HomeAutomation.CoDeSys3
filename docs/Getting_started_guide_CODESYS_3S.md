@@ -54,7 +54,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 1. select the *PlcLogic* item and go to *Project* &rarr; *Import* and browse to the CODESYS3Export folder and open the *.export* file:
 
-![Restore PLC logic](./_img/GettingStartedGuide/RestorePLCLogic.png)
+<img src="./_img/GettingStartedGuide/RestorePLCLogic.png" alt="Restore PLC logic" width="350"/>
 
 2. Import all items.
 
