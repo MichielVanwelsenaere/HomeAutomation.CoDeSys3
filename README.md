@@ -40,7 +40,8 @@ More information on the software architecture [here](./docs/SoftwareArchitecture
 
 # FAQ
 
-- [Getting started guide](./docs/Getting_started_guide.md)
+- [Getting started guide](./docs/Getting_started_guide_CODESYS_3S.md) (CODESYS 3S runtime)
+- [Getting started guide](./docs/Getting_started_guide_éCOCKPIT.md) (é!COCKPIT runtime)
 - [I'm missing some functionality](./docs/Missing_functionality.md)
 
 # Libraries
