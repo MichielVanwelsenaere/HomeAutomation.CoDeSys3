@@ -24,7 +24,7 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 2. install all libraries from the [src/Libraries](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/tree/master/src/Libraries) folder.
 
-<img src="./_img/GettingStartedGuide/installLibraries_ecockpit.png" alt="Install libraries ecockpit" width="750"/>
+<img src="./_img/GettingStartedGuide/installLibraries_ecockpit.png" alt="Install libraries ecockpit"/>
 
 
 ### __Build__
