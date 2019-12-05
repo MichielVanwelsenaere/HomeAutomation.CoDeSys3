@@ -25,15 +25,15 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 This will restore the basic POUs (building blocks) of the project, note that you can reuse this step to update or import new POUs in the future.
 1. Go to the POUs section of the project and select the top level item:
 
-![Restore POUs navigiation](./_img/GettingStartedGuide/RestorePOUsNavigation.png)
+<img src="./_img/GettingStartedGuide/RestorePOUsNavigation.png" alt="Restore POUs navigiation" width="300"/>
 
 2. Select *Project* &rarr; *Import* and browse to the CODESYS3Export folder and open the *.export* file:
 
-![Restore POUs top level](./_img/GettingStartedGuide/RestorePOUsToplevel.png)
+<img src="./_img/GettingStartedGuide/RestorePOUsToplevel.png" alt="Restore POUs top level" width="300"/>
 
 3. Import all items:
 
-![Restore POUs import all](./_img/GettingStartedGuide/RestorePOUsImportAll.png)
+<img src="./_img/GettingStartedGuide/RestorePOUsImportAll.png" alt="Restore POUs import all" width="350"/>
 
 ### __Adding a device__
 This will add a device to the project, in this example a PFC200 is used. Adopt to your needs if necessary. 

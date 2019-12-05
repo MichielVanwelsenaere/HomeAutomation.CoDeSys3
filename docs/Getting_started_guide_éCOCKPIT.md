@@ -24,14 +24,14 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 2. install all libraries from the [src/Libraries](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/tree/master/src/Libraries) folder.
 
-<img src="./_img/GettingStartedGuide/![Install Libraries](./_img/GettingStartedGuide/installLibraries_écockpit.png)" alt="Install libraries é!cockpit" width="750"/>
+<img src="./_img/GettingStartedGuide/installLibraries_écockpit.png" alt="Install libraries é!cockpit" width="750"/>
 
 
 ### __Build__
 
 1. Build the project
 
-<img src="./_img/GettingStartedGuide/![Install Libraries](./_img/GettingStartedGuide/écockpitbuild.png)" alt="écockpitbuild" width="500"/>
+<img src="./_img/GettingStartedGuide/écockpitbuild.png" alt="écockpitbuild" width="500"/>
 
 ### __Uploading and running the project__
 To upload and run the project on your PLC perform the following steps:
