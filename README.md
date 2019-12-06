@@ -36,7 +36,8 @@ More information on the software architecture [here](./docs/SoftwareArchitecture
 
 # Additional functionality
 
-- [MQTT Birth and Last will message](./docs/MQTT_Birth_and_Last_will_message.md)
+- [MQTT Birth and Last will message](./docs/AdditionalFunctionality/MQTT_Birth_and_Last_will_message.md)
+- [Controlling user leds](./docs/AdditionalFunctionality/User_leds_éCOCKPIT_runtime.md) (é!COCKPIT runtime)
 
 # FAQ
 
