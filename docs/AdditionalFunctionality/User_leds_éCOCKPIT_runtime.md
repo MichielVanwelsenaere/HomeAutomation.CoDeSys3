@@ -6,8 +6,9 @@ It's possible to control the *U* leds on a WAGO PFC controller. The example belo
 
 ### __Prerequisites__
 the following libaries should be present:
-    - WagoAppAppLED
-    - WagoTypesAppLED
+
+- WagoAppAppLED
+- WagoTypesAppLED
 
 ### __Implementation__
 The project has a working implementation that controls the *U1* led, displaying it green when there is a working connection with the MQTT broker, flashing red if not.
