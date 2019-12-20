@@ -82,24 +82,27 @@ The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Virtual/FB_
 
 - Configuring the function block as a virtual input (called once during startup):
 ```
-FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
-    PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
-    PRIO_LOW:=      FALSE                   (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
-    TOGGLE:=        FB_DI_PB_009.SINGLE     (* for toggling the output *)	
+FB_VIRTUAL_BOOL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=FALSE,
+    SetDefaultValueStartup:=TRUE,
+    PublishAtStartup:=TRUE,
+    UsePersistentAtStartup:=FALSE
 );
 ```
 
-- integration with `FB_INPUT_PUSHBUTTON_MQTT`:
+- Calling the virtual function block to allow processing (cyclic):
 ```
-FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
-    PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
-    PRIO_LOW:=      FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
-    TOGGLE:=        FB_DI_PB_001.SINGLE     (* for toggling the output *)	
-);
+FB_VIRTUAL_BOOL_001();
+```
+
+- Using the virtual function block value (cyclic):
+```
+FB_VIRTUAL_BOOL_001();
 ```
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
+
+TODO!!
 
 ```YAML
 - platform: MQTT
