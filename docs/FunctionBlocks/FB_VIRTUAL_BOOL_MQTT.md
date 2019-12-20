@@ -94,10 +94,17 @@ FB_VIRTUAL_BOOL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=FALSE,
 FB_VIRTUAL_BOOL_001();
 ```
 
-- Using the virtual function block value (cyclic):
+- Using the virtual function block value when using input mode (cyclic):
 ```
-FB_VIRTUAL_BOOL_001();
+X:=FB_VIRTUAL_BOOL_001.OUT;
 ```
+A value X in the PLC is set to the OUT value of the virtual function block, the OUT value being controlled through MQTT.
+
+- Using the virtual function block value when using output mode (cyclic):
+```
+FB_VIRTUAL_BOOL_001.IN:=X;
+```
+A value X in the PLC is set to the IN value of the virtual function block, the IN value being published through MQTT.
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
