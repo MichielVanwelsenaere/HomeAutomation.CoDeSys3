@@ -44,7 +44,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if 
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **input changes: IN**   | A change is detected on input `IN`. (*) | `TRUE/FALSE` | configured in method call `InitMQTT` | configured in method call `InitMQTT` | configured in method call `InitMQTT`
+| **input changes: IN**   | A change is detected on input `IN`. | `TRUE/FALSE` | configured in method call `InitMQTT` | configured in method call `InitMQTT` | configured in method call `InitMQTT`
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
