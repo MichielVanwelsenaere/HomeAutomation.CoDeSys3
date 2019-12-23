@@ -21,6 +21,7 @@ METHOD(S)
     - `SetDefaultValueStartup`: datatype *BOOL*, set to TRUE to set the DefaultValue at PLC startup. 
     - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual input value at PLC startup.
     - `UsePersistentAtStartup`: datatype *BOOL*, set to TRUE to use persistence to maintain the virtual input value through power cycles. 
+    - `ConfirmReceival`: datatype *BOOL*, set to TRUE to get an MQTT publish message when the value is updated. 
 
 - ConfigureFunctionBlockAsVirtualOutput: configures the behaviour of the function block as a virtual output using the parameters below:
     - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual output value at PLC startup.
@@ -48,7 +49,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
 ### __MQTT Subscription Behaviour__
-Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable is the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the `OUT` output.
+Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable is the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
 | Command | Description | expected payload | Additional notes | 
@@ -85,7 +86,8 @@ The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Virtual/FB_
 FB_VIRTUAL_BOOL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=FALSE,
     SetDefaultValueStartup:=TRUE,
     PublishAtStartup:=TRUE,
-    UsePersistentAtStartup:=FALSE
+    UsePersistentAtStartup:=FALSE,
+    ConfirmReceival:=TRUE
 );
 ```
 

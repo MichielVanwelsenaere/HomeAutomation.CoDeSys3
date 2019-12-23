@@ -1,46 +1,60 @@
 ## FB_VIRTUAL_STRING_MQTT
 
 ### __General__
-Can be used to get or set string values in the PLC logic through MQTT.
+A virtual function block can be used in one of two modes:
+- input: inputs a value in the PLC processing logic through MQTT.
+- output: outputs a value from the PLC processing logic through MQTT.
 
 ### __Block diagram__
 
-<img src="../_img/FB_OUTPUT_SWITCH_MQTT.svg" width="350">
+<img src="../_img/FB_VIRTUAL_STRING_MQTT.svg" width="350">
 
 INPUT(S)
-- TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
-- PRIO_HIGH: when high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input.
-- PRIO_LOW: when high the output `OUT` is set to low, has priority over the `TOGGLE` input.
+- IN: datatype *STRING*, input for the value that should be published through MQTT, provision this input when using the virtual function block in output mode.
 
 OUTPUT(S)
-- OUT: output to switch digital output on and off. Can be connected to a relay for example. 
+- OUT: datatype *STRING*, output for the value that is received through the MQTT subscription. provision this output in other processing logic when using the virtual function block in input mode.
 
 METHOD(S)
+- ConfigureFunctionBlockAsVirtualInput: configures the behaviour of the function block as a virtual input using the parameters below:
+    - `DefaultValue`: datatype *STRING*, value to set at startup if default value at startup behavior is configured.
+    - `SetDefaultValueStartup`: datatype *BOOL*, set to TRUE to set the DefaultValue at PLC startup. 
+    - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual input value at PLC startup.
+    - `UsePersistentAtStartup`: datatype *BOOL*, set to TRUE to use persistence to maintain the virtual input value through power cycles. 
+    - `ConfirmReceival`: datatype *BOOL*, set to TRUE to get an MQTT publish message when the value is updated. 
+
+- ConfigureFunctionBlockAsVirtualOutput: configures the behaviour of the function block as a virtual output using the parameters below:
+    - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual output value at PLC startup.
+
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
     - `MQTTSubscribePrefix`: datatype *POINTER TO STRING*, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name. 
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     - `pMqttCallbackCollector`: datatype *SD_MQTT.CallbackCollector*, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
+    - `MqttQos`: datatype *SD_MQTT.QoS*, configures the MQTT Qos for the function block published messages.  
+    - `MqttRetain`: datatype *BOOL*, configures the MQTT retain flag for the function block published messages.
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
+- SetValue: method to set the function block virtual value, only works if the function block is in output mode.
+
+
 ### __MQTT Event Behaviour__
-Requires method call `InitMQTT` to enable MQTT capabilities.
+Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if the function block is configured in output mode, outputting the value on input `IN` or set using the SetValue method through MQTT.  
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `TRUE/FALSE` | 2 | `TRUE` | yes
+| **input changes: IN**   | A change is detected on input `IN`. (*) | `TRUE/FALSE` | configured in method call `InitMQTT` | configured in method call `InitMQTT` | configured in method call `InitMQTT`
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
 ### __MQTT Subscription Behaviour__
-Requires method call `InitMQTT` to enable MQTT capabilities.
+Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable is the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
 | Command | Description | expected payload | Additional notes | 
 |:-------------|:------------------|:------------------|:------------------|
-| **Change output to high** | Request to change output to high. | `TRUE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
-| **Change output to low** | Request to change output to low. | `FALSE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
+| **Change output to string value** | Request to change output to a specific string value. | a string value | 
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
@@ -48,43 +62,55 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 
 - variables initiation:
 ```
-MQTTPubSwitchPrefix     :STRING(100) := 'WAGO-PFC200/Out/DigitalOutputs/';
-MQTTSubSwitchPrefix     :STRING(100) := 'WAGO-PFC200/In/DigitalOutputs/';
-FB_DO_SW_001            :FB_OUTPUT_SWITCH_MQTT;
+MqttPubVirtualPrefix            :STRING(100) := 'WAGO-PFC200/Out/Virtual/';
+MqttSubVirtualPrefix            :STRING(100) := 'WAGO-PFC200/In/Virtual/';
+FB_VIRTUAL_STRING_001           :FB_VIRTUAL_STRING_MQTT;
 ```
 
 - Init MQTT method call (called once during startup):
 ```
-FB_DO_SW_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),                 (* pointer to string prefix for the MQTT publish topic *)
-    MQTTSubscribePrefix:= ADR(MQTTSubSwitchPrefix),                                 (* pointer to string prefix for the MQTT subscribe topic *)
-    MQTTTopicSuffix := 'FB_DO_SW_001',                                              (* value to suffix the the MQTT topic, should be unique for each FB *)
-    pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),                     (* pointer to MQTTPublishQueue to send a new MQTT event *)
-    pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_SWITCH_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
+FB_VIRTUAL_STRING_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubVirtualPrefix),				
+	MQTTSubscribePrefix:= ADR(MqttSubVirtualPrefix),									
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
+	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
+	MqttQos:=SD_MQTT.QoS.ExactlyOnce, 
+	MqttRetain:=FALSE											
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalOutputs/FB_DO_SW_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/DigitalOutputs/FB_DO_SW_001` (MQTTSubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Virtual/FB_VIRTUAL_STRING_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/Virtual/FB_VIRTUAL_STRING_001` (MQTTSubSwitchPrefix variable + function block name).
 
 
-- checking for events to switch the digital output (cyclic):
+- Configuring the function block as a virtual input (called once during startup):
 ```
-FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
-    PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
-    PRIO_LOW:=      FALSE                   (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
-    TOGGLE:=        FB_DI_PB_009.SINGLE     (* for toggling the output *)	
+FB_VIRTUAL_STRING_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:='helloworld',
+    SetDefaultValueStartup:=TRUE,
+    PublishAtStartup:=TRUE,
+    UsePersistentAtStartup:=FALSE,
+    ConfirmReceival:=TRUE
 );
 ```
 
-- integration with `FB_INPUT_PUSHBUTTON_MQTT`:
+- Calling the virtual function block to allow processing (cyclic):
 ```
-FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
-    PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
-    PRIO_LOW:=      FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
-    TOGGLE:=        FB_DI_PB_001.SINGLE     (* for toggling the output *)	
-);
+FB_VIRTUAL_STRING_001();
 ```
+
+- Using the virtual function block value when using input mode (cyclic):
+```
+X:=FB_VIRTUAL_STRING_001.OUT;
+```
+A value X in the PLC is set to the OUT value of the virtual function block, the OUT value being controlled through MQTT.
+
+- Using the virtual function block value when using output mode (cyclic):
+```
+FB_VIRTUAL_STRING_001.IN:=X;
+```
+A value X in the PLC is set to the IN value of the virtual function block, the IN value being published through MQTT.
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
+
+TODO!!
 
 ```YAML
 - platform: MQTT
