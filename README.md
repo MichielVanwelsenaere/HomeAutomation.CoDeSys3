@@ -51,9 +51,10 @@ Function blocks developed to easily set and get values from the processing logic
 
 # FAQ
 
-- [Getting started guide](./docs/Getting_started_guide_CODESYS_3S.md) (CODESYS 3S runtime)
-- [Getting started guide](./docs/Getting_started_guide_éCOCKPIT.md) (é!COCKPIT runtime)
-- [I'm missing some functionality](./docs/Missing_functionality.md)
+- [Contributing guidelines](./docs/CONTRIBUTING.md)
+- [Getting started guide](./docs/FAQ/Getting_started_guide_CODESYS_3S.md) (CODESYS 3S runtime)
+- [Getting started guide](./docs/FAQ/Getting_started_guide_éCOCKPIT.md) (é!COCKPIT runtime)
+- [I'm missing some functionality](./docs/FAQ/Missing_functionality.md)
 
 # Libraries
 

@@ -20,18 +20,18 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 1. Go to the *Library Manager* &rarr; *Libary repository* menu:
 
-<img src="./_img/GettingStartedGuide/LibraryRepository.png" alt="LibraryRepository" width="750"/>
+<img src="../_img/GettingStartedGuide/LibraryRepository.png" alt="LibraryRepository" width="750"/>
 
 2. install all libraries from the [src/Libraries](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/tree/master/src/Libraries) folder.
 
-<img src="./_img/GettingStartedGuide/InstallLibrariesecockpit.png" alt="Install libraries ecockpit"/>
+<img src="../_img/GettingStartedGuide/InstallLibrariesecockpit.png" alt="Install libraries ecockpit"/>
 
 
 ### __Build__
 
 1. Build the project
 
-<img src="./_img/GettingStartedGuide/ecockpitbuild.png" alt="ecockpitbuild" width="500"/>
+<img src="../_img/GettingStartedGuide/ecockpitbuild.png" alt="ecockpitbuild" width="500"/>
 
 ### __Uploading and running the project__
 
