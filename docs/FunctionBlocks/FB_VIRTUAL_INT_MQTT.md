@@ -108,19 +108,13 @@ FB_VIRTUAL_INT_001.IN:=X;
 A value X in the PLC is set to the IN value of the virtual function block, the IN value being published through MQTT.
 
 ### __Home Assistant YAML__
-To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
-
-TODO!!
+When using the function block as a virtual output use the YAML code below in your [MQTT Sensor](https://www.home-assistant.io/integrations/sensor.mqtt/) config to integrate with Home Assistant:
 
 ```YAML
 - platform: MQTT
-  name: "FB_DO_SW_001"
-  state_topic: "WAGO-PFC200/Out/DigitalOutputs/FB_DO_SW_001"
-  command_topic: "WAGO-PFC200/In/DigitalOutputs/FB_DO_SW_001"
-  payload_on: "TRUE"
-  payload_off: "FALSE"
-  qos: 2
-  optimistic: false
+  name: "FB_VIRTUAL_INT_MQTT"
+  state_topic: "WAGO-PFC200/Out/Virtual/FB_VIRTUAL_INT_MQTT"
+  qos: 2  
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
   payload_not_available: "offline"
