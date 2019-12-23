@@ -1,4 +1,5 @@
-## Pull Request Checklist
+## Pull Request Checklis
+
 [ ] Updated the PLCOpen XML export file.
 [ ] Updated the CoDeSys V3 export file.
 [ ] Updated or created any relevant documenation
@@ -8,6 +9,8 @@
   -
   -
   -
+
+## Related issues
 
 Fixes #
 Closes #
