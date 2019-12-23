@@ -25,36 +25,36 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 This will restore the basic POUs (building blocks) of the project, note that you can reuse this step to update or import new POUs in the future.
 1. Go to the POUs section of the project and select the top level item:
 
-<img src="./_img/GettingStartedGuide/RestorePOUsNavigation.png" alt="Restore POUs navigiation" width="300"/>
+<img src="../_img/GettingStartedGuide/RestorePOUsNavigation.png" alt="Restore POUs navigiation" width="300"/>
 
 2. Select *Project* &rarr; *Import* and browse to the CODESYS3Export folder and open the *.export* file:
 
-<img src="./_img/GettingStartedGuide/RestorePOUsToplevel.png" alt="Restore POUs top level" width="300"/>
+<img src="../_img/GettingStartedGuide/RestorePOUsToplevel.png" alt="Restore POUs top level" width="300"/>
 
 3. Import all items:
 
-<img src="./_img/GettingStartedGuide/RestorePOUsImportAll.png" alt="Restore POUs import all" width="350"/>
+<img src="../_img/GettingStartedGuide/RestorePOUsImportAll.png" alt="Restore POUs import all" width="350"/>
 
 ### __Adding a device__
 This will add a device to the project, in this example a PFC200 is used. Adopt to your needs if necessary. 
 
 1. Return to the 'Devices' tab of the project, right click on the root item and 'Add Device':
 
-<img src="./_img/GettingStartedGuide/AddDeviceSelection.png" alt="Add device" width="350"/>
+<img src="../_img/GettingStartedGuide/AddDeviceSelection.png" alt="Add device" width="350"/>
 
 2. Add your device, in this example a WAGO PFC200 is used: 
 
-<img src="./_img/GettingStartedGuide/AddDevicePFC200.png" alt="Add device PFC200" width="350"/>
+<img src="../_img/GettingStartedGuide/AddDevicePFC200.png" alt="Add device PFC200" width="350"/>
 
 3. Remove the default application from the device:
 
-<img src="./_img/GettingStartedGuide/AddDeviceRemoveDefaults.png" alt="Add device remove default application" width="350"/>
+<img src="../_img/GettingStartedGuide/AddDeviceRemoveDefaults.png" alt="Add device remove default application" width="350"/>
 
 ### __Restoring the PLC logic__
 
 1. select the *PlcLogic* item and go to *Project* &rarr; *Import* and browse to the CODESYS3Export folder and open the *.export* file:
 
-<img src="./_img/GettingStartedGuide/RestorePLCLogic.png" alt="Restore PLC logic" width="350"/>
+<img src="../_img/GettingStartedGuide/RestorePLCLogic.png" alt="Restore PLC logic" width="350"/>
 
 2. Import all items.
 
@@ -74,13 +74,13 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 4. In case the `IoDrvPfc200` library gives issues. Remove it and reinstall it from the Library Repository:
     - Remove the existing Library</br>
-    <img src="./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step1.png" alt="drawing" width="750"/>
+    <img src="../_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step1.png" alt="drawing" width="750"/>
 
     - Select *Add library* and then *Advanced...*</br>
-    <img src="./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step2.png" alt="drawing" width="750"/>
+    <img src="../_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step2.png" alt="drawing" width="750"/>
 
     - Seach for the *IoDrvPfc200* and add it (step might vary depending on your Device target)</br>
-    <img src="./_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step3.png" alt="drawing" width="750"/>
+    <img src="../_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step3.png" alt="drawing" width="750"/>
 
 5. In case some libraries references are not resolved because they are pointing to and older/newer version that is not installed on the system, update the placeholder:
 
@@ -97,16 +97,16 @@ As the IO modules installed on your PLC will most likely differ from the ones co
 1. Turn on your PLC with a network cable plugged in. Make sure that the device you are using to follow this steps is on the same network.
 
 2. From the *Device* section in the project select *Scan network..* and Select your PLC:</br>
-<img src="./_img/GettingStartedGuide/ScanningAndConnectingToPLC.png" alt="Scan network and connect to PLC" width="750"/>
+<img src="../_img/GettingStartedGuide/ScanningAndConnectingToPLC.png" alt="Scan network and connect to PLC" width="750"/>
 
 3. From the module configuration section in the project, perform *Scan for Devices..*</br>
-<img src="./_img/GettingStartedGuide/ScanningToUpdateModules.png" alt="Scan to update modules" width="450"/>
+<img src="../_img/GettingStartedGuide/ScanningToUpdateModules.png" alt="Scan to update modules" width="450"/>
 
 4. Set the *Show Differences to Project* checkbox.</br>
-<img src="./_img/GettingStartedGuide/ScanningToUpdateModulesShowDifferences.png" alt="Scan to update modules show differences" width="750"/>
+<img src="../_img/GettingStartedGuide/ScanningToUpdateModulesShowDifferences.png" alt="Scan to update modules show differences" width="750"/>
 
 5. Using to the tools in the middle of the screen, update the project *Configured Devices* to the *Scanned Devices*.</br>
-<img src="./_img/GettingStartedGuide/ScanningToUpdateModulesPerformUpdate.png" alt="Scan to update modules perform update" width="750"/>
+<img src="../_img/GettingStartedGuide/ScanningToUpdateModulesPerformUpdate.png" alt="Scan to update modules perform update" width="750"/>
 
 Executing the steps above will most likely introduce build errors, this is normal! The current program uses every input and output of the configured device modules. By adjusting/removing them this naturally causes build issues. These build issues will be fixed in the next topic where the program logic is adjusted to your PLC configuration.
 
@@ -116,18 +116,18 @@ Make sure to update the PLC device configuration to your exact PLC device setup 
 
 #### MQTT config
 Update the configured MQTT broker IP and port to connect to your broker:
-<img src="./_img/GettingStartedGuide/MQTTConfig.png" alt="Update MQTT config" width="750"/>
+<img src="../_img/GettingStartedGuide/MQTTConfig.png" alt="Update MQTT config" width="750"/>
 
 #### Naming modules
 
 Select you input and output modules and create a variable for each input and output. Adviced approach *DO_{Digital Outputnumer}* and *DI_{Digital Inputnumber}*:
 
-<img src="./_img/GettingStartedGuide/ModuleVariableConfig.png" alt="Update MQTT config" width="750"/>
+<img src="../_img/GettingStartedGuide/ModuleVariableConfig.png" alt="Update MQTT config" width="750"/>
 
 #### Pushbutton Input Logic
 
 For each input linked to a pushbutton a function block needs to be created:
-<img src="./_img/GettingStartedGuide/InputPushbuttonLogic.png" alt="Input pushbutton logic" width="750"/>
+<img src="../_img/GettingStartedGuide/InputPushbuttonLogic.png" alt="Input pushbutton logic" width="750"/>
 
 To get started:
 1. Remove all existing *FB_DI_PB_XXX* function blocks except the first one.
@@ -140,7 +140,7 @@ For more information on the *FB_INPUT_PUSHBUTTON_MQTT* function block, check the
 #### Output Switch Logic
 
 For each input linked to a pushbutton a function block needs to be created:
-<img src="./_img/GettingStartedGuide/OutputSwitchLogic.png" alt="Output switch logic" width="750"/>
+<img src="../_img/GettingStartedGuide/OutputSwitchLogic.png" alt="Output switch logic" width="750"/>
 
 To get started:
 1. Remove all existing *FB_DO_SW_XXX* function blocks except the first one.
@@ -156,10 +156,10 @@ For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [d
 In order to be able to maintain the state of the outputs through power cycles *Persistent Variables* are used.
 To update the *Persistent Variables* if you created or removed Function Blocks perform the following steps:
 1. Go the *Persistent Variables* and remove everything:
-<img src="./_img/GettingStartedGuide/PersistentVars_RemoveAll.png" alt="Output switch logic" width="750"/>
+<img src="../_img/GettingStartedGuide/PersistentVars_RemoveAll.png" alt="Output switch logic" width="750"/>
 
 1. Go to *Declarations* and select *Add all instance paths*
-<img src="./_img/GettingStartedGuide/PersistentVars_AddAllInstancePaths.png" alt="Output switch logic" width="750"/>
+<img src="../_img/GettingStartedGuide/PersistentVars_AddAllInstancePaths.png" alt="Output switch logic" width="750"/>
 
 This will add all *PERSIST* variables form the project. Note that the project needs to be built before being able to perform this step.
 
@@ -173,12 +173,12 @@ Once all IO references in the project actually exist on the device as well you s
 ### __Uploading and running the project__
 To upload and run the project on your PLC perform the following steps:
 1. From the menu, select *online* and then *login*:</br>
-<img src="./_img/GettingStartedGuide/UploadToPLC.png" alt="select online and then login" width="600"/>
+<img src="../_img/GettingStartedGuide/UploadToPLC.png" alt="select online and then login" width="600"/>
 
 1. Select *Login with download* and press *OK*:</br>
-<img src="./_img/GettingStartedGuide/UploadToPLC_options.png" alt="login with download" width="600"/>
+<img src="../_img/GettingStartedGuide/UploadToPLC_options.png" alt="login with download" width="600"/>
 
 1. *Start* the application on your PLC:</br>
-<img src="./_img/GettingStartedGuide/UploadToPLC_start.png" alt="start the application" width="400"/>
+<img src="../_img/GettingStartedGuide/UploadToPLC_start.png" alt="start the application" width="400"/>
 
 Note that you might need to rescan your network from the *Device Communications* tab to execute these steps successfully. In addition make sure that the physical switch on your PLC is in _'RUN'_ mode (if applicable).
