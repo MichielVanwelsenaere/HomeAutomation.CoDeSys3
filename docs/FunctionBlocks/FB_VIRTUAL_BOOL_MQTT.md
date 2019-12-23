@@ -62,8 +62,8 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 
 - variables initiation:
 ```
-MqttPubVirtualPrefix			:STRING(100) := 'WAGO-PFC200/Out/Virtual/';
-MqttSubVirtualPrefix			:STRING(100) := 'WAGO-PFC200/In/Virtual/';
+MqttPubVirtualPrefix            :STRING(100) := 'WAGO-PFC200/Out/Virtual/';
+MqttSubVirtualPrefix            :STRING(100) := 'WAGO-PFC200/In/Virtual/';
 FB_VIRTUAL_BOOL_001             :FB_VIRTUAL_BOOL_MQTT;
 ```
 
