@@ -62,15 +62,15 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 1. Go to the *Library Manager* menu and remove all WAGO libraries:
 
-![Remove WAGO libraries](./_img/GettingStartedGuide/RemoveWagoLibraries.png)
+<img src="../_img/GettingStartedGuide/RemoveWagoLibraries.png" alt="drawing"/>
 
 2. Go to the *Library Manager* menu, press *Download missing libraries* and install all missing libraries:
 
-![Download Missing Libraries](./_img/GettingStartedGuide/DownloadMissingLibraries.png)
+<img src="../_img/GettingStartedGuide/DownloadMissingLibraries.png" alt="drawing"/>
 
 3. Go to the *Library Manager* menu and install all libraries from the [src/Libraries](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/tree/master/src/Libraries) folder.
 
-![Install Libraries](./_img/GettingStartedGuide/InstallLibraries.png)
+<img src="../_img/GettingStartedGuide/InstallLibraries.png" alt="drawing"/>
 
 4. In case the `IoDrvPfc200` library gives issues. Remove it and reinstall it from the Library Repository:
     - Remove the existing Library</br>
@@ -84,7 +84,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 5. In case some libraries references are not resolved because they are pointing to and older/newer version that is not installed on the system, update the placeholder:
 
-![Update Library Reference](./_img/GettingStartedGuide/UpdateLibraryPlaceholder.png)
+<img src="../_img/GettingStartedGuide/UpdateLibraryPlaceholder.png" alt="drawing"/>
 
 6. If there is still an *Download missing libraries* button in the Library manager. This should fix the last missing libraries.
 
@@ -135,7 +135,7 @@ To get started:
 1. In the *READ_PUSHBUTTONS* action remove all references to *FB_DI_PB_XXX* function blocks except the first one.
 1. In the *READ_PUSHBUTTONS* action update *FB_DI_PB_001* to read the physical input variable created in the previous step *"Naming modules"*.
 
-For more information on the *FB_INPUT_PUSHBUTTON_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_INPUT_PUSHBUTTON_MQTT.md).
+For more information on the *FB_INPUT_PUSHBUTTON_MQTT* function block, check the [dedicated docs](../FunctionBlocks/FB_INPUT_PUSHBUTTON_MQTT.md).
 
 #### Output Switch Logic
 
@@ -149,7 +149,7 @@ To get started:
 1. In the *WRITE_SWITCHES* action update *FB_DO_SW_001* to write the physical output variable created in the previous step *"Naming modules"*.
 1. Link the input pushbutton from previous step to switch the *FB_DO_SW_001* output to toggle the output when the pushbutton receives a single press: `TOGGLE	:=FB_DI_PB_001.SINGLE`
 
-For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [dedicated docs](./FunctionBlocks/FB_OUTPUT_SWITCH_MQTT.md).
+For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [dedicated docs](../FunctionBlocks/FB_OUTPUT_SWITCH_MQTT.md).
 
 #### Persistant Variables
 
@@ -167,8 +167,7 @@ This will add all *PERSIST* variables form the project. Note that the project ne
 Once all IO references in the project actually exist on the device as well you should be able to build the project:
 1. Build the project (F11)!
 
-![Compile Completed](./_img/GettingStartedGuide/CompileCompleted.png)
-
+<img src="../_img/GettingStartedGuide/CompileCompleted.png" alt="drawing"/>
 
 ### __Uploading and running the project__
 To upload and run the project on your PLC perform the following steps:
