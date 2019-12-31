@@ -112,10 +112,35 @@ When using the function block as a virtual output use the YAML code below in you
 
 ```YAML
 - platform: MQTT
-  name: "FB_VIRTUAL_STRING_MQTT"
-  state_topic: "WAGO-PFC200/Out/Virtual/FB_VIRTUAL_STRING_MQTT"
+  name: "FB_VIRTUAL_STRING_001"
+  state_topic: "WAGO-PFC200/Out/Virtual/FB_VIRTUAL_STRING_001"
   qos: 2  
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
   payload_not_available: "offline"
+```
+
+When using the function block as a virtual input use the YAML code below in your [Input Text](https://www.home-assistant.io/integrations/input_text/) config to integrate with Home Assistant: 
+
+```YAML
+input_text:
+  fb_virtual_string_001:
+    name: friendly name
+    initial: Hello PLC!
+```
+
+Configure the automation below in your automations.yaml file to publish any changes on the Input Text entity on a MQTT topic:
+
+```YAML
+- id: fb_virtual_string_001-to-mqtt
+  alias: FB_VIRTUAL_STRING_001 value changed
+  trigger:
+    platform: state
+    entity_id: input_text.fb_virtual_string_001
+  action:
+    service: mqtt.publish
+    data_template:
+      topic: 'WAGO-PFC200/In/Virtual/FB_VIRTUAL_STRING_001'
+      retain: true
+      payload: "{{ states('input_text.fb_virtual_string_001') | string }}"
 ```
