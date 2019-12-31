@@ -121,3 +121,18 @@ When using the function block as a virtual output use the YAML code below in you
   payload_available: "online"
   payload_not_available: "offline"
 ```
+
+When using the function block as a virtual input use the YAML code below in your [MQTT Switch](https://www.home-assistant.io/integrations/switch.mqtt/) config to integrate with Home Assistant: 
+
+```YAML
+- platform: mqtt
+  name: "FB_VIRTUAL_BOOL_001"
+  command_topic: "WAGO-PFC200/In/Virtual/FB_VIRTUAL_BOOL_001"
+  payload_on: "TRUE"
+  payload_off: "FALSE"
+  qos: 2
+  optimistic: true
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+```

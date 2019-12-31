@@ -112,10 +112,39 @@ When using the function block as a virtual output use the YAML code below in you
 
 ```YAML
 - platform: MQTT
-  name: "FB_VIRTUAL_INT_MQTT"
-  state_topic: "WAGO-PFC200/Out/Virtual/FB_VIRTUAL_INT_MQTT"
+  name: "FB_VIRTUAL_INT_001"
+  state_topic: "WAGO-PFC200/Out/Virtual/FB_VIRTUAL_INT_001"
   qos: 2  
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
   payload_not_available: "offline"
+```
+
+When using the function block as a virtual input use the YAML code below in your [Input Number](https://www.home-assistant.io/integrations/input_number/) config to integrate with Home Assistant: 
+
+```YAML
+input_number:
+  fb_virtual_int_001:
+    name: friendly name
+    min: 1
+    max: 30
+    step: 1
+    unit_of_measurement: degrees
+    icon: mdi:target
+```
+
+Configure the automation below in your automations.yaml file to publish any changes on the Input Number slider on a MQTT topic:
+
+```YAML
+- id: fb_virtual_int_001-to-mqtt
+  alias: FB_VIRTUAL_INT_001 slider moved
+  trigger:
+    platform: state
+    entity_id: input_number.fb_virtual_int_001
+  action:
+    service: mqtt.publish
+    data_template:
+      topic: 'WAGO-PFC200/In/Virtual/FB_VIRTUAL_INT_001'
+      retain: true
+      payload: "{{ states('input_number.fb_virtual_int_001') | int }}"
 ```
