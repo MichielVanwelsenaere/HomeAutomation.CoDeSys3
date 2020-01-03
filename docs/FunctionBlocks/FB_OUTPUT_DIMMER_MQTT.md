@@ -32,7 +32,7 @@ METHOD(S)
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     - `OutputDimmer`: datatype *BOOL*, specify whether the DIM values (0-255) should be outputted as MQTT events.
     - `Qos_Dimm`: datatype *SD_MQTT.QoS*, MQTT QoS of the DIM MQTT events.
-    - `Delta_Dimm`: datatype *INT*, resolution of the MQTT DIM events. For example: specifying value *5* will configure the FB to only emit an MQTT event when the DIM output differs *5* or more than its previous value. Note that the last value of output DIM (when input `PB` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last DIM value published through MQTT is always synchronized with the DIM output of the FB.
+    - `Delta_Dimm`: datatype *INT*, resolution of the MQTT OUT events. For example: specifying value *5* will configure the FB to only emit an MQTT event when the OUT output differs *5* or more than its previous value. Note that the last value of output OUT (when input `P_LONG` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last OUT value published through MQTT is always synchronized with the OUT output of the FB.
 
 - ConfigureDimmer: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
     - `T_Debounce`: debounce time for input PB, defaults to 10ms.
@@ -40,11 +40,11 @@ METHOD(S)
     - `T_On_Max`: start limitation, defaults to 0ms.
     - `T_Dimm_Start`: reaction time to dim, defaults to 400ms.
     - `T_Dimm`: time for a dimming ramps, defaults to 3s.
-    - `Min_On`: minimum value of output DIM at startup, defaults to 50.
-    - `Max_On`: maximum value of output DIM at startup, defaults to 255.
+    - `Min_On`: minimum value of output OUT at startup, defaults to 50.
+    - `Max_On`: maximum value of output OUT at startup, defaults to 255.
     - `Soft_Dimm`: if TRUE dimming begins after ON and at 0. 
     - `Dbl_Toggle`: if TRUE the output DBL is inverted at each double-click, defaults to FALSE.
-    - `Rst_Out`: if input Rst is TRUE, ouput DIM is set to 0, defaults to FALSE.
+    - `Rst_Out`: if input Rst is TRUE, ouput OUT is set to 0, defaults to FALSE.
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
@@ -55,7 +55,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **Output changes: Q**   | A change is detected on output `Q`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: DBL**   | A change is detected on output `DBL`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
-| **Output changes: DIM**   | A change is detected on output `DIM`. (*) | `0-255` | configured in method call `InitMQTT` | `FALSE` | no
+| **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `0-255` | configured in method call `InitMQTT` | `TRUE` | no
 
 (*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output. 
 
@@ -67,7 +67,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 |:-------------|:------------------|:------------------|:------------------|
 | **Change output Q to high** | Request to change output to high. | `TRUE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
 | **Change output Q to low** | Request to change output to low. | `FALSE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
-| **Set OUT byte value** | Request to set the byte value on input/output `OUT`. | `0-255` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
+| **Set OUT byte value** | Request to set the byte value on input/output `OUT`. | `0-255` | Command executed when `PRIO_HIGH` input is low.
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
