@@ -50,13 +50,15 @@ METHOD(S)
 ### __Function Block Behaviour__
 The following table shows the operating status of the dimmer:
 
-| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR | DBL | OUT |
+| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR (*) | DBL | OUT |
 |:-------------|:------------------|:------------------|:------------------|:------------------|:------------------|:------------------|
 | SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | -                 | LIMIT(MIN_ON,OUT,MAX_ON)
 | DOUBLE        | 0                 | 0                 | -                 | -                 | TOG PULSE         | 
 | LONG/P_LONG   | 0                 | 0                 | ON                | NOT DIR           | -                 | Ramp up or down depending on DIR, start at 0 when soft_dimm = TRUE and Q = 0, reverse direction if 0 or 255 is reached
 | 0             | 1                 | 0                 | ON                | OUT < 127         | -                 | VAL
 | 0             | 0                 | 1                 | OFF               | UP                | OFF               | 0 when RST_OUT = TRUE
+
+(*): DIR refers to the direction of the dimmer output `OUT`, indicating whether the dimmer output value changes up-or downwards. 
 
 This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events. To fully understand it's logic it's advised to give the documentation present in [the OSCAT building library docs](http://www.oscat.de/images/OSCATBuilding/oscat_building100_en.pdf) a good read (page 52).
 
