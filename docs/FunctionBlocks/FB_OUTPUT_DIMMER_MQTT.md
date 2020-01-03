@@ -47,6 +47,17 @@ METHOD(S)
     - `Rst_Out`: if input Rst is TRUE, ouput OUT is set to 0, defaults to FALSE.
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+### __Function Block Behaviour__
+The following table shows the operating status of the dimmer:
+| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR | DBL | OUT
+|:-------------|:------------------|:------------------|:------------------|:------------------|:------------------|:------------------|
+| SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | -                 | LIMIT(MIN_ON,OUT,MAX_ON)
+| DOUBLE        | 0                 | 0                 | -                 | -                 | TOG PULSE         | 
+| LONG/P_LONG   | 0                 | 0                 | ON                | NOT DIR           | -                 | Ramp up or down depending on DIR, start at 0 when soft_dimm = TRUE and Q = 0, reverse direction if 0 or 255 is reached
+| 0             | 1                 | 0                 | ON                | OUT < 127         | -                 | VAL
+| 0             | 0                 | 1                 | OFF               | UP                | OFF               | 0 when RST_OUT = TRUE
+
+This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events. To fully understand it's logic it's advised to give the documentation present in [the OSCAT building library docs](http://www.oscat.de/images/OSCATBuilding/oscat_building100_en.pdf) a good read (page 52).
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -73,6 +84,37 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 
 ### __Code example__
 
+- variables initiation:
+```
+MqttPubDimmerPrefix			:STRING(100) := 'WAGO-PFC200/Out/Dimmers/';
+MqttSubDimmerPrefix			:STRING(100) := 'WAGO-PFC200/In/Dimmers/';
+FB_AO_DIMMER_001			:FB_OUTPUT_DIMMER_MQTT;	
+```
+
+- Init MQTT method call (called once during startup):
+```
+FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttPubDimmerPrefix),     (* pointer to string prefix for the MQTT publish topic *)
+	MQTTSubscribePrefix:= ADR(MqttSubDimmerPrefix),                         (* pointer to string prefix for the MQTT subscribe topic *)
+    pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),             (* pointer to MQTTPublishQueue to send a new MQTT event *)
+	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT),  (* pointer to CallbackCollector to receive Mqtt subscription events *)
+    TRUE,                                                                   (* specify whether dimmer value should be outputted on MQTT topic *)
+    SD_MQTT.QoS.ExactlyOnce,                                                (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
+    5                                                                       (* specify the resolution for the dimmer mqtt events *)    
+);
+```
+The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001` (MQTTSubSwitchPrefix variable + function block name).
+
+- checking for events to switch the digital output (cyclic):
+```
+FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
+    DOUBLE:=                FB_DI_PB_041.DOUBLE,    (* for controlling the output DBL *)
+    LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
+    P_LONG:=                FB_DI_PB_041.P_LONG,    (* for controlling the dimmer output OUT *)
+    Q=>                     DO_001,                 (* couple the function block to the physical digital output *)
+    OUT:=                   AO_001                  (* couple the function block to the physical anolog output *)
+);
+```
+the above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md) as well.
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
