@@ -49,7 +49,7 @@ METHOD(S)
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 ### __Function Block Behaviour__
 The following table shows the operating status of the dimmer:
-| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR | DBL | OUT
+| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR | DBL | OUT |
 |:-------------|:------------------|:------------------|:------------------|:------------------|:------------------|:------------------|
 | SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | -                 | LIMIT(MIN_ON,OUT,MAX_ON)
 | DOUBLE        | 0                 | 0                 | -                 | -                 | TOG PULSE         | 
