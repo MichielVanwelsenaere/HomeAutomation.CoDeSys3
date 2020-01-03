@@ -12,6 +12,8 @@ INPUT(S)
 - DOUBLE: input to connect to one or multiple `DOUBLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 - LONG: input to connect to one or multiple `LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 - P_LONG: input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
+- PRIO_HIGH: when high the output `Q` is set to high with a maximum brightness, has priority over the other inputs.
+- PRIO_LOW: when high the output `Q` is set to low, has priority over the other inputs.
 - VAL: byte value for SET operation.
 - SET: input for switching output DIM to input VAL value.
 - RST: input to switch of the output.
@@ -26,6 +28,7 @@ OUTPUT(S)
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
+    - `MQTTSubscribePrefix`: datatype *POINTER TO STRING*, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name. 
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     - `OutputDimmer`: datatype *BOOL*, specify whether the DIM values (0-255) should be outputted as MQTT events.
     - `Qos_Dimm`: datatype *SD_MQTT.QoS*, MQTT QoS of the DIM MQTT events.
@@ -77,8 +80,12 @@ To integrate with Home Assistant use the YAML code below in your [MQTT lights](h
 ```YAML
 - platform: MQTT
   name: "FB_AO_DIM_001"
-  state_topic: "WAGO-PFC200/Out/DigitalOutputs/FB_AO_DIM_001"
+  state_topic: "WAGO-PFC200/Out/DigitalOutputs/FB_AO_DIM_001/Q"
   command_topic: "WAGO-PFC200/In/DigitalOutputs/FB_AO_DIM_001"
+  brightness_command_topic: "WAGO-PFC200/In/DigitalOutputs/FB_AO_DIM_001"
+  brightness_scale: 255
+  brightness_state_topic: "WAGO-PFC200/Out/DigitalOutputs/FB_AO_DIM_001/OUT"
+  on_command_type: "last"
   payload_on: "TRUE"
   payload_off: "FALSE"
   qos: 2
