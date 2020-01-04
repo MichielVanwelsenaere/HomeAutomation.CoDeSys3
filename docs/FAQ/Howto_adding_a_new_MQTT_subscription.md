@@ -46,7 +46,7 @@ subscriber_FB_OUTPUT_COVER_MQTT(
 );
 ```
 
-5. Register the required function blocks against the callback function block to trigger them when a new message arrives on the subscribed topic. Example below:
+5. Register the required function blocks against the callback function block to trigger the callback method when a new message arrives on the subscribed topic. Example below:
 ```
 pMqttCallbackCollector^.put(instance:= THIS^);
 ```
