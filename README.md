@@ -54,6 +54,7 @@ Function blocks developed to easily set and get values from the processing logic
 - [Contributing guidelines](./docs/CONTRIBUTING.md)
 - [Getting started guide](./docs/FAQ/Getting_started_guide_CODESYS_3S.md) (CODESYS 3S runtime)
 - [Getting started guide](./docs/FAQ/Getting_started_guide_éCOCKPIT.md) (é!COCKPIT runtime)
+- [How-to: adding a new MQTT subscription](./docs/FAQ/Howto_adding_a_new_MQTT_subscription.md)
 - [I'm missing some functionality](./docs/FAQ/Missing_functionality.md)
 
 # Libraries
