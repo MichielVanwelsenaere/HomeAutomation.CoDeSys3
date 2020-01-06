@@ -44,6 +44,7 @@ Function blocks developed to easily set and get values from the processing logic
 - [FB_VIRTUAL_BOOL_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_BOOL_MQTT.md)
 - [FB_VIRTUAL_INT_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_INT_MQTT.md)
 - [FB_VIRTUAL_STRING_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_STRING_MQTT.md)
+- [FB_VIRTUAL_REAL_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_REAL_MQTT.md)
 
 # Additional functionality
 

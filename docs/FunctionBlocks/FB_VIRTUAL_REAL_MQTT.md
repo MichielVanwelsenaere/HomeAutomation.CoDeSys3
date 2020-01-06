@@ -1,4 +1,4 @@
-## FB_VIRTUAL_BOOL_MQTT
+## FB_VIRTUAL_REAL_MQTT
 
 ### __General__
 A virtual function block can be used in one of two modes:
@@ -7,17 +7,17 @@ A virtual function block can be used in one of two modes:
 
 ### __Block diagram__
 
-<img src="../_img/FB_VIRTUAL_BOOL_MQTT.svg" width="350">
+<img src="../_img/FB_VIRTUAL_REAL_MQTT.svg" width="350">
 
 INPUT(S)
-- IN: datatype *BOOL*, input for the value that should be published through MQTT, provision this input when using the virtual function block in output mode.
+- IN: datatype *REAL*, input for the value that should be published through MQTT, provision this input when using the virtual function block in output mode.
 
 OUTPUT(S)
-- OUT: datatype *BOOL*, output for the value that is received through the MQTT subscription. provision this output in other processing logic when using the virtual function block in input mode.
+- OUT: datatype *REAL*, output for the value that is received through the MQTT subscription. provision this output in other processing logic when using the virtual function block in input mode.
 
 METHOD(S)
 - ConfigureFunctionBlockAsVirtualInput: configures the behaviour of the function block as a virtual input using the parameters below:
-    - `DefaultValue`: datatype *BOOL*, value to set at startup if default value at startup behavior is configured.
+    - `DefaultValue`: datatype *REAL*, value to set at startup if default value at startup behavior is configured.
     - `SetDefaultValueStartup`: datatype *BOOL*, set to TRUE to set the DefaultValue at PLC startup. 
     - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual input value at PLC startup.
     - `UsePersistentAtStartup`: datatype *BOOL*, set to TRUE to use persistence to maintain the virtual input value through power cycles. 
@@ -54,8 +54,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 
 | Command | Description | expected payload | Additional notes | 
 |:-------------|:------------------|:------------------|:------------------|
-| **Change output to high** | Request to change output to high. | `TRUE` | 
-| **Change output to low** | Request to change output to low. | `FALSE` | 
+| **Change output to float value** | Request to change output to a specific float value. | an float value | 
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
@@ -65,12 +64,12 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 ```
 MqttPubVirtualPrefix            :STRING(100) := 'WAGO-PFC200/Out/Virtuals/';
 MqttSubVirtualPrefix            :STRING(100) := 'WAGO-PFC200/In/Virtuals/';
-FB_VIRTUAL_BOOL_001             :FB_VIRTUAL_BOOL_MQTT;
+FB_VIRTUAL_REAL_001             :FB_VIRTUAL_REAL_MQTT;
 ```
 
 - Init MQTT method call (called once during startup):
 ```
-FB_VIRTUAL_BOOL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubVirtualPrefix),				
+FB_VIRTUAL_REAL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubVirtualPrefix),				
 	MQTTSubscribePrefix:= ADR(MqttSubVirtualPrefix),									
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
 	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
@@ -78,12 +77,12 @@ FB_VIRTUAL_BOOL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubVirtualPrefix),
 	MqttRetain:=FALSE											
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTSubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Virtuals/FB_VIRTUAL_REAL_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/Virtuals/FB_VIRTUAL_REAL_001` (MQTTSubSwitchPrefix variable + function block name).
 
 
 - Configuring the function block as a virtual input (called once during startup):
 ```
-FB_VIRTUAL_BOOL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=FALSE,
+FB_VIRTUAL_REAL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=12.234,
     SetDefaultValueStartup:=TRUE,
     PublishAtStartup:=TRUE,
     UsePersistentAtStartup:=FALSE,
@@ -93,46 +92,59 @@ FB_VIRTUAL_BOOL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=FALSE,
 
 - Calling the virtual function block to allow processing (cyclic):
 ```
-FB_VIRTUAL_BOOL_001();
+FB_VIRTUAL_REAL_001();
 ```
 
 - Using the virtual function block value when using input mode (cyclic):
 ```
-X:=FB_VIRTUAL_BOOL_001.OUT;
+X:=FB_VIRTUAL_REAL_001.OUT;
 ```
 A value X in the PLC is set to the OUT value of the virtual function block, the OUT value being controlled through MQTT.
 
 - Using the virtual function block value when using output mode (cyclic):
 ```
-FB_VIRTUAL_BOOL_001.IN:=X;
+FB_VIRTUAL_REAL_001.IN:=X;
 ```
 A value X in the PLC is set to the IN value of the virtual function block, the IN value being published through MQTT.
 
 ### __Home Assistant YAML__
-
 When using the function block as a virtual output use the YAML code below in your [MQTT Sensor](https://www.home-assistant.io/integrations/sensor.mqtt/) config to integrate with Home Assistant:
 
 ```YAML
 - platform: MQTT
-  name: "FB_VIRTUAL_BOOL_001"
-  state_topic: "WAGO-PFC200/Out/Virtual/FB_VIRTUAL_BOOL_001"
+  name: "FB_VIRTUAL_REAL_001"
+  state_topic: "WAGO-PFC200/Out/Virtuals/FB_VIRTUAL_REAL_001"
   qos: 2  
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```
 
-When using the function block as a virtual input use the YAML code below in your [MQTT Switch](https://www.home-assistant.io/integrations/switch.mqtt/) config to integrate with Home Assistant: 
+When using the function block as a virtual input use the YAML code below in your [Input Number](https://www.home-assistant.io/integrations/input_number/) config to integrate with Home Assistant: 
 
 ```YAML
-- platform: mqtt
-  name: "FB_VIRTUAL_BOOL_001"
-  command_topic: "WAGO-PFC200/In/Virtuals/FB_VIRTUAL_BOOL_001"
-  payload_on: "TRUE"
-  payload_off: "FALSE"
-  qos: 2
-  optimistic: true
-  availability_topic: "Devices/WAGO-PFC200/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
+input_number:
+  fb_virtual_real_001:
+    name: friendly name
+    min: 1
+    max: 30
+    step: 0.1
+    unit_of_measurement: degrees
+    icon: mdi:target
+```
+
+Configure the automation below in your automations.yaml file to publish any changes on the Input Number slider on a MQTT topic:
+
+```YAML
+- id: fb_virtual_real_001-to-mqtt
+  alias: FB_VIRTUAL_REAL_001 slider moved
+  trigger:
+    platform: state
+    entity_id: input_number.fb_virtual_real_001
+  action:
+    service: mqtt.publish
+    data_template:
+      topic: 'WAGO-PFC200/In/Virtuals/FB_VIRTUAL_REAL_001'
+      retain: true
+      payload: "{{ states('input_number.fb_virtual_real_001') | float }}"
 ```
