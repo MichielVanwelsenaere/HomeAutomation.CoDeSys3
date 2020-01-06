@@ -3,7 +3,7 @@ Check if the tasks below are relevant for your PR, to mark an item as completed 
 
 * [ ] Updated the PLCOpen XML export file (only relevant on code change).
 * [ ] Updated the CoDeSys V3 export file (only relevant on code change).
-* [ ] Updated or created any relevant documenation
+* [ ] Updated or created any relevant documentation.
 
 ## Proposed Changes
 
