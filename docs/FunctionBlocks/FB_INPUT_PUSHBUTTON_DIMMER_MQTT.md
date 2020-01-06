@@ -87,7 +87,7 @@ The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInpu
 FB_DI_PB_001(PB:= DI_001);
 ```
 
-- integration with `?`: There's currently no integration with an output function block possible as there's simply no output function block that supports dimming values. Got some hardware laying around that supports dimming on an output? Open [a git issue on the repo](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/issues/new) and let's collaborate on it! 
+- integration with `?`: The output dimmer values can be connected to any light supporting integration through Home Assistant, OpenHAB, etc. For dimming using a PLC analog output check out the [FB_OUTPUT_DIMMER_MQTT docs](./FB_OUTPUT_DIMMER_MQTT.md)
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
