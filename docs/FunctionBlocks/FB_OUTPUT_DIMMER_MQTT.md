@@ -125,11 +125,11 @@ To integrate with Home Assistant use the YAML code below in your [MQTT lights](h
 ```YAML
 - platform: MQTT
   name: "FB_AO_DIM_001"
-  state_topic: "WAGO-PFC200/Out/DigitalOutputs/FB_AO_DIM_001/Q"
-  command_topic: "WAGO-PFC200/In/DigitalOutputs/FB_AO_DIM_001"
-  brightness_command_topic: "WAGO-PFC200/In/DigitalOutputs/FB_AO_DIM_001"
+  state_topic: "WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001/Q"
+  command_topic: "WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001"
+  brightness_command_topic: "WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001"
   brightness_scale: 255
-  brightness_state_topic: "WAGO-PFC200/Out/DigitalOutputs/FB_AO_DIM_001/OUT"
+  brightness_state_topic: "WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001/OUT"
   on_command_type: "last"
   payload_on: "TRUE"
   payload_off: "FALSE"
