@@ -46,6 +46,18 @@ Function blocks developed to easily set and get values from the processing logic
 - [FB_VIRTUAL_STRING_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_STRING_MQTT.md)
 - [FB_VIRTUAL_REAL_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_REAL_MQTT.md)
 
+## RS485
+With many PLCs having a onboard RS485 serial port it is a popular protocol to create a robust Modbus RTU sensor network.
+
+### Adding a Modbus device
+Adding a Modbus device differs depending on the PLC/development environment used. The topics belows address the creation of a Modbus device in several development environments:
+    - [Creating a Modbus RTU device using CODESYS 3S runtime](./docs/RS485/CreatingModbusRTUDevice_CODESYS3S.md)
+    - [Creating a Modbus RTU device using é!COCKPIT runtime](./docs/RS485/CreatingModbusRTUDevice_éCOCKPIT.md)
+
+### RS485 function blocks
+
+- [FB_RS485_Eastron_SMD220_MQTT](./docs/FunctionBlocks/FB_RS485_Eastron_SMD220_MQTT.md)
+
 # Additional functionality
 
 - [MQTT Birth and Last will message](./docs/AdditionalFunctionality/MQTT_Birth_and_Last_will_message.md)
