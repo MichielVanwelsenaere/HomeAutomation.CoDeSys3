@@ -1,4 +1,4 @@
-## Creating a Modbus RTU device using the CODESYS 3S runtime
+## Using Modbus RTU with the CODESYS 3S runtime
 
 ### __Content__
 This page describes adding a modbus RTU device using the CODESYS 3S runtime.

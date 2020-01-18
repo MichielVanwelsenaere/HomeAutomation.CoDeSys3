@@ -1,4 +1,4 @@
-## Creating a Modbus RTU device using the é!COCKPIT runtime
+## Using Modbus RTU with the é!COCKPIT runtime
 
 ### __Content__
 This page describes adding a modbus RTU device using the é!COCKPIT runtime.
