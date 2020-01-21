@@ -49,14 +49,14 @@ Function blocks developed to easily set and get values from the processing logic
 ## RS485
 With many PLCs having a onboard RS485 serial port it is a popular protocol to create a robust Modbus RTU sensor network.
 
-### Adding a Modbus RTU device
-Adding a Modbus device differs depending on the PLC/development environment used. The topics belows address the usage of Modbus RTU in several development environments:
+### Using Modbus RTU
+How to use Modbus RTU differs depending on the PLC/development environment used. The topics belows address the usage of Modbus RTU in several development environments:
 
 - [Using Modbus RTU with the CODESYS 3S runtime](./docs/RS485/UsingModbusRTU_CODESYS3S.md)
 - [Using Modbus RTU with the é!COCKPIT runtime](./docs/RS485/UsingModbusRTU_éCOCKPIT.md)
 
 ### RS485 function blocks
-To translate the byte array received by the modbus device to their actual value and send their values through MQTT the function blocks below have been developed. Note that a specific function block is required for each Modbus RTU device.
+To translate the byte array received by the modbus device to their actual value and send their values through MQTT the function blocks below have been developed. Note that a specific function block is required for each type of Modbus RTU device.
 
 - [FB_RS485_EASTRON_SDM220_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM220_MQTT.md)
 
