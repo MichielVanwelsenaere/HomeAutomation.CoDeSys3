@@ -3,25 +3,22 @@
 ### __Content__
 This page describes adding a modbus RTU device using the é!COCKPIT runtime.
 
-- [Configuring the PLC master](#Configuring-the-PLC-master)
-- [Adding a slave device](#Adding-a-slave-device)
+- [Assign the PLC serial port to the PLC runtime](#Assign-the-PLC-serial-port-to-the-PLC-runtime)
+- [Adding a dummy slave device](#Adding-a-slave-device)
+- [Using code to access the RS485 serial port](#Using-code-to-access-the-RS485-serial-port)
 
-### __Configuring the PLC master__
-Go the 'Network/Device' overview and select the PLC to configure as a modbus master, 
+### __Assign the PLC serial port to the PLC runtime__
 
-??? Additionaly it's required to configure the serial port on the device to be used by the PLC runtime, this can easily be configured from the web based management view:
 
-### __Adding a slave device__
-To add a slave device to write and/or read register(s) using modbus go to the 'Network/Device' overview and add a 'Generic_MODBUS_Slave' device: 
+### __Adding a dummy slave device__
+In order to enable Modbus RTU communcation a dummy Modbus RTU device needs to be added in the device overview:
 
-<img src="../_img/RS485_éCOCKPIT_AddingSlave_1.png" width="550">
+<img src="../_img/RS485_éCOCKPIT_DummyDevice_1.png" width="550">
 
-Note that it's adviced to rename the device after creation in order to keep an overview on multiple modbus slave devices.
-The slave device has by default the same modbus RTU settings as the master device:
+<img src="../_img/RS485_éCOCKPIT_AddingSlave_1.png" width="350">
 
-<img src="../_img/RS485_éCOCKPIT_AddingSlave_2.png" width="550">
+### __Using code to access the RS485 serial port__
+The device configurator overview can be used to add modbus RTU slave devices but it doesn't allow for troubleshooting. Therefore it's preferable to use code to read out the Modbus RTU devices.
 
-Now the device has been created a communication relationship needs to be established between the master and slave device. To do this select the serial port from the master, hold it and drag the communication line to the serial port of the slave device:
 
-<img src="../_img/RS485_éCOCKPIT_CommunicationRelationship_1.png" width="300">
 

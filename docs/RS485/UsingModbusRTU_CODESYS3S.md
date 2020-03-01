@@ -4,8 +4,11 @@
 This page describes adding a modbus RTU device using the CODESYS 3S runtime. 
 Before starting, consider reading out your device first from a computer to gain more insights on the modbus specifications of your device. A guide to accomplish this can be found [here](.)
 
+- [Assign the PLC serial port to the PLC runtime](#Assign-the-PLC-serial-port-to-the-PLC-runtime)
 - [Configuring the PLC master](#Configuring-the-PLC-master)
 - [Adding a slave device](#Adding-a-slave-device)
+
+### __Assign the PLC serial port to the PLC runtime__
 
 ### __Configuring the PLC master__
 From the 'device' tab select the plc and add a new device. To start the com port needs to be added:
