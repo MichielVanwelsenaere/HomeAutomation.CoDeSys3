@@ -9,6 +9,7 @@ This page describes adding a modbus RTU device using the é!COCKPIT runtime.
 
 ### __Assign the PLC serial port to the PLC runtime__
 
+TODO
 
 ### __Adding a dummy slave device__
 In order to enable Modbus RTU communcation a dummy Modbus RTU device needs to be added in the device overview:

@@ -10,6 +10,8 @@ Before starting, consider reading out your device first from a computer to gain 
 
 ### __Assign the PLC serial port to the PLC runtime__
 
+TODO
+
 ### __Configuring the PLC master__
 From the 'device' tab select the plc and add a new device. To start the com port needs to be added:
 
