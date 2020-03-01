@@ -15,7 +15,7 @@ In order to enable Modbus RTU communcation a dummy Modbus RTU device needs to be
 
 <img src="../_img/RS485_éCOCKPIT_DummyDevice_1.png" width="550"> <br /> 
 
-<img src="../_img/RS485_éCOCKPIT_AddingSlave_1.png" width="350">
+<img src="../_img/RS485_éCOCKPIT_DummyDevice_2.png" width="350">
 
 ### __Using code to access the RS485 serial port__
 The device configurator overview can be used to add modbus RTU slave devices but it doesn't allow for troubleshooting. Therefore it's preferable to use code to read out the Modbus RTU devices.
