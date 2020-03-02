@@ -9,8 +9,11 @@ Before starting, consider reading out your device first from a computer to gain 
 - [Adding a slave device](#Adding-a-slave-device)
 
 ### __Assign the PLC serial port to the PLC runtime__
+In order use the onboard PLC serial port from the PLC runtime this needs to be configured from the web based management tool:
 
-TODO
+<img src="../_img/RS485_CODESYS3S_WBM.png" width="550">
+
+Note that it's necessary to reboot the controller after a change to this setting.
 
 ### __Configuring the PLC master__
 From the 'device' tab select the plc and add a new device. To start the com port needs to be added:

@@ -8,8 +8,11 @@ This page describes adding a modbus RTU device using the é!COCKPIT runtime.
 - [Using code to access the RS485 serial port](#Using-code-to-access-the-RS485-serial-port)
 
 ### __Assign the PLC serial port to the PLC runtime__
+In order use the onboard PLC serial port from the PLC runtime this needs to be configured from the web based management tool:
 
-TODO
+<img src="../_img/RS485_éCOCKPIT_WBM.png" width="550">
+
+Note that it's necessary to reboot the controller after a change to this setting.
 
 ### __Adding a dummy slave device__
 In order to enable Modbus RTU communcation a dummy Modbus RTU device needs to be added in the device overview:
