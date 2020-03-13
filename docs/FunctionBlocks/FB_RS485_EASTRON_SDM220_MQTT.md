@@ -20,13 +20,19 @@ OUTPUT(S):
 - REACTIVE_POWER: datatype real, part of modbus read commando 1.
 - POWER_FACTOR: datatype real, part of modbus read commando 1.
 - PHASE_ANGLE: datatype real, part of modbus read commando 1.
+- DataAvailable1: 
+- Error1: 
 - FREQUENCY: datatype real, part of modbus read commando 2.
 - IMPORT_ACTIVE_ENERGY: datatype real, part of modbus read commando 2.
 - EXPORT_ACTIVE_ENERGY: datatype real, part of modbus read commando 2.
 - IMPORT_REACTIVE_ENERGY: datatype real, part of modbus read commando 2.
 - EXPORT_REACTIVE_ENERGY: datatype real, part of modbus read commando 2.
+- DataAvailable2: 
+- Error2: 
 - TOTAL_ACTIVE_ENERGY: datatype real, part of modbus read commando 3.
 - TOTAL_REACTIVE_ENERGY: datatype real, part of modbus read commando 3.
+- DataAvailable3: 
+- Error3: 
 
 Outputs sharing the same modbus read commando are read from the device at a single point in time. 
 
