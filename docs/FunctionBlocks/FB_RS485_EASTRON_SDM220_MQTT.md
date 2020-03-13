@@ -74,18 +74,18 @@ FB_RS485_EASTRON_SDM220_001     :FB_RS485_EASTRON_SDM220_MQTT;
 - Init RS485 method call (called once during startup):
 ```
 FB_RS485_EASTRON_SDM220_001.InitRS485(
-	Data1PollingInterval := T#10S,		(* Polling interval for data array 1 *)				
-	Data2PollingInterval := T#20S,		(* Polling interval for data array 2 *)			
-	Data3PollingInterval := T#30S,		(* Polling interval for data array 3 *)			
-	DeviceAddress := 1					(* Device address of the modbus device *)			
+	Data1PollingInterval := T#10S,      (* Polling interval for data array 1 *)				
+	Data2PollingInterval := T#20S,      (* Polling interval for data array 2 *)			
+	Data3PollingInterval := T#30S,      (* Polling interval for data array 3 *)			
+	DeviceAddress := 1                  (* Device address of the modbus device *)			
 );
 ```
 
 - Init MQTT method call (called once during startup):
 ```
 FB_RS485_EASTRON_SDM220_001.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttRS485Prefix),						(* pointer to string prefix for the mqtt publish topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)		(* pointer to MqttPublishQueue to send a new Mqtt event *)
+	MQTTPublishPrefix:= ADR(MqttRS485Prefix),                       (* pointer to string prefix for the mqtt publish topic *)
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)      (* pointer to MqttPublishQueue to send a new Mqtt event *)
 );
 
 ```
