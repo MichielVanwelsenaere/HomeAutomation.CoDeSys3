@@ -35,9 +35,7 @@ METHOD(S)
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.  
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     
-- ProcessData1: processes new Modbus RTU data, an overview of the parameters:
-- ProcessData2: processes new Modbus RTU data, an overview of the parameters:
-- ProcessData3: processes new Modbus RTU data, an overview of the parameters:
+- TODO
 
 
 ### __MQTT Event Behaviour__
