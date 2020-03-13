@@ -46,22 +46,22 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **output is updated**   | the output is updated. | real value | 2 | `FALSE` | no
 
 MQTT publish topic is a concatination of the publish prefix and the function block name and a unique value: 
-| output       | MQTT topc suffic | 
-|:-------------|:------------------|
-| VOLTAGE | `/VOLT`
-| CURRENT | `/CURR`
-| ACTIVEPOWER |  `/ACTP`
-| APPARENT_POWER | `/APPP`
-| REACTIVE_POWER | `/REAP`
-| POWER_FACTOR | `/POWF`
-| PHASE_ANGLE | `/PHAA`
-| FREQUENCY | `/FREQ`
-| IMPORT_ACTIVE_ENERGY | `/IMAE`
-| EXPORT_ACTIVE_ENERGY | `/EXAE`
-| IMPORT_REACTIVE_ENERGY | `/IMRE`
-| EXPORT_REACTIVE_ENERGY | `/EXRE`
-| TOTAL_ACTIVE_ENERGY | `/TOTAE`
-| TOTAL_REACTIVE_ENERGY | `/TOTRE`
+| output       | MQTT topc suffic | Unit         | 
+|:-------------|:------------------|:------------------|
+| VOLTAGE | `/VOLT` | Volts 
+| CURRENT | `/CURR` | Amps 
+| ACTIVEPOWER |  `/ACTP` | Watts 
+| APPARENT_POWER | `/APPP` | VoltAmps 
+| REACTIVE_POWER | `/REAP` | VAr 
+| POWER_FACTOR | `/POWF` | None 
+| PHASE_ANGLE | `/PHAA` | Degree 
+| FREQUENCY | `/FREQ` | Hz 
+| IMPORT_ACTIVE_ENERGY | `/IMAE` | kwh 
+| EXPORT_ACTIVE_ENERGY | `/EXAE` | kwh 
+| IMPORT_REACTIVE_ENERGY | `/IMRE` | kvarh 
+| EXPORT_REACTIVE_ENERGY | `/EXRE` | kvarh 
+| TOTAL_ACTIVE_ENERGY | `/TOTAE` | kwh 
+| TOTAL_REACTIVE_ENERGY | `/TOTRE` | kvarh 
 
 ### __Code example__
 
@@ -71,15 +71,157 @@ MQTTPubRS485Prefix              :STRING(100) := 'WAGO-PFC200/Out/RS485/';
 FB_RS485_EASTRON_SDM220_001     :FB_RS485_EASTRON_SDM220_MQTT;
 ```
 
+- Init RS485 method call (called once during startup):
+```
+FB_RS485_EASTRON_SDM220_001.InitRS485(
+	Data1PollingInterval := T#10S,		(* Polling interval for data array 1 *)				
+	Data2PollingInterval := T#20S,		(* Polling interval for data array 2 *)			
+	Data3PollingInterval := T#30S,		(* Polling interval for data array 3 *)			
+	DeviceAddress := 1					(* Device address of the modbus device *)			
+);
+```
+
 - Init MQTT method call (called once during startup):
 ```
-FB_RS485_EASTRON_SDM220_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubRS485Prefix),   (* pointer to string prefix for the MQTT publish topic *)
-    pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),                     (* pointer to MQTTPublishQueue to send a new MQTT event *)
+FB_RS485_EASTRON_SDM220_001.InitMqtt(
+	MQTTPublishPrefix:= ADR(MqttRS485Prefix),						(* pointer to string prefix for the mqtt publish topic *)
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)		(* pointer to MqttPublishQueue to send a new Mqtt event *)
 );
+
 ```
 The MQTT publish topic in this code example will be `WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001` (MQTTPubSwitchPrefix variable + function block name).
 
+- Integration in é!COCKPIT RS485 statemachine:
+```
+IF FB_RS485_EASTRON_SDM220_001.RequestMaster(ADR(MasterBusy)) THEN
+	IF FB_RS485_EASTRON_SDM220_001.ActiveRtuQuery = 0 THEN
+		ActiveRtuQuery := FB_RS485_EASTRON_SDM220_001.GetRtuQuery();
+		Trigger := TRUE;
+	ELSIF Trigger = FALSE THEN
+		FB_RS485_EASTRON_SDM220_001.ProcessDataArray(Error:=ModbusMaster.xError, Data:=ADR(RtuResponse.awData));
+		MasterBusy := FALSE;
+	END_IF	
+ELSIF // next RS485 device
+
+END_IF
+```
+
+- Integration with Codesys 3S Modbus RTU implementation wizard:
 
 
 ### __Home Assistant YAML__
-TODO
+To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+
+```YAML
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_VOLT"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/VOLT"
+  unit_of_measurement: "Volts"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_CURR"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/CURR"
+  unit_of_measurement: "Amps"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_ACTP"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/ACTP"
+  unit_of_measurement: "Watts"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_APPP"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/APPP"
+  unit_of_measurement: "VoltAmps"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_REAP"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/REAP"
+  unit_of_measurement: "VAr"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_POWF"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/POWF"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_PHAA"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/PHAA"
+  unit_of_measurement: "Degree"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_FREQ"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/FREQ"
+  unit_of_measurement: "Hz"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_IMAE"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/IMAE"
+  unit_of_measurement: "kwh"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_EXAE"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/EXAE"
+  unit_of_measurement: "kwh"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_IMRE"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/IMRE"
+  unit_of_measurement: "kvarh"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_EXRE"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/EXRE"
+  unit_of_measurement: "kvarh"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_TOTAE"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/TOTAE"
+  unit_of_measurement: "kwh"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+- platform: MQTT
+  name: "FB_RS485_EASTRON_SDM220_001_TOTRE"
+  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/TOTRE"
+  unit_of_measurement: "kvarh"
+  qos: 2
+  availability_topic: "Devices/WAGO-PFC200/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
+```
