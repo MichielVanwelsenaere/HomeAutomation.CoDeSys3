@@ -66,7 +66,8 @@ is used to control access to the RS485 bus between multiple RS485 device functio
 # Additional functionality
 
 - [MQTT Birth and Last will message](./docs/AdditionalFunctionality/MQTT_Birth_and_Last_will_message.md)
-- [Controlling user leds](./docs/AdditionalFunctionality/User_leds_éCOCKPIT_runtime.md) (é!COCKPIT runtime)
+- [Controlling Wago PFC user leds](./docs/AdditionalFunctionality/User_leds_éCOCKPIT_runtime.md) (é!COCKPIT runtime)
+- [Controlling Wago PFC user leds](./docs/AdditionalFunctionality/User_leds_Codesys3S_runtime.md) (Codesys 3S runtime)
 
 # FAQ
 
