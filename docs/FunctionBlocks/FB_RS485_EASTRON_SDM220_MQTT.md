@@ -10,7 +10,7 @@ Eastron SDM220 datasheets:
 
 ### __Block diagram__
 
-<img src="../_img/FB_RS485_EASTRON_SDM220_MQTT.svg" width="350">
+<img src="../_img/FB_RS485_EASTRON_SDM220_MQTT.svg" width="500">
 
 OUTPUT(S):
 - VOLTAGE: datatype real, part of modbus read commando 1.
@@ -20,29 +20,30 @@ OUTPUT(S):
 - REACTIVE_POWER: datatype real, part of modbus read commando 1.
 - POWER_FACTOR: datatype real, part of modbus read commando 1.
 - PHASE_ANGLE: datatype real, part of modbus read commando 1.
-- DataAvailable1: 
-- Error1: 
+- DataAvailable1: datatype bool, high when data is available read by modbus read commando 1. This means the output is only low on startup until modbus read commando 1 has been executed successfully.
+- Error1: datatype bool, high when an error occured while executing modbus read commando 1.
 - FREQUENCY: datatype real, part of modbus read commando 2.
 - IMPORT_ACTIVE_ENERGY: datatype real, part of modbus read commando 2.
 - EXPORT_ACTIVE_ENERGY: datatype real, part of modbus read commando 2.
 - IMPORT_REACTIVE_ENERGY: datatype real, part of modbus read commando 2.
 - EXPORT_REACTIVE_ENERGY: datatype real, part of modbus read commando 2.
-- DataAvailable2: 
-- Error2: 
+- DataAvailable2: datatype bool, high when data is available read by modbus read commando 2. This means the output is only low on startup until modbus read commando 2 has been executed successfully.
+- Error2: datatype bool, high when an error occured while executing modbus read commando 2.
 - TOTAL_ACTIVE_ENERGY: datatype real, part of modbus read commando 3.
 - TOTAL_REACTIVE_ENERGY: datatype real, part of modbus read commando 3.
-- DataAvailable3: 
-- Error3: 
+- DataAvailable3: datatype bool, high when data is available read by modbus read commando 3. This means the output is only low on startup until modbus read commando 3 has been executed successfully.
+- Error3: datatype bool, high when an error occured while executing modbus read commando 3.
 
 Outputs sharing the same modbus read commando are read from the device at a single point in time. 
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.  
-    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
-    
-- TODO
-
+    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.    
+- InitRS485: configured the Modbus RTU device address and the execution/polling interval for the multiple modbus read commands.
+- RequestMaster: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+- GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+- ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -80,7 +81,7 @@ FB_RS485_EASTRON_SDM220_001     :FB_RS485_EASTRON_SDM220_MQTT;
 - Init RS485 method call (called once during startup):
 ```
 FB_RS485_EASTRON_SDM220_001.InitRS485(
-	Data1PollingInterval := T#10S,      (* Polling interval for data array 1 *)				
+	Data1PollingInterval := T#1S,       (* Polling interval for data array 1 *)				
 	Data2PollingInterval := T#20S,      (* Polling interval for data array 2 *)			
 	Data3PollingInterval := T#30S,      (* Polling interval for data array 3 *)			
 	DeviceAddress := 1                  (* Device address of the modbus device *)			
@@ -99,21 +100,37 @@ The MQTT publish topic in this code example will be `WAGO-PFC200/Out/RS485/FB_RS
 
 - Integration in é!COCKPIT RS485 statemachine:
 ```
-IF FB_RS485_EASTRON_SDM220_001.RequestMaster(ADR(MasterBusy)) THEN
-	IF FB_RS485_EASTRON_SDM220_001.ActiveRtuQuery = 0 THEN
-		ActiveRtuQuery := FB_RS485_EASTRON_SDM220_001.GetRtuQuery();
-		Trigger := TRUE;
-	ELSIF Trigger = FALSE THEN
-		FB_RS485_EASTRON_SDM220_001.ProcessDataArray(Error:=ModbusMaster.xError, Data:=ADR(RtuResponse.awData));
-		MasterBusy := FALSE;
+IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
+	IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
+		ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
+		Trigger := TRUE; // Start the Modbus RTU query
+	ELSIF Trigger = FALSE THEN // Modbus RTU query completed, process it
+		(*FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=ModbusMaster.xError, Data:=ADR(RtuResponse.awData)); *)
+		RS485BusController.ReleaseBus();
 	END_IF	
 ELSIF // next RS485 device
 
 END_IF
 ```
 
-- Integration with Codesys 3S Modbus RTU implementation wizard:
+- Integration in Codesys 3S RS485 statemachine:
+```
+IF(xComPortOpen) THEN
+    IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
+		IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
+			ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
+			Trigger := TRUE; // Start the Modbus RTU query
+		ELSIF fbModbusRequest.xDone OR fbModbusRequest.xError THEN // Modbus RTU query completed, process it
+			FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=fbModbusRequest.xError, Data:=ADR(awReadBuffer));
+			RS485BusController.ReleaseBus();
+			TRIGGER := FALSE;
+		END_IF	
+	ELSIF // next RS485 device
 
+    END_IF
+END_IF
+
+```
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:

@@ -60,6 +60,9 @@ To translate the byte array received by the modbus device to their actual value 
 
 - [FB_RS485_EASTRON_SDM220_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM220_MQTT.md)
 
+In addition to the above a buscontroller function block ([FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md))
+is used to control access to the RS485 bus between multiple RS485 device function blocks.
+
 # Additional functionality
 
 - [MQTT Birth and Last will message](./docs/AdditionalFunctionality/MQTT_Birth_and_Last_will_message.md)

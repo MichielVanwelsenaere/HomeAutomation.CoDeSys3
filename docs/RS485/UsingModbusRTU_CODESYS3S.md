@@ -2,11 +2,12 @@
 
 ### __Content__
 This page describes adding a modbus RTU device using the CODESYS 3S runtime. 
-Before starting, consider reading out your device first from a computer to gain more insights on the modbus specifications of your device. A guide to accomplish this can be found [here](.)
+In case a function block for your specific device is not present yet in this project. Please consider reading out your device first from a computer to gain more insights on the modbus specifications of your device. A guide to accomplish this can be found [here](./ReadingOutADeviceFromPC.md).
 
 - [Assign the PLC serial port to the PLC runtime](#Assign-the-PLC-serial-port-to-the-PLC-runtime)
-- [Configuring the PLC master](#Configuring-the-PLC-master)
-- [Adding a slave device](#Adding-a-slave-device)
+- [Required libraries](#Required-libraries)
+- [Setting the serial mode on the PLC](#Setting-the-serial-mode-on-the-PLC)
+- [Using code to access the RS485 serial port](#Using-code-to-access-the-RS485-serial-port)
 
 ### __Assign the PLC serial port to the PLC runtime__
 In order use the onboard PLC serial port from the PLC runtime this needs to be configured from the web based management tool:
@@ -15,29 +16,32 @@ In order use the onboard PLC serial port from the PLC runtime this needs to be c
 
 Note that it's necessary to reboot the controller after a change to this setting.
 
-### __Configuring the PLC master__
-From the 'device' tab select the plc and add a new device. To start the com port needs to be added:
+### __Required libraries__
+Make sure the following libraries are present in the project:
+```
+IoDrvModbus
+SysCom
+SysTypes2 Interfaces
+```
 
-<img src="../_img/RS485_CODESYS3S_AddingMaster_1.png" width="550">
-<img src="../_img/RS485_CODESYS3S_AddingMaster_2.png" width="550">
+### __Setting the serial mode on the PLC__
+Although the PLC serial port is already assigned to the PLC runtime it isn't configured yet in RS485 mode.
+To do so:
+1. Open Codesys 
+1. Connect to your PLC
+1. Use the PLC shell to set the serialmode to RS485:
 
-After adding the com port to the device tree it's possible to add the modbus master device:
+<img src="../_img/RS485_CODESYS3S_PLCShell.png" width="550">
 
-<img src="../_img/RS485_CODESYS3S_AddingMaster_3.png" width="550">
-<img src="../_img/RS485_CODESYS3S_AddingMaster_4.png" width="550">
+Note that even when the serialmode is already set to RS485 it is adviced to explicitly do so again. This has proven to fix connectivity issues when first using RS485 on a controller.
 
-With both present the modbus settings can be configured, to configure specific RS485 protocol settings use the configuration tab on the com port:
+### __Using code to access the RS485 serial port__
+The device configurator overview can be used to add modbus RTU slave devices but it doesn't allow for troubleshooting. Therefore it's preferable to use code to read out the Modbus RTU devices.
 
-<img src="../_img/RS485_CODESYS3S_AddingMaster_5.png" width="550">
+A specific implementation example can be found inside the project:
 
-To configure specific modbus master settings use the configuration tab on the Modbus master:
+<img src="../_img/RS485_éCOCKPIT_Codebase_1.png" width="350">
 
-<img src="../_img/RS485_CODESYS3S_AddingMaster_6.png" width="550">
-
-Enable the 'Auto-communication restart' checkbox to prevent transient startup issues (for example) on slave devices to block modbus communication.
-
-### __Adding a slave device__
-From the 'device' tab select the modbus master added in previous step and add a new modbus slave device:
-
-<img src="../_img/RS485_CODESYS3S_AddingSlave_1.png" width="550">
-<img src="../_img/RS485_CODESYS3S_AddingSlave_2.png" width="550">
+As this project uses a 'é!COCKPIT first' approach the code that needs to be used withing a controller using the Codesys 3S runtime has been commented out.
+There are minor differences to the é!COCKPIT and Codesys 3S Modbus RTU implementation. Main reason for this is that both systems have different libraries containing different function blocks and types to work with Modbus RTU.
+Nevertheless, any RS485 function block developed in this project can be used in both the é!COCKPIT and Codesys 3S Modbus RTU approach.
