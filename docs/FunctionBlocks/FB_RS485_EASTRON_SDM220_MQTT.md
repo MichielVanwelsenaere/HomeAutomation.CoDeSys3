@@ -40,7 +40,7 @@ METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.  
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.    
-- InitRS485: configured the Modbus RTU device address and the execution/polling interval for the multiple modbus read commands.
+- InitRS485: configures the Modbus RTU device address and the execution/polling interval for the multiple modbus read commands.
 - RequestMaster: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
