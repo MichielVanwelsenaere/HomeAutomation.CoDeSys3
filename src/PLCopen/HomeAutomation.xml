@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-01-06T16:47:39.8433994" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-01-06T12:26:28.73124">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-03-24T17:47:54.4677892" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-03-24T16:34:05.3318566">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -58,6 +58,33 @@
             <variable name="MqttRetain">
               <type>
                 <BOOL />
+              </type>
+            </variable>
+          </struct>
+        </baseType>
+        <addData />
+      </dataType>
+      <dataType name="RS485_RtuQuery">
+        <baseType>
+          <struct>
+            <variable name="DeviceId">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+            <variable name="FunctionCode">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+            <variable name="ReadAddress">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="ReadQuantity">
+              <type>
+                <UINT />
               </type>
             </variable>
           </struct>
@@ -602,7 +629,7 @@ CALC_COVER_STATE := NewState;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="pMqttPublishQueue">
@@ -826,7 +853,7 @@ InitMqttDone := TRUE;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="pMqttPublishQueue">
@@ -1310,7 +1337,7 @@ THIS^.T_Long:=T_Long;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="pMqttPublishQueue">
@@ -1876,7 +1903,7 @@ RequestToSend:=TRUE;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
@@ -2395,7 +2422,7 @@ THIS^.T_UD:=T_UD;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
@@ -2951,7 +2978,7 @@ END_IF </xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
@@ -3151,6 +3178,836 @@ END_IF </xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="FB_RS485_BUSCONTROLLER" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="BusOcupied">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Set this to True by default at startup to allow for some RS485 devices to boot up at power interuptions	</xhtml>
+              </documentation>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="StartupDelay">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#5s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Amount of time that should be waited on PLC startup to start using the RS485 bus</xhtml>
+              </documentation>
+            </variable>
+            <variable name="SilenceTime">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#20ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> This is the silence time between two requests</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Used to detect startup</xhtml>
+              </documentation>
+            </variable>
+            <variable name="tonDelay">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> To manage silence time and startup delay</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
+	tonDelay.PT := StartupDelay;
+	tonDelay.IN := TRUE;
+	Startup := FALSE;
+END_IF
+
+
+BusOcupied := NOT(tonDelay.Q);
+tonDelay();</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Init">
+              <interface>
+                <inputVars>
+                  <variable name="StartupDelay">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Amount of time that should be waited on PLC startup to start using the RS485 bus, can prevent errors due to devices not booted up yet</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="SilenceTime">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> This is the silence time between two requests</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.StartupDelay := StartupDelay;
+THIS^.SilenceTime := SilenceTime;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetBusOccupied">
+              <interface />
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.tonDelay.IN := FALSE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ReleaseBus">
+              <interface />
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Start a timer to release the bus
+THIS^.tonDelay.PT := THIS^.SilenceTime;
+THIS^.tonDelay.IN := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_RS485_EASTRON_SDM220_MQTT" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="VOLTAGE">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="CURRENT">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="ACTIVEPOWER">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="APPARENT_POWER">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="REACTIVE_POWER">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="POWER_FACTOR">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="PHASE_ANGLE">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="DataAvailable1">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="Error1">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="FREQUENCY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="IMPORT_ACTIVE_ENERGY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="EXPORT_ACTIVE_ENERGY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="IMPORT_REACTIVE_ENERGY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="EXPORT_REACTIVE_ENERGY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="DataAvailable2">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="Error2">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="TOTAL_ACTIVE_ENERGY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="TOTAL_REACTIVE_ENERGY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="DataAvailable3">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="Error3">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="InstanceName">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="InitMqttDone">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MqttPublishTopicPrefix">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="MqttPublishTopicSuffix">
+              <type>
+                <string length="50" />
+              </type>
+            </variable>
+            <variable name="pMqttPublishQueue">
+              <type>
+                <pointer>
+                  <baseType>
+                    <derived name="FB_MqttPublishQueue" />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="InitRS485Done">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="ActiveDevice">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="ActiveRtuQuery">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="Data1RtuQuery">
+              <type>
+                <derived name="RS485_RtuQuery" />
+              </type>
+              <initialValue>
+                <structValue>
+                  <value member="FunctionCode">
+                    <simpleValue value="4" />
+                  </value>
+                  <value member="ReadAddress">
+                    <simpleValue value="0" />
+                  </value>
+                  <value member="ReadQuantity">
+                    <simpleValue value="40" />
+                  </value>
+                </structValue>
+              </initialValue>
+            </variable>
+            <variable name="Update1">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="timerData1">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="Data2RtuQuery">
+              <type>
+                <derived name="RS485_RtuQuery" />
+              </type>
+              <initialValue>
+                <structValue>
+                  <value member="FunctionCode">
+                    <simpleValue value="4" />
+                  </value>
+                  <value member="ReadAddress">
+                    <simpleValue value="70" />
+                  </value>
+                  <value member="ReadQuantity">
+                    <simpleValue value="10" />
+                  </value>
+                </structValue>
+              </initialValue>
+            </variable>
+            <variable name="Update2">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="timerData2">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="Data3RtuQuery">
+              <type>
+                <derived name="RS485_RtuQuery" />
+              </type>
+              <initialValue>
+                <structValue>
+                  <value member="FunctionCode">
+                    <simpleValue value="4" />
+                  </value>
+                  <value member="ReadAddress">
+                    <simpleValue value="342" />
+                  </value>
+                  <value member="ReadQuantity">
+                    <simpleValue value="4" />
+                  </value>
+                </structValue>
+              </initialValue>
+            </variable>
+            <variable name="Update3">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="timerData3">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Implements>RS485Device</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">timerData1();
+timerData2();
+timerData3();
+
+IF Update1 THEN
+	Update1 := FALSE;
+	DataAvailable1 := TRUE;
+	
+	IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(VOLTAGE),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/VOLT' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(CURRENT),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/CURR' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);	
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(ACTIVEPOWER),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/ACTP' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(APPARENT_POWER),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/APPP' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(REACTIVE_POWER),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/REAP' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(POWER_FACTOR),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/POWF' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(PHASE_ANGLE),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/PHAA' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+	END_IF
+END_IF
+
+IF Update2 THEN
+	Update2 := FALSE;
+	DataAvailable2 := TRUE;
+	
+	IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(FREQUENCY),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/FREQ' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(IMPORT_ACTIVE_ENERGY),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/IMAE' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(EXPORT_ACTIVE_ENERGY),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/EXAE' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(IMPORT_REACTIVE_ENERGY),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/IMRE' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(EXPORT_REACTIVE_ENERGY),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/EXRE' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+	END_IF
+END_IF
+
+IF Update3 THEN
+	Update3 := FALSE;	
+	DataAvailable3 := TRUE;
+	
+	IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(TOTAL_ACTIVE_ENERGY),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/TOTAE' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+		pMqttPublishQueue^.AddMessage(
+			Payload := REAL_TO_STRING(TOTAL_REACTIVE_ENERGY),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/TOTRE' ),
+			Qos := SD_MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+	END_IF
+END_IF</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessDataArray">
+              <interface>
+                <inputVars>
+                  <variable name="Error">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <array>
+                            <dimension lower="0" upper="124" />
+                            <baseType>
+                              <WORD />
+                            </baseType>
+                          </array>
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF ActiveRtuQuery = 1 THEN
+	THIS^.Error1 := Error;
+	THIS^.timerData1.IN := TRUE;
+	IF NOT Error THEN
+		THIS^.VOLTAGE := SwapWordsToReal(Data^[0], Data^[1]);
+		THIS^.CURRENT := SwapWordsToReal(Data^[6], Data^[7]);
+		THIS^.ACTIVEPOWER := SwapWordsToReal(Data^[12], Data^[13]);
+		THIS^.APPARENT_POWER := SwapWordsToReal(Data^[18], Data^[19]);
+		THIS^.REACTIVE_POWER := SwapWordsToReal(Data^[24], Data^[25]);
+		THIS^.POWER_FACTOR := SwapWordsToReal(Data^[30], Data^[31]);
+		THIS^.PHASE_ANGLE := SwapWordsToReal(Data^[36], Data^[37]);
+		THIS^.Update1 := TRUE;
+	END_IF
+ELSIF ActiveRtuQuery = 2 THEN
+	THIS^.Error2:= Error;
+	THIS^.timerData2.IN := TRUE;
+	IF NOT Error THEN		
+		THIS^.FREQUENCY := SwapWordsToReal(Data^[0], Data^[1]);
+		THIS^.IMPORT_ACTIVE_ENERGY := SwapWordsToReal(Data^[2], Data^[3]);
+		THIS^.EXPORT_ACTIVE_ENERGY := SwapWordsToReal(Data^[4], Data^[5]);
+		THIS^.IMPORT_REACTIVE_ENERGY := SwapWordsToReal(Data^[6], Data^[7]);
+		THIS^.EXPORT_REACTIVE_ENERGY := SwapWordsToReal(Data^[8], Data^[9]);
+		THIS^.Update2 := TRUE;
+	END_IF
+ELSIF ActiveRtuQuery = 3 THEN
+	THIS^.Error3 := Error;
+	THIS^.timerData3.IN := TRUE;
+	IF NOT Error THEN
+		THIS^.TOTAL_ACTIVE_ENERGY := SwapWordsToReal(Data^[0], Data^[1]);
+		THIS^.TOTAL_REACTIVE_ENERGY := SwapWordsToReal(Data^[2], Data^[3]);
+		THIS^.Update3 := TRUE;
+	END_IF	
+END_IF
+
+ActiveRtuQuery := 0;
+ActiveDevice := FALSE;
+
+
+
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitRS485">
+              <interface>
+                <inputVars>
+                  <variable name="Data1PollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="Data2PollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="Data3PollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="DeviceAddress">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.timerData1.PT := Data1PollingInterval;
+THIS^.timerData2.PT := Data2PollingInterval;
+THIS^.timerData3.PT := Data3PollingInterval;
+
+THIS^.Data1RtuQuery.DeviceId := DeviceAddress;
+THIS^.Data2RtuQuery.DeviceId := DeviceAddress;
+THIS^.Data3RtuQuery.DeviceId := DeviceAddress;
+
+THIS^.timerData1.IN := TRUE;
+THIS^.timerData2.IN := TRUE;
+THIS^.timerData3.IN := TRUE;
+
+THIS^.InitRS485Done := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="InstanceNamePt">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+
+InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
+THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
+
+THIS^.InitMqttDone := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestMaster">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="BusController">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_RS485_BUSCONTROLLER" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT InitRS485Done THEN	
+	RequestMaster := FALSE;	
+ELSE
+	IF THIS^.ActiveDevice THEN
+		RequestMaster := TRUE;
+	ELSIF BusController^.BusOcupied = TRUE THEN
+		RequestMaster := FALSE;	
+	ELSIF timerData1.Q OR timerData2.Q OR timerData3.Q THEN
+		RequestMaster := TRUE;	
+		BusController^.SetBusOccupied();
+		THIS^.ActiveDevice := TRUE;
+	ELSE
+		RequestMaster := FALSE;	
+	END_IF
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetRtuQuery">
+              <interface>
+                <returnType>
+                  <derived name="RS485_RtuQuery" />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData1.Q THEN
+	THIS^.timerData1.IN := FALSE;
+	THIS^.ActiveRtuQuery := 1;
+	GetRtuQuery := THIS^.Data1RtuQuery;
+ELSIF timerData2.Q THEN
+	THIS^.timerData2.IN := FALSE;
+	THIS^.ActiveRtuQuery := 2;
+	GetRtuQuery := THIS^.Data2RtuQuery;
+ELSIF timerData3.Q THEN
+	THIS^.timerData3.IN := FALSE;
+	THIS^.ActiveRtuQuery := 3;
+	GetRtuQuery := THIS^.Data3RtuQuery;	
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
       <pou name="FB_VIRTUAL_BOOL_MQTT" pouType="functionBlock">
         <interface>
           <inputVars>
@@ -3208,7 +4065,7 @@ END_IF </xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
@@ -3619,7 +4476,7 @@ THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
@@ -4026,7 +4883,7 @@ THIS^.UpdateFlag:=TRUE;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
@@ -4431,7 +5288,7 @@ THIS^.UpdateFlag:=TRUE;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="25" />
+                <string length="50" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
@@ -4920,15 +5777,118 @@ THIS^.rmp.SetRMP(RMP);</xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="SwapWordsToReal" pouType="function">
+        <interface>
+          <returnType>
+            <REAL />
+          </returnType>
+          <inputVars>
+            <variable name="wHi">
+              <type>
+                <WORD />
+              </type>
+            </variable>
+            <variable name="wLo">
+              <type>
+                <WORD />
+              </type>
+            </variable>
+          </inputVars>
+          <localVars>
+            <variable name="dwVar">
+              <type>
+                <DWORD />
+              </type>
+            </variable>
+            <variable name="pt_REAL">
+              <type>
+                <pointer>
+                  <baseType>
+                    <REAL />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">dwVar := SHL(WORD_TO_DWORD(wHi),16) OR WORD_TO_DWORD(wLo);
+pt_REAL := ADR(dwVar);
+SwapWordsToReal := pt_REAL^;</xhtml>
+          </ST>
+        </body>
+        <addData />
+      </pou>
     </pous>
   </types>
   <instances>
     <configurations />
   </instances>
   <addData>
+    <data name="http://www.3s-software.com/plcopenxml/interface" handleUnknown="implementation">
+      <Interface name="RS485Device">
+        <Methods>
+          <Method name="RequestMaster">
+            <interface>
+              <returnType>
+                <BOOL />
+              </returnType>
+              <inputVars>
+                <variable name="BusController">
+                  <type>
+                    <pointer>
+                      <baseType>
+                        <derived name="FB_RS485_BUSCONTROLLER" />
+                      </baseType>
+                    </pointer>
+                  </type>
+                </variable>
+              </inputVars>
+            </interface>
+            <addData />
+          </Method>
+          <Method name="GetRtuQuery">
+            <interface>
+              <returnType>
+                <derived name="RS485_RtuQuery" />
+              </returnType>
+            </interface>
+            <addData />
+          </Method>
+          <Method name="ProcessDataArray">
+            <interface>
+              <inputVars>
+                <variable name="Error">
+                  <type>
+                    <BOOL />
+                  </type>
+                </variable>
+                <variable name="Data">
+                  <type>
+                    <pointer>
+                      <baseType>
+                        <array>
+                          <dimension lower="0" upper="124" />
+                          <baseType>
+                            <WORD />
+                          </baseType>
+                        </array>
+                      </baseType>
+                    </pointer>
+                  </type>
+                </variable>
+              </inputVars>
+            </interface>
+            <addData />
+          </Method>
+        </Methods>
+        <addData />
+      </Interface>
+    </data>
     <data name="http://www.3s-software.com/plcopenxml/application" handleUnknown="implementation">
       <resource name="HomeAutomation">
-        <task name="MainTask" interval="PT0.02S" priority="1">
+        <task name="MainTask" interval="PT0.05S" priority="4">
           <pouInstance name="PLC_PRG_MAIN" typeName="">
             <documentation>
               <xhtml xmlns="http://www.w3.org/1999/xhtml" />
@@ -4936,13 +5896,13 @@ THIS^.rmp.SetRMP(RMP);</xhtml>
           </pouInstance>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
-              <TaskSettings KindOfTask="Cyclic" Interval="t#20ms" IntervalUnit="ms" WithinSPSTimeSlicing="true">
+              <TaskSettings KindOfTask="Cyclic" Interval="50" IntervalUnit="ms" WithinSPSTimeSlicing="true">
                 <Watchdog Enabled="false" TimeUnit="ms" Sensitivity="1" />
               </TaskSettings>
             </data>
           </addData>
         </task>
-        <task name="MqttCommunication" priority="4">
+        <task name="MqttCommunication" priority="5">
           <pouInstance name="PLC_PRG_MQTT" typeName="">
             <documentation>
               <xhtml xmlns="http://www.w3.org/1999/xhtml" />
@@ -4951,6 +5911,20 @@ THIS^.rmp.SetRMP(RMP);</xhtml>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
               <TaskSettings KindOfTask="Freewheeling" Interval="t#20ms" IntervalUnit="ms" WithinSPSTimeSlicing="true">
+                <Watchdog Enabled="false" TimeUnit="ms" Sensitivity="1" />
+              </TaskSettings>
+            </data>
+          </addData>
+        </task>
+        <task name="RS485" interval="PT0.2S" priority="15">
+          <pouInstance name="PLC_PRG_RS485" typeName="">
+            <documentation>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+            </documentation>
+          </pouInstance>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
+              <TaskSettings KindOfTask="Cyclic" Interval="200" IntervalUnit="ms" ExternalEvent="LocalBusCycleEvent" WithinSPSTimeSlicing="true">
                 <Watchdog Enabled="false" TimeUnit="ms" Sensitivity="1" />
               </TaskSettings>
             </data>
@@ -6025,7 +6999,7 @@ FB_VIRTUAL_REAL_001();</xhtml>
                       <string />
                     </type>
                     <initialValue>
-                      <simpleValue value="'192.168.1.44:1883'" />
+                      <simpleValue value="'192.168.1.52:1883'" />
                     </initialValue>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> variables for MQTT configuration </xhtml>
@@ -6556,6 +7530,426 @@ END_IF
               </addData>
             </pou>
           </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="PLC_PRG_RS485" pouType="program">
+              <interface>
+                <localVars>
+                  <variable name="ModbusMaster">
+                    <type>
+                      <derived name="WagoAppPlcModbus.FbMbMasterSerial" />
+                    </type>
+                    <initialValue>
+                      <structValue>
+                        <value member="xConnect">
+                          <simpleValue value="TRUE" />
+                        </value>
+                        <value member="udiBaudrate">
+                          <simpleValue value="9600" />
+                        </value>
+                        <value member="usiDataBits">
+                          <simpleValue value="8" />
+                        </value>
+                        <value member="eParity">
+                          <simpleValue value="WagoTypesCom.eTTYParity.None" />
+                        </value>
+                        <value member="eStopBits">
+                          <simpleValue value="WagoTypesCom.eTTYStopBits.One" />
+                        </value>
+                        <value member="eHandshake">
+                          <simpleValue value="WagoTypesCom.eTTYHandshake.None" />
+                        </value>
+                        <value member="ePhysical">
+                          <simpleValue value="WagoTypesCom.eTTYPhysicalLayer.RS485_HalfDuplex" />
+                        </value>
+                        <value member="eFrameType">
+                          <simpleValue value="eMbFrameType.RTU" />
+                        </value>
+                        <value member="tTimeOut">
+                          <simpleValue value="TIME#500ms" />
+                        </value>
+                      </structValue>
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> CODESYS 3S Version version
+
+	xComPortOpen         : BOOL;
+    xComPortError        : BOOL;
+    rtsResult            : RTS_IEC_RESULT;	
+    stComPortSettings    : SysCom.SysComSettings :=(
+											ulBaudrate :=9600,
+											byParity := 0,
+											byStopBits:=1,
+											ulTimeout :=500,
+											ulBufferSize :=256,
+											
+											sPort:=SYS_COM_PORTS.SYS_COMPORT1											
+										);
+    hComPort             : RTS_IEC_HANDLE; 
+    awReadBuffer         : ARRAY[0..124] OF WORD;        
+    awWriteBuffer        : ARRAY[0..124] OF WORD;     
+    fbModbusRequest      : IoDrvModbus.ModbusRequest2;
+    eComError            : IoDrvModbus.MB_ErrorCodes;	
+	
+ é!COCKPIT version</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="RtuQuery">
+                    <type>
+                      <derived name="WagoAppPlcModbus.typMbQuery" />
+                    </type>
+                  </variable>
+                  <variable name="RtuResponse">
+                    <type>
+                      <derived name="WagoAppPlcModbus.typMbResponse" />
+                    </type>
+                  </variable>
+                  <variable name="Trigger">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Shared variables for é!COCKPIT and CODESYS 3S Version </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="ActiveRtuQuery">
+                    <type>
+                      <derived name="RS485_RtuQuery" />
+                    </type>
+                  </variable>
+                  <variable name="RS485BusController">
+                    <type>
+                      <derived name="FB_RS485_BUSCONTROLLER" />
+                    </type>
+                  </variable>
+                  <variable name="MqttRS485Prefix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'WAGO-PFC200/Out/RS485/'" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> RS485 </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="FB_RS485_EASTRON_SDM220_1">
+                    <type>
+                      <derived name="FB_RS485_EASTRON_SDM220_MQTT" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <actions>
+                <action name="READ_DEVICES">
+                  <body>
+                    <ST>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">(* CODESYS 3S Version version*)
+(*
+IF(NOT xComPortOpen AND NOT xComPortError) THEN
+    hComPort := SysCom.SysComOpen2( pSettings := ADR(stComPortSettings), pSettingsEx := 0, pResult := ADR(rtsResult));     
+    xComPortError := (hComPort = RTS_INVALID_HANDLE OR rtsResult &lt;&gt; 0);
+    xComPortOpen := NOT xComPortError;
+END_IF
+
+IF(xComPortOpen) THEN
+    IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
+		IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
+			ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
+			Trigger := TRUE; // Start the Modbus RTU query
+		ELSIF fbModbusRequest.xDone OR fbModbusRequest.xError THEN // Modbus RTU query completed, process it
+			FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=fbModbusRequest.xError, Data:=ADR(awReadBuffer));
+			RS485BusController.ReleaseBus();
+			TRIGGER := FALSE;
+		END_IF	
+	END_IF
+
+END_IF
+
+IF xComPortOpen AND RS485BusController.BusOcupied THEN
+	fbModbusRequest.modbusCommand.uiFunctionCode := ActiveRtuQuery.FunctionCode;
+    fbModbusRequest.modbusCommand.uiReadOffset := ActiveRtuQuery.ReadAddress;	
+    fbModbusRequest.modbusCommand.uiReadLen :=ActiveRtuQuery.ReadQuantity;	   
+    fbModbusRequest.pRecvData := ADR(awReadBuffer);
+    fbModbusRequest.pSendData := ADR(awWriteBuffer);        
+    fbModbusRequest.tResponseTimeout := T#1S;
+	fbModbusRequest.transmission := MB_Transmission.RTU;
+    fbModbusRequest(
+        hComPort := hComPort,
+        xExecute := Trigger,
+        usiSlaveAddr := ActiveRtuQuery.DeviceId,		
+        byModbusError =&gt; eComError);
+		
+END_IF	
+*)
+	
+(* é!COCKPIT version*)
+IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
+	IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
+		ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
+		Trigger := TRUE; // Start the Modbus RTU query
+	ELSIF Trigger = FALSE THEN // Modbus RTU query completed, process it
+		FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=ModbusMaster.xError, Data:=ADR(RtuResponse.awData));
+		RS485BusController.ReleaseBus();
+	END_IF	
+END_IF
+
+
+
+
+IF RS485BusController.BusOcupied THEN
+	RtuQuery.bUnitId := ActiveRtuQuery.DeviceId;	
+	RtuQuery.bFunctionCode := ActiveRtuQuery.FunctionCode;	
+	RtuQuery.uiReadAddress := ActiveRtuQuery.ReadAddress;	
+	RtuQuery.uiReadQuantity := ActiveRtuQuery.ReadQuantity;
+	ModbusMaster(
+		I_Port := IoConfig_Globals.COM1,
+		utQuery:= RtuQuery,
+		xTrigger := Trigger,
+		utResponse:= RtuResponse);
+END_IF
+
+
+(* Shared variables for é!COCKPIT and CODESYS 3S Version *)
+RS485BusController();</xhtml>
+                    </ST>
+                  </body>
+                  <addData />
+                </action>
+                <action name="PROCESS_FB">
+                  <body>
+                    <ST>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_RS485_EASTRON_SDM220_1();</xhtml>
+                    </ST>
+                  </body>
+                  <addData />
+                </action>
+                <action name="RS485_INIT">
+                  <body>
+                    <ST>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">(* INIT RS485 BUS CONTROLLER *)
+RS485BusController.Init(
+	StartupDelay := T#5S,	(* Time to wait after startup to start using the bus, prevents boot delay issues when RS485 are not ready yet on startup *)		
+	SilenceTime := T#20MS	(* Silence time between two requests, important to not get faulty data on bus *)		
+);
+
+(* INIT RS485 DEVICE STUFF *)
+FB_RS485_EASTRON_SDM220_1.InitRS485(
+	Data1PollingInterval := T#10S,		(* Polling interval for data array 1 *)				
+	Data2PollingInterval := T#20S,		(* Polling interval for data array 2 *)			
+	Data3PollingInterval := T#30S,		(* Polling interval for data array 3 *)			
+	DeviceAddress := 1					(* Device address of the modbus device *)			
+);
+
+FB_RS485_EASTRON_SDM220_1.InitMqtt(
+	MQTTPublishPrefix:= ADR(MqttRS485Prefix),						(* pointer to string prefix for the mqtt publish topic *)
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)		(* pointer to MqttPublishQueue to send a new Mqtt event *)
+);
+
+</xhtml>
+                    </ST>
+                  </body>
+                  <addData />
+                </action>
+              </actions>
+              <body>
+                <SFC>
+                  <step localId="0" initialStep="true" name="Init">
+                    <position x="0" y="0" />
+                    <connectionPointIn />
+                    <connectionPointOut formalParameter="sfc" />
+                    <connectionPointOutAction formalParameter="x" />
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">Init</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                          <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                          <attribute guid="6844a48e-46c2-4cc8-a185-a478f3b99cc0">TRUE</attribute>
+                          <attribute guid="62e1754b-7629-4e63-9cec-10ae0c536f1f">FALSE</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </step>
+                  <actionBlock localId="2">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="0" />
+                    </connectionPointIn>
+                    <action localId="1" qualifier="N" duration="" indicator="">
+                      <relPosition x="0" y="0" />
+                      <reference name="RS485_INIT" />
+                      <connectionPointOut />
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                          <attributes xmlns="">
+                            <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">RS485_INIT</attribute>
+                            <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                            <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                            <attribute guid="e174fc0d-80b0-4a9e-a530-ca239c249a50">N</attribute>
+                          </attributes>
+                        </data>
+                      </addData>
+                    </action>
+                  </actionBlock>
+                  <inVariable localId="3">
+                    <position x="0" y="0" />
+                    <connectionPointOut />
+                    <expression>TRUE</expression>
+                  </inVariable>
+                  <transition localId="4">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="0" formalParameter="sfc" />
+                    </connectionPointIn>
+                    <condition>
+                      <connectionPointIn>
+                        <connection refLocalId="3" />
+                      </connectionPointIn>
+                    </condition>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">TRUE</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                          <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                          <attribute guid="62e1754b-7629-4e63-9cec-10ae0c536f1f">FALSE</attribute>
+                          <attribute guid="8294df19-5962-4dee-a874-1051dabb0e3e">0</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </transition>
+                  <step localId="5" name="RS485">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="4" />
+                    </connectionPointIn>
+                    <connectionPointOut formalParameter="sfc" />
+                    <connectionPointOutAction formalParameter="x" />
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">RS485</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                          <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                          <attribute guid="6844a48e-46c2-4cc8-a185-a478f3b99cc0">FALSE</attribute>
+                          <attribute guid="62e1754b-7629-4e63-9cec-10ae0c536f1f">FALSE</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </step>
+                  <actionBlock localId="8">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="5" />
+                    </connectionPointIn>
+                    <action localId="6" qualifier="N" duration="" indicator="">
+                      <relPosition x="0" y="0" />
+                      <reference name="READ_DEVICES" />
+                      <connectionPointOut />
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                          <attributes xmlns="">
+                            <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">READ_DEVICES</attribute>
+                            <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                            <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                            <attribute guid="e174fc0d-80b0-4a9e-a530-ca239c249a50">N</attribute>
+                          </attributes>
+                        </data>
+                      </addData>
+                    </action>
+                    <action localId="7" qualifier="N" duration="" indicator="">
+                      <relPosition x="0" y="0" />
+                      <reference name="PROCESS_FB" />
+                      <connectionPointOut />
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                          <attributes xmlns="">
+                            <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">PROCESS_FB</attribute>
+                            <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                            <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                            <attribute guid="e174fc0d-80b0-4a9e-a530-ca239c249a50">N</attribute>
+                          </attributes>
+                        </data>
+                      </addData>
+                    </action>
+                  </actionBlock>
+                  <inVariable localId="9">
+                    <position x="0" y="0" />
+                    <connectionPointOut />
+                    <expression>TRUE</expression>
+                  </inVariable>
+                  <transition localId="10">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="5" formalParameter="sfc" />
+                    </connectionPointIn>
+                    <condition>
+                      <connectionPointIn>
+                        <connection refLocalId="9" />
+                      </connectionPointIn>
+                    </condition>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">TRUE</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                          <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                          <attribute guid="62e1754b-7629-4e63-9cec-10ae0c536f1f">FALSE</attribute>
+                          <attribute guid="8294df19-5962-4dee-a874-1051dabb0e3e">0</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </transition>
+                  <jumpStep localId="11" targetName="RS485">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="10" />
+                    </connectionPointIn>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">RS485</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </jumpStep>
+                </SFC>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/sfcsettings" handleUnknown="implementation">
+                  <SFCSettings>
+                    <LibTitle>IecSfc</LibTitle>
+                    <LibCompany>System</LibCompany>
+                    <LibVersion>3.4.2.0</LibVersion>
+                    <LibNamespace>IecSfc</LibNamespace>
+                    <CalcActiveTransOnly>false</CalcActiveTransOnly>
+                    <UseDefaults>false</UseDefaults>
+                    <Flags>
+                      <EnableLimit Declare="true" Use="false" />
+                      <Init Declare="true" Use="false" />
+                      <Reset Declare="true" Use="false" />
+                      <QuitError Declare="true" Use="false" />
+                      <Pause Declare="true" Use="false" />
+                      <Error Declare="true" Use="false" />
+                      <Trans Declare="true" Use="false" />
+                      <ErrorStep Declare="true" Use="false" />
+                      <ErrorPOU Declare="true" Use="false" />
+                      <CurrentStep Declare="true" Use="false" />
+                      <Tip Declare="true" Use="false" />
+                      <TipMode Declare="true" Use="false" />
+                      <MaxFlags Declare="true" Use="false" />
+                      <SFCErrorAnalyzation Declare="true" Use="false" />
+                      <SFCErrorAnalyzationTable Declare="true" Use="false" />
+                    </Flags>
+                  </SFCSettings>
+                </data>
+              </addData>
+            </pou>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
             <Libraries>
               <Library Name="#Standard" Namespace="Standard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Standard, * (System)" />
@@ -6591,6 +7985,12 @@ END_IF
               <Library Name="#WagoTypesAppLED" Namespace="WagoTypesAppLED" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="WagoTypesAppLED, * (WAGO)" />
               <Library Name="#WagoAppAppLED" Namespace="WagoAppAppLED" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="WagoAppAppLED, * (WAGO)" />
               <Library Name="#SD_MQTT" Namespace="SD_MQTT" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="MQTT, * (Stefan Dreyer)" />
+              <Library Name="#WagoSysModbusDiag" Namespace="WagoSysModbusDiag" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoSysModbus_Diag_PFC, 0.0.0.5 (WAGO)" />
+              <Library Name="#WagoAppPlcModbus" Namespace="WagoAppPlcModbus" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="WagoAppPlcModbus, * (WAGO)">
+                <Parameters>
+                  <Parameter Name="MAX_SERVER_BUFFERSIZE" Value="4096" />
+                </Parameters>
+              </Library>
               <addData />
             </Libraries>
           </data>
