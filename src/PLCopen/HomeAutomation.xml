@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-03-24T17:47:54.4677892" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-03-24T16:34:05.3318566">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-03-24T18:11:42.8927033" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-03-24T18:11:03.5534947">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -7229,6 +7229,14 @@ IF(MQTTClient.connected) THEN
 ELSE
 	LED_1_BrokerStatus.SetFlash(T#1S,eLedColor.Red, eLedColor.Off);  
 END_IF *)
+(* Codesys 3S version *)
+(*
+IF MQTTClient.connected THEN
+     PFC.SetLed(which:=PFC.LED.U1, how:=PFC.LedState.STATIC_GRN);
+ELSE
+     PFC.SetLed(which:=PFC.LED.U1, how:=PFC.LedState.BLINK_RED);
+END_IF 
+*)
 
 (* allow the rising edge detector to detect a connect/reconnect to the broker, used for  birth message *)
 MQTTConnectTrigger(CLK := MQTTInfo.MQTT_CONNECTED);
