@@ -132,6 +132,12 @@ END_IF
 
 ```
 
+### __Wago PFC wiring diagram__
+Wire the device as below in order to establish communication between a Wago PFC device and a Eastron SDM220:
+
+<img src="../_img/FB_RS485_EASTRON_SDM220_MQTT_WiringDiagram.png" width="500">
+
+Note: RS485 terminator resistors not present on image but nevertheless required.
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
