@@ -7,7 +7,7 @@ This CoDeSys 3.5 project is built for home automation purposes. The goal of the 
 
 The purpose? Redundancy on a software level but also on a hardware level!
 - PLCs are very (very) robust controllers: no PC, SoC, etc. is more robust and failure resistant. 
-- Hardware continuity: Home automation providers often renew their modules every X years, modules aren't sold anymore or a full upgrade is required when something brakes. PLCs models and their modules are sold decades after their initial release date. Don't believe me? Check out the Wago 750 series controllers and modules. 
+- Hardware continuity: Home automation providers often renew their modules every X years, modules aren't sold anymore or a full upgrade is required when something breaks. PLCs models and their modules are sold decades after their initial release date. For an example, check out the Wago 750 series controllers and modules. 
 - Avoid performing critical operations that should work 24/7 inside a less redundant controller (it will fail sooner or later).
 - Keep your wive/girlfriend happy when you're not at home and your Rpi, Odroid, Banana Pi, Pc crashes (running your MQTT broker, OpenHab, Home Assistant, etc.).
 
@@ -16,6 +16,7 @@ The project is developed using the IEC 61131-3 standard, there are multiple deve
 
 - [CODESYS V3 by 3S-Smart Software Solutions](https://www.codesys.com/)
 - [é!COCKPIT by WAGO](https://www.wago.com/global/automation-technology/discover-software/ecockpit-engineering-software) (WAGO PLCs only)
+- ...
 
 # Architecture
 Core processing logic is executed in the (robust) PLC. Meaning that events like reading pushbuttons/switches, updating outputs are executed in the PLC software. To enable integration with external software the PLC sends out events to an MQTT broker when events occur (like pushbutton events, outputs that change state). MQTT subscriptions are enabled as well to allow control from the external software to control -for example- outputs.
@@ -75,6 +76,7 @@ is used to control access to the RS485 bus between multiple RS485 device functio
 - [Getting started guide](./docs/FAQ/Getting_started_guide_CODESYS_3S.md) (CODESYS 3S runtime)
 - [Getting started guide](./docs/FAQ/Getting_started_guide_éCOCKPIT.md) (é!COCKPIT runtime)
 - [How-to: adding a new MQTT subscription](./docs/FAQ/Howto_adding_a_new_MQTT_subscription.md)
+- [How-to: verifying resource usage on a Wago PFC PLC](./docs/FAQ/Howto_verifying_resource_usage_WagoPFC.md)
 - [RS485: tips and tricks](./docs/FAQ/RS485_tips_and_tricks.md)
 - [I'm missing some functionality](./docs/FAQ/Missing_functionality.md)
 
