@@ -2,7 +2,7 @@
 
 ### __Content__
 This page describes adding a modbus RTU device using the CODESYS 3S runtime. 
-In case a function block for your specific device is not present yet in this project. Please consider reading out your device first from a computer to gain more insights on the modbus specifications of your device. A guide to accomplish this can be found [here](./ReadingOutADeviceFromPC.md).
+In case a function block for your specific device is not present yet in this project. Please consider reading the [RS485 tips and tricks](../FAQ/RS485_tips_and_tricks.md) page if this is your first time connecting a RS485 device.
 
 - [Assign the PLC serial port to the PLC runtime](#Assign-the-PLC-serial-port-to-the-PLC-runtime)
 - [Required libraries](#Required-libraries)
