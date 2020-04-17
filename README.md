@@ -75,6 +75,7 @@ is used to control access to the RS485 bus between multiple RS485 device functio
 - [Getting started guide](./docs/FAQ/Getting_started_guide_CODESYS_3S.md) (CODESYS 3S runtime)
 - [Getting started guide](./docs/FAQ/Getting_started_guide_éCOCKPIT.md) (é!COCKPIT runtime)
 - [How-to: adding a new MQTT subscription](./docs/FAQ/Howto_adding_a_new_MQTT_subscription.md)
+- [RS485: tips and tricks](./docs/FAQ/RS485_tips_and_tricks.md)
 - [I'm missing some functionality](./docs/FAQ/Missing_functionality.md)
 
 # Libraries
