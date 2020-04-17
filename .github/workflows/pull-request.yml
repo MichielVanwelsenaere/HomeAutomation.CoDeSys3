@@ -11,3 +11,5 @@ jobs:
       - uses: actions/checkout@master
       - uses: gaurav-nelson/github-action-markdown-link-check@1.0.2
         name: check for broken links
+        with:        
+          use-verbose-mode: 'yes'
