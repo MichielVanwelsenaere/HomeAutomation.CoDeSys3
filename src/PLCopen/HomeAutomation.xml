@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-03-24T18:11:42.8927033" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-03-24T18:11:03.5534947">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-04-19T09:49:04.2817699" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-04-19T09:44:10.9645242">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2891,7 +2891,7 @@ ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= D
 		MqttHighRequest := TRUE;
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
 		MqttLowRequest := TRUE;
-	ELSIF OSCAT_BASIC.IS_NUM(str:= Data.PayloadString^) AND THIS^.PRIO_HIGH = FALSE THEN
+	ELSIF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
 		THIS^.OUT:=STRING_TO_BYTE(Data.PayloadString^);
 	END_IF
 END_IF </xhtml>
@@ -5975,6 +5975,8 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
+                <Attribute Name="checksumnoinit_override" Value="4063316687" />
+                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
