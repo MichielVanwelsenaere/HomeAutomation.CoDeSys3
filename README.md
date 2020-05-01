@@ -47,7 +47,7 @@ Function blocks developed to easily set and get values from the processing logic
 - [FB_VIRTUAL_STRING_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_STRING_MQTT.md)
 - [FB_VIRTUAL_REAL_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_REAL_MQTT.md)
 
-## RS485
+## Modbus RTU over RS485
 With many PLCs having a onboard RS485 serial port it is a popular protocol to create a robust Modbus RTU sensor network.
 
 ### Using Modbus RTU
