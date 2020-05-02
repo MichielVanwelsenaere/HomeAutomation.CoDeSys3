@@ -62,7 +62,7 @@ FB_DO_BISTABLE_001      :FB_OUTPUT_BISTABLE_MQTT;
 
 - Init MQTT method call (called once during startup):
 ```
-FB_DO_BISTABLE_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),                 (* pointer to string prefix for the MQTT publish topic *)
+FB_DO_BISTABLE_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),           (* pointer to string prefix for the MQTT publish topic *)
     MQTTSubscribePrefix:= ADR(MQTTSubSwitchPrefix),                                 (* pointer to string prefix for the MQTT subscribe topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),                     (* pointer to MQTTPublishQueue to send a new MQTT event *)
     pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_SWITCH_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
