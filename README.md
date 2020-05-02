@@ -38,6 +38,7 @@ Basic function blocks for basic IO events and operations.
 - [FB_OUTPUT_SWITCH_MQTT](./docs/FunctionBlocks/FB_OUTPUT_SWITCH_MQTT.md)
 - [FB_OUTPUT_DIMMER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_MQTT.md)
 - [FB_OUTPUT_COVER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_MQTT.md)
+- [FB_OUTPUT_BISTABLE_MQTT](./docs/FunctionBlocks/FB_OUTPUT_BISTABLE_MQTT.md)
 
 ## Virtual function blocks
 Function blocks developed to easily set and get values from the processing logic through MQTT.

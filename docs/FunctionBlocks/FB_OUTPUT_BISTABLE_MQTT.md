@@ -3,12 +3,18 @@
 ### __General__
 Designed to control bistable relays, can be switched using pulses that are high for one clock cycle (for example from `FB_INPUT_PUSHBUTTON_MQTT`), requires a feedback loop from the bistable relay.
 
+----------------------------
+
+:warning: Usage of this function block with a bistable relay requires a wired feedback loop from the relay to the PLC. Without it, it is not possible for the PLC to know the state of the relay and thus control it with `TRUE/FALSE` MQTT messages!
+
+----------------------------
+
 ### __Block diagram__
 
 <img src="../_img/FB_OUTPUT_BISTABLE_MQTT.svg" width="350">
 
 INPUT(S)
-- FEEDBACK: feedback from the bistable input, should be high when the relay is turned on an low when turned off.
+- FEEDBACK: feedback from the bistable input, should be high when the relay is turned on and low when turned off.
 - TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
 - PRIO_HIGH: when high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input.
 - PRIO_LOW: when high the output `OUT` is set to low, has priority over the `TOGGLE` input.
@@ -67,7 +73,7 @@ The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalOutp
 
 - checking for events to switch the digital output (cyclic):
 ```
-FB_DO_BISTABLE_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
+FB_DO_BISTABLE_001(OUT=>  DO_001,           (* couple the function block to the physical output *)
     PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
     PRIO_LOW:=      FALSE                   (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
     TOGGLE:=        FB_DI_PB_009.SINGLE,    (* for toggling the output *)	
@@ -77,7 +83,7 @@ FB_DO_BISTABLE_001(OUT=>  DO_001,                 (* couple the function block t
 
 - integration with `FB_INPUT_PUSHBUTTON_MQTT`:
 ```
-FB_DO_BISTABLE_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
+FB_DO_BISTABLE_001(OUT=>  DO_001,           (* couple the function block to the physical output *)
     PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
     PRIO_LOW:=      FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
     TOGGLE:=        FB_DI_PB_001.SINGLE,    (* for toggling the output *)	
