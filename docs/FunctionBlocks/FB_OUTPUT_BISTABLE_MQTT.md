@@ -15,9 +15,9 @@ Designed to control bistable relays, can be switched using pulses that are high 
 
 INPUT(S)
 - FEEDBACK: feedback from the bistable input, should be high when the relay is turned on and low when turned off.
-- TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
-- PRIO_HIGH: when high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input.
-- PRIO_LOW: when high the output `OUT` is set to low, has priority over the `TOGGLE` input.
+- TOGGLE: when high the output `OUT` gets a pulse. input should one be high for one clockcycle.
+- PRIO_HIGH: when high and input `FEEDBACK` low, the output `OUT` gets a pulse. Has priority over the `TOGGLE` and `PRIO_LOW` input.
+- PRIO_LOW: when high and input `FEEDBACK` low, the output `OUT` gets a pulse. Has priority over the `TOGGLE` input.
 
 OUTPUT(S)
 - OUT: pulse output to control a bistable relay. 
@@ -31,12 +31,15 @@ METHOD(S)
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
+- ConfigureFunctionBlock: configures the behaviour of output `OUT` using the parameters below:
+    - `T_Hold`: duration of the pulse generated on output `OUT` to switch the bistable relais.
+
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **Output changes: OUT**   | A change is detected on output `OUT`. | `TRUE/FALSE` | 2 | `TRUE` | yes
+| **Input changes: FEEDBACK**   | A change is detected on input `FEEDBACK`. | `TRUE/FALSE` | 2 | `TRUE` | yes
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
@@ -46,8 +49,8 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 
 | Command | Description | expected payload | Additional notes | 
 |:-------------|:------------------|:------------------|:------------------|
-| **Change output to high** | Request to change output to high. | `TRUE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
-| **Change output to low** | Request to change output to low. | `FALSE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
+| **Change output to high** | Request to generate a pulse on output `OUT` if input `FEEDBACK` is low. | `TRUE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
+| **Change output to low** | Request to generate a pulse on output `OUT` if input `FEEDBACK` is high. | `FALSE` | Command executed when `PRIO_HIGH` and `PRIO_LOW` inputs are low.
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-04-19T09:49:04.2817699" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-04-19T09:44:10.9645242">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-05-08T07:50:43.8269577" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-05-08T07:50:02.3469481">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -1759,6 +1759,339 @@ SendDone := TRUE;
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">LocalMqttMessage := MqttMessage;
 
 RequestToSend:=TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_OUTPUT_BISTABLE_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="PRIO_HIGH">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="PRIO_LOW">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="TOGGLE">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="FEEDBACK">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="OUT">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="InstanceName">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="InitMqttDone">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MqttPublishTopicPrefix">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="MqttPublishTopicSuffix">
+              <type>
+                <string length="50" />
+              </type>
+            </variable>
+            <variable name="MQTTSubscribeTopic">
+              <type>
+                <string length="50" />
+              </type>
+            </variable>
+            <variable name="pMqttPublishQueue">
+              <type>
+                <pointer>
+                  <baseType>
+                    <derived name="FB_MqttPublishQueue" />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="MqttHighRequest">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MqttLowRequest">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="PreviousFeedback">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="HoldTimer">
+              <type>
+                <derived name="TOF" />
+              </type>
+            </variable>
+            <variable name="T_hold">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1s0ms" />
+              </initialValue>
+            </variable>
+            <variable name="PulseTrigger">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Implements>SD_MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">HoldTimer(PT:= T_hold);
+
+IF PRIO_HIGH THEN
+	IF NOT FEEDBACK THEN
+		PulseTrigger:=TRUE;
+	END_IF
+ELSIF(PRIO_LOW AND NOT (PRIO_HIGH)) THEN
+	IF FEEDBACK THEN		
+		PulseTrigger:=TRUE;
+	END_IF
+	OUT:= FALSE;
+ELSIF MqttHighRequest THEN
+	IF NOT FEEDBACK THEN		
+		PulseTrigger:=TRUE;
+	END_IF
+	MqttHighRequest := FALSE;
+	MqttLowRequest := FALSE;
+ELSIF MqttLowRequest THEN
+	IF FEEDBACK THEN		
+		PulseTrigger:=TRUE;
+	END_IF
+	MqttHighRequest := FALSE;
+	MqttLowRequest := FALSE;
+ELSIF(TOGGLE) THEN	
+	PulseTrigger:=TRUE;
+END_IF;
+
+IF(PreviousFeedback &lt;&gt; FEEDBACK) OR Startup AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(FEEDBACK),
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := SD_MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);	
+	Startup:=FALSE;
+END_IF	
+
+PreviousFeedback := FEEDBACK;
+HoldTimer.IN	 := PulseTrigger;
+OUT := HoldTimer.Q;
+
+PulseTrigger:=FALSE;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="SD_MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="InstanceNamePt">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+
+InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
+THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
+THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);
+
+// register the FB agains the collector so mqtt events can be received
+pMqttCallbackCollector^.put(instance:= THIS^);
+
+InitMqttDone := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="SD_MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//now process the data
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
+		MqttHighRequest := TRUE;
+	END_IF
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
+		MqttLowRequest := TRUE;
+	END_IF
+END_IF </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="T_hold">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_hold:=T_hold;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -6416,6 +6749,11 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                       <derived name="FB_OUTPUT_SWITCH_MQTT" />
                     </type>
                   </variable>
+                  <variable name="FB_DO_BISTABLE_001">
+                    <type>
+                      <derived name="FB_OUTPUT_BISTABLE_MQTT" />
+                    </type>
+                  </variable>
                   <variable name="MqttPubCoverPrefix">
                     <type>
                       <string length="100" />
@@ -6606,7 +6944,9 @@ FB_DO_SW_029(OUT =&gt; DO_029		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=
 FB_DO_SW_030(OUT =&gt; DO_030		,PRIO_HIGH:=FALSE			,PRIO_LOW:=FALSE				,TOGGLE:=FALSE				);
 
 
-FB_AO_DIMMER_001(SINGLE:=FB_DI_PB_041.SINGLE, DOUBLE:=FB_DI_PB_041.DOUBLE, LONG:=FB_DI_PB_041.LONG, P_LONG:=FB_DI_PB_041.P_LONG, OUT := TestOUT);</xhtml>
+FB_AO_DIMMER_001(SINGLE:=FB_DI_PB_041.SINGLE, DOUBLE:=FB_DI_PB_041.DOUBLE, LONG:=FB_DI_PB_041.LONG, P_LONG:=FB_DI_PB_041.P_LONG, OUT := TestOUT);
+
+FB_DO_BISTABLE_001();</xhtml>
                     </ST>
                   </body>
                   <addData />
@@ -6735,6 +7075,11 @@ FB_VIRTUAL_REAL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubVirtualPrefix),
 );
 FB_VIRTUAL_REAL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=0.1,SetDefaultValueStartup:=TRUE,PublishAtStartup:=TRUE,UsePersistentAtStartup:=FALSE,ConfirmReceival:=TRUE);
 (* FB_VIRTUAL_REAL_001.ConfigureFunctionBlockAsVirtualOutput(PublishAtStartup:=TRUE); *)
+
+
+(* INIT BISTABLE RELAIS *) 
+FB_DO_BISTABLE_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubSwitchPrefix),	MQTTSubscribePrefix:= ADR(MqttSubSwitchPrefix), pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue), pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+FB_DO_BISTABLE_001.ConfigureFunctionBlock(T_hold:=T#10S); 
 </xhtml>
                     </ST>
                   </body>
