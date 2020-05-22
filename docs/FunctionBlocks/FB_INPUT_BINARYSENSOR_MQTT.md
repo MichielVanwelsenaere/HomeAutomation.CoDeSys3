@@ -22,7 +22,7 @@ METHOD(S)
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
 
 - ConfigureFunctionBlock: configures the behaviour of output `Q` using the parameters below:
-    - `T_TurnOffDelay`: duration of the turn off delay added on output `Q` to prevent rapid ON/OFF behaviour on the output caused by a fast switching sensor on the digital input. Default to 0 seconds, can be extremely usefull when connecting a motion sensor the the PLC. 
+    - `T_TurnOffDelay`: duration of the turn off delay added on output `Q` to prevent rapid ON/OFF behaviour on the output caused by a fast switching sensor on the digital input. Defaults to 0 seconds, can be extremely usefull when connecting a motion sensor the the PLC. 
 
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
