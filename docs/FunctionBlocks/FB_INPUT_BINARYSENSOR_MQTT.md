@@ -20,7 +20,10 @@ METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
-    
+
+- ConfigureFunctionBlock: configures the behaviour of output `Q` using the parameters below:
+    - `T_TurnOffDelay`: duration of the turn off delay added on output `Q` to prevent rapid ON/OFF behaviour on the output caused by a fast switching sensor on the digital input. Default to 0 seconds, can be extremely usefull when connecting a motion sensor the the PLC. 
+
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
@@ -46,6 +49,10 @@ FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTBinarySensorPref
 ```
 The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/BinarySensors/FB_DI_BS_001` (MQTTBinarySensorPrefix variable + function block name).
 
+- Configuration of the function block with a 5 second turn off delay on the output (called once during startup):
+```
+FB_INPUT_BINARYSENSOR_MQTT.ConfigureFunctionBlock(T_TurnOffDelay:= T#5S);         (* time to delay the negative edge on output Q *)
+```
 
 - reading digital input for events (cyclic):
 ```
