@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-05-08T07:50:43.8269577" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-05-08T07:50:02.3469481">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-05-22T10:37:48.4432924" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-05-22T10:30:14.3626809">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -665,6 +665,19 @@ CALC_COVER_STATE := NewState;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> to detect a falling edge on the debounced signal </xhtml>
               </documentation>
             </variable>
+            <variable name="T_TurnOffDelay">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#0ms" />
+              </initialValue>
+            </variable>
+            <variable name="FB_TurnOffDelayTimer">
+              <type>
+                <derived name="TOF" />
+              </type>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -678,11 +691,16 @@ CALC_COVER_STATE := NewState;</xhtml>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DEBOUNCE(IN := BS,	
 	TD := T#50MS, (* 2x cyle + 10ms *)
-	PM := FALSE,
-	Q=&gt;Q);
+	PM := FALSE
+	);
+	
+FB_TurnOffDelayTimer(IN:=FB_DEBOUNCE.Q,
+	PT := T_TurnOffDelay,
+	Q=&gt;Q
+	);
 
-FB_R_TRIG(CLK := FB_DEBOUNCE.Q);
-FB_F_TRIG(CLK := FB_DEBOUNCE.Q);
+FB_R_TRIG(CLK := FB_TurnOffDelayTimer.Q);
+FB_F_TRIG(CLK := FB_TurnOffDelayTimer.Q);
 
 EVENT := FB_R_TRIG.Q OR FB_F_TRIG.Q;
 EVENT_R := FB_R_TRIG.Q;
@@ -752,6 +770,25 @@ InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) +
 THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 
 InitMqttDone := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="T_TurnOffDelay">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_TurnOffDelay:=T_TurnOffDelay;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -6308,8 +6345,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="4063316687" />
-                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
