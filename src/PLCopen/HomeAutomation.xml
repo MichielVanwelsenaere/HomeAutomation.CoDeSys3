@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-05-22T10:37:48.4432924" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-05-22T10:30:14.3626809">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-11-02T17:33:53.8873053" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-11-02T17:32:17.2942179">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -1089,7 +1089,7 @@ FB_DETECTPUSH(
 P_LONG_R_TRIG(CLK:=FB_DETECTPUSH.LONG);
 P_LONG_F_TRIG(CLK:=FB_DETECTPUSH.LONG);
 	
-IF (ABS(BYTE_TO_INT(PreviousDim) - BYTE_TO_INT(DIM)) &gt;= Delta_Dimm OR PB = FALSE) AND DIM &lt;&gt; PreviousDim AND InitMqttDone AND OutputDimmer THEN
+IF (ABS(BYTE_TO_INT(PreviousDim) - BYTE_TO_INT(DIM)) &gt;= Delta_Dimm OR PB = FALSE) AND DIM &lt;&gt; PreviousDim AND OutputDimmer AND InitMqttDone  THEN
 	PreviousDim:=DIM;
 	pMqttPublishQueue^.AddMessage(		
 		Payload := BYTE_TO_STRING(DIM),
@@ -1983,7 +1983,7 @@ ELSIF(TOGGLE) THEN
 	PulseTrigger:=TRUE;
 END_IF;
 
-IF(PreviousFeedback &lt;&gt; FEEDBACK) OR Startup AND InitMqttDone THEN
+IF ((PreviousFeedback &lt;&gt; FEEDBACK) OR Startup) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(FEEDBACK),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -2483,7 +2483,7 @@ POS := FB_ACT.pos;
 MU := FB_ACT.QU;
 MD := FB_ACT.QD;
 
-IF (ABS(BYTE_TO_INT(PreviousPos) - BYTE_TO_INT(POS)) &gt;= Delta_POS  OR (MU = FALSE AND MD = FALSE)) AND POS &lt;&gt; PreviousPos OR Startup AND InitMqttDone THEN
+IF ((ABS(BYTE_TO_INT(PreviousPos) - BYTE_TO_INT(POS)) &gt;= Delta_POS  OR (MU = FALSE AND MD = FALSE)) AND POS &lt;&gt; PreviousPos OR Startup) AND InitMqttDone THEN
 	PreviousPos:=POS;
 	pMqttPublishQueue^.AddMessage(
 		Payload := INT_TO_STRING(REAL_TO_INT(OSCAT_BASIC.SCALE_B(X:=POS, I_LO:=0, I_HI:=255, O_LO:=0, O_HI:=100))),
@@ -3030,7 +3030,7 @@ IF t_ON_MAX &gt; t#0s THEN
 	Q := Q XOR t3.Q;
 END_IF;
 
-IF (ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT)) &gt;= Delta_Dimm) OR Startup AND OUT &lt;&gt; PreviousOUT OR Startup AND InitMqttDone AND OutputDimmer THEN
+IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT)) &gt;= Delta_Dimm) OR Startup AND OUT &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
 	PreviousOUT:=OUT;
 	pMqttPublishQueue^.AddMessage(		
 		Payload := BYTE_TO_STRING(OUT),
@@ -3040,7 +3040,7 @@ IF (ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT)) &gt;= Delta_Dimm) OR Startu
 	);
 END_IF
 
-IF Q &lt;&gt; PreviousQ OR Startup AND InitMqttDone THEN
+IF (Q &lt;&gt; PreviousQ OR Startup) AND InitMqttDone THEN
 	PreviousQ:=Q;
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(Q),
@@ -3050,7 +3050,7 @@ IF Q &lt;&gt; PreviousQ OR Startup AND InitMqttDone THEN
 	);
 END_IF
 
-IF DBL &lt;&gt; PreviousDBL OR Startup AND InitMqttDone THEN
+IF (DBL &lt;&gt; PreviousDBL OR Startup) AND InitMqttDone THEN
 	PreviousDBL:=DBL;
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(DBL),
@@ -3421,7 +3421,7 @@ ELSIF(TOGGLE) THEN
 	OUT:=NOT(OUT);
 END_IF;
 
-IF(PreviousState &lt;&gt; OUT) OR Startup AND InitMqttDone THEN
+IF ((PreviousState &lt;&gt; OUT) OR Startup) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(OUT),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -4552,7 +4552,7 @@ ELSIF VirtualMode = VIRTUAL_MODES.Input THEN
 		OUT := PreviousState;
 	END_IF	
 	
-	IF (Startup AND PublishAtStartup) OR (ConfirmReceival AND MqttMessageReceived) AND InitMqttDone THEN
+	IF ((Startup AND PublishAtStartup) OR (ConfirmReceival AND MqttMessageReceived)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(OUT),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -4963,7 +4963,7 @@ ELSIF VirtualMode = VIRTUAL_MODES.Input THEN
 		OUT := PreviousState;
 	END_IF	
 	
-	IF (Startup AND PublishAtStartup) OR (ConfirmReceival AND MqttMessageReceived) AND InitMqttDone THEN
+	IF ((Startup AND PublishAtStartup) OR (ConfirmReceival AND MqttMessageReceived)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := INT_TO_STRING(OUT),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -5370,7 +5370,7 @@ ELSIF VirtualMode = VIRTUAL_MODES.Input THEN
 		OUT := PreviousState;
 	END_IF	
 	
-	IF (Startup AND PublishAtStartup) OR (ConfirmReceival AND MqttMessageReceived) AND InitMqttDone THEN
+	IF ((Startup AND PublishAtStartup) OR (ConfirmReceival AND MqttMessageReceived)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := REAL_TO_STRING(OUT),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -5775,7 +5775,7 @@ ELSIF VirtualMode = VIRTUAL_MODES.Input THEN
 		OUT := PreviousState;
 	END_IF	
 	
-	IF (Startup AND PublishAtStartup) OR (ConfirmReceival AND MqttMessageReceived) AND InitMqttDone THEN
+	IF ((Startup AND PublishAtStartup) OR (ConfirmReceival AND MqttMessageReceived)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := OUT,
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -6345,6 +6345,8 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
+                <Attribute Name="checksumnoinit_override" Value="4063316687" />
+                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
