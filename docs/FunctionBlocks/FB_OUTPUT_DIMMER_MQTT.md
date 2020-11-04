@@ -34,7 +34,7 @@ METHOD(S)
     - `Qos_Dimm`: datatype *SD_MQTT.QoS*, MQTT QoS of the DIM MQTT events.
     - `Delta_Dimm`: datatype *INT*, resolution of the MQTT OUT events. For example: specifying value *5* will configure the FB to only emit an MQTT event when the OUT output differs *5* or more than its previous value. Note that the last value of output OUT (when input `P_LONG` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last OUT value published through MQTT is always synchronized with the OUT output of the FB.
 
-- ConfigureDimmer: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
+- ConfigureFunctionBlock: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
     - `T_Debounce`: debounce time for input PB, defaults to 10ms.
     - `T_Reconfig`:  reconfiguration time, defaults to 10S.
     - `T_On_Max`: start limitation, defaults to 0ms.
