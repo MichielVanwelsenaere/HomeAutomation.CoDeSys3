@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-11-02T17:33:53.8873053" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-11-02T17:32:17.2942179">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-11-04T10:01:01.7942296" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-11-04T09:59:59.5447112">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2732,7 +2732,7 @@ THIS^.T_UD:=T_UD;</xhtml>
           <inOutVars>
             <variable name="OUT">
               <type>
-                <BYTE />
+                <WORD />
               </type>
             </variable>
           </inOutVars>
@@ -2751,6 +2751,32 @@ THIS^.T_UD:=T_UD;</xhtml>
               <type>
                 <BOOL />
               </type>
+            </variable>
+            <variable name="OUT_Internal">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+            <variable name="LIN_TRAFO">
+              <type>
+                <derived name="Util.LIN_TRAFO" />
+              </type>
+            </variable>
+            <variable name="OUT_LinearScaleMin">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="OUT_LinearScaleMax">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="32767" />
+              </initialValue>
             </variable>
             <variable name="InstanceName">
               <type>
@@ -2966,12 +2992,12 @@ THIS^.T_UD:=T_UD;</xhtml>
 END_IF
 
 IF RST THEN
-	IF rst_out THEN out := 0; END_IF;
+	IF rst_out THEN OUT_Internal := 0; END_IF;
 	Q := FALSE;
-	dir := out &gt; 127;
+	dir := OUT_Internal &gt; 127;
 ELSIF PRIO_HIGH THEN
 	Q := TRUE;
-	OUT := 255;
+	OUT_Internal := 255;
 ELSIF PRIO_LOW THEN
 	Q := FALSE;
 ELSIF MqttHighRequest THEN
@@ -2983,25 +3009,25 @@ ELSIF MqttLowRequest THEN
 	MqttHighRequest := FALSE;
 	MqttLowRequest := FALSE;
 ELSIF set THEN
-	out := val;
+	OUT_Internal := val;
 	Q := TRUE;
 	(* set direction to up when value &lt; 127 otherwise set dir down dir is reversed because next action will reverse again *)
-	dir := out &gt; 127;
+	dir := OUT_Internal &gt; 127;
 ELSIF SINGLE THEN
 	(* a single click reverses output Q *)
 	Q := NOT Q;
 	(* when dimmer is turned on we need to limit out to min and max limits *)
-	IF Q THEN	out := LIMIT(MAX(MIN_ON,1), out, MAX_ON);	END_IF;
+	IF Q THEN	OUT_Internal := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);	END_IF;
 	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)
-	dir := out &gt; 127;
+	dir := OUT_Internal &gt; 127;
 ELSIF LONG THEN
 	IF NOT Q THEN
 		IF SOFT_DIMM THEN
-			OUT := 1;
+			OUT_Internal := 1;
 			dir := TRUE;
 		ELSE
-			OUT := LIMIT(MAX(MIN_ON,1), out, MAX_ON);
-			DIR := out &lt; 127;
+			OUT_Internal := LIMIT(MAX(MIN_ON,1), OUT_Internal, MAX_ON);
+			DIR := OUT_Internal &lt; 127;
 		END_IF;
 		Q := TRUE;
 	ELSE
@@ -3015,12 +3041,12 @@ IF NOT dbl_toggle THEN dbl := FALSE; END_IF;
 IF DOUBLE THEN dbl := NOT dbl; END_IF;
 
 (* while dimming is active ramp the output out up or down *)
-dim(DIR := dir, e := P_LONG AND Q, TR := T_DIMM, rmp := out);
+dim(DIR := dir, e := P_LONG AND Q, TR := T_DIMM, rmp := OUT_Internal);
 
 (* reverse direction when limits are reached *)
-IF out = 0 THEN
+IF OUT_Internal = 0 THEN
 	dir := TRUE;
-ELSIF out = 255 THEN
+ELSIF OUT_Internal = 255 THEN
 	dir := FALSE;
 END_IF;
 
@@ -3030,10 +3056,20 @@ IF t_ON_MAX &gt; t#0s THEN
 	Q := Q XOR t3.Q;
 END_IF;
 
-IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT)) &gt;= Delta_Dimm) OR Startup AND OUT &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
-	PreviousOUT:=OUT;
+(* Scale the internal OUT to the actual OUT *)
+LIN_TRAFO(
+		IN:= OUT_Internal,
+		IN_MIN:= 0,
+		IN_MAX:= 255,
+		OUT_MIN:=OUT_LinearScaleMin,
+		OUT_MAX:=OUT_LinearScaleMax
+	);
+OUT:= REAL_TO_WORD(LIN_TRAFO.OUT);
+
+IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
+	PreviousOUT:=OUT_Internal;
 	pMqttPublishQueue^.AddMessage(		
-		Payload := BYTE_TO_STRING(OUT),
+		Payload := BYTE_TO_STRING(OUT_Internal),
 		Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/OUT'),
 		Qos := SD_MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
@@ -3213,6 +3249,16 @@ InitMqttDone := TRUE;</xhtml>
                       <BOOL />
                     </type>
                   </variable>
+                  <variable name="OUT_LinearScaleMin">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="OUT_LinearScaleMax">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
                 </inputVars>
               </interface>
               <body>
@@ -3223,7 +3269,9 @@ THIS^.T_On_Max:=T_On_Max;
 THIS^.T_Dimm_Start:=T_Dimm_Start;
 THIS^.T_Dimm:=T_Dimm;
 THIS^.Min_On:=Min_On;
-THIS^.Max_On:=Max_On;</xhtml>
+THIS^.Max_On:=Max_On;
+THIS^.OUT_LinearScaleMin:=OUT_LinearScaleMin;
+THIS^.OUT_LinearScaleMax:=OUT_LinearScaleMax;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -3262,7 +3310,7 @@ ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= D
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
 		MqttLowRequest := TRUE;
 	ELSIF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
-		THIS^.OUT:=STRING_TO_BYTE(Data.PayloadString^);
+		THIS^.OUT_Internal:=STRING_TO_BYTE(Data.PayloadString^);
 	END_IF
 END_IF </xhtml>
                 </ST>
@@ -6345,8 +6393,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="4063316687" />
-                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
@@ -6841,7 +6887,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                   </variable>
                   <variable name="TestOUT">
                     <type>
-                      <BYTE />
+                      <WORD />
                     </type>
                   </variable>
                   <variable name="MqttPubVirtualPrefix">
@@ -7014,12 +7060,12 @@ FB_DI_PB_041.InitMqtt(MQTTPublishPrefix:= ADR(MqttPushbuttonPrefix),	pMqttPublis
 
 (* INIT DIMMER OUTPUT STUFF *)
 FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttPubDimmerPrefix),    (* pointer to string prefix for the MQTT publish topic *)
-	MQTTSubscribePrefix:= ADR(MqttSubDimmerPrefix),
+	MQTTSubscribePrefix:= ADR(MqttSubDimmerPrefix),							(* pointer to string prefix for the MQTT subscribe topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),         (* pointer to MQTTPublishQueue to send a new MQTT event *)
 	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT),	(* pointer to CallbackCollector to receive Mqtt subscription events *)
     TRUE,                                                               (* specify whether dimmer value should be outputted on MQTT topic *)
     SD_MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
-    5                                                                   (* specify the resolution for the dimmer mqtt events *)    
+    5                                                                   (* specify the resolution for the dimmer mqtt events *)     
 );
 
 (* INIT DIGITAL OUTPUT STUFF *)
@@ -8381,6 +8427,11 @@ FB_RS485_EASTRON_SDM220_1.InitMqtt(
               <Library Name="#WagoAppPlcModbus" Namespace="WagoAppPlcModbus" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="WagoAppPlcModbus, * (WAGO)">
                 <Parameters>
                   <Parameter Name="MAX_SERVER_BUFFERSIZE" Value="4096" />
+                </Parameters>
+              </Library>
+              <Library Name="Util, 3.5.14.0 (System)" Namespace="Util" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false">
+                <Parameters>
+                  <Parameter Name="IBLOCKSIZE" Value="22800" />
                 </Parameters>
               </Library>
               <addData />

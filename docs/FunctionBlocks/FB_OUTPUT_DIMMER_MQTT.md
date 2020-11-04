@@ -1,7 +1,7 @@
 ## FB_OUTPUT_DIMMER_MQTT
 
 ### __General__
-Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through powercycles.
+Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through powercycles. Takes a 0-255 byte value as input -as FB input or MQTT value-. Byte input value is linearly scaled to a word datatype value with a range from 0-32767. Output linear scaled range can be configured to be different from 0-32767 if desired. 
 
 ### __Block diagram__
 
@@ -19,7 +19,7 @@ INPUT(S)
 - RST: input to switch of the output.
 
 INPUT/OUTPUT(S)
-- OUT: dimmer value, byte datatype. 
+- OUT: dimmer value, word datatype. 
 
 OUTPUT(S)
 - Q: output.
@@ -42,9 +42,11 @@ METHOD(S)
     - `T_Dimm`: time for a dimming ramps, defaults to 3s.
     - `Min_On`: minimum value of output OUT at startup, defaults to 50.
     - `Max_On`: maximum value of output OUT at startup, defaults to 255.
-    - `Soft_Dimm`: if TRUE dimming begins after ON and at 0. 
+    - `Soft_Dimm`: if TRUE dimming begins after ON and at 0, defaults to TRUE.
     - `Dbl_Toggle`: if TRUE the output DBL is inverted at each double-click, defaults to FALSE.
     - `Rst_Out`: if input Rst is TRUE, ouput OUT is set to 0, defaults to FALSE.
+    - `OUT_LinearScaleMin`: Lower bound value used for linear scaleout output OUT from datatype byte to word. Defaults to 0.
+    - `OUT_LinearScaleMax`: Upper bound value used for linear scaleout output OUT from datatype byte to word. Defaults to 32767.
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 ### __Function Block Behaviour__
