@@ -110,6 +110,25 @@ FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttPubDimmerPrefix),     (* p
 ```
 The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001` (MQTTSubSwitchPrefix variable + function block name).
 
+- ConfigureFunctionBlock (called once during startup):
+```
+FB_AO_DIMMER_001.ConfigureFunctionBlock(
+	T_Debounce:=T#10MS,
+	T_Reconfig:=T#10S,
+	T_On_Max:=T#0S,
+	T_Dimm_Start:=T#400MS,
+	T_Dimm:=T#3S,
+	Min_On:=50,
+	Max_On:=255,
+	Soft_Dimm:=TRUE,
+	Dbl_Toggle:=FALSE,
+	Rst_Out:=FALSE,
+	OUT_LinearScaleMin:=11000,
+	OUT_LinearScaleMax:=32767
+);
+```
+The dimmer behavior in the example above is adjusted to start dimming from '11000' instead of the default '0' value. This can be important as different dimming devices will have different lower bound 'on' voltages. In addition, depending on your PLC device, the maximum out value will differ. Note that this method only requires a call when it's desired to change the default behavior characteristics. 
+
 - checking for events to switch the digital output (cyclic):
 ```
 FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
