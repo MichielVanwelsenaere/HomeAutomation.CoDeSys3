@@ -14,8 +14,8 @@ METHOD(S)
 - Init: configures the buscontroller, an overview of the parameters: 
     - `StartupDelay`: datatype *TIME*, amount of time that should be waited on PLC startup before using the RS485 bus, can prevent errors due to RS485 devices not booted up yet.
     - `SilenceTime`: datatype *TIME*,  the silence time between two requests. Typically 10-20ms.
-- SetBusOccupied: can be called by any RS485 to indicate that it is using the RS485 bus.
-- ReleaseBus: can be called by any RS485 to indicate that it is done using the RS485 bus.
+- SetBusOccupied: can be called by any RS485 function block to indicate that it is using the RS485 bus.
+- ReleaseBus: can be called by any RS485 function block to indicate that it is done using the RS485 bus.
 
 ### __Code example__
 
