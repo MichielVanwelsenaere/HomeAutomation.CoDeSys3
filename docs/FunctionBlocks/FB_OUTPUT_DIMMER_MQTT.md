@@ -50,7 +50,7 @@ METHOD(S)
 ### __Function Block Behaviour__
 The following table shows the operating status of the dimmer:
 
-| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR (*) | OUT | Q_OUT |
+| SINGLE/LONG/P_LONG | SET | RST | Q | DIR (*) | OUT | Q_OUT |
 |:-------------|:------------------|:------------------|:------------------|:------------------|:---------------------------------------|:------------------|
 | SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | LIMIT(MIN_ON,OUT,MAX_ON)              | Q * OUT
 | LONG/P_LONG   | 0                 | 0                 | ON                | NOT DIR           | Ramp up or down depending on DIR, start at 0 when soft_dimm = TRUE and Q = 0, reverse direction if 0 or 255 is reached | OUT    
@@ -137,7 +137,7 @@ FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q
 ```
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 'on/off' digital input that is wired to the 'Q' output of the dimmer & a 0/1-10V analog input that is wired to the 'OUT' output of the dimmer.
 
-- checking for events to switch the digital output (cyclic), example2:
+- checking for events to switch the digital output (cyclic), example 2:
 ```
 FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
     LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
