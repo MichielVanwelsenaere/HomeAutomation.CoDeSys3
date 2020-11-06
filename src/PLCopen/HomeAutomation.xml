@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-11-06T09:21:54.6683752" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-11-06T08:47:04.3190766">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-11-06T13:10:55.603582" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-11-06T12:19:00.3103544">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2718,6 +2718,11 @@ THIS^.T_UD:=T_UD;</xhtml>
                 <BOOL />
               </type>
             </variable>
+            <variable name="Q_OUT">
+              <type>
+                <WORD />
+              </type>
+            </variable>
           </outputVars>
           <inOutVars>
             <variable name="OUT">
@@ -3035,6 +3040,11 @@ LIN_TRAFO(
 		OUT_MAX:=OUT_LinearScaleMax
 	);
 OUT:= REAL_TO_WORD(LIN_TRAFO.OUT);
+IF Q THEN
+	Q_OUT:= OUT;
+ELSE
+	Q_OUT:= 0;
+END_IF
 
 IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
 	PreviousOUT:=OUT_Internal;
@@ -6350,8 +6360,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="1388821217" />
-                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>

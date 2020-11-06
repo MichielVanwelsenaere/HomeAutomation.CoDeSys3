@@ -21,7 +21,8 @@ INPUT/OUTPUT(S)
 - OUT: dimmer value, word datatype. 
 
 OUTPUT(S)
-- Q: output.
+- Q: output, bool datatype.
+- Q_OUT: follows 'OUT' when Q is high. Equal to 0 when Q is low.
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
@@ -49,12 +50,12 @@ METHOD(S)
 ### __Function Block Behaviour__
 The following table shows the operating status of the dimmer:
 
-| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR (*) | DBL | OUT |
-|:-------------|:------------------|:------------------|:------------------|:------------------|:------------------|:------------------|
-| SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | -                 | LIMIT(MIN_ON,OUT,MAX_ON)
-| LONG/P_LONG   | 0                 | 0                 | ON                | NOT DIR           | -                 | Ramp up or down depending on DIR, start at 0 when soft_dimm = TRUE and Q = 0, reverse direction if 0 or 255 is reached
-| 0             | 1                 | 0                 | ON                | OUT < 127         | -                 | VAL
-| 0             | 0                 | 1                 | OFF               | UP                | OFF               | 0 when RST_OUT = TRUE
+| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR (*) | OUT | Q_OUT |
+|:-------------|:------------------|:------------------|:------------------|:------------------|:---------------------------------------|:------------------|
+| SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | LIMIT(MIN_ON,OUT,MAX_ON)              | Q * OUT
+| LONG/P_LONG   | 0                 | 0                 | ON                | NOT DIR           | Ramp up or down depending on DIR, start at 0 when soft_dimm = TRUE and Q = 0, reverse direction if 0 or 255 is reached | OUT    
+| 0             | 1                 | 0                 | ON                | OUT < 127         | VAL                                   | OUT          
+| 0             | 0                 | 1                 | OFF               | UP                | 0 when RST_OUT = TRUE                 | 0 
 
 (*): DIR refers to the direction of the dimmer output `OUT`, indicating whether the dimmer output value changes up-or downwards. 
 
@@ -123,7 +124,7 @@ FB_AO_DIMMER_001.ConfigureFunctionBlock(
 ```
 The dimmer behavior in the example above is adjusted to start dimming from '11000' instead of the default '0' value. This can be important as different dimming devices will have different lower bound 'on' voltages. In addition, depending on your PLC device, the maximum out value will differ. Note that this method only requires a call when it's desired to change the default behavior characteristics. 
 
-- checking for events to switch the digital output (cyclic):
+- checking for events to switch the digital output (cyclic), example 1:
 ```
 FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
     LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
@@ -134,7 +135,19 @@ FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q
     SET:=                   FB_DI_PB_041.DOUBLE     (* when high, VAL is set on output OUT *)
 );
 ```
-The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md) as well.
+The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 'on/off' digital input that is wired to the 'Q' output of the dimmer & a 0/1-10V analog input that is wired to the 'OUT' output of the dimmer.
+
+- checking for events to switch the digital output (cyclic), example2:
+```
+FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
+    LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
+    P_LONG:=                FB_DI_PB_041.P_LONG,    (* for controlling the dimmer output OUT *)
+    Q_OUT:=                 AO_001,                 (* couple the function block to the physical anolog output *)
+    VAL:=                   255,                    (* value to set on output OUT when input SET is high *)
+    SET:=                   FB_DI_PB_041.DOUBLE     (* when high, VAL is set on output OUT *)
+);
+```
+The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 0/1-10V analog input that is wired to the 'Q_OUT' output of the dimmer.
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
