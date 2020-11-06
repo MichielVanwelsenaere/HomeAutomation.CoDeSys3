@@ -9,7 +9,6 @@ Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBU
 
 INPUT(S)
 - SINGLE: input to connect to one or multiple `SINGLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- DOUBLE: input to connect to one or multiple `DOUBLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 - LONG: input to connect to one or multiple `LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 - P_LONG: input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 - PRIO_HIGH: when high the output `Q` is set to high with a maximum brightness, has priority over the other inputs.
@@ -23,7 +22,6 @@ INPUT/OUTPUT(S)
 
 OUTPUT(S)
 - Q: output.
-- DBL: double-click output.
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
@@ -43,7 +41,6 @@ METHOD(S)
     - `Min_On`: minimum value of output OUT at startup, defaults to 50.
     - `Max_On`: maximum value of output OUT at startup, defaults to 255.
     - `Soft_Dimm`: if TRUE dimming begins after ON and at 0, defaults to TRUE.
-    - `Dbl_Toggle`: if TRUE the output DBL is inverted at each double-click, defaults to FALSE.
     - `Rst_Out`: if input Rst is TRUE, ouput OUT is set to 0, defaults to FALSE.
     - `OUT_LinearScaleMin`: Lower bound value used for linear scaleout output OUT from datatype byte to word. Defaults to 0.
     - `OUT_LinearScaleMax`: Upper bound value used for linear scaleout output OUT from datatype byte to word. Defaults to 32767.
@@ -55,7 +52,6 @@ The following table shows the operating status of the dimmer:
 | SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR (*) | DBL | OUT |
 |:-------------|:------------------|:------------------|:------------------|:------------------|:------------------|:------------------|
 | SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | -                 | LIMIT(MIN_ON,OUT,MAX_ON)
-| DOUBLE        | 0                 | 0                 | -                 | -                 | TOG PULSE         | 
 | LONG/P_LONG   | 0                 | 0                 | ON                | NOT DIR           | -                 | Ramp up or down depending on DIR, start at 0 when soft_dimm = TRUE and Q = 0, reverse direction if 0 or 255 is reached
 | 0             | 1                 | 0                 | ON                | OUT < 127         | -                 | VAL
 | 0             | 0                 | 1                 | OFF               | UP                | OFF               | 0 when RST_OUT = TRUE
@@ -70,7 +66,6 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **Output changes: Q**   | A change is detected on output `Q`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
-| **Output changes: DBL**   | A change is detected on output `DBL`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `0-255` | configured in method call `InitMQTT` | `TRUE` | no
 
 (*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output. 
@@ -121,7 +116,6 @@ FB_AO_DIMMER_001.ConfigureFunctionBlock(
 	Min_On:=50,
 	Max_On:=255,
 	Soft_Dimm:=TRUE,
-	Dbl_Toggle:=FALSE,
 	Rst_Out:=FALSE,
 	OUT_LinearScaleMin:=11000,
 	OUT_LinearScaleMax:=32767
@@ -132,11 +126,12 @@ The dimmer behavior in the example above is adjusted to start dimming from '1100
 - checking for events to switch the digital output (cyclic):
 ```
 FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
-    DOUBLE:=                FB_DI_PB_041.DOUBLE,    (* for controlling the output DBL *)
     LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
     P_LONG:=                FB_DI_PB_041.P_LONG,    (* for controlling the dimmer output OUT *)
     Q=>                     DO_001,                 (* couple the function block to the physical digital output *)
-    OUT:=                   AO_001                  (* couple the function block to the physical anolog output *)
+    OUT:=                   AO_001,                 (* couple the function block to the physical anolog output *)
+    VAL:=                   255,                    (* value to set on output OUT when input SET is high *)
+    SET:=                   FB_DI_PB_041.DOUBLE     (* when high, VAL is set on output OUT *)
 );
 ```
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md) as well.
