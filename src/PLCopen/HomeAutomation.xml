@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-11-06T13:10:55.603582" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-11-06T12:19:00.3103544">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2020-11-10T18:51:30.0842433" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2020-11-10T18:50:35.8964825">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2723,14 +2723,12 @@ THIS^.T_UD:=T_UD;</xhtml>
                 <WORD />
               </type>
             </variable>
-          </outputVars>
-          <inOutVars>
             <variable name="OUT">
               <type>
                 <WORD />
               </type>
             </variable>
-          </inOutVars>
+          </outputVars>
           <localVars>
             <variable name="t3">
               <type>
@@ -6360,6 +6358,8 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
+                <Attribute Name="checksumnoinit_override" Value="1388821217" />
+                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
@@ -6998,7 +6998,7 @@ FB_AO_DIMMER_001(
 	SINGLE:=FB_DI_PB_041.SINGLE,
 	LONG:=FB_DI_PB_041.LONG, 
 	P_LONG:=FB_DI_PB_041.P_LONG, 
-	OUT := TestOUT,
+	Q_OUT =&gt; TestOUT,
 	SET:=  FB_DI_PB_041.DOUBLE,
 	VAL:=125
 );
