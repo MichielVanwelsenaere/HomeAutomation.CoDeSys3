@@ -17,11 +17,9 @@ INPUT(S)
 - SET: input for switching output DIM to input VAL value.
 - RST: input to switch of the output.
 
-INPUT/OUTPUT(S)
-- OUT: dimmer value, word datatype. 
-
 OUTPUT(S)
 - Q: output, bool datatype.
+- OUT: dimmer value, word datatype. 
 - Q_OUT: follows 'OUT' when Q is high. Equal to 0 when Q is low.
 
 METHOD(S)
