@@ -1,7 +1,7 @@
 ## FB_OUTPUT_DIMMER_MQTT
 
 ### __General__
-Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through powercycles.
+Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through powercycles. Takes a 0-255 byte value as input -as FB input or MQTT value-. Byte input value is linearly scaled to a word datatype value with a range from 0-32767. Output linear scaled range can be configured to be different from 0-32767 if desired. 
 
 ### __Block diagram__
 
@@ -9,7 +9,6 @@ Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBU
 
 INPUT(S)
 - SINGLE: input to connect to one or multiple `SINGLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- DOUBLE: input to connect to one or multiple `DOUBLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 - LONG: input to connect to one or multiple `LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 - P_LONG: input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 - PRIO_HIGH: when high the output `Q` is set to high with a maximum brightness, has priority over the other inputs.
@@ -18,12 +17,10 @@ INPUT(S)
 - SET: input for switching output DIM to input VAL value.
 - RST: input to switch of the output.
 
-INPUT/OUTPUT(S)
-- OUT: dimmer value, byte datatype. 
-
 OUTPUT(S)
-- Q: output.
-- DBL: double-click output.
+- Q: output, bool datatype.
+- OUT: dimmer value, word datatype. 
+- Q_OUT: follows 'OUT' when Q is high. Equal to 0 when Q is low.
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
@@ -34,7 +31,7 @@ METHOD(S)
     - `Qos_Dimm`: datatype *SD_MQTT.QoS*, MQTT QoS of the DIM MQTT events.
     - `Delta_Dimm`: datatype *INT*, resolution of the MQTT OUT events. For example: specifying value *5* will configure the FB to only emit an MQTT event when the OUT output differs *5* or more than its previous value. Note that the last value of output OUT (when input `P_LONG` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last OUT value published through MQTT is always synchronized with the OUT output of the FB.
 
-- ConfigureDimmer: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
+- ConfigureFunctionBlock: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
     - `T_Debounce`: debounce time for input PB, defaults to 10ms.
     - `T_Reconfig`:  reconfiguration time, defaults to 10S.
     - `T_On_Max`: start limitation, defaults to 0ms.
@@ -42,21 +39,21 @@ METHOD(S)
     - `T_Dimm`: time for a dimming ramps, defaults to 3s.
     - `Min_On`: minimum value of output OUT at startup, defaults to 50.
     - `Max_On`: maximum value of output OUT at startup, defaults to 255.
-    - `Soft_Dimm`: if TRUE dimming begins after ON and at 0. 
-    - `Dbl_Toggle`: if TRUE the output DBL is inverted at each double-click, defaults to FALSE.
+    - `Soft_Dimm`: if TRUE dimming begins after ON and at 0, defaults to TRUE.
     - `Rst_Out`: if input Rst is TRUE, ouput OUT is set to 0, defaults to FALSE.
+    - `OUT_LinearScaleMin`: Lower bound value used for linear scaleout output OUT from datatype byte to word. Defaults to 0.
+    - `OUT_LinearScaleMax`: Upper bound value used for linear scaleout output OUT from datatype byte to word. Defaults to 32767.
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 ### __Function Block Behaviour__
 The following table shows the operating status of the dimmer:
 
-| SINGLE/DOUBLE/LONG/P_LONG | SET | RST | Q | DIR (*) | DBL | OUT |
-|:-------------|:------------------|:------------------|:------------------|:------------------|:------------------|:------------------|
-| SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | -                 | LIMIT(MIN_ON,OUT,MAX_ON)
-| DOUBLE        | 0                 | 0                 | -                 | -                 | TOG PULSE         | 
-| LONG/P_LONG   | 0                 | 0                 | ON                | NOT DIR           | -                 | Ramp up or down depending on DIR, start at 0 when soft_dimm = TRUE and Q = 0, reverse direction if 0 or 255 is reached
-| 0             | 1                 | 0                 | ON                | OUT < 127         | -                 | VAL
-| 0             | 0                 | 1                 | OFF               | UP                | OFF               | 0 when RST_OUT = TRUE
+| SINGLE/LONG/P_LONG | SET | RST | Q | DIR (*) | OUT | Q_OUT |
+|:-------------|:------------------|:------------------|:------------------|:------------------|:---------------------------------------|:------------------|
+| SINGLE        | 0                 | 0                 | NOT Q             | OUT < 127         | LIMIT(MIN_ON,OUT,MAX_ON)              | Q * OUT
+| LONG/P_LONG   | 0                 | 0                 | ON                | NOT DIR           | Ramp up or down depending on DIR, start at 0 when soft_dimm = TRUE and Q = 0, reverse direction if 0 or 255 is reached | OUT    
+| 0             | 1                 | 0                 | ON                | OUT < 127         | VAL                                   | OUT          
+| 0             | 0                 | 1                 | OFF               | UP                | 0 when RST_OUT = TRUE                 | 0 
 
 (*): DIR refers to the direction of the dimmer output `OUT`, indicating whether the dimmer output value changes up-or downwards. 
 
@@ -68,7 +65,6 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **Output changes: Q**   | A change is detected on output `Q`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
-| **Output changes: DBL**   | A change is detected on output `DBL`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: OUT**   | A change is detected on output `OUT`. (*) | `0-255` | configured in method call `InitMQTT` | `TRUE` | no
 
 (*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output. 
@@ -108,17 +104,48 @@ FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttPubDimmerPrefix),     (* p
 ```
 The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001` (MQTTSubSwitchPrefix variable + function block name).
 
-- checking for events to switch the digital output (cyclic):
+- ConfigureFunctionBlock (called once during startup):
+```
+FB_AO_DIMMER_001.ConfigureFunctionBlock(
+	T_Debounce:=T#10MS,
+	T_Reconfig:=T#10S,
+	T_On_Max:=T#0S,
+	T_Dimm_Start:=T#400MS,
+	T_Dimm:=T#3S,
+	Min_On:=50,
+	Max_On:=255,
+	Soft_Dimm:=TRUE,
+	Rst_Out:=FALSE,
+	OUT_LinearScaleMin:=11000,
+	OUT_LinearScaleMax:=32767
+);
+```
+The dimmer behavior in the example above is adjusted to start dimming from '11000' instead of the default '0' value. This can be important as different dimming devices will have different lower bound 'on' voltages. In addition, depending on your PLC device, the maximum out value will differ. Note that this method only requires a call when it's desired to change the default behavior characteristics. 
+
+- checking for events to switch the digital output (cyclic), example 1:
 ```
 FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
-    DOUBLE:=                FB_DI_PB_041.DOUBLE,    (* for controlling the output DBL *)
     LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
     P_LONG:=                FB_DI_PB_041.P_LONG,    (* for controlling the dimmer output OUT *)
     Q=>                     DO_001,                 (* couple the function block to the physical digital output *)
-    OUT:=                   AO_001                  (* couple the function block to the physical anolog output *)
+    OUT:=                   AO_001,                 (* couple the function block to the physical anolog output *)
+    VAL:=                   255,                    (* value to set on output OUT when input SET is high *)
+    SET:=                   FB_DI_PB_041.DOUBLE     (* when high, VAL is set on output OUT *)
 );
 ```
-The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md) as well.
+The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 'on/off' digital input that is wired to the 'Q' output of the dimmer & a 0/1-10V analog input that is wired to the 'OUT' output of the dimmer.
+
+- checking for events to switch the digital output (cyclic), example 2:
+```
+FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
+    LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
+    P_LONG:=                FB_DI_PB_041.P_LONG,    (* for controlling the dimmer output OUT *)
+    Q_OUT:=                 AO_001,                 (* couple the function block to the physical anolog output *)
+    VAL:=                   255,                    (* value to set on output OUT when input SET is high *)
+    SET:=                   FB_DI_PB_041.DOUBLE     (* when high, VAL is set on output OUT *)
+);
+```
+The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 0/1-10V analog input that is wired to the 'Q_OUT' output of the dimmer.
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
