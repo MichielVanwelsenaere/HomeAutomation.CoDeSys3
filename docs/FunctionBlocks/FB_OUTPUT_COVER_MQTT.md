@@ -117,6 +117,13 @@ FB_DO_COVER_001(
     );
 ```
 
+### __Wiring__
+Using simple SPDT relays it's possible to wire a AC or DC motor so that shortciruiting the motor is impossible. 
+
+AC Wiring                   | DC Wiring
+:--------------------------:|:-------------------------:
+![AC Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_AC.png)  |  ![DC Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_DC.png)
+
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
 
