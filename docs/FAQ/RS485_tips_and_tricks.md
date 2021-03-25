@@ -20,5 +20,5 @@ When not able to perform and modbus read/write commands it's often hard to estab
 An easy trick to narrow it down is using a regular led diode and placing it on the RS485 bus datawires.
 The led will light up everytime data passes over the bus providing more information to where the problem might occur.
 
-### __RS485 Wiring__
-There's plenty of information on RS485 wiring on the internet (tip, use Google!). The main principles to take into account are 120Ω bus terminator resistors on both sides of the bus but more importantly it's adviced to use wiring cables that twist the RS485 datacables. CAT cables can be considered as a good practice. 
+### __RS485 cabling best practices__
+Consider [this article on electrical-engineering](https://electrical-engineering-portal.com/correct-cabling-modbus-rs485) a must read. 
