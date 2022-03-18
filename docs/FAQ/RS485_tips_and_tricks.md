@@ -21,4 +21,6 @@ An easy trick to narrow it down is using a regular led diode and placing it on t
 The led will light up everytime data passes over the bus providing more information to where the problem might occur.
 
 ### __RS485 cabling best practices__
+<!-- markdown-link-check-disable -->
 Consider [this article on electrical-engineering](https://electrical-engineering-portal.com/correct-cabling-modbus-rs485) a must read. 
+<!-- markdown-link-check-enable -->
