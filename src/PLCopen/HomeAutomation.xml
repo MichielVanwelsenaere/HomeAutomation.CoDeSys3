@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-01-27T22:14:00.5873383" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-01-27T22:10:35.243">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-03-18T15:11:44.0002034" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-03-18T15:10:28.8414877">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -613,6 +613,14 @@ CALC_COVER_STATE := NewState;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
               </documentation>
             </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
             <variable name="InitMqttDone">
               <type>
                 <BOOL />
@@ -706,22 +714,24 @@ EVENT := FB_R_TRIG.Q OR FB_F_TRIG.Q;
 EVENT_R := FB_R_TRIG.Q;
 EVENT_F := FB_F_TRIG.Q;
 
-IF FB_R_TRIG.Q AND InitMqttDone THEN
+IF (FB_R_TRIG.Q OR (Startup AND FB_DEBOUNCE.Q)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := 'ON',
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
+	Startup:=FALSE;	
 END_IF
 
-IF FB_F_TRIG.Q AND InitMqttDone THEN
+IF (FB_F_TRIG.Q OR (Startup AND NOT(FB_DEBOUNCE.Q))) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := 'OFF',
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
+	Startup:=FALSE;	
 END_IF</xhtml>
           </ST>
         </body>
@@ -8435,7 +8445,7 @@ FB_RS485_EASTRON_SDM220_1.InitMqtt(
               <Library Name="BUILDING, 1.0.0.1 (OSCAT)" Namespace="OSCAT_BUILDING" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <Library Name="Common Helper for development, 1.1.0.5 (Stefan Dreyer)" Namespace="CommonTypesAndFunctions" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <Library Name="NETWORK, 1.3.5.3 (OSCAT)" Namespace="OSCAT_NETWORK" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-              <Library Name="MQTT, 1.2.0.5 (Stefan Dreyer)" Namespace="MQTT" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
+              <Library Name="MQTT, 1.2.0.6 (Stefan Dreyer)" Namespace="MQTT" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <addData />
             </Libraries>
           </data>
