@@ -85,11 +85,14 @@ is used to control access to the RS485 bus between multiple RS485 device functio
 # Libraries
 
 The following libraries are used in this PLC project and can be found under `src\Libraries`:
-- CommonTypesAndFunctions ([stefandreyer/CODESYS-Common](https://github.com/stefandreyer/CODESYS-Common))
 - MQTT ([stefandreyer/CODESYS-MQTT](https://github.com/stefandreyer/CODESYS-MQTT))
+    - CommonTypesAndFunctions ([stefandreyer/CODESYS-Common](https://github.com/stefandreyer/CODESYS-Common))
+    - PRO_JSON ([stefandreyer/JSON-Library](https://github.com/stefandreyer/JSON-Library))
+    - OSCAT_NETWORK_TYPES ([stefandreyer/OSCAT-NETWORK](https://github.com/stefandreyer/OSCAT-NETWORK))
+    - BASIC_Extension ([stefandreyer/OSCAT-BASIC](https://github.com/stefandreyer/OSCAT-BASIC))
 - OSCAT NETWORK ([link](https://store.codesys.com/oscat-building.html))
 - OSCAT BASIC ([link](https://store.codesys.com/oscat-basic.html))
 - OSCAT BUILDING ([link](https://store.codesys.com/oscat-network.html))
 
-Special thanks to StefanDreyer for his assistance in some of the MQTT aspects of this project and his great work on his open-source CoDeSys MQTT library.
+Special thanks to Stefan Dreyer for his assistance in some of the MQTT aspects of this project and his great work on his open-source CoDeSys MQTT library.
 
