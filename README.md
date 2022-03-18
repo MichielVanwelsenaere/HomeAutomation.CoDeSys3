@@ -13,11 +13,11 @@ The purpose? Redundancy on a software level but also on a hardware level!
 
 # Supported Runtimes
 The project is developed using the IEC 61131-3 standard, there are multiple development environments with their own runtime that support the standard:
-
+<!-- markdown-link-check-disable -->
 - [CODESYS V3 by 3S-Smart Software Solutions](https://www.codesys.com/)
 - [é!COCKPIT by WAGO](https://www.wago.com/global/automation-technology/discover-software/ecockpit-engineering-software) (WAGO PLCs only)
 - ...
-
+<!-- markdown-link-check-enable -->
 # Architecture
 Core processing logic is executed in the (robust) PLC. Meaning that events like reading pushbuttons/switches, updating outputs are executed in the PLC software. To enable integration with external software the PLC sends out events to an MQTT broker when events occur (like pushbutton events, outputs that change state). MQTT subscriptions are enabled as well to allow control from the external software to control -for example- outputs.
 

@@ -9,8 +9,9 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 - Getting to know the IEC 61131-3 standard: [iec 61131-3 reference](https://bitbucket.org/ntphx/iec-61131)
 
 ### __Setup CoDeSys 3S__
-
+<!-- markdown-link-check-disable -->
 1. Download é!COCKPIT from the [WAGO website](https://www.wago.com/global/automation-technology/discover-software/ecockpit-engineering-software). 
+<!-- markdown-link-check-enable -->
 
 ### __Open the project__
 
