@@ -61,6 +61,7 @@ How to use Modbus RTU differs depending on the PLC/development environment used.
 To translate the byte array received by the modbus device to their actual value and send their values through MQTT the function blocks below have been developed. Note that a specific function block is required for each type of Modbus RTU device.
 
 - [FB_RS485_EASTRON_SDM220_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM220_MQTT.md)
+- [FB_RS485_EASTRON_SDM_POWER_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM_POWER_MQTT.md)
 
 In addition to the above a buscontroller function block ([FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md))
 is used to control access to the RS485 bus between multiple RS485 device function blocks.
