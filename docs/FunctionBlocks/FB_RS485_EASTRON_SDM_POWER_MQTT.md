@@ -7,6 +7,7 @@ This function block aims to read power consumption from a range of Eastron SDM p
 Eastron SDM220 datasheets:
 - [SDM220ModbusEN](../RS485/datasheets/SDM220ModbusEN.pdf)
 - [SDM220Register](../RS485/datasheets/SDM220Register.pdf)
+
 Eastron SDM630 datasheet:
 - [SDM630Register](../RS485/datasheets/SDM630-Modbus-V2.pdf)
 
