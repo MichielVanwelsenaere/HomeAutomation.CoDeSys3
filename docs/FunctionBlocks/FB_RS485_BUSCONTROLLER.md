@@ -14,8 +14,11 @@ METHOD(S)
 - Init: configures the buscontroller, an overview of the parameters: 
     - `StartupDelay`: datatype *TIME*, amount of time that should be waited on PLC startup before using the RS485 bus, can prevent errors due to RS485 devices not booted up yet.
     - `SilenceTime`: datatype *TIME*,  the silence time between two requests. Typically 10-20ms.
-- SetBusOccupied: can be called by any RS485 function block to indicate that it is using the RS485 bus.
-- ReleaseBus: can be called by any RS485 function block to indicate that it is done using the RS485 bus.
+	- `BusTrigger`: datatype *POINTER TO BOOL*,  boolean controlling bus actions.
+	- `BusData`: datatype *POINTER TO ARRAY [0..124] OF WORD*,  array containing bus read data.
+	- `BusError`: datatype *POINTER TO BOOL*,  boolean indicating bus error.
+- SetBusOccupied: used internally to set the RS485 bus as occupied.
+- ReleaseBus: used internally to release the RS485 bus.
 
 ### __Code example__
 
@@ -24,45 +27,29 @@ METHOD(S)
 RS485BusController 	: FB_RS485_BUSCONTROLLER;
 ```
 
-- Init  method call (called once during startup):
+- Init  method call -é!COCKPIT version- (called once during startup):
 ```
 RS485BusController.Init(
-	StartupDelay := T#5S,   (* Time to wait after startup to start using the bus, prevents boot delay issues when RS485 devices are not ready yet on startup *)		
-	SilenceTime := T#20MS   (* Silence time between two requests, important to not get faulty data on bus *)		
+	StartupDelay := T#5S,				(* Time to wait after startup to start using the bus, prevents boot delay issues when RS485 are not ready yet on startup *)		
+	SilenceTime := T#50MS,				(* Silence time between two requests, important to not get faulty data on bus *)
+	BusTrigger := ADR(Trigger),			(* Pointer to the bool used to initiate bus requests *)
+	BusData := ADR(RtuResponse.awData),	(* Pointer to the array containing the bus response data *)
+	BusError := ADR(ModbusMaster.xError)(* Pointer to the bus error bool *)
 );
 ```
 
-- Integration in é!COCKPIT RS485 statemachine:
+- Init  method call -Codesys 3S version- (called once during startup):
 ```
-IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
-	IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
-		ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
-		Trigger := TRUE; // Start the Modbus RTU query
-	ELSIF Trigger = FALSE THEN // Modbus RTU query completed, process it
-		(*FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=ModbusMaster.xError, Data:=ADR(RtuResponse.awData)); *)
-		RS485BusController.ReleaseBus();
-	END_IF	
-ELSIF // next RS485 device
-
-END_IF
+RS485BusController.Init(
+	StartupDelay := T#5S,				(* Time to wait after startup to start using the bus, prevents boot delay issues when RS485 are not ready yet on startup *)		
+	SilenceTime := T#50MS,				(* Silence time between two requests, important to not get faulty data on bus *)
+	BusTrigger := ADR(Trigger),			(* Pointer to the bool used to initiate bus requests *)
+	BusData := ADR(awReadBuffer),		(* Pointer to the array containing the bus response data *)
+	BusError := ADR(xComPortError)		(* Pointer to the bus error bool *)
+);
 ```
 
-- Integration in Codesys 3S RS485 statemachine:
+- Adding a device to the bus (called once during startup):
 ```
-IF(xComPortOpen) THEN
-    IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
-		IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
-			ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
-			Trigger := TRUE; // Start the Modbus RTU query
-		ELSIF fbModbusRequest.xDone OR fbModbusRequest.xError THEN // Modbus RTU query completed, process it
-			FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=fbModbusRequest.xError, Data:=ADR(awReadBuffer));
-			RS485BusController.ReleaseBus();
-			TRIGGER := FALSE;
-		END_IF	
-	ELSIF // next RS485 device
-
-    END_IF
-END_IF
-
+RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM220_1);
 ```
-

@@ -41,7 +41,7 @@ METHOD(S)
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.  
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.    
 - InitRS485: configures the Modbus RTU device address and the execution/polling interval for the multiple modbus read commands.
-- RequestMaster: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+- RequestBusTime: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 
@@ -98,38 +98,9 @@ FB_RS485_EASTRON_SDM220_001.InitMqtt(
 ```
 The MQTT publish topic in this code example will be `WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001` (MQTTPubSwitchPrefix variable + function block name).
 
-- Integration in é!COCKPIT RS485 statemachine:
+- Registering device to a buscontroller (called once during startup):
 ```
-IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
-	IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
-		ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
-		Trigger := TRUE; // Start the Modbus RTU query
-	ELSIF Trigger = FALSE THEN // Modbus RTU query completed, process it
-		(*FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=ModbusMaster.xError, Data:=ADR(RtuResponse.awData)); *)
-		RS485BusController.ReleaseBus();
-	END_IF	
-ELSIF // next RS485 device
-
-END_IF
-```
-
-- Integration in Codesys 3S RS485 statemachine:
-```
-IF(xComPortOpen) THEN
-    IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
-		IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
-			ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
-			Trigger := TRUE; // Start the Modbus RTU query
-		ELSIF fbModbusRequest.xDone OR fbModbusRequest.xError THEN // Modbus RTU query completed, process it
-			FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=fbModbusRequest.xError, Data:=ADR(awReadBuffer));
-			RS485BusController.ReleaseBus();
-			TRIGGER := FALSE;
-		END_IF	
-	ELSIF // next RS485 device
-
-    END_IF
-END_IF
-
+RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM220_1);
 ```
 
 ### __Wago PFC wiring diagram__
