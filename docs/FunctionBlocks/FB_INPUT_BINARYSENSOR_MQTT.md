@@ -62,8 +62,8 @@ FB_DI_BS_001(BS:= DI_001);
 - integration with `FB_OUTPUT_SWITCH_MQTT`:
 ```
 FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
-    PRIOHIGH:=      FALSE,                  (* brings the output high regardless of other input values *)
-    PRIOLOW:=       FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
+    PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
+    PRIO_LOW:=      FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
     TOGGLE:=        FB_DI_BS_001.EVENT      (* for toggling the output *)	
 );
 ```
