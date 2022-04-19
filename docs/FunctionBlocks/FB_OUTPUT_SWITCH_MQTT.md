@@ -86,7 +86,7 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
 ```YAML
-- platform: MQTT
+- platform: mqtt
   name: "FB_DO_SW_001"
   state_topic: "WAGO-PFC200/Out/DigitalOutputs/FB_DO_SW_001"
   command_topic: "WAGO-PFC200/In/DigitalOutputs/FB_DO_SW_001"

@@ -151,7 +151,7 @@ The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
 ```YAML
-- platform: MQTT
+- platform: mqtt
   name: "FB_AO_DIM_001"
   state_topic: "WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001/Q"
   command_topic: "WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001"

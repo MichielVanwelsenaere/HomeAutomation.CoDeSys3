@@ -72,7 +72,7 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
 
 ```YAML
 # To receive single/double/long events
-- platform: MQTT
+- platform: mqtt
   name: "FB_DI_PB_001"
   state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
   qos: 2
@@ -81,7 +81,7 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   payload_available: "online"
   payload_not_available: "offline"
 # To receive state of output P_LONG
-- platform: MQTT
+- platform: mqtt
   name: "FB_DI_PB_001_P_LONG"
   state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
   qos: 2
