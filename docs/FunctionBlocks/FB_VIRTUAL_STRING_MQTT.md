@@ -111,7 +111,7 @@ A value X in the PLC is set to the IN value of the virtual function block, the I
 When using the function block as a virtual output use the YAML code below in your [MQTT Sensor](https://www.home-assistant.io/integrations/sensor.mqtt/) config to integrate with Home Assistant:
 
 ```YAML
-- platform: MQTT
+- platform: mqtt
   name: "FB_VIRTUAL_STRING_001"
   state_topic: "WAGO-PFC200/Out/Virtuals/FB_VIRTUAL_STRING_001"
   qos: 2  

@@ -77,13 +77,24 @@ RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM_POWER_001);
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
 ```YAML
-
-- platform: MQTT
-  name: "FB_RS485_EASTRON_SDM_POWER_001_ACTP"
+- platform: mqtt
+  name: "car charger power"
+  object_id: "car_charger_power"
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/ACTP"
-  unit_of_measurement: "Watts"
+  unit_of_measurement: "W"
+  device_class: "power"
+  state_class: "measurement"
   qos: 2
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
   payload_not_available: "offline"
+```
+
+In addition to the above a [Riemann sum integral](https://www.home-assistant.io/integrations/integration/) integration can be added to calculate the energy (kWh) from the power (W):
+```YAML
+- platform: integration
+  source: sensor.car_charger_power
+  name: "car charger energy"
+  unit_prefix: k
+  round: 3
 ```
