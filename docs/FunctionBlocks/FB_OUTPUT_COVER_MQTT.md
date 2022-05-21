@@ -118,7 +118,7 @@ FB_DO_COVER_001(
 ```
 
 ### __Wiring__
-Using simple SPDT relays it's possible to wire a AC or DC motor so that shortciruiting the motor is impossible. 
+Using two SPDT relays it's possible to wire an AC or DC motor so that shortciruiting the motor is impossible. 
 
 AC Wiring                   | DC Wiring
 :--------------------------:|:-------------------------:
@@ -129,7 +129,7 @@ To integrate with Home Assistant use the YAML code below in your [MQTT cover](ht
 
 ```YAML
 - platform: mqtt 
-  name: "FB_DO_COVER_001" 
+  name: "FB_DO_COVER_001"
   command_topic: "WAGO-PFC200/In/Covers/FB_DO_COVER_001" 
   position_topic: "WAGO-PFC200/Out/Covers/FB_DO_COVER_001" 
   set_position_topic: "WAGO-PFC200/In/Covers/FB_DO_COVER_001" 
