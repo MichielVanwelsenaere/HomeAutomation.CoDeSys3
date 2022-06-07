@@ -15,8 +15,9 @@ The Esera gateways & controllers use a fixed communication baudrate of 19200 wit
 The slave id of the gateway is configurable by settings the controller number in the Esera configuration tool.
 
 ### __OWD__
-The gateway exposes 30 so called "OWD's" (One Wire Devices). Each OWD is represented by a [FB_RS485_ESERA_OWD_MQTT](FB_RS485_ESERA_OWD_MQTT) function block where the sensor data is processed to.
+The gateway exposes 30 so called "OWD's" (One Wire Devices). Each OWD is represented by a [FB_RS485_ESERA_OWD_MQTT](FB_RS485_ESERA_OWD_MQTT.md) function block where the sensor data is processed to.
 
+TODO: give explanation on OWD numbering and configuration
 
 ### __Code example__
 
