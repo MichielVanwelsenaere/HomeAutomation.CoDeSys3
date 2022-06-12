@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-04-11T16:51:34.0027788" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-04-11T16:48:46.3854331">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-06-12T20:59:10.7962368" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-06-12T20:58:09.3200542">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -3772,6 +3772,28 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RegisterDevice">
+              <interface>
+                <inputVars>
+                  <variable name="device">
+                    <type>
+                      <derived name="RS485Device" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF devicesCount &lt;&gt; 32 THEN
+	devices[devicesCount] := device;
+	devicesCount := devicesCount + 1;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="Init">
               <interface>
                 <inputVars>
@@ -3873,28 +3895,6 @@ THIS^.deviceActive := TRUE;</xhtml>
 THIS^.tonDelay.PT := THIS^.SilenceTime;
 THIS^.tonDelay.IN := TRUE;
 THIS^.deviceActive := FALSE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RegisterDevice">
-              <interface>
-                <inputVars>
-                  <variable name="device">
-                    <type>
-                      <derived name="RS485Device" />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF devicesCount &lt;&gt; 32 THEN
-	devices[devicesCount] := device;
-	devicesCount := devicesCount + 1;
-END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -4942,6 +4942,768 @@ ELSIF timerData3.Q THEN
 	THIS^.timerData3.IN := FALSE;
 	THIS^.ActiveRtuQuery := 3;
 	GetRtuQuery := THIS^.Data3RtuQuery;	
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_RS485_ESERA_1WIRE_GATEWAY_MQTT" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="InstanceName">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+              </documentation>
+            </variable>
+            <variable name="InitRS485Done">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="DeviceAddress">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+            <variable name="OwdDevices">
+              <type>
+                <array>
+                  <dimension lower="1" upper="30" />
+                  <baseType>
+                    <derived name="FB_RS485_ESERA_OWD_MQTT" />
+                  </baseType>
+                </array>
+              </type>
+            </variable>
+            <variable name="ActiveDevice">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="ActiveOwd">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="loopCounter">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="timerData">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Implements>RS485Device</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">timerData();
+
+FOR loopCounter := 1 TO 30 DO
+	OwdDevices[loopCounter]();
+END_FOR</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetRtuQuery">
+              <interface>
+                <returnType>
+                  <derived name="RS485_RtuQuery" />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
+	THIS^.timerData.IN := FALSE;
+	GetRtuQuery := THIS^.OwdDevices[ActiveOwd].GetRtuQuery();	
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessDataArray">
+              <interface>
+                <inputVars>
+                  <variable name="Error">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BOOL />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <array>
+                            <dimension lower="0" upper="124" />
+                            <baseType>
+                              <WORD />
+                            </baseType>
+                          </array>
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OwdDevices[ActiveOwd].ProcessDataArray(
+	Data := Data,
+	Error := Error
+);
+THIS^.ActiveOwd := 0;
+THIS^.timerData.IN := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestBusTime">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT InitRS485Done OR NOT timerData.Q THEN	
+	RequestBusTime := FALSE;
+ELSE
+	FOR loopCounter := 1 TO 30 DO
+		IF OwdDevices[loopCounter].RequestBusTime() AND RequestBusTime = FALSE THEN
+			THIS^.ActiveOwd := loopCounter;
+			RequestBusTime := TRUE;			
+		END_IF
+	END_FOR
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitRS485">
+              <interface>
+                <inputVars>
+                  <variable name="DeviceAddress">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DeviceAddress := DeviceAddress;
+THIS^.timerData.PT := T#250MS;
+THIS^.timerData.IN := TRUE;
+THIS^.InitRS485Done := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="InstanceNamePt">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
+
+FOR loopCounter := 1 TO 30 DO
+		OwdDevices[loopCounter].InitMqtt(
+			MQTTPublishPrefix := MQTTPublishPrefix,
+			MqttPublishTopicSuffix := InstanceNamePt^,
+			pMqttPublishQueue := pMqttPublishQueue
+		);
+END_FOR</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="EnableOwd">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="OwdNumber">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="DataPollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OwdDevices[OwdNumber].InitOwd(
+	DeviceAddress := THIS^.DeviceAddress,
+	OwdNumber := OwdNumber,
+	DataPollingInterval := DataPollingInterval
+);</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_RS485_ESERA_OWD_MQTT" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="OWD_VOLTAGE">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="TEMPERATURE">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="HUMIDITY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="DEW_POINT">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="AIR_QUALITY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="BRIGHTNESS">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="DataAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="Error">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="OwdNumber">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+            <variable name="InitMqttDone">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MqttPublishTopicPrefix">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="MqttPublishTopicSuffix">
+              <type>
+                <string length="50" />
+              </type>
+            </variable>
+            <variable name="pMqttPublishQueue">
+              <type>
+                <pointer>
+                  <baseType>
+                    <derived name="FB_MqttPublishQueue" />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="InitOwdDone">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="timerData">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="RtuQuery">
+              <type>
+                <derived name="RS485_RtuQuery" />
+              </type>
+              <initialValue>
+                <structValue>
+                  <value member="FunctionCode">
+                    <simpleValue value="3" />
+                  </value>
+                  <value member="ReadAddress">
+                    <simpleValue value="100" />
+                  </value>
+                  <value member="ReadQuantity">
+                    <simpleValue value="17" />
+                  </value>
+                </structValue>
+              </initialValue>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">timerData();
+
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetRtuQuery">
+              <interface>
+                <returnType>
+                  <derived name="RS485_RtuQuery" />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
+	THIS^.timerData.IN := FALSE;
+	GetRtuQuery := THIS^.RtuQuery;	
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestBusTime">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT InitOwdDone THEN	
+	RequestBusTime := FALSE;	
+ELSIF timerData.Q THEN
+	RequestBusTime := TRUE;
+ELSE
+	RequestBusTime := FALSE;	
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitOwd">
+              <interface>
+                <inputVars>
+                  <variable name="DeviceAddress">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="OwdNumber">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="DataPollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.RtuQuery.DeviceId := DeviceAddress;
+THIS^.RtuQuery.ReadAddress := OwdNumber * 100;
+THIS^.timerData.PT := DataPollingInterval;
+THIS^.OwdNumber := OwdNumber;
+
+THIS^.timerData.IN := TRUE;
+
+THIS^.InitOwdDone := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MqttPublishTopicSuffix">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+THIS^.MqttPublishTopicSuffix := MqttPublishTopicSuffix;
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+
+THIS^.InitMqttDone := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessAirQuality">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.AIR_QUALITY := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/AIRQ', Data := REAL_TO_STRING(AIR_QUALITY));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessBrigthness">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.BRIGHTNESS := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/BNESS', Data := REAL_TO_STRING(BRIGHTNESS));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessDataArray">
+              <interface>
+                <inputVars>
+                  <variable name="Error">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BOOL />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <array>
+                            <dimension lower="0" upper="124" />
+                            <baseType>
+                              <WORD />
+                            </baseType>
+                          </array>
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.timerData.IN := TRUE;
+
+IF WORD_TO_INT(Data^[12]) &lt;&gt; 0 OR Error^ THEN
+	THIS^.Error := TRUE;
+	PubMqttMessage(Suffix := '/availability', Data := 'offline');
+ELSE 	
+	THIS^.Error := FALSE;
+	THIS^.DataAvailable := TRUE;
+	PubMqttMessage(Suffix := '/availability', Data := 'online');
+END_IF
+
+// Data handling
+IF NOT Error^ AND WORD_TO_INT(Data^[12]) = 0 THEN
+	IF Data^[16] = 11151 OR Data^[16] = 11152 THEN // Temperature, humidity &amp; air quality
+		ProcessTemperature(Data^[0]);		
+		ProcessOwdVoltage(Data^[2]);
+		ProcessHumidity(Data^[4]);
+		ProcessDewPoint(Data^[6]);
+		ProcessAirQuality(Data^[8]);
+	ELSIF Data^[16] = 11102 OR Data^[16] = 11113 OR Data^[16] = 11120 OR Data^[16] = 11148 OR Data^[16] = 11150 OR Data^[16] = 11160 THEN // Temperature, humidity
+		ProcessTemperature(Data^[0]);		
+		ProcessOwdVoltage(Data^[2]);
+		ProcessHumidity(Data^[4]);
+		ProcessDewPoint(Data^[6]);
+	ELSIF Data^[16] = 11121 OR Data^[16] = 11132 OR Data^[16] = 11134 OR Data^[16] = 11135 THEN // Temperature, humidity, brightness
+		ProcessTemperature(Data^[0]);		
+		ProcessOwdVoltage(Data^[2]);
+		ProcessHumidity(Data^[4]);
+		ProcessDewPoint(Data^[6]);
+		ProcessBrigthness(Data^[8]);
+	END_IF		
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessDewPoint">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DEW_POINT := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessHumidity">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.HUMIDITY := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/HUM', Data := REAL_TO_STRING(HUMIDITY));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessOwdVoltage">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OWD_VOLTAGE := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/OWDV', Data := REAL_TO_STRING(OWD_VOLTAGE));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessTemperature">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.TEMPERATURE := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PubMqttMessage">
+              <interface>
+                <inputVars>
+                  <variable name="Suffix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := Data,
+			Topic := CONCAT(CONCAT(CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/OWD/'), UINT_TO_STRING(OwdNumber)), Suffix ),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
 END_IF</xhtml>
                 </ST>
               </body>
@@ -8640,6 +9402,11 @@ END_IF
                       <derived name="FB_RS485_EASTRON_SDM220_MQTT" />
                     </type>
                   </variable>
+                  <variable name="FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME">
+                    <type>
+                      <derived name="FB_RS485_ESERA_1WIRE_GATEWAY_MQTT" />
+                    </type>
+                  </variable>
                 </localVars>
               </interface>
               <actions>
@@ -8701,7 +9468,8 @@ ModbusMaster(
 RS485BusController();
 
 (* RS485 devices *)
-FB_RS485_EASTRON_SDM220_1();</xhtml>
+FB_RS485_EASTRON_SDM220_1();
+FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME();</xhtml>
                     </ST>
                   </body>
                   <addData />
@@ -8733,6 +9501,7 @@ RS485BusController.Init(
 );
 
 RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM220_1);
+RS485BusController.RegisterDevice(device := FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME);
 
 (* INIT RS485 DEVICE STUFF *)
 FB_RS485_EASTRON_SDM220_1.InitRS485(
@@ -8746,6 +9515,27 @@ FB_RS485_EASTRON_SDM220_1.InitMqtt(
 	MQTTPublishPrefix:= ADR(MqttRS485Prefix),						(* pointer to string prefix for the mqtt publish topic *)
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)		(* pointer to MqttPublishQueue to send a new Mqtt event *)
 );
+
+FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.InitRS485(
+	DeviceAddress := 2
+);
+
+FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.InitMqtt(
+	MQTTPublishPrefix:= ADR(MqttRS485Prefix),	
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)
+);
+
+(* ENABLE OWD DEVICES ON ESARE GATEWAY *)
+FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.EnableOwd(
+	OwdNumber := 1,
+	DataPollingInterval := T#2M
+);
+
+FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.EnableOwd(
+	OwdNumber := 2,
+	DataPollingInterval := T#2M
+);
+
 
 END_IF</xhtml>
                     </ST>
