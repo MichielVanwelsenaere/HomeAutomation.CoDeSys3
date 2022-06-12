@@ -12,7 +12,7 @@ Required hardware:
 ### __Modbus configuration__
 The Esera gateways & controllers use a fixed communication baudrate of 19200 with a 8N1 bit configuration making it a dominant slave device in terms of configuration. Make sure any other Modbus devices on the network are able to leverage the same settigs.
 
-The slave id of the gateway is configurable by settings the controller number in the Esera configuration tool.
+The slave id of the gateway is configurable by setting the controller number in the Esera configuration tool.
 
 ### __OWD__
 The gateway exposes 30 so called "OWD's" (One Wire Devices). The Esera configtool allows assigning a specific and static OWD number to a sensor. This allows the user to create a sensormap, for example: 'OWD1: temperature sensor living room'.
