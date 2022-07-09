@@ -118,11 +118,21 @@ FB_DO_COVER_001(
 ```
 
 ### __Wiring__
+
+#### __Using SPDT relays__
 Using two SPDT relays it's possible to wire an AC or DC motor so that shortciruiting the motor is impossible. 
 
 AC Wiring                   | DC Wiring
 :--------------------------:|:-------------------------:
 ![AC Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_AC.png)  |  ![DC Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_DC.png)
+
+#### __Using ELTAKOs__
+If two SPDT relays for each cover from the appraoch above consumes to much place in your electricity installation you can opt for (more costly) ELTAKOs.
+
+AC Wiring (uses MTR12-UC)   | DC Wiring (uses DCM12-UC)
+:--------------------------:|:-------------------------:
+![AC ELTAKO Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_ELTAKO_AC.png)  |  ![DC ELTAKO Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_ELTAKO_DC.png)
+
 
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
