@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-09-23T17:53:28.8575536" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-09-23T17:53:02.8201205">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-09-23T18:01:39.2643905" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-09-23T18:01:16.8012502">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -9128,7 +9128,7 @@ IF initMqtt THEN
 
 	subscriber_FB_OUTPUT_SWITCH_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR('WAGO-PFC200/In/DigitalOutputs/+'), 
+		Topic:= ADR('Devices/PLC/House/In/DigitalOutputs/+'), 
 		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE, 
 		ExpectingString:= TRUE, 
 		Callback:= MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT,
@@ -9136,7 +9136,7 @@ IF initMqtt THEN
 	
 	subscriber_FB_OUTPUT_COVER_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR('WAGO-PFC200/In/Covers/+'), 
+		Topic:= ADR('Devices/PLC/House/In/Covers/+'), 
 		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE, 
 		ExpectingString:= TRUE, 
 		Callback:= MqttVariables.collector_FB_OUTPUT_COVER_MQTT,
@@ -9144,14 +9144,14 @@ IF initMqtt THEN
 	
 	subscriber_FB_VIRTUAL_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR('WAGO-PFC200/In/Virtuals/+'), 
+		Topic:= ADR('Devices/PLC/House/In/Virtuals/+'), 
 		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE, 
 		ExpectingString:= TRUE, 
 		Callback:= MqttVariables.collector_FB_VIRTUAL_MQTT,
 	);
 	subscriber_FB_DIMMER_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR('WAGO-PFC200/In/Dimmers/+'), 
+		Topic:= ADR('Devices/PLC/House/In/Dimmers/+'), 
 		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE, 
 		ExpectingString:= TRUE, 
 		Callback:= MqttVariables.collector_FB_DIMMER_MQTT,
