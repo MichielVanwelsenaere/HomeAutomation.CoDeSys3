@@ -4,6 +4,12 @@
 Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired.
 Due to the large amount of modbus registers exposed and the Eastron SDM220 limitation to read at maximum 40 registers at once the function block requires three modbus read commands to read out all the available data. Each of these three modbus read command reads out multiple registers at once which guarantees a consistent data readout as datapoints are extracted at a single point in time.
 
+----------------------------
+
+:rotating_light: Several users have reported that the 'Kwh' measurements readings of the Eastron SDM meters is unreliable. Specifically there are huge spikes containing faulty values in the data retrieved.
+
+----------------------------
+
 Eastron SDM220 datasheets:
 - [SDM220ModbusEN](../RS485/datasheets/SDM220ModbusEN.pdf)
 - [SDM220Register](../RS485/datasheets/SDM220Register.pdf)
