@@ -73,8 +73,8 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 
 - variables initiation:
 ```
-MqttPubCoverPrefix			:STRING(100) := 'WAGO-PFC200/Out/Covers/';
-MqttSubCoverPrefix			:STRING(100) := 'WAGO-PFC200/In/Covers/';
+MqttPubCoverPrefix			:STRING(100) := 'Devices/PLC/House/Out/Covers/';
+MqttSubCoverPrefix			:STRING(100) := 'Devices/PLC/House/In/Covers/';
 FB_DO_COVER_001				:FB_OUTPUT_COVER_MQTT;
 ```
 
@@ -140,9 +140,9 @@ To integrate with Home Assistant use the YAML code below in your [MQTT cover](ht
 ```YAML
 - platform: mqtt 
   name: "FB_DO_COVER_001"
-  command_topic: "WAGO-PFC200/In/Covers/FB_DO_COVER_001" 
-  position_topic: "WAGO-PFC200/Out/Covers/FB_DO_COVER_001" 
-  set_position_topic: "WAGO-PFC200/In/Covers/FB_DO_COVER_001" 
+  command_topic: "Devices/PLC/House/In/Covers/FB_DO_COVER_001" 
+  position_topic: "Devices/PLC/House/Out/Covers/FB_DO_COVER_001" 
+  set_position_topic: "Devices/PLC/House/In/Covers/FB_DO_COVER_001" 
   payload_open: "OPEN" 
   payload_close: "CLOSE" 
   payload_stop: "STOP" 
@@ -150,7 +150,7 @@ To integrate with Home Assistant use the YAML code below in your [MQTT cover](ht
   position_closed: 0 
   qos: 2 
   optimistic: false 
-  availability_topic: "Devices/WAGO-PFC200/availability" 
+  availability_topic: "Devices/PLC/House/availability" 
   payload_available: "online" 
   payload_not_available: "offline"
 ```

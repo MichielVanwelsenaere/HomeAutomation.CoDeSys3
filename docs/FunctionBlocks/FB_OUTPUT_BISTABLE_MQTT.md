@@ -58,8 +58,8 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 
 - variables initiation:
 ```
-MQTTPubSwitchPrefix     :STRING(100) := 'WAGO-PFC200/Out/DigitalOutputs/';
-MQTTSubSwitchPrefix     :STRING(100) := 'WAGO-PFC200/In/DigitalOutputs/';
+MQTTPubSwitchPrefix     :STRING(100) := 'Devices/PLC/House/Out/DigitalOutputs/';
+MQTTSubSwitchPrefix     :STRING(100) := 'Devices/PLC/House/In/DigitalOutputs/';
 FB_DO_BISTABLE_001      :FB_OUTPUT_BISTABLE_MQTT;
 ```
 
@@ -71,7 +71,7 @@ FB_DO_BISTABLE_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),       
     pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_SWITCH_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalOutputs/FB_DO_BISTABLE_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/DigitalOutputs/FB_DO_BISTABLE_001` (MQTTSubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalOutputs/FB_DO_BISTABLE_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/DigitalOutputs/FB_DO_BISTABLE_001` (MQTTSubSwitchPrefix variable + function block name).
 
 
 - checking for events to switch the digital output (cyclic):
@@ -100,13 +100,13 @@ To integrate with Home Assistant use the YAML code below in your [MQTT lights](h
 ```YAML
 - platform: mqtt
   name: "FB_DO_BISTABLE_001"
-  state_topic: "WAGO-PFC200/Out/DigitalOutputs/FB_DO_BISTABLE_001"
-  command_topic: "WAGO-PFC200/In/DigitalOutputs/FB_DO_BISTABLE_001"
+  state_topic: "Devices/PLC/House/Out/DigitalOutputs/FB_DO_BISTABLE_001"
+  command_topic: "Devices/PLC/House/In/DigitalOutputs/FB_DO_BISTABLE_001"
   payload_on: "TRUE"
   payload_off: "FALSE"
   qos: 2
   optimistic: false
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```

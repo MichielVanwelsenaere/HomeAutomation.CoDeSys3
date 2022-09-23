@@ -45,7 +45,7 @@ MQTT publish topic is a concatination of the publish prefix and the function blo
 
 - variables initiation:
 ```
-MQTTPubRS485Prefix                :STRING(100) := 'WAGO-PFC200/Out/RS485/';
+MQTTPubRS485Prefix                :STRING(100) := 'Devices/PLC/House/Out/RS485/';
 FB_RS485_EASTRON_SDM_POWER_001    :FB_RS485_EASTRON_SDM_POWER_MQTT;
 ```
 
@@ -66,7 +66,7 @@ FB_RS485_EASTRON_SDM_POWER_001.InitMqtt(
 );
 
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001` (MQTTPubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001` (MQTTPubSwitchPrefix variable + function block name).
 
 - Registering device to a buscontroller (called once during startup):
 ```
@@ -80,14 +80,14 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
 - platform: mqtt
   name: "car charger power"
   object_id: "car_charger_power"
-  state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/ACTP"
+  state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/ACTP"
   unit_of_measurement: "W"
   device_class: "power"
   state_class: "measurement"
   qos: 2
   availability:
-    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
-    - topic: "Devices/WAGO-PFC200/availability"
+    - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
+    - topic: "Devices/PLC/House/availability"
   availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"

@@ -37,7 +37,7 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 - variables initiation:
 ```
-MQTTBinarySensorPrefix  :STRING(100) := 'WAGO-PFC200/Out/DigitalInputs/BinarySensors/';
+MQTTBinarySensorPrefix  :STRING(100) := 'Devices/PLC/House/Out/DigitalInputs/BinarySensors/';
 FB_DI_BS_001            :FB_INPUT_BINARYSENSOR_MQTT;
 ```
 
@@ -47,7 +47,7 @@ FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTBinarySensorPref
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)                          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/BinarySensors/FB_DI_BS_001` (MQTTBinarySensorPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalInputs/BinarySensors/FB_DI_BS_001` (MQTTBinarySensorPrefix variable + function block name).
 
 - Configuration of the function block with a 5 second turn off delay on the output (called once during startup):
 ```
@@ -74,11 +74,11 @@ To integrate with Home Assistant use the YAML code below in your [MQTT binary se
 ```YAML
 - platform: mqtt
   name: "FB_DI_BS_001"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/BinarySensors/FB_DI_BS_001"
+  state_topic: "Devices/PLC/House/Out/DigitalInputs/BinarySensors/FB_DI_BS_001"
   qos: 2  
   payload_on: "ON"
   payload_off: "OFF"
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```

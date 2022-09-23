@@ -41,7 +41,7 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 - variables initiation:
 ```
-MQTTPushbuttonPrefix    :STRING(100) := 'WAGO-PFC200/Out/DigitalInputs/Pushbuttons/';
+MQTTPushbuttonPrefix    :STRING(100) := 'Devices/PLC/House/Out/DigitalInputs/Pushbuttons/';
 FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_MQTT;
 ```
 
@@ -51,7 +51,7 @@ FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* point
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name).
 
 - reading digital input for events (cyclic):
 ```
@@ -74,18 +74,18 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
 # To receive single/double/long events
 - platform: mqtt
   name: "FB_DI_PB_001"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
+  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
   qos: 2
   expire_after: 3
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 # To receive state of output P_LONG
 - platform: mqtt
   name: "FB_DI_PB_001_P_LONG"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
+  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```

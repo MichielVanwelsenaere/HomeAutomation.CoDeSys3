@@ -67,7 +67,7 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 - variables initiation:
 ```
-MQTTPushbuttonPrefix    :STRING(100) := 'WAGO-PFC200/Out/DigitalInputs/Pushbuttons/';
+MQTTPushbuttonPrefix    :STRING(100) := 'Devices/PLC/House/Out/DigitalInputs/Pushbuttons/';
 FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_DIMMER_MQTT;
 ```
 
@@ -80,7 +80,7 @@ FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* point
     5                                                                   (* specify the resolution for the dimmer mqtt events *)    
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name). Note that for the outputs `Q`, `DBL` and `DIM` the MQTT publish topic has an additional concatination being the name of the output. For example: `WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM`.
+The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name). Note that for the outputs `Q`, `DBL` and `DIM` the MQTT publish topic has an additional concatination being the name of the output. For example: `Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM`.
 
 - reading digital input for events (cyclic):
 ```
@@ -96,42 +96,42 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
 # To receive single/double/long events
 - platform: mqtt
   name: "FB_DI_PB_001"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
+  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
   qos: 2
   expire_after: 3
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 # To receive state of output Q
 - platform: mqtt
   name: "FB_DI_PB_001_Q"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/Q"
+  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/Q"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 # To receive state of output DBL
 - platform: mqtt
   name: "FB_DI_PB_001_DBL"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DBL"
+  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DBL"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 # To receive state of output DIM
 - platform: mqtt
   name: "FB_DI_PB_001_DIM"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM"
+  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 # To receive state of output P_LONG
 - platform: mqtt
   name: "FB_DI_PB_001_P_LONG"
-  state_topic: "WAGO-PFC200/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
+  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```

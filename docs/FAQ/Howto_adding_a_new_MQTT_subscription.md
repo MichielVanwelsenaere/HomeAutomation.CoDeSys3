@@ -31,7 +31,7 @@ The *MQTT_IN_OUT* is the object that links the subscribers to the MQTT Client.
 ```
 subscriber_FB_OUTPUT_SWITCH_MQTT(
 	Subscribe:= TRUE, 
-	Topic:= ADR('WAGO-PFC200/In/DigitalOutputs/+'), 
+	Topic:= ADR('Devices/PLC/House/In/DigitalOutputs/+'), 
 	QoSSubscribe:= SD_MQTT.QoS.ExactlyOnce, 
 	ExpectingString:= TRUE, 
 	Callback:= MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT,
@@ -39,7 +39,7 @@ subscriber_FB_OUTPUT_SWITCH_MQTT(
 	
 subscriber_FB_OUTPUT_COVER_MQTT(
 	Subscribe:= TRUE, 
-	Topic:= ADR('WAGO-PFC200/In/Covers/+'), 
+	Topic:= ADR('Devices/PLC/House/In/Covers/+'), 
 	QoSSubscribe:= SD_MQTT.QoS.ExactlyOnce, 
 	ExpectingString:= TRUE, 
 	Callback:= MqttVariables.collector_FB_OUTPUT_COVER_MQTT,

@@ -63,8 +63,8 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 
 - variables initiation:
 ```
-MqttPubVirtualPrefix            :STRING(100) := 'WAGO-PFC200/Out/Virtuals/';
-MqttSubVirtualPrefix            :STRING(100) := 'WAGO-PFC200/In/Virtuals/';
+MqttPubVirtualPrefix            :STRING(100) := 'Devices/PLC/House/Out/Virtuals/';
+MqttSubVirtualPrefix            :STRING(100) := 'Devices/PLC/House/In/Virtuals/';
 FB_VIRTUAL_BOOL_001             :FB_VIRTUAL_BOOL_MQTT;
 ```
 
@@ -78,7 +78,7 @@ FB_VIRTUAL_BOOL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubVirtualPrefix),
 	MqttRetain:=FALSE											
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTSubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/House/Out/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTSubSwitchPrefix variable + function block name).
 
 
 - Configuring the function block as a virtual input (called once during startup):
@@ -115,9 +115,9 @@ When using the function block as a virtual output use the YAML code below in you
 ```YAML
 - platform: mqtt
   name: "FB_VIRTUAL_BOOL_001"
-  state_topic: "WAGO-PFC200/Out/Virtuals/FB_VIRTUAL_BOOL_001"
+  state_topic: "Devices/PLC/House/Out/Virtuals/FB_VIRTUAL_BOOL_001"
   qos: 2  
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```
@@ -127,12 +127,12 @@ When using the function block as a virtual input use the YAML code below in your
 ```YAML
 - platform: mqtt
   name: "FB_VIRTUAL_BOOL_001"
-  command_topic: "WAGO-PFC200/In/Virtuals/FB_VIRTUAL_BOOL_001"
+  command_topic: "Devices/PLC/House/In/Virtuals/FB_VIRTUAL_BOOL_001"
   payload_on: "TRUE"
   payload_off: "FALSE"
   qos: 2
   optimistic: true
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```

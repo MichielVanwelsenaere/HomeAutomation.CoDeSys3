@@ -86,8 +86,8 @@ Note that the function block also accepts float values for setting the dimmer ou
 
 - variables initiation:
 ```
-MqttPubDimmerPrefix			:STRING(100) := 'WAGO-PFC200/Out/Dimmers/';
-MqttSubDimmerPrefix			:STRING(100) := 'WAGO-PFC200/In/Dimmers/';
+MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/Out/Dimmers/';
+MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/In/Dimmers/';
 FB_AO_DIMMER_001			:FB_OUTPUT_DIMMER_MQTT;	
 ```
 
@@ -102,7 +102,7 @@ FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttPubDimmerPrefix),     (* p
     5                                                                       (* specify the resolution for the dimmer mqtt events *)    
 );
 ```
-The MQTT publish topic in this code example will be `WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001` (MQTTSubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001` (MQTTSubSwitchPrefix variable + function block name).
 
 - ConfigureFunctionBlock (called once during startup):
 ```
@@ -153,17 +153,17 @@ To integrate with Home Assistant use the YAML code below in your [MQTT lights](h
 ```YAML
 - platform: mqtt
   name: "FB_AO_DIM_001"
-  state_topic: "WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001/Q"
-  command_topic: "WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001"
-  brightness_command_topic: "WAGO-PFC200/In/Dimmers/FB_AO_DIMMER_001"
+  state_topic: "Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/Q"
+  command_topic: "Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001"
+  brightness_command_topic: "Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001"
   brightness_scale: 255
-  brightness_state_topic: "WAGO-PFC200/Out/Dimmers/FB_AO_DIMMER_001/OUT"
+  brightness_state_topic: "Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/OUT"
   on_command_type: "last"
   payload_on: "TRUE"
   payload_off: "FALSE"
   qos: 2
   optimistic: false
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```
