@@ -16,7 +16,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 MQTT publish topic is a concatination of the publish prefix and the function block name, the OWD numer and a unique sensor value. For example:
 
-`Devices/PLC/Home/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/TEMP`
+`Devices/PLC/House/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/TEMP`
 
 Naturally `/TEMP` will only be ommited by the OWD is the physical sensor exposes it.
 
@@ -46,12 +46,12 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
 - platform: mqtt
   name: "temperature kitchen"
   object_id: "kitchen_temp"
-  state_topic: "Devices/PLC/Home/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/TEMP"
+  state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/TEMP"
   unit_of_measurement: "°C"
   qos: 2
   availability:
-    - topic: "Devices/PLC/Home/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/availability"
-    - topic: "Devices/PLC/Home/availability"
+    - topic: "Devices/PLC/House/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/availability"
+    - topic: "Devices/PLC/House/availability"
   availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
