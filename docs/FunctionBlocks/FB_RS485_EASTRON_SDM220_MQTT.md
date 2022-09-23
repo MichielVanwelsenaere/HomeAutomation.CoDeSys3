@@ -124,7 +124,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/VOLT"
   unit_of_measurement: "Volts"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -132,7 +135,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/CURR"
   unit_of_measurement: "Amps"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -140,7 +146,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/ACTP"
   unit_of_measurement: "Watts"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -148,7 +157,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/APPP"
   unit_of_measurement: "VoltAmps"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -156,7 +168,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/REAP"
   unit_of_measurement: "VAr"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -171,7 +186,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/PHAA"
   unit_of_measurement: "Degree"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -179,7 +197,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/FREQ"
   unit_of_measurement: "Hz"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -187,7 +208,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/IMAE"
   unit_of_measurement: "kwh"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -195,7 +219,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/EXAE"
   unit_of_measurement: "kwh"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -203,7 +230,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/IMRE"
   unit_of_measurement: "kvarh"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -211,7 +241,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/EXRE"
   unit_of_measurement: "kvarh"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -219,7 +252,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/TOTAE"
   unit_of_measurement: "kwh"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
@@ -227,7 +263,10 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/TOTRE"
   unit_of_measurement: "kvarh"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
+  availability_mode : "all"
   payload_available: "online"
   payload_not_available: "offline"
 ```
