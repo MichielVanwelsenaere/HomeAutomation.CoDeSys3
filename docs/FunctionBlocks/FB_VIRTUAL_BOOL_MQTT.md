@@ -117,7 +117,7 @@ When using the function block as a virtual output use the YAML code below in you
   name: "FB_VIRTUAL_BOOL_001"
   state_topic: "Devices/PLC/House/Out/Virtuals/FB_VIRTUAL_BOOL_001"
   qos: 2  
-  availability_topic: "Devices/Devices/PLC/House/availability"
+  availability_topic: "Devices/PLC/House/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```
