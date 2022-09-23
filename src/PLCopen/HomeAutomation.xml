@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-09-23T16:22:17.1582153" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-09-23T16:21:43.9731784">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-09-23T16:44:28.5331101" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-09-23T16:43:51.4348021">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -4120,6 +4120,13 @@ END_IF
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.Error := Error^;
 THIS^.timerData.IN := TRUE;
+
+IF Error^ THEN
+	PubMqttMessage(Suffix := '/availability', Data := 'offline');
+ELSE
+	PubMqttMessage(Suffix := '/availability', Data := 'online');
+END_IF
+
 IF NOT Error^ THEN
 	THIS^.ACTIVEPOWER := SwapWordsToReal(Data^[0], Data^[1]);
 	THIS^.isDataUpdated := TRUE;
@@ -4257,6 +4264,37 @@ END_IF</xhtml>
 	IF DeviceType = RS485_EASTRON_SDM_Devices.SDM630 THEN
 		GetRtuQuery := THIS^.SDM630RtuQuery;		
 	END_IF
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PubMqttMessage">
+              <interface>
+                <inputVars>
+                  <variable name="Suffix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := Data,
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix ),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
 END_IF</xhtml>
                 </ST>
               </body>
@@ -4760,7 +4798,13 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF ActiveRtuQuery = 1 THEN
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Error^ THEN
+	PubMqttMessage(Suffix := '/availability', Data := 'offline');
+ELSE
+	PubMqttMessage(Suffix := '/availability', Data := 'online');
+END_IF
+
+IF ActiveRtuQuery = 1 THEN
 	THIS^.Error1 := Error^;
 	THIS^.timerData1.IN := TRUE;
 	IF NOT Error^ THEN
@@ -4942,6 +4986,37 @@ ELSIF timerData3.Q THEN
 	THIS^.timerData3.IN := FALSE;
 	THIS^.ActiveRtuQuery := 3;
 	GetRtuQuery := THIS^.Data3RtuQuery;	
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PubMqttMessage">
+              <interface>
+                <inputVars>
+                  <variable name="Suffix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := Data,
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix ),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
 END_IF</xhtml>
                 </ST>
               </body>
