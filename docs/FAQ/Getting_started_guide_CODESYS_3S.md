@@ -27,7 +27,7 @@ This will restore the basic POUs (building blocks) of the project, note that you
 
 <img src="../_img/GettingStartedGuide/RestorePOUsNavigation.png" alt="Restore POUs navigiation" width="300"/>
 
-2. Select *Project* &rarr; *Import* and browse to the CODESYS3Export folder and open the *.export* file:
+2. Select *Project* &rarr; *Import* and browse to the Exports folder and open the *.export* file:
 
 <img src="../_img/GettingStartedGuide/RestorePOUsToplevel.png" alt="Restore POUs top level" width="300"/>
 
@@ -52,7 +52,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 ### __Restoring the PLC logic__
 
-1. select the *PlcLogic* item and go to *Project* &rarr; *Import* and browse to the CODESYS3Export folder and open the *.export* file:
+1. select the *PlcLogic* item and go to *Project* &rarr; *Import* and browse to the Exports folder and open the *.export* file:
 
 <img src="../_img/GettingStartedGuide/RestorePLCLogic.png" alt="Restore PLC logic" width="350"/>
 
