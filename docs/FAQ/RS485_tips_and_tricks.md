@@ -3,10 +3,10 @@ This page describes some tips and tricks to verify and resolve RS485 issues.
 
 ### __Testing the RS485 device__
 In many cases it can be usefull to test the RS485 device from a PC before attempting to connect and read it out by your PLC device. In first instance it allows detection of faulty devices but in parallel also provides more insights in the structure of the device modbus registers .
-
+<!-- markdown-link-check-disable -->
 To be able to communicate with modbus RTU devices from a PC you'll need a USB to RS485 convertor ([example here](https://www.aliexpress.com/item/32638090708.html)). 
 Consider acquiring two convertors to simultaneously send modbus commands and sniff the traffic. 
-
+<!-- markdown-link-check-enable -->
 Using [QModMaster](https://sourceforge.net/projects/qmodmaster/) specific modbus RTU commands can be executed. For example:
 
 <img src="../_img/RS485_PC_QModMaster_Commands.png" width="550">
