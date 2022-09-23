@@ -115,7 +115,7 @@ When using the function block as a virtual output use the YAML code below in you
 ```YAML
 - platform: mqtt
   name: "FB_VIRTUAL_BOOL_001"
-  state_topic: "WAGO-PFC200/Out/Virtual/FB_VIRTUAL_BOOL_001"
+  state_topic: "WAGO-PFC200/Out/Virtuals/FB_VIRTUAL_BOOL_001"
   qos: 2  
   availability_topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
