@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-06-12T20:59:10.7962368" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-06-12T20:58:09.3200542">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-09-23T16:22:17.1582153" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-09-23T16:21:43.9731784">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -5394,6 +5394,76 @@ END_IF</xhtml>
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessDataArray">
+              <interface>
+                <inputVars>
+                  <variable name="Error">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BOOL />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <array>
+                            <dimension lower="0" upper="124" />
+                            <baseType>
+                              <WORD />
+                            </baseType>
+                          </array>
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.timerData.IN := TRUE;
+
+IF WORD_TO_INT(Data^[12]) &lt;&gt; 0 OR Error^ THEN
+	THIS^.Error := TRUE;
+	PubMqttMessage(Suffix := '/availability', Data := 'offline');
+ELSE 	
+	THIS^.Error := FALSE;
+	THIS^.DataAvailable := TRUE;
+	PubMqttMessage(Suffix := '/availability', Data := 'online');
+END_IF
+
+// Data handling
+IF NOT Error^ AND WORD_TO_INT(Data^[12]) = 0 THEN
+	IF Data^[16] = 11151 OR Data^[16] = 11152 THEN // Temperature, humidity &amp; air quality
+		ProcessTemperature(Data^[0]);		
+		ProcessOwdVoltage(Data^[2]);
+		ProcessHumidity(Data^[4]);
+		ProcessDewPoint(Data^[6]);
+		ProcessAirQuality(Data^[8]);
+	ELSIF Data^[16] = 11102 OR Data^[16] = 11113 OR Data^[16] = 11120 OR Data^[16] = 11148 OR Data^[16] = 11150 OR Data^[16] = 11160 THEN // Temperature, humidity
+		ProcessTemperature(Data^[0]);		
+		ProcessOwdVoltage(Data^[2]);
+		ProcessHumidity(Data^[4]);
+		ProcessDewPoint(Data^[6]);
+	ELSIF Data^[16] = 11121 OR Data^[16] = 11132 OR Data^[16] = 11134 OR Data^[16] = 11135 THEN // Temperature, humidity, brightness
+		ProcessTemperature(Data^[0]);		
+		ProcessOwdVoltage(Data^[2]);
+		ProcessHumidity(Data^[4]);
+		ProcessDewPoint(Data^[6]);
+		ProcessBrigthness(Data^[8]);
+	ELSIF Data^[16] = 1820  THEN // Temperature DS18B20
+        ProcessTemperature(Data^[0]);
+	END_IF		
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="RequestBusTime">
               <interface>
                 <returnType>
@@ -5492,6 +5562,117 @@ THIS^.InitMqttDone := TRUE;</xhtml>
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PubMqttMessage">
+              <interface>
+                <inputVars>
+                  <variable name="Suffix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := Data,
+			Topic := CONCAT(CONCAT(CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/OWD/'), UINT_TO_STRING(OwdNumber)), Suffix ),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessTemperature">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.TEMPERATURE := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessOwdVoltage">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OWD_VOLTAGE := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/OWDV', Data := REAL_TO_STRING(OWD_VOLTAGE));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessHumidity">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.HUMIDITY := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/HUM', Data := REAL_TO_STRING(HUMIDITY));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessDewPoint">
+              <interface>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <WORD />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DEW_POINT := WORD_TO_REAL(Data) / 100;
+PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="ProcessAirQuality">
               <interface>
                 <inputVars>
@@ -5526,185 +5707,6 @@ PubMqttMessage(Suffix := '/AIRQ', Data := REAL_TO_STRING(AIR_QUALITY));</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.BRIGHTNESS := WORD_TO_REAL(Data) / 100;
 PubMqttMessage(Suffix := '/BNESS', Data := REAL_TO_STRING(BRIGHTNESS));</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ProcessDataArray">
-              <interface>
-                <inputVars>
-                  <variable name="Error">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <BOOL />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="Data">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <array>
-                            <dimension lower="0" upper="124" />
-                            <baseType>
-                              <WORD />
-                            </baseType>
-                          </array>
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.timerData.IN := TRUE;
-
-IF WORD_TO_INT(Data^[12]) &lt;&gt; 0 OR Error^ THEN
-	THIS^.Error := TRUE;
-	PubMqttMessage(Suffix := '/availability', Data := 'offline');
-ELSE 	
-	THIS^.Error := FALSE;
-	THIS^.DataAvailable := TRUE;
-	PubMqttMessage(Suffix := '/availability', Data := 'online');
-END_IF
-
-// Data handling
-IF NOT Error^ AND WORD_TO_INT(Data^[12]) = 0 THEN
-	IF Data^[16] = 11151 OR Data^[16] = 11152 THEN // Temperature, humidity &amp; air quality
-		ProcessTemperature(Data^[0]);		
-		ProcessOwdVoltage(Data^[2]);
-		ProcessHumidity(Data^[4]);
-		ProcessDewPoint(Data^[6]);
-		ProcessAirQuality(Data^[8]);
-	ELSIF Data^[16] = 11102 OR Data^[16] = 11113 OR Data^[16] = 11120 OR Data^[16] = 11148 OR Data^[16] = 11150 OR Data^[16] = 11160 THEN // Temperature, humidity
-		ProcessTemperature(Data^[0]);		
-		ProcessOwdVoltage(Data^[2]);
-		ProcessHumidity(Data^[4]);
-		ProcessDewPoint(Data^[6]);
-	ELSIF Data^[16] = 11121 OR Data^[16] = 11132 OR Data^[16] = 11134 OR Data^[16] = 11135 THEN // Temperature, humidity, brightness
-		ProcessTemperature(Data^[0]);		
-		ProcessOwdVoltage(Data^[2]);
-		ProcessHumidity(Data^[4]);
-		ProcessDewPoint(Data^[6]);
-		ProcessBrigthness(Data^[8]);
-	END_IF		
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ProcessDewPoint">
-              <interface>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <WORD />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DEW_POINT := WORD_TO_REAL(Data) / 100;
-PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ProcessHumidity">
-              <interface>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <WORD />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.HUMIDITY := WORD_TO_REAL(Data) / 100;
-PubMqttMessage(Suffix := '/HUM', Data := REAL_TO_STRING(HUMIDITY));</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ProcessOwdVoltage">
-              <interface>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <WORD />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OWD_VOLTAGE := WORD_TO_REAL(Data) / 100;
-PubMqttMessage(Suffix := '/OWDV', Data := REAL_TO_STRING(OWD_VOLTAGE));</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ProcessTemperature">
-              <interface>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <WORD />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.TEMPERATURE := WORD_TO_REAL(Data) / 100;
-PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PubMqttMessage">
-              <interface>
-                <inputVars>
-                  <variable name="Suffix">
-                    <type>
-                      <string length="100" />
-                    </type>
-                  </variable>
-                  <variable name="Data">
-                    <type>
-                      <string length="100" />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
-			Payload := Data,
-			Topic := CONCAT(CONCAT(CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/OWD/'), UINT_TO_STRING(OwdNumber)), Suffix ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -9421,21 +9423,8 @@ IF(NOT xComPortOpen AND NOT xComPortError) THEN
     xComPortOpen := NOT xComPortError;
 END_IF
 
-IF(xComPortOpen) THEN
-    IF FB_RS485_EASTRON_SDM220_1.RequestMaster(ADR(RS485BusController)) THEN
-		IF FB_RS485_EASTRON_SDM220_1.ActiveRtuQuery = 0 THEN
-			ActiveRtuQuery := FB_RS485_EASTRON_SDM220_1.GetRtuQuery();
-			Trigger := TRUE; // Start the Modbus RTU query
-		ELSIF fbModbusRequest.xDone OR fbModbusRequest.xError THEN // Modbus RTU query completed, process it
-			FB_RS485_EASTRON_SDM220_1.ProcessDataArray(Error:=fbModbusRequest.xError, Data:=ADR(awReadBuffer));
-			RS485BusController.ReleaseBus();
-			TRIGGER := FALSE;
-		END_IF	
-	END_IF
 
-END_IF
-
-IF xComPortOpen AND RS485BusController.BusOcupied THEN
+IF xComPortOpen THEN
 	fbModbusRequest.modbusCommand.uiFunctionCode := RS485BusController.ActiveRtuQuery.FunctionCode;
     fbModbusRequest.modbusCommand.uiReadOffset := RS485BusController.ActiveRtuQuery.ReadAddress;	
     fbModbusRequest.modbusCommand.uiReadLen :=RS485BusController.ActiveRtuQuery.ReadQuantity;	   
@@ -9449,7 +9438,7 @@ IF xComPortOpen AND RS485BusController.BusOcupied THEN
         usiSlaveAddr := RS485BusController.ActiveRtuQuery.DeviceId,		
         byModbusError =&gt; eComError);
 		
-END_IF	
+END_IF
 *)
 	
 (* é!COCKPIT version*)
