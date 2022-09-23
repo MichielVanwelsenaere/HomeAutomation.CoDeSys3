@@ -178,7 +178,9 @@ To integrate with Home Assistant use the YAML code below in your [MQTT sensors](
   name: "FB_RS485_EASTRON_SDM220_001_POWF"
   state_topic: "WAGO-PFC200/Out/RS485/FB_RS485_EASTRON_SDM220_001/POWF"
   qos: 2
-  availability_topic: "Devices/WAGO-PFC200/availability"
+  availability:
+    - topic: "Devices/WAGO-PFC200/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+    - topic: "Devices/WAGO-PFC200/availability"
   payload_available: "online"
   payload_not_available: "offline"
 - platform: mqtt
