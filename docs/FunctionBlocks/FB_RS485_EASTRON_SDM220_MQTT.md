@@ -11,8 +11,8 @@ Due to the large amount of modbus registers exposed and the Eastron SDM220 limit
 ----------------------------
 
 Eastron SDM220 datasheets:
-- [SDM220ModbusEN](../RS485/datasheets/SDM220ModbusEN.pdf)
-- [SDM220Register](../RS485/datasheets/SDM220Register.pdf)
+- [Manual](../RS485/datasheets/SDM220_Manual.pdf)
+- [Modbus registers](../RS485/datasheets/SDM220_Modbus_Registers.pdf)
 
 ### __Block diagram__
 
