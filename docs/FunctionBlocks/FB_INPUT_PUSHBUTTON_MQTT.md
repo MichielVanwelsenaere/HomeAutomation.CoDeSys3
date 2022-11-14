@@ -71,21 +71,21 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
 ```YAML
-# To receive single/double/long events
-- platform: mqtt
-  name: "FB_DI_PB_001"
-  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
-  qos: 2
-  expire_after: 3
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
-# To receive state of output P_LONG
-- platform: mqtt
-  name: "FB_DI_PB_001_P_LONG"
-  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
-  qos: 2
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
+mqtt:
+  sensor:
+  # To receive single/double/long events
+  - name: "FB_DI_PB_001"
+    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
+    qos: 2
+    expire_after: 3
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
+  # To receive state of output P_LONG
+  - name: "FB_DI_PB_001_P_LONG"
+    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
+    qos: 2
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
 ```

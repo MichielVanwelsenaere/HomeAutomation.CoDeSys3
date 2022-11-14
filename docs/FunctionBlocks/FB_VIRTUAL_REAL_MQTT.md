@@ -111,13 +111,14 @@ A value X in the PLC is set to the IN value of the virtual function block, the I
 When using the function block as a virtual output use the YAML code below in your [MQTT Sensor](https://www.home-assistant.io/integrations/sensor.mqtt/) config to integrate with Home Assistant:
 
 ```YAML
-- platform: mqtt
-  name: "FB_VIRTUAL_REAL_001"
-  state_topic: "Devices/PLC/House/Out/Virtuals/FB_VIRTUAL_REAL_001"
-  qos: 2  
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
+mqtt:
+  sensor:
+  - name: "FB_VIRTUAL_REAL_001"
+    state_topic: "Devices/PLC/House/Out/Virtuals/FB_VIRTUAL_REAL_001"
+    qos: 2  
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
 ```
 
 When using the function block as a virtual input use the YAML code below in your [Input Number](https://www.home-assistant.io/integrations/input_number/) config to integrate with Home Assistant: 
