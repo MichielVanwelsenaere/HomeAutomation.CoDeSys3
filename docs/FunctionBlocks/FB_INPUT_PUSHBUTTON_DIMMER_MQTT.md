@@ -93,45 +93,42 @@ FB_DI_PB_001(PB:= DI_001);
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
 ```YAML
-# To receive single/double/long events
-- platform: mqtt
-  name: "FB_DI_PB_001"
-  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
-  qos: 2
-  expire_after: 3
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
-# To receive state of output Q
-- platform: mqtt
-  name: "FB_DI_PB_001_Q"
-  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/Q"
-  qos: 2
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
-# To receive state of output DBL
-- platform: mqtt
-  name: "FB_DI_PB_001_DBL"
-  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DBL"
-  qos: 2
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
-# To receive state of output DIM
-- platform: mqtt
-  name: "FB_DI_PB_001_DIM"
-  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM"
-  qos: 2
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
-# To receive state of output P_LONG
-- platform: mqtt
-  name: "FB_DI_PB_001_P_LONG"
-  state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
-  qos: 2
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
+mqtt:
+  sensor:
+  # To receive single/double/long events  
+  - name: "FB_DI_PB_001"
+    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
+    qos: 2
+    expire_after: 3
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
+  # To receive state of output Q
+  - name: "FB_DI_PB_001_Q"
+    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/Q"
+    qos: 2
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
+  # To receive state of output DBL
+  - name: "FB_DI_PB_001_DBL"
+    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DBL"
+    qos: 2
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
+  # To receive state of output DIM
+  - name: "FB_DI_PB_001_DIM"
+    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM"
+    qos: 2
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
+  # To receive state of output P_LONG
+  - name: "FB_DI_PB_001_P_LONG"
+    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
+    qos: 2
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
 ```

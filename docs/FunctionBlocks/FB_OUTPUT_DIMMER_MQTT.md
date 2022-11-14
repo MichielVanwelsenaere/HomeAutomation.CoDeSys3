@@ -151,19 +151,20 @@ The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
 ```YAML
-- platform: mqtt
-  name: "FB_AO_DIM_001"
-  state_topic: "Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/Q"
-  command_topic: "Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001"
-  brightness_command_topic: "Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001"
-  brightness_scale: 255
-  brightness_state_topic: "Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/OUT"
-  on_command_type: "last"
-  payload_on: "TRUE"
-  payload_off: "FALSE"
-  qos: 2
-  optimistic: false
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
+mqtt:
+  light:
+  - name: "FB_AO_DIM_001"
+    state_topic: "Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/Q"
+    command_topic: "Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001"
+    brightness_command_topic: "Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001"
+    brightness_scale: 255
+    brightness_state_topic: "Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/OUT"
+    on_command_type: "last"
+    payload_on: "TRUE"
+    payload_off: "FALSE"
+    qos: 2
+    optimistic: false
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
 ```

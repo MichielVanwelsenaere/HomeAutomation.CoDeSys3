@@ -138,19 +138,20 @@ AC Wiring (uses MTR12-UC)   | DC Wiring (uses DCM12-UC)
 To integrate with Home Assistant use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
 
 ```YAML
-- platform: mqtt 
-  name: "FB_DO_COVER_001"
-  command_topic: "Devices/PLC/House/In/Covers/FB_DO_COVER_001" 
-  position_topic: "Devices/PLC/House/Out/Covers/FB_DO_COVER_001" 
-  set_position_topic: "Devices/PLC/House/In/Covers/FB_DO_COVER_001" 
-  payload_open: "OPEN" 
-  payload_close: "CLOSE" 
-  payload_stop: "STOP" 
-  position_open: 100 
-  position_closed: 0 
-  qos: 2 
-  optimistic: false 
-  availability_topic: "Devices/PLC/House/availability" 
-  payload_available: "online" 
-  payload_not_available: "offline"
+mqtt:
+  cover:
+  - name: "FB_DO_COVER_001"
+    command_topic: "Devices/PLC/House/In/Covers/FB_DO_COVER_001" 
+    position_topic: "Devices/PLC/House/Out/Covers/FB_DO_COVER_001" 
+    set_position_topic: "Devices/PLC/House/In/Covers/FB_DO_COVER_001" 
+    payload_open: "OPEN" 
+    payload_close: "CLOSE" 
+    payload_stop: "STOP" 
+    position_open: 100 
+    position_closed: 0 
+    qos: 2 
+    optimistic: false 
+    availability_topic: "Devices/PLC/House/availability" 
+    payload_available: "online" 
+    payload_not_available: "offline"
 ```

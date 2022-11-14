@@ -86,15 +86,16 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
 ```YAML
-- platform: mqtt
-  name: "FB_DO_SW_001"
-  state_topic: "Devices/PLC/House/Out/DigitalOutputs/FB_DO_SW_001"
-  command_topic: "Devices/PLC/House/In/DigitalOutputs/FB_DO_SW_001"
-  payload_on: "TRUE"
-  payload_off: "FALSE"
-  qos: 2
-  optimistic: false
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
+mqtt:
+  light:
+  - name: "FB_DO_SW_001"
+    state_topic: "Devices/PLC/House/Out/DigitalOutputs/FB_DO_SW_001"
+    command_topic: "Devices/PLC/House/In/DigitalOutputs/FB_DO_SW_001"
+    payload_on: "TRUE"
+    payload_off: "FALSE"
+    qos: 2
+    optimistic: false
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
 ```

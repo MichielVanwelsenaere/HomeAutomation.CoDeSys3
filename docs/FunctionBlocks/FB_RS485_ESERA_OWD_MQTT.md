@@ -43,16 +43,18 @@ FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.EnableOwd(
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config. Adopt where necessary depending on the exposed values of your OWD.
 
 ```YAML
-- platform: mqtt
-  name: "temperature kitchen"
-  object_id: "kitchen_temp"
-  state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/TEMP"
-  unit_of_measurement: "°C"
-  qos: 2
-  availability:
-    - topic: "Devices/PLC/House/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/availability"
-    - topic: "Devices/PLC/House/availability"
-  availability_mode : "all"
-  payload_available: "online"
-  payload_not_available: "offline"
+
+mqtt:
+  sensor:
+  - name: "temperature kitchen"
+    object_id: "kitchen_temp"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/TEMP"
+    unit_of_measurement: "°C"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
 ```

@@ -77,20 +77,21 @@ RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM_POWER_001);
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
 ```YAML
-- platform: mqtt
-  name: "car charger power"
-  object_id: "car_charger_power"
-  state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/ACTP"
-  unit_of_measurement: "W"
-  device_class: "power"
-  state_class: "measurement"
-  qos: 2
-  availability:
-    - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
-    - topic: "Devices/PLC/House/availability"
-  availability_mode : "all"
-  payload_available: "online"
-  payload_not_available: "offline"
+mqtt:
+  sensor:
+  - name: "car charger power"
+    object_id: "car_charger_power"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/ACTP"
+    unit_of_measurement: "W"
+    device_class: "power"
+    state_class: "measurement"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
 ```
 
 In addition to the above a [Riemann sum integral](https://www.home-assistant.io/integrations/integration/) integration can be added to calculate the energy (kWh) from the power (W):

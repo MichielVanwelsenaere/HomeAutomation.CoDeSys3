@@ -125,14 +125,15 @@ When using the function block as a virtual output use the YAML code below in you
 When using the function block as a virtual input use the YAML code below in your [MQTT Switch](https://www.home-assistant.io/integrations/switch.mqtt/) config to integrate with Home Assistant: 
 
 ```YAML
-- platform: mqtt
-  name: "FB_VIRTUAL_BOOL_001"
-  command_topic: "Devices/PLC/House/In/Virtuals/FB_VIRTUAL_BOOL_001"
-  payload_on: "TRUE"
-  payload_off: "FALSE"
-  qos: 2
-  optimistic: true
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
+mqtt:
+  switch:
+  - name: "FB_VIRTUAL_BOOL_001"
+    command_topic: "Devices/PLC/House/In/Virtuals/FB_VIRTUAL_BOOL_001"
+    payload_on: "TRUE"
+    payload_off: "FALSE"
+    qos: 2
+    optimistic: true
+    availability_topic: "Devices/PLC/House/availability"
+    payload_available: "online"
+    payload_not_available: "offline"
 ```
