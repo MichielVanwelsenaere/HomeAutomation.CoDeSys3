@@ -2,14 +2,18 @@
 
 ### __General__
 Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired.
-This function block aims to read power consumption from a range of Eastron SDM power meters. Currently the Eastron SDM220 and SDM630 are supported.
+This function block aims to read power consumption from a range of Eastron SDM power meters. Currently the Eastron SDM120, SDM220 and SDM630 are supported.
+
+Eastron SDM120 datasheets:
+- [Manual](../RS485/datasheets/SDM120_Manual.pdf)
+- [Modbus registers](../RS485/datasheets/SDM120_Modbus_Registers.pdf)
 
 Eastron SDM220 datasheets:
-- [SDM220ModbusEN](../RS485/datasheets/SDM220ModbusEN.pdf)
-- [SDM220Register](../RS485/datasheets/SDM220Register.pdf)
+- [Manual](../RS485/datasheets/SDM220_Manual.pdf)
+- [Modbus registers](../RS485/datasheets/SDM220_Modbus_Registers.pdf)
 
 Eastron SDM630 datasheet:
-- [SDM630Register](../RS485/datasheets/SDM630-Modbus-V2.pdf)
+- [Manual and Modbus registers](../RS485/datasheets/SDM630-Modbus-V2.pdf)
 
 ### __Block diagram__
 
