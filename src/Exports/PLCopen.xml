@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-09-23T18:01:39.2643905" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-09-23T18:01:16.8012502">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2022-11-14T18:30:35.868664" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2022-11-14T18:29:50.9667677">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -68,6 +68,7 @@
         <baseType>
           <enum>
             <values>
+              <value name="SDM120" />
               <value name="SDM220" />
               <value name="SDM630" />
             </values>
@@ -4017,7 +4018,7 @@ THIS^.deviceActive := FALSE;</xhtml>
                 <derived name="RS485_EASTRON_SDM_Devices" />
               </type>
             </variable>
-            <variable name="SDM220RtuQuery">
+            <variable name="SDM120AndSDM220RtuQuery">
               <type>
                 <derived name="RS485_RtuQuery" />
               </type>
@@ -4166,7 +4167,7 @@ ActiveDevice := FALSE;
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.timerData.PT := DataPollingInterval;
-THIS^.SDM220RtuQuery.DeviceId := DeviceAddress;
+THIS^.SDM120AndSDM220RtuQuery.DeviceId := DeviceAddress;
 THIS^.SDM630RtuQuery.DeviceId := DeviceAddress;
 THIS^.timerData.IN := TRUE;
 THIS^.DeviceType := DeviceType;
@@ -4258,8 +4259,8 @@ END_IF</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
 	THIS^.timerData.IN := FALSE;
-	IF DeviceType = RS485_EASTRON_SDM_Devices.SDM220 THEN
-		GetRtuQuery := THIS^.SDM220RtuQuery;		
+	IF DeviceType = RS485_EASTRON_SDM_Devices.SDM120 OR  DeviceType = RS485_EASTRON_SDM_Devices.SDM220 THEN
+		GetRtuQuery := THIS^.SDM120AndSDM220RtuQuery;		
 	END_IF
 	IF DeviceType = RS485_EASTRON_SDM_Devices.SDM630 THEN
 		GetRtuQuery := THIS^.SDM630RtuQuery;		
@@ -7760,6 +7761,8 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
+                <Attribute Name="checksumnoinit_override" Value="1969566054" />
+                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
