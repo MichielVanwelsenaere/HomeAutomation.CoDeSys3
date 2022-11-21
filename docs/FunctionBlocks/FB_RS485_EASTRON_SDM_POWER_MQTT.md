@@ -91,7 +91,7 @@ mqtt:
     state_class: "measurement"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"

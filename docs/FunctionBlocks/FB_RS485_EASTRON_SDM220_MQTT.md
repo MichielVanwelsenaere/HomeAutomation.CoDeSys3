@@ -126,7 +126,7 @@ mqtt:
     unit_of_measurement: "Volts"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -136,7 +136,7 @@ mqtt:
     unit_of_measurement: "Amps"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -146,7 +146,7 @@ mqtt:
     unit_of_measurement: "Watts"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -156,7 +156,7 @@ mqtt:
     unit_of_measurement: "VoltAmps"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -166,7 +166,7 @@ mqtt:
     unit_of_measurement: "VAr"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -175,7 +175,7 @@ mqtt:
     state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/POWF"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     payload_available: "online"
     payload_not_available: "offline"
@@ -184,7 +184,7 @@ mqtt:
     unit_of_measurement: "Degree"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -194,7 +194,7 @@ mqtt:
     unit_of_measurement: "Hz"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -204,7 +204,7 @@ mqtt:
     unit_of_measurement: "kwh"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -214,7 +214,7 @@ mqtt:
     unit_of_measurement: "kwh"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -224,7 +224,7 @@ mqtt:
     unit_of_measurement: "kvarh"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -234,7 +234,7 @@ mqtt:
     unit_of_measurement: "kvarh"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -244,7 +244,7 @@ mqtt:
     unit_of_measurement: "kwh"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -254,7 +254,7 @@ mqtt:
     unit_of_measurement: "kvarh"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Home/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
       - topic: "Devices/PLC/House/availability"
     availability_mode : "all"
     payload_available: "online"
