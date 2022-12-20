@@ -17,8 +17,6 @@ DUCO DUCOBOX Focus data:
 
 <img src="../_img/FB_RS485_DUCO_DUCOBOX_MQTT.svg" width="500">
 
-OUTPUT(S): TODO
-
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.  
