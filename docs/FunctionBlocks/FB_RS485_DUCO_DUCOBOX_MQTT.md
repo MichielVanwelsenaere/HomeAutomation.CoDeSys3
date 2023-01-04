@@ -1,7 +1,7 @@
 ## FB_RS485_DUCO_DUCOBOX_MQTT
 
 ### __General__
-Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired. Allows controlling the duco
+Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired. Allows finegrained local control on your DucoBox.
 
 ----------------------------
 
@@ -47,6 +47,17 @@ MQTT publish topic is a concatination of the publish prefix and the function blo
 | RH Value | `/RH` | % | Humidity Control valve only.
 | Location Number | `/LOCNR` | N/A | Indicates a number of a group of components belonging together.
 
+### __MQTT Subscription Behaviour__
+Requires method call `InitMQTT` to enable MQTT capabilities.
+Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
+
+| Command | Description | expected payload | Additional notes | 
+|:-------------|:------------------|:------------------|:------------------|
+| **write holding** | Writes an integer value to a specific register. | `INT` | Only integer values are processed further.
+
+MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents entire system). Go through the DUCO modbus register documentation linked above for a deeper understanding.
+
+Upon a succesfull write operation the received payload will be published on the 'Out' topic. Continuing with the example above this will result in a payload `30` to be published on topic `Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/0`.
 
 ### __Code example__
 
