@@ -55,7 +55,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 |:-------------|:------------------|:------------------|:------------------|
 | **write holding** | Writes an integer value to a specific register. | `INT` | Only integer values are processed further.
 
-MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents entire system). Go through the DUCO modbus register documentation linked above for a deeper understanding.
+MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents the entire system). Go through the DUCO modbus register documentation linked above for a deeper understanding.
 
 Upon a succesfull write operation the received payload will be published on the 'Out' topic. Continuing with the example above this will result in a payload `30` to be published on topic `Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/0`.
 
@@ -63,7 +63,7 @@ Upon a succesfull write operation the received payload will be published on the 
 
 - variables initiation:
 ```
-MQTTPubRS485Prefix                      :STRING(100) := 'Devices/PLC/House/Out/RS485/';
+MQTTPubRS485Prefix						:STRING(100) := 'Devices/PLC/House/Out/RS485/';
 FB_RS485_DUCO_DUCOBOX_MQTT_001			:FB_RS485_DUCO_DUCOBOX_MQTT;
 ```
 
