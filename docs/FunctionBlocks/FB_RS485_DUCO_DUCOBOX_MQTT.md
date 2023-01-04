@@ -63,8 +63,8 @@ Upon a succesfull write operation the received payload will be published on the 
 
 - variables initiation:
 ```
-MQTTPubRS485Prefix						:STRING(100) := 'Devices/PLC/House/Out/RS485/';
-FB_RS485_DUCO_DUCOBOX_MQTT_001			:FB_RS485_DUCO_DUCOBOX_MQTT;
+MQTTPubRS485Prefix                :STRING(100) := 'Devices/PLC/House/Out/RS485/';
+FB_RS485_DUCO_DUCOBOX_MQTT_001    :FB_RS485_DUCO_DUCOBOX_MQTT;
 ```
 
 - Init RS485 method call (called once during startup):
