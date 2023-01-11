@@ -15,6 +15,8 @@ In `DMXVariables` you can set an IP. This depends on your topology. Multicast wo
 
 In `DMX_SEND` you can set the universe. `0` is not recommended for art-net. the default is therefore `1`
 
+
+
 ### **Debug**
 
 With wireshark you can track your network. ArtNet/DMX has a dedicated parser.
