@@ -147,6 +147,18 @@ FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q
 ```
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 0/1-10V analog input that is wired to the 'Q_OUT' output of the dimmer.
 
+### __Home Assistant auto discovery__
+To integrate with Home Assistant automatically add this method in init.
+```
+FB_AO_DIMMER_001.InitMqttDiscovery(
+	name := 'Office strip cold',					(* The name show in Home Assistant frond-end*)
+	overruleId:= 'DIMMER_OFFICE_CW', 				(* set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  *)
+	icon := 'mdi:lightbulb',  						(* specify icon*)
+	MQTTDiscoverPrefix:= ADR(MqttDiscoverPrefix),   (* pointer to string prefix for the MQTT discover topic *)
+	Device := MQTT_Device							(* The device show in Home Assistant *)
+);
+```
+
 ### __Home Assistant YAML__
 To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
