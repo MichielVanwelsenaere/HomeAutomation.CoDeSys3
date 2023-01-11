@@ -345,7 +345,7 @@
         <Array Name="EmbeddedTypeGuids" Type="System.Guid">
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638089795579064895</Single>
+        <Single Name="Timestamp" Type="long">638090452758371091</Single>
       </Single>
       <Single Name="Object" Type="{2db5746d-d284-4425-9f7f-2663a34b0ebc}" Method="IArchivable">
         <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
@@ -492,9 +492,9 @@
                 <Single Name="Text" Type="string">	dmxUniverse: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">99</Single>
+                <Single Name="Id" Type="long">106</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">	</Single>
+                <Single Name="Text" Type="string">	meta: JSONVAR; // extra metadata</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">100</Single>
@@ -519,7 +519,7 @@
             </Array>
           </Single>
         </Single>
-        <Single Name="UniqueIdGenerator" Type="string">105</Single>
+        <Single Name="UniqueIdGenerator" Type="string">106</Single>
       </Single>
       <Single Name="ParentSVNodeGuid" Type="System.Guid">00000000-0000-0000-0000-000000000000</Single>
       <Array Name="Path" Type="string" />
@@ -6450,7 +6450,7 @@ Tech Ruimte</Single>
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638090248871023478</Single>
+        <Single Name="Timestamp" Type="long">638090483822695538</Single>
       </Single>
       <Single Name="Object" Type="{6f9dac99-8de1-4efc-8465-68ac443b7d08}" Method="IArchivable">
         <Single Name="SpecialFunc" Type="{0db3d7bb-cde0-4416-9a7b-ce49a0124323}">None</Single>
@@ -6458,647 +6458,822 @@ Tech Ruimte</Single>
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">208</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">209</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">3</Single>
+                <Single Name="Id" Type="long">509</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">IF Startup THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">4</Single>
+                <Single Name="Id" Type="long">510</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	OUT := PreviousOUT;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">5</Single>
+                <Single Name="Id" Type="long">511</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Q := PreviousQ;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">6</Single>
+                <Single Name="Id" Type="long">512</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">7</Single>
+                <Single Name="Id" Type="long">513</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">8</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF RST THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">9</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	IF rst_out THEN OUT_Internal := 0; END_IF;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">10</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">11</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	dir := OUT_Internal &gt; 127;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">12</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSIF PRIO_HIGH THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">13</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q := TRUE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">14</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	OUT_Internal := 255;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">15</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSIF PRIO_LOW THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">16</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">17</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSIF MqttHighRequest THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">18</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q:= TRUE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">19</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	MqttHighRequest := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">20</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	MqttLowRequest := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">21</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSIF MqttLowRequest THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">22</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q:= FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">23</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	MqttHighRequest := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">24</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	MqttLowRequest := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">25</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSIF set THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">26</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	OUT_Internal := val;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">27</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q := TRUE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">28</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	(* set direction to up when value &lt; 127 otherwise set dir down dir is reversed because next action will reverse again *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">29</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	dir := OUT_Internal &gt; 127;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">30</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSIF SINGLE THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">31</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	(* a single click reverses output Q *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">32</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q := NOT Q;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">33</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	(* when dimmer is turned on we need to limit out to min and max limits *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">34</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	IF Q THEN OUT_Internal := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);	END_IF;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">35</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">36</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	dir := OUT_Internal &gt; 127;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">37</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSIF LONG THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">38</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	IF NOT Q THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">39</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		IF SOFT_DIMM THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">40</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">			OUT_Internal := 1;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">41</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">			dir := TRUE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">42</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		ELSE</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">43</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">			OUT_Internal := LIMIT(MAX(MIN_ON,1), OUT_Internal, MAX_ON);</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">44</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">			DIR := OUT_Internal &lt; 127;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">45</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		END_IF;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">46</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		Q := TRUE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">47</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	ELSE</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">48</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		(* reverse direction with every long click *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">49</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		dir := NOT dir;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">50</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	END_IF;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">51</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">END_IF;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">52</Single>
+                <Single Name="Id" Type="long">514</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">53</Single>
+                <Single Name="Id" Type="long">515</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">THIS^.DmxChannel := DmxChannel;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">516</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">THIS^.pDmxValues := pDmxValues;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">517</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">THIS^.InitDmxDone := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">518</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">54</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">(* while dimming is active ramp the output out up or down *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">55</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">dim(DIR := dir, e := P_LONG AND Q, TR := T_DIMM, rmp := OUT_Internal);</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">56</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">57</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">(* reverse direction when limits are reached *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">58</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF OUT_Internal = 0 THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">59</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	dir := TRUE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">60</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSIF OUT_Internal = 255 THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">61</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	dir := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">62</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">END_IF;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">63</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">64</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">(* limit the maximum runtime *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">65</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF t_ON_MAX &gt; t#0s THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">66</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	t3(in := q, pt := T_ON_MAX);</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">67</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q := Q XOR t3.Q;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">68</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">END_IF;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">69</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">70</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">(* Scale the internal OUT to the actual OUT *)</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">71</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">LIN_TRAFO(</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">72</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		IN:= OUT_Internal,</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">73</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		IN_MIN:= 0,</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">74</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		IN_MAX:= 255,</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">75</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		OUT_MIN:=OUT_LinearScaleMin,</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">76</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		OUT_MAX:=OUT_LinearScaleMax</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">77</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	);</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">78</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">OUT:= REAL_TO_WORD(LIN_TRAFO.OUT);</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">79</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF Q THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">80</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q_OUT:= OUT;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">81</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">ELSE</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">82</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Q_OUT:= 0;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">83</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">END_IF</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">84</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">85</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">86</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	PreviousOUT:=OUT_Internal;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">87</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(		</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">88</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		Payload := BYTE_TO_STRING(OUT_Internal),</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">89</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		Topic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">90</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		Qos := MQTT.QoS.ExactlyOnce,</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">91</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">92</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	);</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">93</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">END_IF</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">94</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">95</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF (Q &lt;&gt; PreviousQ OR Startup) AND InitMqttDone THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">96</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	PreviousQ:=Q;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">97</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">98</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		Payload := BOOL_TO_STRING(Q),</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">99</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		Topic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">100</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		Qos := Qos_Dimm,</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">101</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">102</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	);</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">103</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">END_IF</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">104</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">105</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">Startup:=FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">180</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string"></Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">181</Single>
+                <Single Name="Id" Type="long">519</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">(* DMX specific *)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">182</Single>
+                <Single Name="Id" Type="long">520</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF InitDmxDone THEN </Single>
+                <Single Name="Text" Type="string">IF SoftDimToValue = TRUE THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">183</Single>
+                <Single Name="Id" Type="long">521</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">	IF Q THEN</Single>
+                <Single Name="Text" Type="string">	IF OUT_Target &gt; OUT_Internal THEN // we are moving up to OUT_Internal </Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">184</Single>
+                <Single Name="Id" Type="long">522</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">		IF pDmxValues^.BUFFER[DmxChannel-1] &lt;&gt; OUT_Internal THEN</Single>
+                <Single Name="Text" Type="string">		IF OUT_Target - OUT_Internal &gt; UpdateValueStep THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">185</Single>
+                <Single Name="Id" Type="long">523</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">			pDmxValues^.BUFFER[DmxChannel-1] := OUT_Internal;</Single>
+                <Single Name="Text" Type="string">			OUT_Internal := OUT_Internal + UpdateValueStep;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">186</Single>
+                <Single Name="Id" Type="long">524</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">		END_IF</Single>
+                <Single Name="Text" Type="string">		ELSE</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">187</Single>
+                <Single Name="Id" Type="long">525</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">	ELSE </Single>
+                <Single Name="Text" Type="string">			OUT_Internal := OUT_Target;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">188</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		IF pDmxValues^.BUFFER[DmxChannel-1] &lt;&gt; 0 THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">189</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">			pDmxValues^.BUFFER[DmxChannel-1] := 0;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">190</Single>
+                <Single Name="Id" Type="long">526</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">191</Single>
+                <Single Name="Id" Type="long">527</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	ELSIF OUT_Target &lt; OUT_Internal THEN // we are moving down to OUT_Internal</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">528</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		IF OUT_Internal - OUT_Target &gt; UpdateValueStep THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">529</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			OUT_Internal := OUT_Internal - UpdateValueStep;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">530</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		ELSE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">531</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			OUT_Internal := OUT_Target;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">532</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			IF SoftDimToQFalse THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">533</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">				Q := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">534</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">535</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">536</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">192</Single>
+                <Single Name="Id" Type="long">537</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">193</Single>
+                <Single Name="Id" Type="long">538</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF SoftDimToValue AND OUT_Internal = OUT_Target THEN // If the same, softdim to value is done</Single>
+                <Single Name="Text" Type="string">(* DMX specific *)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">194</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	SoftDimToValue := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">195</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	IF SoftDimToQFalse THEN</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">196</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		SoftDimToQFalse := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">197</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		OUT_Internal := OUT_Internal_tmp;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">198</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">		PreviousOUT:=OUT_Internal;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">199</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	END_IF</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">200</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">END_IF</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">201</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">Startup:=FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">202</Single>
+                <Single Name="Id" Type="long">539</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">106</Single>
+                <Single Name="Id" Type="long">540</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">541</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF RST THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">542</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	IF rst_out THEN OUT_Internal := 0; END_IF;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">543</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">544</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	dir := OUT_Internal &gt; 127;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">545</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSIF PRIO_HIGH THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">546</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">547</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	OUT_Internal := 255;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">548</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSIF PRIO_LOW THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">549</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">550</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSIF MqttHighRequest THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">551</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q:= TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">552</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MqttHighRequest := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">553</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MqttLowRequest := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">554</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSIF MqttLowRequest THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">555</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q:= FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">556</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MqttHighRequest := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">557</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MqttLowRequest := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">558</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSIF set THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">559</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	OUT_Internal := val;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">560</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">561</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	(* set direction to up when value &lt; 127 otherwise set dir down dir is reversed because next action will reverse again *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">562</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	dir := OUT_Internal &gt; 127;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">563</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSIF SINGLE THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">564</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	(* a single click reverses output Q *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">565</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q := NOT Q;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">566</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	(* when dimmer is turned on we need to limit out to min and max limits *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">567</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	IF Q THEN </Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">568</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		OUT_Target := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">569</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		OUT_Internal := 0;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">570</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		SoftDimToValue := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">571</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	ELSE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">572</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		IF OUT_Internal &gt; 0 THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">573</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			OUT_Target := 0;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">574</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			OUT_Internal_tmp := OUT_Internal;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">575</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			Q := TRUE; // back to true while soft dimming to 0</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">576</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			SoftDimToValue := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">577</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			SoftDimToQFalse := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">578</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">579</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	END_IF;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">580</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">581</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	dir := OUT_Internal &gt; 127;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">582</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSIF LONG THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">583</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	IF NOT Q THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">584</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		IF SOFT_DIMM THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">585</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			OUT_Internal := 1;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">586</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			dir := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">587</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		ELSE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">588</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			OUT_Internal := LIMIT(MAX(MIN_ON,1), OUT_Internal, MAX_ON);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">589</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			DIR := OUT_Internal &lt; 127;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">590</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		END_IF;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">591</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Q := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">592</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	ELSE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">593</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		(* reverse direction with every long click *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">594</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		dir := NOT dir;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">595</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	END_IF;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">596</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">597</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">598</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">599</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">(* while dimming is active ramp the output out up or down *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">600</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">dim(DIR := dir, e := P_LONG AND Q, TR := T_DIMM, rmp := OUT_Internal);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">601</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">602</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">(* reverse direction when limits are reached *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">603</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF OUT_Internal = 0 THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">604</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	dir := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">605</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSIF OUT_Internal = 255 THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">606</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	dir := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">607</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">608</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">609</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">(* limit the maximum runtime *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">610</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF t_ON_MAX &gt; t#0s THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">611</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	t3(in := q, pt := T_ON_MAX);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">612</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q := Q XOR t3.Q;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">613</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">614</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">615</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">(* Scale the internal OUT to the actual OUT *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">616</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">LIN_TRAFO(</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">617</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		IN:= OUT_Internal,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">618</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		IN_MIN:= 0,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">619</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		IN_MAX:= 255,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">620</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		OUT_MIN:=OUT_LinearScaleMin,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">621</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		OUT_MAX:=OUT_LinearScaleMax</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">622</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">623</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">OUT:= REAL_TO_WORD(LIN_TRAFO.OUT);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">624</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF Q THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">625</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q_OUT:= OUT;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">626</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">ELSE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">627</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	Q_OUT:= 0;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">628</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">629</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">630</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">631</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	PreviousOUT:=OUT_Internal;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">632</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(		</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">633</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Payload := BYTE_TO_STRING(OUT_Internal),</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">634</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Topic := CONCAT(MQTTPublishTopic, '/OUT'),</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">635</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Qos := MQTT.QoS.ExactlyOnce,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">636</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">637</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">638</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">639</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">640</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF (Q &lt;&gt; PreviousQ OR Startup) AND InitMqttDone THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">641</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	PreviousQ:=Q;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">642</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">643</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Payload := BOOL_TO_STRING(Q),</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">644</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Topic := CONCAT(MQTTPublishTopic, '/Q'),</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">645</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Qos := Qos_Dimm,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">646</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">647</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">648</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">649</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">650</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">(* DMX specific *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">651</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF InitDmxDone THEN </Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">652</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	IF Q THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">653</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		IF pDmxValues^.BUFFER[DmxChannel-1] &lt;&gt; OUT_Internal THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">654</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			pDmxValues^.BUFFER[DmxChannel-1] := OUT_Internal;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">655</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">656</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	ELSE </Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">657</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		IF pDmxValues^.BUFFER[DmxChannel-1] &lt;&gt; 0 THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">658</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">			pDmxValues^.BUFFER[DmxChannel-1] := 0;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">659</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">660</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">661</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">662</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF SoftDimToValue AND OUT_Internal = OUT_Target THEN // If the same, softdim to value is done</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">663</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	SoftDimToValue := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">664</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	IF SoftDimToQFalse THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">665</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		SoftDimToQFalse := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">666</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		OUT_Internal := OUT_Internal_tmp;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">667</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		PreviousOUT:=OUT_Internal;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">668</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">669</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">670</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">Startup:=FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">671</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">672</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">(* DMX specific *)</Single>
               </Single>
@@ -7259,6 +7434,11 @@ Tech Ruimte</Single>
                 <Single Name="Text" Type="string">	InstanceName: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">342</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	InstanceNamePt: POINTER TO STRING;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">136</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Startup: BOOL := TRUE;</Single>
@@ -7279,6 +7459,16 @@ Tech Ruimte</Single>
                 <Single Name="Text" Type="string">	MqttPublishTopicSuffix: STRING(50);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">343</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MQTTPublishTopic: STRING(50);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">344</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MqttSubscribeTopicPrefix: POINTER TO STRING;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">329</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttSubscribeTopicSuffix: STRING(50);</Single>
@@ -7287,11 +7477,6 @@ Tech Ruimte</Single>
                 <Single Name="Id" Type="long">140</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MQTTSubscribeTopic: STRING(50);</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">328</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	MQTTPublishTopic: STRING(50);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">141</Single>
@@ -7506,7 +7691,7 @@ Tech Ruimte</Single>
             </Array>
           </Single>
         </Single>
-        <Single Name="UniqueIdGenerator" Type="string">341</Single>
+        <Single Name="UniqueIdGenerator" Type="string">672</Single>
         <Single Name="POULevel" Type="{8e575c5b-1d37-49c6-941b-5c0ec7874787}">Standard</Single>
         <List Name="ChildObjectGuids" Type="System.Collections.ArrayList" />
         <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
@@ -16529,16 +16714,21 @@ Tech Ruimte</Single>
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638090209534916533</Single>
+        <Single Name="Timestamp" Type="long">638090450865659808</Single>
       </Single>
       <Single Name="Object" Type="{f8a58466-d7f6-439f-bbb8-d4600e41d099}" Method="IArchivable">
         <Single Name="Implementation" Type="{3b83b776-fb25-43b8-99f2-3c507c9143fc}" Method="IArchivable">
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">31</Single>
+                <Single Name="Id" Type="long">42</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">31</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">THIS^.InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">3</Single>
@@ -16546,29 +16736,24 @@ Tech Ruimte</Single>
                 <Single Name="Text" Type="string">THIS^.pMqttPublishQueue := pMqttPublishQueue;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">33</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">35</Single>
+                <Single Name="Id" Type="long">38</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">32</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">// Publish (Out)</Single>
+                <Single Name="Text" Type="string">// Publish (Out);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">4</Single>
+                <Single Name="Id" Type="long">41</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;</Single>
+                <Single Name="Text" Type="string">THIS^.MqttPublishTopicSuffix := THIS^.InstanceNamePt^;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">5</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">THIS^.MQTTPublishTopic := CONCAT(MqttPublishTopicPrefix^, THIS^.MqttSubscribeTopicSuffix);</Single>
+                <Single Name="Text" Type="string">THIS^.MQTTPublishTopic := CONCAT(MQTTPublishPrefix^, THIS^.MqttPublishTopicSuffix);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">34</Single>
@@ -16581,14 +16766,14 @@ Tech Ruimte</Single>
                 <Single Name="Text" Type="string">// Subscribe (In)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">7</Single>
+                <Single Name="Id" Type="long">40</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">THIS^.MqttPublishTopicSuffix := InstanceNamePt^;</Single>
+                <Single Name="Text" Type="string">THIS^.MQTTSubscribeTopicSuffix := THIS^.InstanceNamePt^;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">8</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);</Single>
+                <Single Name="Text" Type="string">THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MQTTSubscribeTopicSuffix);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">9</Single>
@@ -16733,7 +16918,7 @@ Tech Ruimte</Single>
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638090248833618978</Single>
+        <Single Name="Timestamp" Type="long">638090490242927699</Single>
       </Single>
       <Single Name="Object" Type="{f8a58466-d7f6-439f-bbb8-d4600e41d099}" Method="IArchivable">
         <Single Name="Implementation" Type="{3b83b776-fb25-43b8-99f2-3c507c9143fc}" Method="IArchivable">
@@ -16745,21 +16930,6 @@ Tech Ruimte</Single>
                 <Single Name="Text" Type="string">IF InitMqttDone AND NOT init THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">257</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">292</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">295</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">294</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN</Single>
@@ -16767,7 +16937,7 @@ Tech Ruimte</Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">300</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">		id := InstanceNamePt^; // 'FB_AO_DIMMER_003'</Single>
+                <Single Name="Text" Type="string">		id := THIS^.InstanceNamePt^; // 'FB_AO_DIMMER_003'</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">296</Single>
@@ -16940,6 +17110,21 @@ Tech Ruimte</Single>
                 <Single Name="Text" Type="string">	// Extra meta-data</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">403</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">406</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		THIS^.MqttObj.meta.CharString := meta;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">405</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">355</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	THIS^.MqttObj.dmxChannel.Integer := THIS^.DmxChannel;</Single>
@@ -17091,6 +17276,11 @@ Tech Ruimte</Single>
                 <Single Name="Text" Type="string">	overruleId 				: STRING(255) := '';</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">402</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	meta	 				: STRING(255) := '';</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">42</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_VAR</Single>
@@ -17114,11 +17304,6 @@ Tech Ruimte</Single>
                 <Single Name="Id" Type="long">304</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	init 			: BOOL := FALSE;</Single>
-              </Single>
-              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">318</Single>
-                <Null Name="Tag" />
-                <Single Name="Text" Type="string">	InstanceNamePt	: POINTER TO STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">319</Single>
@@ -26920,7 +27105,7 @@ Tech Ruimte</Single>
         <Array Name="EmbeddedTypeGuids" Type="System.Guid">
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638086003363706440</Single>
+        <Single Name="Timestamp" Type="long">638090486431836722</Single>
       </Single>
       <Single Name="Object" Type="{261bd6e6-249c-4232-bb6f-84c2fbeef430}" Method="IArchivable">
         <Null Name="persvarlist" />
@@ -26993,9 +27178,19 @@ Tech Ruimte</Single>
                 <Single Name="Text" Type="string">	PLC_PRG_MAIN.FB_AO_DMX_DIMMER_001.Q : BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">114</Single>
+                <Single Name="Id" Type="long">115</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	PLC_PRG_MAIN.FB_AO_DMX_DIMMER_001.OUT : WORD;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">116</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	PLC_PRG_MAIN.FB_AO_DMX_DIMMER_002.Q : BOOL;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">114</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	PLC_PRG_MAIN.FB_AO_DMX_DIMMER_002.OUT : WORD;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">1</Single>
@@ -32520,7 +32715,7 @@ Tech Ruimte</Single>
         <Array Name="EmbeddedTypeGuids" Type="System.Guid">
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638090222016443711</Single>
+        <Single Name="Timestamp" Type="long">638090456792605350</Single>
       </Single>
       <Single Name="Object" Type="{8ac092e5-3128-4e26-9e7e-11016c6684f2}" Method="IArchivable">
         <Single Name="Implementation" Type="{3b83b776-fb25-43b8-99f2-3c507c9143fc}" Method="IArchivable">
@@ -32934,12 +33129,12 @@ Tech Ruimte</Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">890</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">	overruleId:= 'DIMMER_OFFICE_CW', 				(* set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  *)</Single>
+                <Single Name="Text" Type="string">	overruleId:= 'Dimm_office_cw', 					(* set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  *)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">889</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">	icon := 'mdi:lightbulb',  						(* specify icon*)</Single>
+                <Single Name="Text" Type="string">	icon := 'mdi:lightbulb', 					(* specify icon*)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">857</Single>
@@ -32949,7 +33144,12 @@ Tech Ruimte</Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">887</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Device := MQTT_Device							(* The device show in Home Assistant *)</Single>
+                <Single Name="Text" Type="string">	Device := MQTT_Device,							(* The device show in Home Assistant *)</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">940</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	meta := 'GeoDev office',						(* Free field for meta data. Only visible in MQTT *)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">853</Single>
@@ -33544,7 +33744,7 @@ Tech Ruimte</Single>
             </Array>
           </Single>
         </Single>
-        <Single Name="UniqueIdGenerator" Type="string">939</Single>
+        <Single Name="UniqueIdGenerator" Type="string">940</Single>
       </Single>
       <Single Name="ParentSVNodeGuid" Type="System.Guid">98c8b3af-823f-460e-96b4-4a3a11616ef1</Single>
       <Array Name="Path" Type="string">

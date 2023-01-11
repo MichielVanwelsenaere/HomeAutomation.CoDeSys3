@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-01-11T09:34:46.1679377" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2023-01-11T09:15:45.4472597">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-01-11T15:53:05.0525091" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2023-01-11T15:52:41.4822134">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -274,6 +274,14 @@
               <type>
                 <derived name="JSONVAR" />
               </type>
+            </variable>
+            <variable name="meta">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> extra metadata</xhtml>
+              </documentation>
             </variable>
           </struct>
         </baseType>
@@ -3721,14 +3729,23 @@ InitMqttDone := TRUE;</xhtml>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                   <Attributes>
-                    <Attribute Name="noinit" />
                     <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
                   </Attributes>
                 </data>
               </addData>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
               </documentation>
+            </variable>
+            <variable name="InstanceNamePt">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string />
+                  </baseType>
+                </pointer>
+              </type>
             </variable>
             <variable name="Startup">
               <type>
@@ -3757,17 +3774,26 @@ InitMqttDone := TRUE;</xhtml>
                 <string length="50" />
               </type>
             </variable>
+            <variable name="MQTTPublishTopic">
+              <type>
+                <string length="50" />
+              </type>
+            </variable>
+            <variable name="MqttSubscribeTopicPrefix">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
             <variable name="MqttSubscribeTopicSuffix">
               <type>
                 <string length="50" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
-              <type>
-                <string length="50" />
-              </type>
-            </variable>
-            <variable name="MQTTPublishTopic">
               <type>
                 <string length="50" />
               </type>
@@ -4000,13 +4026,38 @@ InitMqttDone := TRUE;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">
-
-IF Startup THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
 	OUT := PreviousOUT;
 	Q := PreviousQ;
 END_IF
 
+
+THIS^.DmxChannel := DmxChannel;
+THIS^.pDmxValues := pDmxValues;
+THIS^.InitDmxDone := TRUE;
+
+(* DMX specific *)
+IF SoftDimToValue = TRUE THEN
+	IF OUT_Target &gt; OUT_Internal THEN // we are moving up to OUT_Internal 
+		IF OUT_Target - OUT_Internal &gt; UpdateValueStep THEN
+			OUT_Internal := OUT_Internal + UpdateValueStep;
+		ELSE
+			OUT_Internal := OUT_Target;
+		END_IF
+	ELSIF OUT_Target &lt; OUT_Internal THEN // we are moving down to OUT_Internal
+		IF OUT_Internal - OUT_Target &gt; UpdateValueStep THEN
+			OUT_Internal := OUT_Internal - UpdateValueStep;
+		ELSE
+			OUT_Internal := OUT_Target;
+			IF SoftDimToQFalse THEN
+				Q := FALSE;
+			END_IF
+		END_IF
+	END_IF
+END_IF
+(* DMX specific *)
+
+	
 IF RST THEN
 	IF rst_out THEN OUT_Internal := 0; END_IF;
 	Q := FALSE;
@@ -4033,7 +4084,19 @@ ELSIF SINGLE THEN
 	(* a single click reverses output Q *)
 	Q := NOT Q;
 	(* when dimmer is turned on we need to limit out to min and max limits *)
-	IF Q THEN OUT_Internal := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);	END_IF;
+	IF Q THEN 
+		OUT_Target := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);
+		OUT_Internal := 0;
+		SoftDimToValue := TRUE;
+	ELSE
+		IF OUT_Internal &gt; 0 THEN
+			OUT_Target := 0;
+			OUT_Internal_tmp := OUT_Internal;
+			Q := TRUE; // back to true while soft dimming to 0
+			SoftDimToValue := TRUE;
+			SoftDimToQFalse := TRUE;
+		END_IF
+	END_IF;
 	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)
 	dir := OUT_Internal &gt; 127;
 ELSIF LONG THEN
@@ -4088,7 +4151,7 @@ IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm)
 	PreviousOUT:=OUT_Internal;
 	pMqttPublishQueue^.AddMessage(		
 		Payload := BYTE_TO_STRING(OUT_Internal),
-		Topic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),
+		Topic := CONCAT(MQTTPublishTopic, '/OUT'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
@@ -4098,13 +4161,11 @@ IF (Q &lt;&gt; PreviousQ OR Startup) AND InitMqttDone THEN
 	PreviousQ:=Q;
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(Q),
-		Topic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),
+		Topic := CONCAT(MQTTPublishTopic, '/Q'),
 		Qos := Qos_Dimm,
 		MqttRetain := TRUE
 	);
 END_IF
-
-Startup:=FALSE;
 
 (* DMX specific *)
 IF InitDmxDone THEN 
@@ -4329,16 +4390,16 @@ THIS^.OUT_LinearScaleMax:=OUT_LinearScaleMax;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">
+THIS^.InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
 THIS^.pMqttPublishQueue := pMqttPublishQueue;
-InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
 
-// Publish (Out)
-THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-THIS^.MQTTPublishTopic := CONCAT(MqttPublishTopicPrefix^, THIS^.MqttSubscribeTopicSuffix);
+// Publish (Out);
+THIS^.MqttPublishTopicSuffix := THIS^.InstanceNamePt^;
+THIS^.MQTTPublishTopic := CONCAT(MQTTPublishPrefix^, THIS^.MqttPublishTopicSuffix);
 
 // Subscribe (In)
-THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
-THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);
+THIS^.MQTTSubscribeTopicSuffix := THIS^.InstanceNamePt^;
+THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MQTTSubscribeTopicSuffix);
 
 THIS^.OutputDimmer:=OutputDimmer;
 THIS^.Qos_Dimm:=Qos_Dimm;
@@ -4434,6 +4495,14 @@ END_IF</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="HomeAssistantEntity">
@@ -4451,15 +4520,6 @@ END_IF</xhtml>
                     <initialValue>
                       <simpleValue value="FALSE" />
                     </initialValue>
-                  </variable>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
                   </variable>
                   <variable name="baseUrl">
                     <type>
@@ -4491,11 +4551,8 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT init THEN
-	InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-	
-	
 	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := InstanceNamePt^; // 'FB_AO_DIMMER_003'
+		id := THIS^.InstanceNamePt^; // 'FB_AO_DIMMER_003'
 	ELSE
 		id := overruleId; // 'DIMMER_GND_HALL_01'
 	END_IF
@@ -4530,6 +4587,9 @@ END_IF</xhtml>
 	THIS^.MqttObj.dev.mf.CharString := Device.mf;
 
 	// Extra meta-data
+	IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+		THIS^.MqttObj.meta.CharString := meta;
+	END_IF
 	THIS^.MqttObj.dmxChannel.Integer := THIS^.DmxChannel;
 	THIS^.MqttObj.dmxWith.Integer := THIS^.DmxWidth;
 	THIS^.MqttObj.dmxUniverse.Integer := THIS^.Universe;
@@ -9789,7 +9849,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="2871233902" />
+                <Attribute Name="checksumnoinit_override" Value="1418105237" />
                 <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
@@ -10347,10 +10407,11 @@ FB_AO_DMX_DIMMER_001.InitMQTT(
 
 FB_AO_DMX_DIMMER_001.InitMqttDiscovery(
 	name := 'Office strip cold',					(* The name show in Home Assistant frond-end*)
-	overruleId:= 'DIMMER_OFFICE_CW', 				(* set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  *)
-	icon := 'mdi:lightbulb',  						(* specify icon*)
+	overruleId:= 'Dimm_office_cw', 					(* set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  *)
+	icon := 'mdi:lightbulb', 					(* specify icon*)
 	MqttDiscoverPrefix:= ADR(MqttDiscoverPrefix),   (* pointer to string prefix for the MQTT discover topic *)
-	Device := MQTT_Device							(* The device show in Home Assistant *)
+	Device := MQTT_Device,							(* The device show in Home Assistant *)
+	meta := 'GeoDev office',						(* Free field for meta data. Only visible in MQTT *)
 );
 FB_AO_DMX_DIMMER_001.ConfigureFunctionBlock(
 	T_Debounce:=T#10MS,
