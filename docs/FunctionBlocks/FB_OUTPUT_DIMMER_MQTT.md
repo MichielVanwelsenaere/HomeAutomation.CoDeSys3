@@ -54,6 +54,14 @@ METHOD(S)
   - `DmxChannel`: Which channel 1-256. (not 0)
   - `DmxWidth`: Width of the channel, in channels. (often 1 or 2)
   - `DmxChannel`: datatype _POINTER TO oscat_network.NETWORK_BUFFER_SHORT_, pointer to a global buffer
+  
+- InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the dimmer automatically.
+	- `name `: The name show in Home Assistant frond-end
+	- `overruleId`: set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  
+	- `icon `: specify icon. Default 'mdi:lightbulb'
+	- `MqttDiscoverPrefix`:  pointer to string prefix for the MQTT discover topic 
+	- `Device `:The device show in Home Assistant 
+	- `meta `: OPTIONAL Free field for meta data. Only visible in MQTT 
 
 ### **Function Block Behaviour**
 
@@ -177,19 +185,20 @@ FB_AO_DMX_DIMMER_001.InitDmx(
 );
 ```
 
-The above illustrates how to initiate dmx capabilities.
+The above illustrates how to initiate dmx capabilities. If `InitDmx` is before `InitMqttDiscovery`, the config json in MQTT also contains the dmx channel, width and universe.
 
 ### **Home Assistant auto discovery**
 
 To integrate with Home Assistant automatically add this method in init.
 
 ```
-FB_AO_DIMMER_001.InitMqttDiscovery(
+FB_AO_DMX_DIMMER_001.InitMqttDiscovery(
 	name := 'Office strip cold',					(* The name show in Home Assistant frond-end*)
-	overruleId:= 'DIMMER_OFFICE_CW', 				(* set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  *)
+	overruleId:= 'Dimm_office_cw', 					(* set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  *)
 	icon := 'mdi:lightbulb',  						(* specify icon*)
-	MQTTDiscoverPrefix:= ADR(MqttDiscoverPrefix),   (* pointer to string prefix for the MQTT discover topic *)
-	Device := MQTT_Device							(* The device show in Home Assistant *)
+	MqttDiscoverPrefix:= ADR(MqttDiscoverPrefix),   (* pointer to string prefix for the MQTT discover topic *)
+	Device := MQTT_Device,							(* The device show in Home Assistant *)
+	meta := 'GeoDev office',						(* Free field for meta data. Only visible in MQTT *)
 );
 ```
 
