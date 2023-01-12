@@ -14,6 +14,7 @@
 * Open a new GitHub pull request with the patch.
 
 * Ensure the PR description clearly describes the problem and solution. Include the relevant issue number.
+* See [merge_request](merge_request.md) for details
 
 In case your specific project differs to much from the reference project in this repository, use the PLCopen XML to export the specific artifacts including the fix and paste them in the relevant Github issue.
 
@@ -26,3 +27,4 @@ In case your specific project differs to much from the reference project in this
 #### **Do you have questions about the source code?**
 
 * Ask any question about how to use the source code in the [Gitter chat](https://gitter.im/MichielVanwelsenaere/HomeAutomation.CoDeSys3).
+
