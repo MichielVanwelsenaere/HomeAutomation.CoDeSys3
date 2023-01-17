@@ -31,21 +31,13 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **output is updated**   | the output is updated. | real value | 2 | `FALSE` | no
+| **register is polled**   | a modbus register is polled | int value | 2 | `FALSE` | no
 
-MQTT publish topic is a concatination of the publish prefix and the function block name, the OWD numer and a unique sensor value. For example:
+MQTT publish topic is a concatination of the publish prefix and the function block name, the node numer and a register number. For example:
 
-`Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/0/TYPE`
+`Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/read/0`
 
-| output       | MQTT topc suffic | Unit        	  | Note 			  |
-|:-------------|:-----------------|:------------------|:------------------|
-| Type of module | `/TYPE` | N/A | Possible values: 10,11,12,13,14,15,16,17,18,19.
-| Status | `/STATUS` | N/A | Possible values: 0,1,2,3,4,5,6,7,99.
-| Current Power | `/ACTP` | Watts | Only present for 'Type' 10 (master unit).
-| Indoor Temperature | `/TEMP` | °C |
-| CO<sub>2</sub> Value | `/CO2` | ppm | CO<sub>2</sub> valve only.
-| RH Value | `/RH` | % | Humidity Control valve only.
-| Location Number | `/LOCNR` | N/A | Indicates a number of a group of components belonging together.
+Depending on the type of the node the published register value represents a certain parameter value. 
 
 ### __MQTT Subscription Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -53,11 +45,11 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 
 | Command | Description | expected payload | Additional notes | 
 |:-------------|:------------------|:------------------|:------------------|
-| **write holding** | Writes an integer value to a specific register. | `INT` | Only integer values are processed further.
+| **write holding** | Writes an integer value to a specific write register. | `INT` | Only integer values are processed further.
 
-MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents the entire system). Go through the DUCO modbus register documentation linked above for a deeper understanding.
+MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/write/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents the entire system). Go through the DUCO modbus register documentation linked above for a deeper understanding.
 
-Upon a succesfull write operation the received payload will be published on the 'Out' topic. Continuing with the example above this will result in a payload `30` to be published on topic `Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/0`.
+Upon a succesfull write operation the received payload will be published on the 'Out' topic. Continuing with the example above this will result in a payload `30` to be published on topic `Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/write/0`.
 
 ### __Code example__
 
@@ -91,10 +83,161 @@ RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_MQTT_001);
 ```
 
 ### __Home Assistant YAML__
-To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config.
+
+Main node:
 
 ```YAML
 mqtt:
   sensor:
-  
+  - name: "Ventilation Status"
+    object_id: "ventilation_1_1"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/1/read/1"
+    value_template: >-
+          {% set val = value | float(0) %}
+          {% if val == 0 %} Auto
+          {% elif val == 1 %} 10 minutes high
+          {% elif val == 2 %} 20 minutes high
+          {% elif val == 3 %} 30 minutes high
+          {% elif val == 4 %} Manual low
+          {% elif val == 5 %} Manual medium
+          {% elif val == 6 %} Manual high
+          {% elif val == 7 %} Unoccupied
+          {% elif val == 99 %} Error
+          {% else %} Unknown
+          {% endif %}
+    icon: "mdi:state-machine"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
+  - name: "Ventilation Pos"
+    object_id: "Ventilation_1_2"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/1/read/2"
+    unit_of_measurement: "%"
+    icon: "mdi:valve"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
+  - name: "Ventilation Power"
+    object_id: "ventilation_1_3"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/1/read/3"
+    unit_of_measurement: "W"
+    device_class: "power"
+    state_class: "measurement"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
+```
+
+Additional nodes (for example valves):
+
+
+```YAML
+mqtt:
+  sensor:
+  - name: "Ventilation Node 2 Status"
+    object_id: "ventilation_2_1"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/read/1"
+    value_template: >-
+          {% set val = value | float(0) %}
+          {% if val == 0 %} Auto
+          {% elif val == 1 %} 10 minutes high
+          {% elif val == 2 %} 20 minutes high
+          {% elif val == 3 %} 30 minutes high
+          {% elif val == 4 %} Manual low
+          {% elif val == 5 %} Manual medium
+          {% elif val == 6 %} Manual high
+          {% elif val == 7 %} Unoccupied
+          {% elif val == 99 %} Error
+          {% else %} Unknown
+          {% endif %}
+    icon: "mdi:state-machine"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
+  - name: "Ventilation Node 2 Pos"
+    object_id: "ventilation_2_2"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/read/2"
+    unit_of_measurement: "%"
+    icon: "mdi:valve"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
+  - name: "Ventilation Node 2 Temp"
+    object_id: "ventilation_2_3"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/read/3"
+    value_template: "{{ value | multiply(0.10) | round(2) }}" 
+    unit_of_measurement: "°C"
+    device_class: "temperature"
+    state_class: "measurement"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
+  - name: "Ventilation Node 2 CO2"
+    object_id: "Ventilation_2_4"
+    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/read/4"
+    unit_of_measurement: "µg/m³"
+    device_class: "PM25"
+    state_class: "measurement"
+    qos: 2
+    availability:
+      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/House/availability"
+    availability_mode : "all"
+    payload_available: "online"
+    payload_not_available: "offline"
+```
+
+Writing registers (for example action on valves):
+
+
+```YAML
+mqtt:
+  button:
+  - object_id: "ventilation_2_write_9_15high"
+	name: "Ventilation Kitchen 15 min high"
+	command_topic: "Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/write/9"
+	payload_press: "4"
+	availability:
+	- topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+	- topic: "Devices/PLC/House/availability"
+	availability_mode : "all"
+	payload_available: "online"
+	payload_not_available: "offline"
+	entity_category: "config"
+  - object_id: "ventilation_2_write_9_Auto"
+	name: "Ventilation Kitchen auto"
+	command_topic: "Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/write/9"
+	payload_press: "5"
+	availability:
+	- topic: "Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+	- topic: "Devices/PLC/House/availability"
+	availability_mode : "all"
+	payload_available: "online"
+	payload_not_available: "offline"
+	entity_category: "config"
 ```
