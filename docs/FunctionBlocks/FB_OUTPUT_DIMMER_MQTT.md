@@ -50,10 +50,11 @@ METHOD(S)
   - `OUT_LinearScaleMax`: Upper bound value used for linear scaleout output OUT from datatype byte to word. Defaults to 32767.
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
-- initDMX: configures the dimmer with DMX configuration
+- initDMX: configures the dimmer with DMX configuration. For more info about Art-Net and DMX [read this](./../AdditionalFunctionality/DMX_artnet.md)
   - `DmxChannel`: Which channel 1-256. (not 0)
   - `DmxWidth`: Width of the channel, in channels. (often 1 or 2)
   - `DmxChannel`: datatype _POINTER TO oscat_network.NETWORK_BUFFER_SHORT_, pointer to a global buffer
+
   
 - InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the dimmer automatically.
 	- `name `: The name show in Home Assistant frond-end
