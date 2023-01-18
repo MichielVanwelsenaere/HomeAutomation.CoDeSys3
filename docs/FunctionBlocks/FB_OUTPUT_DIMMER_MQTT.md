@@ -53,7 +53,8 @@ METHOD(S)
 - initDMX: configures the dimmer with DMX configuration. For more info about Art-Net and DMX [read this](./../AdditionalFunctionality/DMX_artnet.md)
   - `DmxChannel`: Which channel 1-256. (not 0)
   - `DmxWidth`: Width of the channel, in channels. (often 1 or 2)
-  - `DmxChannel`: datatype _POINTER TO oscat_network.NETWORK_BUFFER_SHORT_, pointer to a global buffer
+  - `pDmxValues`: datatype _POINTER TO oscat_network.NETWORK_BUFFER_SHORT_, pointer to a global buffer. There is now only one buffer, thus one universe
+  - `dmxUniverse`: Integer value of the universe. Meta data for MQTT only.
 
   
 - InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the dimmer automatically.
@@ -183,6 +184,7 @@ FB_AO_DMX_DIMMER_001.InitDmx(
     DmxChannel := 1,
     DmxWidth:=1,
     pDmxValues := ADR(DMXVariables.DMX.BUFFER)
+    dmxUniverse := 1,
 );
 ```
 
@@ -190,7 +192,7 @@ The above illustrates how to initiate dmx capabilities. If `InitDmx` is before `
 
 ### **Home Assistant auto discovery**
 
-To integrate with Home Assistant automatically add this method in init.
+To integrate with Home Assistant automatically add this method in init. For MQTT_Device, see [MQTT_DEVICE](FB_MQTT_DEVICE.md).
 
 ```
 FB_AO_DMX_DIMMER_001.InitMqttDiscovery(

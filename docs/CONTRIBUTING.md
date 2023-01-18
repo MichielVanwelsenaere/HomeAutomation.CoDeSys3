@@ -50,8 +50,11 @@ An export contains `.export` and `.xml` for people to update. The `.ecp` is upgr
 
 2. Run export (from your modified ecp)
 
-   - Export all files except the `automation`
+   - Export all files except configs
+   ![](img/clip20230118225100.png)
      <img src="_img/GettingStartedGuide/Export_all_except_POU.png" height="400">
+     
+     So no `*variables`, `PRG's` and `PersistenceVars`
    - You can export Variables/Library if you see fit
      - Codesys v3 >>> [Exports\PLCopen.xml](../src/Exports/PLCopen.xml)
      - PLCopen XML >>> [Exports\CodesysV3.export](../src/Exports/CodesysV3.export)
@@ -60,4 +63,4 @@ An export contains `.export` and `.xml` for people to update. The `.ecp` is upgr
     - Follow [this guide](FAQ/Howto_updating_function_blocks.md) to update your blocks
 
     - Add 1 example of the new function block/methods to the POU
-    - Document the new function block/methods in the POU
+    - Document the new function block/methods in the POU![](img/clip20230118225246.png)

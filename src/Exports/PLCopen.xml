@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-01-12T21:11:22.7301752" />
-  <contentHeader name="HomeAutomation_Arup.ecp" modificationDateTime="2023-01-12T18:50:38.0500953">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-01-18T23:12:49.6682528" />
+  <contentHeader name="HomeAutomation_Arup.ecp" modificationDateTime="2023-01-18T23:06:01.1068006">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -3729,8 +3729,8 @@ InitMqttDone := TRUE;</xhtml>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                   <Attributes>
-                    <Attribute Name="noinit" />
                     <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
                   </Attributes>
                 </data>
               </addData>
@@ -3926,7 +3926,7 @@ InitMqttDone := TRUE;</xhtml>
                 <simpleValue value="-1" />
               </initialValue>
             </variable>
-            <variable name="Universe">
+            <variable name="DmxUniverse">
               <type>
                 <INT />
               </type>
@@ -4026,13 +4026,38 @@ InitMqttDone := TRUE;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">
-
-IF Startup THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
 	OUT := PreviousOUT;
 	Q := PreviousQ;
 END_IF
 
+
+THIS^.DmxChannel := DmxChannel;
+THIS^.pDmxValues := pDmxValues;
+THIS^.InitDmxDone := TRUE;
+
+(* DMX specific *)
+IF SoftDimToValue = TRUE THEN
+	IF OUT_Target &gt; OUT_Internal THEN // we are moving up to OUT_Internal 
+		IF OUT_Target - OUT_Internal &gt; UpdateValueStep THEN
+			OUT_Internal := OUT_Internal + UpdateValueStep;
+		ELSE
+			OUT_Internal := OUT_Target;
+		END_IF
+	ELSIF OUT_Target &lt; OUT_Internal THEN // we are moving down to OUT_Internal
+		IF OUT_Internal - OUT_Target &gt; UpdateValueStep THEN
+			OUT_Internal := OUT_Internal - UpdateValueStep;
+		ELSE
+			OUT_Internal := OUT_Target;
+			IF SoftDimToQFalse THEN
+				Q := FALSE;
+			END_IF
+		END_IF
+	END_IF
+END_IF
+(* DMX specific *)
+
+	
 IF RST THEN
 	IF rst_out THEN OUT_Internal := 0; END_IF;
 	Q := FALSE;
@@ -4059,7 +4084,19 @@ ELSIF SINGLE THEN
 	(* a single click reverses output Q *)
 	Q := NOT Q;
 	(* when dimmer is turned on we need to limit out to min and max limits *)
-	IF Q THEN OUT_Internal := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);	END_IF;
+	IF Q THEN 
+		OUT_Target := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);
+		OUT_Internal := 0;
+		SoftDimToValue := TRUE;
+	ELSE
+		IF OUT_Internal &gt; 0 THEN
+			OUT_Target := 0;
+			OUT_Internal_tmp := OUT_Internal;
+			Q := TRUE; // back to true while soft dimming to 0
+			SoftDimToValue := TRUE;
+			SoftDimToQFalse := TRUE;
+		END_IF
+	END_IF;
 	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)
 	dir := OUT_Internal &gt; 127;
 ELSIF LONG THEN
@@ -4114,7 +4151,7 @@ IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm)
 	PreviousOUT:=OUT_Internal;
 	pMqttPublishQueue^.AddMessage(		
 		Payload := BYTE_TO_STRING(OUT_Internal),
-		Topic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),
+		Topic := CONCAT(MQTTPublishTopic, '/OUT'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
@@ -4124,13 +4161,11 @@ IF (Q &lt;&gt; PreviousQ OR Startup) AND InitMqttDone THEN
 	PreviousQ:=Q;
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(Q),
-		Topic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),
+		Topic := CONCAT(MQTTPublishTopic, '/Q'),
 		Qos := Qos_Dimm,
 		MqttRetain := TRUE
 	);
 END_IF
-
-Startup:=FALSE;
 
 (* DMX specific *)
 IF InitDmxDone THEN 
@@ -4192,7 +4227,6 @@ ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= D
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
 		MqttLowRequest := TRUE;
 	ELSIF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
-// 		THIS^.OUT_Internal:=STRING_TO_BYTE(Data.PayloadString^);
 		THIS^.OUT_Target:=STRING_TO_BYTE(Data.PayloadString^);
 		THIS^.SoftDimToValue:=TRUE;
 	END_IF
@@ -4340,23 +4374,12 @@ THIS^.OUT_LinearScaleMax:=OUT_LinearScaleMax;</xhtml>
                     </type>
                   </variable>
                 </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
+
 
 // Publish (Out);
 THIS^.MqttPublishTopicSuffix := THIS^.InstanceNamePt^;
@@ -4393,6 +4416,11 @@ InitMqttDone := TRUE;</xhtml>
                       <INT />
                     </type>
                   </variable>
+                  <variable name="DmxUniverse">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
                   <variable name="pDmxValues">
                     <type>
                       <pointer>
@@ -4412,6 +4440,10 @@ IF NOT THIS^.InitDmxDone THEN
 	THIS^.pDmxValues := pDmxValues;
 	THIS^.DmxWidth := DmxWidth;
 	THIS^.InitDmxDone := TRUE;
+	
+	THIS^.MqttObj.dmxChannel.Integer := THIS^.DmxChannel;
+	THIS^.MqttObj.dmxWith.Integer := THIS^.DmxWidth;
+	THIS^.MqttObj.dmxUniverse.Integer := THIS^.DmxUniverse; //Depends on the Network_Buffer
 END_IF</xhtml>
                 </ST>
               </body>
@@ -4552,13 +4584,11 @@ END_IF</xhtml>
 	THIS^.MqttObj.dev.mf.CharString := Device.mf;
 
 	// Extra meta-data
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+	IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
 		THIS^.MqttObj.meta.CharString := meta;
 	END_IF
-	THIS^.MqttObj.dmxChannel.Integer := THIS^.DmxChannel;
-	THIS^.MqttObj.dmxWith.Integer := THIS^.DmxWidth;
-	THIS^.MqttObj.dmxUniverse.Integer := THIS^.Universe;
 	
+ 	THIS^.ComposeJSON.VariableArraySize := TRUE;
 	THIS^.ComposeJSON(
 		JSONString:= ADR(MqttJSON), 
 		JSONStringSize:= SIZEOF(MqttJSON),
@@ -4567,7 +4597,6 @@ END_IF</xhtml>
 		MaxLevel := 1,
 	);
 
- 	THIS^.ComposeJSON.VariableArraySize := TRUE;
  	THIS^.ComposeJSON.Execute := TRUE;
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -4627,14 +4656,23 @@ END_IF		</xhtml>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                   <Attributes>
-                    <Attribute Name="noinit" />
                     <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
                   </Attributes>
                 </data>
               </addData>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
               </documentation>
+            </variable>
+            <variable name="InstanceNamePt">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string />
+                  </baseType>
+                </pointer>
+              </type>
             </variable>
             <variable name="Startup">
               <type>
@@ -4659,6 +4697,25 @@ END_IF		</xhtml>
               </type>
             </variable>
             <variable name="MqttPublishTopicSuffix">
+              <type>
+                <string length="50" />
+              </type>
+            </variable>
+            <variable name="MQTTPublishTopic">
+              <type>
+                <string length="50" />
+              </type>
+            </variable>
+            <variable name="MqttSubscribeTopicPrefix">
+              <type>
+                <pointer>
+                  <baseType>
+                    <string />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="MqttSubscribeTopicSuffix">
               <type>
                 <string length="50" />
               </type>
@@ -4761,7 +4818,7 @@ END_IF;
 IF ((PreviousState &lt;&gt; OUT) OR Startup) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(OUT),
-		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Topic := MQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);	
@@ -4853,8 +4910,36 @@ END_IF </xhtml>
                     </type>
                   </variable>
                 </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
+
+
+// Publish (Out);
+THIS^.MqttPublishTopicSuffix := THIS^.InstanceNamePt^;
+THIS^.MQTTPublishTopic := CONCAT(MQTTPublishPrefix^, THIS^.MqttPublishTopicSuffix);
+
+// Subscribe (In)
+THIS^.MQTTSubscribeTopicSuffix := THIS^.InstanceNamePt^;
+THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MQTTSubscribeTopicSuffix);
+
+
+// register the FB agains the collector so mqtt events can be received
+pMqttCallbackCollector^.put(instance:= THIS^);
+
+InitMqttDone := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery">
+              <interface>
+                <inputVars>
+                  <variable name="MqttDiscoverPrefix">
                     <type>
                       <pointer>
                         <baseType>
@@ -4863,21 +4948,145 @@ END_IF </xhtml>
                       </pointer>
                     </type>
                   </variable>
+                  <variable name="Device">
+                    <type>
+                      <derived name="FB_MQTT_DEVICE" />
+                    </type>
+                  </variable>
+                  <variable name="icon">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'mdi:light-switch'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="HomeAssistantEntity">
+                    <type>
+                      <string length="10" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'switch'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="init">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="baseUrl">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="id">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1000" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT init THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := THIS^.InstanceNamePt^; // 'FB_AO_DIMMER_003'
+	ELSE
+		id := overruleId; // 'DIMMER_GND_HALL_01'
+	END_IF
+	MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(MqttDiscoverPrefix^, HomeAssistantEntity),'/'), id),'/config' );
+	
+	//THIS^.MqttObj.baseTopic.CharString :=  baseUrl;
+	THIS^.MqttObj.name.CharString :=  name; // friendly name
+	THIS^.MqttObj.dev_cla.CharString :=  'switch';
+	THIS^.MqttObj.obj_id.CharString :=  id; 
+	THIS^.MqttObj.uniq_id.CharString :=  id; 
+	THIS^.MqttObj.ic.CharString :=  icon;
+	THIS^.MqttObj.stat_t.CharString :=  THIS^.MQTTPublishTopic;
+	THIS^.MqttObj.pl_on.CharString :=  'TRUE';
+	THIS^.MqttObj.pl_off.CharString :=  'FALSE';
+	THIS^.MqttObj.cmd_t.CharString :=  THIS^.MQTTSubscribeTopic;
+	THIS^.MqttObj.opt.Boolean :=  FALSE;
+	THIS^.MqttObj.on_cmd_type.CharString :=  'last';
+	
+	// Device related
+	THIS^.MqttObj.avty_t.CharString :=  Device.availabilityTopic;
+	THIS^.MqttObj.pl_avail.CharString :=   Device.availabilityOnline;
+	THIS^.MqttObj.pl_not_avail.CharString :=  Device.availabilityOffline;
+	THIS^.MqttObj.dev.cu.CharString := Device.cu;
+	THIS^.MqttObj.dev.name.CharString := Device.name;
+	THIS^.MqttObj.dev.hw.CharString := Device.hw;
+	THIS^.MqttObj.dev.ids.CharString := Device.ids;
+	THIS^.MqttObj.dev.sw.CharString := Device.sw;
+	THIS^.MqttObj.dev.mdl.CharString := Device.mdl;
+	THIS^.MqttObj.dev.mf.CharString := Device.mf;
 
-InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
-THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);
-
-// register the FB agains the collector so mqtt events can be received
-pMqttCallbackCollector^.put(instance:= THIS^);
-
-InitMqttDone := TRUE;</xhtml>
+	// Extra meta-data
+	IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+		THIS^.MqttObj.meta.CharString := meta;
+	END_IF
+	
+ 	THIS^.ComposeJSON.VariableArraySize := TRUE;
+	THIS^.ComposeJSON(
+		JSONString:= ADR(MqttJSON), 
+		JSONStringSize:= SIZEOF(MqttJSON),
+		JSONVars:= ADR(THIS^.MqttObj),
+		NumberOfVars:= SIZEOF(THIS^.MqttObj) / SIZEOF(JSONVAR),
+		MaxLevel := 1,
+	);
+ 	THIS^.ComposeJSON.Execute := TRUE;
+	pMqttPublishQueue^.AddMessage(
+		Payload:= MqttJSON,
+		Topic := MqttTopic,
+		Qos := 2,
+		MqttRetain := TRUE,
+	);
+	init := TRUE;
+END_IF		</xhtml>
                 </ST>
               </body>
               <addData />
@@ -9748,315 +9957,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </data>
           </addData>
         </task>
-        <globalVars name="MqttVariables">
-          <variable name="fbMqttPublishQueue">
-            <type>
-              <derived name="FB_MqttPublishQueue" />
-            </type>
-            <documentation>
-              <xhtml xmlns="http://www.w3.org/1999/xhtml"> Shared Variables for MQTT publish communication </xhtml>
-            </documentation>
-          </variable>
-          <variable name="collector_FB_OUTPUT_SWITCH_MQTT">
-            <type>
-              <derived name="MQTT.CallbackCollector" />
-            </type>
-            <documentation>
-              <xhtml xmlns="http://www.w3.org/1999/xhtml"> Shared Variables for MQTT subscribe communication </xhtml>
-            </documentation>
-          </variable>
-          <variable name="collector_FB_OUTPUT_COVER_MQTT">
-            <type>
-              <derived name="MQTT.CallbackCollector" />
-            </type>
-          </variable>
-          <variable name="collector_FB_VIRTUAL_MQTT">
-            <type>
-              <derived name="MQTT.CallbackCollector" />
-            </type>
-          </variable>
-          <variable name="collector_FB_DIMMER_MQTT">
-            <type>
-              <derived name="MQTT.CallbackCollector" />
-            </type>
-          </variable>
-          <variable name="collector_FB_MQTT_LOG">
-            <type>
-              <derived name="MQTT.CallbackCollector" />
-            </type>
-          </variable>
-          <variable name="MQTT_logger">
-            <type>
-              <derived name="FB_MQTT_LOG" />
-            </type>
-          </variable>
-          <variable name="MQTT_QOS_EXACTLY_ONCE">
-            <type>
-              <derived name="MQTT.QoS" />
-            </type>
-            <initialValue>
-              <simpleValue value="MQTT.QoS.ExactlyOnce" />
-            </initialValue>
-            <documentation>
-              <xhtml xmlns="http://www.w3.org/1999/xhtml"> QOS Constants </xhtml>
-            </documentation>
-          </variable>
-          <addData>
-            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-              <Attributes>
-                <Attribute Name="qualified_only" Value="" />
-              </Attributes>
-            </data>
-          </addData>
-        </globalVars>
-        <globalVars name="PersistentVars">
-          <addData>
-            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-              <Attributes>
-                <Attribute Name="qualified_only" Value="" />
-              </Attributes>
-            </data>
-          </addData>
-        </globalVars>
-        <globalVars name="Modbus">
-          <addData>
-            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-              <Attributes>
-                <Attribute Name="qualified_only" Value="" />
-              </Attributes>
-            </data>
-          </addData>
-        </globalVars>
-        <globalVars name="DMXVariables">
-          <variable name="IP">
-            <type>
-              <string />
-            </type>
-            <initialValue>
-              <simpleValue value="'10.1.1.255'" />
-            </initialValue>
-            <documentation>
-              <xhtml xmlns="http://www.w3.org/1999/xhtml"> unicast: 10.1.1.4
- multicast: 10.1.1.255  </xhtml>
-            </documentation>
-          </variable>
-          <variable name="DMX">
-            <type>
-              <derived name="oscat_network.NETWORK_BUFFER_SHORT" />
-            </type>
-          </variable>
-          <addData>
-            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-              <Attributes>
-                <Attribute Name="qualified_only" Value="" />
-              </Attributes>
-            </data>
-          </addData>
-        </globalVars>
         <addData>
-          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
-            <pou name="DMX_SEND" pouType="program">
-              <interface>
-                <localVars>
-                  <variable name="Universe">
-                    <type>
-                      <INT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="1" />
-                    </initialValue>
-                  </variable>
-                  <variable name="IP_CONTROL2">
-                    <type>
-                      <derived name="oscat_network.IP_CONTROL2" />
-                    </type>
-                  </variable>
-                  <variable name="IP_C1">
-                    <type>
-                      <derived name="oscat_network.IP_C" />
-                    </type>
-                  </variable>
-                  <variable name="S_BUF1">
-                    <type>
-                      <derived name="oscat_network.NETWORK_BUFFER_SHORT" />
-                    </type>
-                  </variable>
-                  <variable name="R_BUF1">
-                    <type>
-                      <derived name="oscat_network.NETWORK_BUFFER_SHORT" />
-                    </type>
-                  </variable>
-                  <variable name="send">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="error_send">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="i">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                  <variable name="init">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="start">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                  <variable name="size">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                  <variable name="LED_1_BrokerStatus">
-                    <type>
-                      <derived name="FbAppLED" />
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF init = FALSE THEN
-	init := TRUE;
-	error_send := FALSE;
-	//https://art-net.org.uk/how-it-works/streaming-packets/artdmx-packet-definition/
-	(* Write DMX header character in the buffer *) 
-	S_BUF1.BUFFER [0]:= BYTE#16#41; // A
-	S_BUF1.BUFFER [1]:= BYTE#16#72; // R	
-	S_BUF1.BUFFER [2]:= BYTE#16#74; // T
-	S_BUF1.BUFFER [3]:= BYTE#16#2D; // -
-	S_BUF1.BUFFER [4]:= BYTE#16#4E; // N
-	S_BUF1.BUFFER [5]:= BYTE#16#65; // E
-	S_BUF1.BUFFER [6]:= BYTE#16#74; // T
-	S_BUF1.BUFFER [7]:= BYTE#16#00; // 0 zero
-	
-	S_BUF1.BUFFER [8]:= BYTE#16#00;	// Opcode ArtDMX (0x5000) little endian
-	S_BUF1.BUFFER [9]:= BYTE#16#50; // Opcode ArtDMX (0x5000) little endian
-	
-	S_BUF1.BUFFER [10]:= BYTE#16#00; // Protocol Version Hi (0)
-	S_BUF1.BUFFER [11]:= BYTE#16#0E; // Protocol Version Lo (14)
-	
-	S_BUF1.BUFFER [12]:= BYTE#16#00; // Sequence
-	S_BUF1.BUFFER [13]:= BYTE#16#00; // Physical
-	
-	S_BUF1.BUFFER [16]:= BYTE#16#02; // Length Hi
-	S_BUF1.BUFFER [17]:= BYTE#16#00; // Length Lo (2 to 512, even)
-	(* the DMX channels that are next have already been written to the buffer *) 
-	
-	IF Universe = 1 THEN
-		S_BUF1.BUFFER [14]:= BYTE#16#01; // Universe little endian
-		S_BUF1.BUFFER [15]:= BYTE#16#00; // Universe little endian
-	END_IF
-	IF Universe = 2 THEN
-		S_BUF1.BUFFER [14]:= BYTE#16#02; // Universe little endian
-		S_BUF1.BUFFER [15]:= BYTE#16#00; // Universe little endian
-	END_IF
-END_IF;
-send := FALSE;
-size := 512+18;
-
-FOR i:= 0 TO size DO (* check whether the DMX values ​​in the global variable have changed *)
-	// i+2 is strange, buffers are not the same, its often offset with 2 sometimes by 1, todo
-	IF S_BUF1.BUFFER[i+18] &lt;&gt; DMXVariables.DMX.BUFFER[i+2] THEN
-   		S_BUF1.BUFFER[i+18]:= DMXVariables.DMX.BUFFER[i+2];
-		send := TRUE;
-	END_IF
-	
-END_FOR
-
-S_BUF1.BUFFER [17]:= S_BUF1.BUFFER [17]; // low...
-
-DMXVariables.DMX.BUFFER[0] := DMXVariables.DMX.BUFFER[0];
-S_BUF1.BUFFER [18]:= S_BUF1.BUFFER [18];
-DMXVariables.DMX.BUFFER[1] := DMXVariables.DMX.BUFFER[1];
-S_BUF1.BUFFER [19]:= S_BUF1.BUFFER [19];
-DMXVariables.DMX.BUFFER[2] := DMXVariables.DMX.BUFFER[2];
-S_BUF1.BUFFER [20]:= S_BUF1.BUFFER [20];
-DMXVariables.DMX.BUFFER[3] := DMXVariables.DMX.BUFFER[3];
-
-IF send THEN
-	IP_C1.C_MODE:= 3;
-	IP_C1.C_ENABLE:= TRUE; (* Enable connection establishment *) 
-	IP_C1.TIME_RESET:= TRUE;
-	IP_C1.R_OBSERVE:= FALSE; (* Monitor data reception *)
-	IP_C1.C_IP:= oscat_network.IP4_DECODE (DMXVariables.IP);
-	IP_C1.C_PORT:= WORD#6454;
-	S_BUF1.SIZE := size;
-	send:= FALSE;
-	LED_1_BrokerStatus(eID:=eLedID.AppLED_1, xOpen:=TRUE );
-	IF IP_C1.ERROR &lt;&gt; 0  THEN
-		LED_1_BrokerStatus.SetFlash(T#2S,eLedColor.Red, eLedColor.Off);
-		IF IP_C1.ERROR = 33554432  THEN
-				MqttVariables.MQTT_logger.send(CONCAT('ERROR|DMX has a connection error ', DWORD_TO_STRING(IP_C1.ERROR)));
-		END_IF;
-		error_send := TRUE;
-	END_IF;
-END_IF;
-send := TRUE;
-
-
-// Check IP_C1.error
-// 33554432 = 0x02000000
-// Initialization of the socket interface failed (only WinNT).
-// code = 0x 02 00 00 00 (hexadecimal)
-//           !   !    ! 
-//           !   !    Receive error 
-//           !   Send error
-//           Connect error
-
-IP_CONTROL2 (TIME_OUT:= T#1S, IP_C:= IP_C1, S_BUF:= S_BUF1, R_BUF:= R_BUF1);</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </pou>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
-            <pou name="PRG_PING_DMX" pouType="program">
-              <interface>
-                <localVars>
-                  <variable name="PingTime">
-                    <type>
-                      <UDINT />
-                    </type>
-                  </variable>
-                  <variable name="DMXnodeReachable">
-                    <type>
-                      <UDINT />
-                    </type>
-                  </variable>
-                  <variable name="LED_1_BrokerStatus">
-                    <type>
-                      <derived name="FbAppLED" />
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Ping the DMX artNet node *)
-DMXnodeReachable := SysSockPing(szIPAddress:=DMXVariables.IP, ulTimeout:=500, pulReplyTime:= ADR(PingTime));
-
-IF DMXnodeReachable = 0 THEN
-	LED_1_BrokerStatus.SetStatic(eLedColor.Green);
-// 	MqttVariables.MQTT_logger.send('DMX ping OK');
-ELSIF DMXnodeReachable = 5 THEN
-	LED_1_BrokerStatus.SetFlash(T#1S,eLedColor.Red, eLedColor.Off);
-	MqttVariables.MQTT_logger.send('DMX ping Error');
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </pou>
-          </data>
           <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
             <Libraries>
               <Library Name="#Standard" Namespace="Standard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Standard, * (System)" />
