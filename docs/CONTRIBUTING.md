@@ -14,7 +14,6 @@
 * Open a new GitHub pull request with the patch.
 
 * Ensure the PR description clearly describes the problem and solution. Include the relevant issue number.
-* See [merge_request](merge_request.md) for details
 
 In case your specific project differs to much from the reference project in this repository, use the PLCopen XML to export the specific artifacts including the fix and paste them in the relevant Github issue.
 
@@ -28,3 +27,37 @@ In case your specific project differs to much from the reference project in this
 
 * Ask any question about how to use the source code in the [Gitter chat](https://gitter.im/MichielVanwelsenaere/HomeAutomation.CoDeSys3).
 
+# Merge request (pull request)
+
+## **GIT side**
+
+1. Create own fork (if you not already did)
+2. Don't change the default `.ecp` for your own config
+3. Optional: Create branch 
+4. Code
+5. Prepare for export, see below. 
+6. Add documentation in the markdown files.
+6. Create merge/pull request from your repo to this.
+
+## **Prepare for export**
+
+An export contains `.export` and `.xml` for people to update. The `.ecp` is upgraded to the new changes, so its a basic version for newcomers.
+
+1. Save file the `.ecp`
+
+   - Make sure the original ecp is **unmodified**
+   - Save with another name.
+
+2. Run export (from your modified ecp)
+
+   - Export all files except the `automation`
+     <img src="_img/GettingStartedGuide/Export_all_except_POU.png" height="400">
+   - You can export Variables/Library if you see fit
+     - Codesys v3 >>> [Exports\PLCopen.xml](../src/Exports/PLCopen.xml)
+     - PLCopen XML >>> [Exports\CodesysV3.export](../src/Exports/CodesysV3.export)
+
+3. Open the original `.ecp`. Keep your config out.
+    - Follow [this guide](FAQ/Howto_updating_function_blocks.md) to update your blocks
+
+    - Add 1 example of the new function block/methods to the POU
+    - Document the new function block/methods in the POU
