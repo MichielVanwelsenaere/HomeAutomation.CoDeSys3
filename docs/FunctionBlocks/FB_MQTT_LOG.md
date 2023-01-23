@@ -13,8 +13,11 @@ METHOD(S)
   - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
   - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
   - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
-- send: allows logging to MQTT.
+- send: allows logging to MQTT. The output string is formatted as follows: `instance | payload`
+  - `instance` String for your own choice.
   - `payload`: datatype _STRING_, the payload to be sent to MQTT. String(128)
+- InitMqttDiscovery:
+  - See [MQTT Discovery](./../AdditionalFunctionality/MQTT_Discovery.md) for more info.
 
 ### **Code example**
 
@@ -41,23 +44,31 @@ To send a message to MQTT:
 MqttVariables.MQTT_logger.send('Init finished');
 ```
 
-## Home Assistant
+### **Home Assistant Auto discovery**
 
-To show the MQTT messages in Home Assistant, you need to go through three steps:
+See [MQTT Auto discovery](../MQTT_Auto_Discovery/README.md) for more information.
 
-1. Add the following to your `configuration.yaml`:
-   ```yaml
-   - name: "plc_log"
-     object_id: "plc_log"
-     unique_id: "plc_log"
-     state_topic: "Devices/PLC/House/debug"
-     qos: 0
-     device: *device # write or link your device here
-     availability: *availability # write or link your availability here
-   ```
-2. Add the following to your dashboard:
-   ```yaml
-   type: logbook
-   entities:
-     - sensor.plc_log
-   ```
+### **Home Assistant YAML**
+
+If home asistant auto discovery is not working for you, you can use the following to your `configuration.yaml`:
+
+```yaml
+- name: "plc_log"
+  object_id: "plc_log"
+  unique_id: "plc_log"
+  state_topic: "Devices/PLC/House/debug"
+  qos: 0
+  device: *device # write or link your device here
+  availability: *availability # write or link your availability here
+
+```
+
+### **Home Assistant dashboard**
+
+You can use the following card:
+
+```yaml
+type: logbook
+entities:
+  - sensor.plc_log
+```

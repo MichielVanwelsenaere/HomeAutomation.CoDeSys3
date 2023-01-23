@@ -133,9 +133,12 @@ AC Wiring (uses MTR12-UC)   | DC Wiring (uses DCM12-UC)
 :--------------------------:|:-------------------------:
 ![AC ELTAKO Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_ELTAKO_AC.png)  |  ![DC ELTAKO Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_ELTAKO_DC.png)
 
+## __Home Assistant Auto discovery__
+
+See [General MQTT Auto discovery](../MQTT_Auto_Discovery/README.md) for more information. 
 
 ### __Home Assistant YAML__
-To integrate with Home Assistant use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
+If home asistant auto discovery is not working for you, you can use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
 
 ```YAML
 mqtt:

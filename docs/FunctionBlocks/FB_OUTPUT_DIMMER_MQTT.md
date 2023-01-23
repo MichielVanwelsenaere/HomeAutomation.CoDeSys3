@@ -36,7 +36,7 @@ METHOD(S)
   - `Qos_Dimm`: datatype _SD_MQTT.QoS_, MQTT QoS of the DIM MQTT events.
   - `Delta_Dimm`: datatype _INT_, resolution of the MQTT OUT events. For example: specifying value _5_ will configure the FB to only emit an MQTT event when the OUT output differs _5_ or more than its previous value. Note that the last value of output OUT (when input `P_LONG` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last OUT value published through MQTT is always synchronized with the OUT output of the FB.
 
-- ConfigureFunctionBlock: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
+- ConfigureFunctionBlock: configures the dimmer with your prefered configurations, an overview of the parameters and their default values.
   - `T_Debounce`: debounce time for input PB, defaults to 10ms.
   - `T_Reconfig`: reconfiguration time, defaults to 10S.
   - `T_On_Max`: start limitation, defaults to 0ms.
@@ -57,13 +57,8 @@ METHOD(S)
   - `dmxUniverse`: Integer value of the universe. Meta data for MQTT only.
 
   
-- InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the dimmer automatically.
-	- `name `: The name show in Home Assistant frond-end
-	- `overruleId`: set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  
-	- `icon `: specify icon. Default 'mdi:lightbulb'
-	- `MqttDiscoverPrefix`:  pointer to string prefix for the MQTT discover topic 
-	- `Device `:The device show in Home Assistant 
-	- `meta `: OPTIONAL Free field for meta data. Only visible in MQTT 
+- InitMqttDiscovery:  
+    - See [MQTT Discovery](./../AdditionalFunctionality/MQTT_Discovery.md) for more info.
 
 ### **Function Block Behaviour**
 
@@ -179,7 +174,7 @@ FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q
 
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 0/1-10V analog input that is wired to the 'Q_OUT' output of the dimmer.
 
-```
+```ST
 FB_AO_DMX_DIMMER_001.InitDmx(
     DmxChannel := 1,
     DmxWidth:=1,
@@ -190,24 +185,12 @@ FB_AO_DMX_DIMMER_001.InitDmx(
 
 The above illustrates how to initiate dmx capabilities. If `InitDmx` is before `InitMqttDiscovery`, the config json in MQTT also contains the dmx channel, width and universe.
 
-### **Home Assistant auto discovery**
+## **Home Assistant Auto discovery**
 
-To integrate with Home Assistant automatically add this method in init. For MQTT_Device, see [MQTT_DEVICE](FB_MQTT_DEVICE.md).
+See [MQTT Auto discovery](../MQTT_Auto_Discovery/README.md) for more information.
 
-```
-FB_AO_DMX_DIMMER_001.InitMqttDiscovery(
-	name := 'Office strip cold',					(* The name show in Home Assistant frond-end*)
-	overruleId:= 'Dimm_office_cw', 					(* set to 'FB_AO_DIMMER_001' for instance name, or overule to e.g. 'DIMMER_GND_HALL_01'  *)
-	icon := 'mdi:lightbulb',  						(* specify icon*)
-	MqttDiscoverPrefix:= ADR(MqttDiscoverPrefix),   (* pointer to string prefix for the MQTT discover topic *)
-	Device := MQTT_Device,							(* The device show in Home Assistant *)
-	meta := 'GeoDev office',						(* Free field for meta data. Only visible in MQTT *)
-);
-```
-
-### **Home Assistant YAML**
-
-To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
+### __Home Assistant YAML__
+If home asistant auto discovery is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
 ```YAML
 mqtt:
