@@ -5,4 +5,4 @@
 **.opt
 **.drawio.bkp
 *.precompilecache
-src/HomeAutomation_*.ecp
+**/HomeAutomation*.ecp
