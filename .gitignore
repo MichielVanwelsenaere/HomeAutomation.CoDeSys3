@@ -4,3 +4,5 @@
 **.~u
 **.opt
 **.drawio.bkp
+*.precompilecache
+**/HomeAutomation*.ecp

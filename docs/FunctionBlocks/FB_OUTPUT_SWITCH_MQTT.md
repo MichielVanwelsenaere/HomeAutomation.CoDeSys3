@@ -24,6 +24,14 @@ METHOD(S)
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
+- InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the dimmer automatically.
+	- `name `: The name show in Home Assistant frond-end
+	- `overruleId`: set to 'FB_DO_SW_001' for instance name, or overule to e.g. 'My_Switch_001'  
+	- `icon `: specify icon. Default 'mdi:lightbulb'
+	- `MqttDiscoverPrefix`:  pointer to string prefix for the MQTT discover topic 
+	- `Device `:The device show in Home Assistant 
+	- `meta `: OPTIONAL Free field for meta data. Only visible in MQTT 
+
 ### __MQTT Event Behaviour__
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
@@ -79,6 +87,21 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
     PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
     PRIO_LOW:=      FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
     TOGGLE:=        FB_DI_PB_001.SINGLE     (* for toggling the output *)	
+);
+```
+
+### **Home Assistant auto discovery**
+
+To integrate with Home Assistant automatically add this method in init. For MQTT_Device, see [MQTT_DEVICE](FB_MQTT_DEVICE.md).
+
+```
+FB_DO_SW_001.InitMqttDiscovery(
+	name := 'My office switch 01',					(* The name show in Home Assistant frond-end*)
+	overruleId:= 'Sw_office_cw', 					(* set to 'FB_DO_SW_001' for instance name, or overule to e.g. 'Sw_office_cw'  *)
+	icon := 'mdi:light-switch',  						(* specify icon*)
+	MqttDiscoverPrefix:= ADR(MqttDiscoverPrefix),   (* pointer to string prefix for the MQTT discover topic *)
+	Device := MQTT_Device,							(* The device show in Home Assistant *)
+	meta := 'GeoDev office',						(* Free field for meta data. Only visible in MQTT *)
 );
 ```
 
