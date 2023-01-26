@@ -1,4 +1,5 @@
 ## FB_OUTPUT_DIMMER_MQTT
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
 
@@ -183,13 +184,8 @@ FB_AO_DMX_DIMMER_001.InitDmx(
 
 The above illustrates how to initiate dmx capabilities. If `InitDmx` is before `InitMqttDiscovery`, the config json in MQTT also contains the dmx channel, width and universe.
 
-## **Home Assistant Auto discovery**
-
-See [MQTT Auto discovery](../MQTT_Auto_Discovery/README.md) for more information.
-
 ### **Home Assistant YAML**
-
-If home assistant auto discovery is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
+If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
 ```YAML
 mqtt:

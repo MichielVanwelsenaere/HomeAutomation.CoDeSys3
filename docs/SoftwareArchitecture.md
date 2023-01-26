@@ -1,12 +1,12 @@
 ## SoftwareArchitecture
 
-### __General Overview__
+### **General Overview**
 The software is designed to have a loosely coupled architecture making it possible to add new home automation functionality without the need to worry about the MQTT communication to much.
 This results in a task for the main home automation logic and a seperate task to handle the MQTT communication to the broker. A global variable list is used to share memory objects between the two tasks enabling communication.
 
 ![SoftwareArchitecture](./_img/SoftwareArchitecture.svg)
 
-### __Main Task (PLC_PRG_MAIN)__
+### **Main Task (PLC_PRG_MAIN)**
 
 The main task is build using a SFC (Sequential Function Chart) with the following actions:
 
@@ -19,7 +19,7 @@ The main task is build using a SFC (Sequential Function Chart) with the followin
 Each of the Function Blocks (FB's) used to read inputs and switch outputs has a reference to a `MQTTPublishQueue` which is used to queue events to send to the MQTT broker.
 The events are sent towards the broker in the MQTT Task which has a lower priority so it never interferes with the main task which does the critical work.
 
-### __MQTT Task (PLC_PRG_MQTT)__
+### **MQTT Task (PLC_PRG_MQTT)**
 The main task is build using a SFC (Sequential Function Chart) with the following actions:
 
 ![PLC_PRG_MQTT_SFC](./_img/PLC_PRG_MQTT_SFC.png)
@@ -28,7 +28,7 @@ The main task is build using a SFC (Sequential Function Chart) with the followin
 2. `MQTT_PUBLISH`: action ran continously to read the events to publish from the `MQTTPublishQueue`. Has a number of `MQTTPublishWorkers` who are able to send MQTT events simultanously.
 3. `MQTT_SUBSCRIBE`: action ran continously after `MQTT_PUBLISH` to handle subscriptions.
 
-### __Global Variable list MQTT (MQTTVariables)__
+### **Global Variable list MQTT (MQTTVariables)**
 
 Contains function blocks to enable communication between the main task and the MQTT task. For example:
 - `MQTTPublishQueue` FB where the main task queue's messages to be published.

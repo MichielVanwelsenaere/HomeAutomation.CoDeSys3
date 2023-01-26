@@ -1,6 +1,6 @@
 ## FB_RS485_EASTRON_SDM_POWER_MQTT
 
-### __General__
+### **General**
 Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired.
 This function block aims to read power consumption from a range of Eastron SDM power meters. Currently the Eastron SDM120, SDM220 and SDM630 are supported.
 
@@ -15,7 +15,7 @@ Eastron SDM220 datasheets:
 Eastron SDM630 datasheet:
 - [Manual and Modbus registers](../RS485/datasheets/SDM630-Modbus-V2.pdf)
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_RS485_EASTRON_SDM_POWER_MQTT.svg" width="500">
 
@@ -33,7 +33,7 @@ METHOD(S)
 - GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -45,7 +45,7 @@ MQTT publish topic is a concatination of the publish prefix and the function blo
 |:-------------|:------------------|:------------------|
 | ACTIVEPOWER |  `/ACTP` | Watts
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```
@@ -77,7 +77,7 @@ The MQTT publish topic in this code example will be `Devices/PLC/House/Out/RS485
 RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM_POWER_001);
 ```
 
-### __Home Assistant YAML__
+### **Home Assistant YAML**
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
 ```YAML

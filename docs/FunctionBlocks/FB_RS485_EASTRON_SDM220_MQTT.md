@@ -1,6 +1,6 @@
 ## FB_RS485_EASTRON_SDM220_MQTT
 
-### __General__
+### **General**
 Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired.
 Due to the large amount of modbus registers exposed and the Eastron SDM220 limitation to read at maximum 40 registers at once the function block requires three modbus read commands to read out all the available data. Each of these three modbus read command reads out multiple registers at once which guarantees a consistent data readout as datapoints are extracted at a single point in time.
 
@@ -14,7 +14,7 @@ Eastron SDM220 datasheets:
 - [Manual](../RS485/datasheets/SDM220_Manual.pdf)
 - [Modbus registers](../RS485/datasheets/SDM220_Modbus_Registers.pdf)
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_RS485_EASTRON_SDM220_MQTT.svg" width="500">
 
@@ -51,7 +51,7 @@ METHOD(S)
 - GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -76,7 +76,7 @@ MQTT publish topic is a concatination of the publish prefix and the function blo
 | TOTAL_ACTIVE_ENERGY | `/TOTAE` | kwh 
 | TOTAL_REACTIVE_ENERGY | `/TOTRE` | kvarh 
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```
@@ -109,13 +109,13 @@ The MQTT publish topic in this code example will be `Devices/PLC/House/Out/RS485
 RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM220_1);
 ```
 
-### __Wago PFC wiring diagram__
+### **Wago PFC wiring diagram**
 Wire the device as below in order to establish communication between a Wago PFC device and a Eastron SDM220:
 
 <img src="../_img/FB_RS485_EASTRON_SDM220_MQTT_WiringDiagram.png" width="500">
 
 Note: RS485 terminator resistors not present on image but nevertheless required.
-### __Home Assistant YAML__
+### **Home Assistant YAML**
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
 ```YAML

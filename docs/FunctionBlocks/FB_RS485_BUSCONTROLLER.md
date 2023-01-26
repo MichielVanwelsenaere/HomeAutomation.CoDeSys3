@@ -1,9 +1,9 @@
 ## FB_RS485_BUSCONTROLLER
 
-### __General__
+### **General**
 Used to control the RS485 bus in order to allow only one device with one Modbus RTU query at the time. In addition it manages the silence time on the bus between two requests and is capable of introducing a startup delay to allow devices on the bus to start up on power cycles.
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_RS485_BUSCONTROLLER.svg" width="350">
 
@@ -20,7 +20,7 @@ METHOD(S)
 - SetBusOccupied: used internally to set the RS485 bus as occupied.
 - ReleaseBus: used internally to release the RS485 bus.
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```

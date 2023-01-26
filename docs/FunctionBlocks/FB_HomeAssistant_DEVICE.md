@@ -13,7 +13,7 @@ METHOD(S)
 	- `availabilityOffline`: the word to puslish when the plc is offline;
 
 
-### __Code example__
+### **Code example**
 - variables initiation:
 ```
 	HA_device					:FB_HomeAssistant_DEVICE;

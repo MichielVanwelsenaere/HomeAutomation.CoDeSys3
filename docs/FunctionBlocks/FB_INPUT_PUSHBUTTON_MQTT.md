@@ -1,9 +1,10 @@
 ## FB_INPUT_PUSHBUTTON_MQTT
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
-### __General__
+### **General**
 Reads out a digital input and sets a single, double or long output high for one cycle when one of those events has been detected on the configured input.
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_INPUT_PUSHBUTTON_MQTT.svg" width="350">
 
@@ -23,7 +24,7 @@ METHOD(S)
 
 - ConfigureFunctionBlock: configures the time parameter specifing the decoding time for long key press. Defaults to 400ms.
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -37,7 +38,7 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 (*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output. 
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```
@@ -67,8 +68,8 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 );
 ```
 
-### __Home Assistant YAML__
-To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+### **Home Assistant YAML**
+If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
 ```YAML
 mqtt:

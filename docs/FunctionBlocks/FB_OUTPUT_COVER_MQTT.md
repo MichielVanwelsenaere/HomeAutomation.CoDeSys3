@@ -1,4 +1,5 @@
 ## FB_OUTPUT_COVER_MQTT
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
 
@@ -147,13 +148,9 @@ If two SPDT relays for each cover from the appraoch above consumes to much place
 | :--------------------------------------------------------------------: | :--------------------------------------------------------------------: |
 | ![AC ELTAKO Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_ELTAKO_AC.png) | ![DC ELTAKO Wiring](../_img/FB_OUTPUT_COVER_MQTT-Wiring_ELTAKO_DC.png) |
 
-## **Home Assistant Auto discovery**
-
-See [General MQTT Auto discovery](../MQTT_Auto_Discovery/README.md) for more information.
-
 ### **Home Assistant YAML**
 
-If home assistant auto discovery is not working for you, you can use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
+If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
 
 ```YAML
 mqtt:

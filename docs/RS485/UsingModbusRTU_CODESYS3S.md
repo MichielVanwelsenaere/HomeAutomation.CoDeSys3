@@ -1,17 +1,17 @@
 ## Using Modbus RTU with the CODESYS 3S runtime
 
-### __Content__
+### **Content**
 This page describes adding a modbus RTU device using the CODESYS 3S runtime. 
 In case a function block for your specific device is not present yet in this project. Please consider reading the [RS485 tips and tricks](../FAQ/RS485_tips_and_tricks.md) page if this is your first time connecting a RS485 device.
 
-### __Assign the PLC serial port to the PLC runtime__
+### **Assign the PLC serial port to the PLC runtime**
 In order use the onboard PLC serial port from the PLC runtime this needs to be configured from the web based management tool:
 
 <img src="../_img/RS485_CODESYS3S_WBM.png" width="550">
 
 Note that it's necessary to reboot the controller after a change to this setting.
 
-### __Required libraries__
+### **Required libraries**
 Make sure the following libraries are present in the project:
 ```
 IoDrvModbus
@@ -19,7 +19,7 @@ SysCom
 SysTypes2 Interfaces
 ```
 
-### __Setting the serial mode on the PLC__
+### **Setting the serial mode on the PLC**
 Although the PLC serial port is already assigned to the PLC runtime it isn't configured yet in RS485 mode.
 To do so:
 1. Open Codesys 
@@ -30,7 +30,7 @@ To do so:
 
 Note that even when the serialmode is already set to RS485 it is adviced to explicitly do so again. This has proven to fix connectivity issues when first using RS485 on a controller.
 
-### __Using code to access the RS485 serial port__
+### **Using code to access the RS485 serial port**
 The device configurator overview can be used to add modbus RTU slave devices but it doesn't allow for troubleshooting. Therefore it's preferable to use code to read out the Modbus RTU devices.
 
 A specific implementation example can be found inside the project:

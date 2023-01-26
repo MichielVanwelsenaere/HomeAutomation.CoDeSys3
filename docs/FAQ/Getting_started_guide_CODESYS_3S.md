@@ -1,6 +1,6 @@
 ## Getting started guide (CODESYS 3S runtime)
 
-### __Getting to know CoDeSys3__
+### **Getting to know CoDeSys3**
 If you have experience with programming in CodeSys3 you can skip this part. Otherwise, it's advised to gain some experience by checking the sources below:
 
 - Setup environment and creation first project: [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s)
@@ -8,7 +8,7 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 - CoDeSys Sequential Function Charts Explained: [YouTube video](https://www.youtube.com/watch?v=eP42t9O5drk)
 - Getting to know the IEC 61131-3 standard: [iec 61131-3 reference](https://bitbucket.org/ntphx/iec-61131)
 
-### __Setup CoDeSys 3S__
+### **Setup CoDeSys 3S**
 
 1. Download CoDeSys3 from the [CoDeSys store](https://store.codesys.com/). Note that you need to create an account to be able to download the installer.
 2. Install your device target package. Steps explained in this [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s), steps might differ slightly depending on your device target.
@@ -17,11 +17,11 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. Using the free version the PLC is able to run the CodeSys runtime for 2 hours after which the program stops running. A license is required to remove this limitation.
 
-### __Creating a project__
+### **Creating a project**
 
 1. Create a new project in CODESYS 3S.
 
-### __Restoring the project POUs__
+### **Restoring the project POUs**
 This will restore the basic POUs (building blocks) of the project, note that you can reuse this step to update or import new POUs in the future.
 1. Go to the POUs section of the project and select the top level item:
 
@@ -35,7 +35,7 @@ This will restore the basic POUs (building blocks) of the project, note that you
 
 <img src="../_img/GettingStartedGuide/RestorePOUsImportAll.png" alt="Restore POUs import all" width="350"/>
 
-### __Adding a device__
+### **Adding a device**
 This will add a device to the project, in this example a PFC200 is used. Adopt to your needs if necessary. 
 
 1. Return to the 'Devices' tab of the project, right click on the root item and 'Add Device':
@@ -50,7 +50,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 <img src="../_img/GettingStartedGuide/AddDeviceRemoveDefaults.png" alt="Add device remove default application" width="350"/>
 
-### __Restoring the PLC logic__
+### **Restoring the PLC logic**
 
 1. select the *PlcLogic* item and go to *Project* &rarr; *Import* and browse to the Exports folder and open the *.export* file:
 
@@ -58,7 +58,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 2. Import all items.
 
-### __Libraries__
+### **Libraries**
 
 1. Go to the *Library Manager* menu and remove all WAGO libraries:
 
@@ -91,7 +91,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 Although all libraries are restored now, it's still not possible to build the project. Reason for this is that the IO configured in the project doesn't exist yet in the device in the project tree.
 
 
-### __Updating the configured devices to your PLC device configuration__
+### **Updating the configured devices to your PLC device configuration**
 As the IO modules installed on your PLC will most likely differ from the ones configured in the project an update is required.
 
 1. Turn on your PLC with a network cable plugged in. Make sure that the device you are using to follow this steps is on the same network.
@@ -112,7 +112,7 @@ Executing the steps above will most likely introduce build errors, this is norma
 
 Make sure to update the PLC device configuration to your exact PLC device setup in order to avoid issues. 
 
-### __Adjusting the home automation logic to your needs__
+### **Adjusting the home automation logic to your needs**
 
 #### MQTT config
 Update the configured MQTT broker IP and port to connect to your broker:
@@ -163,13 +163,13 @@ To update the *Persistent Variables* if you created or removed Function Blocks p
 
 This will add all *PERSIST* variables form the project. Note that the project needs to be built before being able to perform this step.
 
-### __Building the project__
+### **Building the project**
 Once all IO references in the project actually exist on the device as well you should be able to build the project:
 1. Build the project (F11)!
 
 <img src="../_img/GettingStartedGuide/CompileCompleted.png" alt="drawing"/>
 
-### __Uploading and running the project__
+### **Uploading and running the project**
 To upload and run the project on your PLC perform the following steps:
 1. From the menu, select *online* and then *login*:</br>
 <img src="../_img/GettingStartedGuide/UploadToPLC.png" alt="select online and then login" width="600"/>

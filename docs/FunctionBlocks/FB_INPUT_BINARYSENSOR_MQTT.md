@@ -1,9 +1,9 @@
 ## FB_INPUT_BINARYSENSOR_MQTT
 
-### __General__
+### **General**
 Binary sensors gather information about the state of devices which have a "digital" return value (either 1 or 0). These can be switches, contacts, pins, etc. These sensors only have two states: *0/off/low/closed/false* and *1/on/high/open/true*
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_INPUT_BINARYSENSOR_MQTT.svg" width="350">
 
@@ -24,7 +24,7 @@ METHOD(S)
 - ConfigureFunctionBlock: configures the behaviour of output `Q` using the parameters below:
     - `T_TurnOffDelay`: duration of the turn off delay added on output `Q` to prevent rapid ON/OFF behaviour on the output caused by a fast switching sensor on the digital input. Defaults to 0 seconds, can be extremely usefull when connecting a motion sensor the the PLC. 
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -33,7 +33,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 MQTT publish topic is a concatenation of the publish prefix variable and the function block name. 
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```
@@ -68,7 +68,7 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 );
 ```
 
-### __Home Assistant YAML__
+### **Home Assistant YAML**
 To integrate with Home Assistant use the YAML code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor.mqtt/) config:
 
 ```YAML

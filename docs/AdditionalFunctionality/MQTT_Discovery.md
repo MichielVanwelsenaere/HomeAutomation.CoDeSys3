@@ -1,6 +1,6 @@
-## **Home Assistant discovery**
+## **MQTT discovery**
 
-To integrate with Home Assistant automatically, add the `InitMqttDiscovery` method in `MAIN_INIT`.
+To integrate with Home Assistant (or other systems) via MQTT discovery automatically, call the `InitMqttDiscovery` method in `MAIN_INIT`.
 
 Most function blocks have a `InitMqttDiscovery` method. They do need a `FB_HomeAssistant_DEVICE` instance to work, see [/FB_HomeAssistant_DEVICE](../FunctionBlocks/FB_HomeAssistant_DEVICE.md)
 - InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the entity automatically.
@@ -11,15 +11,15 @@ Most function blocks have a `InitMqttDiscovery` method. They do need a `FB_HomeA
   - `icon `: OPTIONAL specify icon. Default changes per function block.
   - `meta `: OPTIONAL Free field for meta data. Only visible in MQTT
 
-Example config:
+Example:
 
 ```ST
 FB_AO_DIMMER_001.InitMqttDiscovery(
-	name := 'Office strip cold',							(* The name show in Home Assistant frond-end*)
-	overruleId:= 'Dimm_office_cw', 							(*  e.g. 'MY_DIMMER_GND_HALL_01'  *)
-	icon := 'mdi:lightbulb',  								(* specify icon*)
-	MqttHADiscoveryPrefix:= ADR(MqttHADiscoveryPrefix),  	(* pointer to string prefix for the MQTT discover topic *)
-	Device := FB_HomeAssistant_DEVICE,						(* The device show in Home Assistant *)
-	meta := 'GeoDev office',								(* Free field for meta data. Only visible in MQTT *)
+	name := 'Office strip cold',                        (* The name show in Home Assistant frond-end*)
+	overruleId:= 'Dimm_office_cw',                      (*  e.g. 'MY_DIMMER_GND_HALL_01'  *)
+	icon := 'mdi:lightbulb',                            (* specify icon*)
+	MqttHADiscoveryPrefix:= ADR(MqttHADiscoveryPrefix), (* pointer to string prefix for the MQTT discover topic *)
+	Device := FB_HomeAssistant_DEVICE,						      (* The device show in Home Assistant *)
+	meta := 'GeoDev office',								            (* Free field for meta data. Only visible in MQTT *)
 );
 ```
