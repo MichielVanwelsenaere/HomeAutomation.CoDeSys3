@@ -1,8 +1,8 @@
 ## **MQTT discovery**
 
-To integrate with Home Assistant (or other systems) via MQTT discovery automatically, call the `InitMqttDiscovery` method in `MAIN_INIT`.
+Several home automation systems -like Home Assistant- support [MQTT discovery](https://www.home-assistant.io/integrations/mqtt/#mqtt-discovery). Leveraging this functionality in the PLC programming will automatically provision devices in the supported home automation system.
 
-Most function blocks have a `InitMqttDiscovery` method. They do need a `FB_HomeAssistant_DEVICE` instance to work, see [/FB_HomeAssistant_DEVICE](../FunctionBlocks/FB_HomeAssistant_DEVICE.md)
+Supported function blocks have a `InitMqttDiscovery` method. The method needs a `FB_HomeAssistant_DEVICE` instance to work, see [/FB_HomeAssistant_DEVICE](../FunctionBlocks/FB_HomeAssistant_DEVICE.md)
 - InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the entity automatically.
   - `name `: The name show in Home Assistant frond-end
   - `MqttDiscoverPrefix`: pointer to string prefix for the MQTT discover topic

@@ -51,7 +51,7 @@ An export contains `.export` and `.xml` for people to update. The `.ecp` is upgr
 2. Run export (from your modified ecp)
 
    - Export all files except configs
-   
+
      <img src="_img/GettingStartedGuide/Export_all_except_POU.png" height="400">
      
      So no `*variables`, `PRG's` and `PersistenceVars`
@@ -63,4 +63,4 @@ An export contains `.export` and `.xml` for people to update. The `.ecp` is upgr
     - Follow [this guide](FAQ/Howto_updating_function_blocks.md) to update your blocks
 
     - Add 1 example of the new function block/methods to the POU
-    - Document the new function block/methods in the POU![](img/clip20230118225246.png)
+    - Document the new function block/methods in the POU!
