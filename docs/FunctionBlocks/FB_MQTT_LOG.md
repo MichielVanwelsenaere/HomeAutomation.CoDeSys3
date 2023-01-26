@@ -45,10 +45,6 @@ To send a message to MQTT:
 MqttVariables.MQTT_logger.send('Init finished');
 ```
 
-### **Home Assistant Auto discovery**
-
-See [MQTT Auto discovery](../MQTT_Auto_Discovery/README.md) for more information.
-
 ### **Home Assistant YAML**
 If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the following to your `configuration.yaml`:
 
@@ -57,9 +53,10 @@ If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md)
   object_id: "plc_log"
   unique_id: "plc_log"
   state_topic: "Devices/PLC/House/debug"
-  qos: 0
-  device: *device # write or link your device here
-  availability: *availability # write or link your availability here
+  qos: 2  
+  availability_topic: "Devices/PLC/House/availability"
+  payload_available: "online"
+  payload_not_available: "offline"
 
 ```
 
