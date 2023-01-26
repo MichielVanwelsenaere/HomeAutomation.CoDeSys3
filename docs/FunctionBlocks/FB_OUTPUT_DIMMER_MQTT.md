@@ -55,10 +55,8 @@ METHOD(S)
   - `DmxWidth`: Width of the channel, in channels. (often 1 or 2)
   - `pDmxValues`: datatype _POINTER TO oscat_network.NETWORK_BUFFER_SHORT_, pointer to a global buffer. There is now only one buffer, thus one universe
   - `dmxUniverse`: Integer value of the universe. Meta data for MQTT only.
-
-  
-- InitMqttDiscovery:  
-    - See [MQTT Discovery](./../AdditionalFunctionality/MQTT_Discovery.md) for more info.
+- InitMqttDiscovery:
+  - See [MQTT Discovery](./../AdditionalFunctionality/MQTT_Discovery.md) for more info.
 
 ### **Function Block Behaviour**
 
@@ -189,8 +187,9 @@ The above illustrates how to initiate dmx capabilities. If `InitDmx` is before `
 
 See [MQTT Auto discovery](../MQTT_Auto_Discovery/README.md) for more information.
 
-### __Home Assistant YAML__
-If home asistant auto discovery is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
+### **Home Assistant YAML**
+
+If home assistant auto discovery is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
 ```YAML
 mqtt:

@@ -1,4 +1,4 @@
-## FB_MQTT_DEVICE
+## FB_MQTT_LOG
 
 ![](../_img/mqtt_log_in_ha.png)
 
@@ -50,7 +50,7 @@ See [MQTT Auto discovery](../MQTT_Auto_Discovery/README.md) for more information
 
 ### **Home Assistant YAML**
 
-If home asistant auto discovery is not working for you, you can use the following to your `configuration.yaml`:
+If home assistant auto discovery is not working for you, you can use the following to your `configuration.yaml`:
 
 ```yaml
 - name: "plc_log"

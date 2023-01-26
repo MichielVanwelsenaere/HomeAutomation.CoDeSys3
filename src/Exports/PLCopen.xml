@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-01-23T21:41:38.8214787" />
-  <contentHeader name="HomeAutomation_Arup.ecp" modificationDateTime="2023-01-23T21:30:54.986742">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-01-26T12:21:46.7244803" />
+  <contentHeader name="HomeAutomation_Arup.ecp" modificationDateTime="2023-01-26T12:07:39.4279613">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -37,6 +37,31 @@
         </baseType>
         <addData />
       </dataType>
+      <dataType name="Dimmer">
+        <baseType>
+          <enum>
+            <values>
+              <value name="idle" />
+              <value name="soft_turn_on_restore" />
+              <value name="soft_turn_off" />
+              <value name="quick_turn_on" />
+              <value name="quick_turn_off" />
+              <value name="ramp_up_or_down" />
+              <value name="low_or_high_entering" />
+              <value name="low_or_high_leaving" />
+              <value name="low_or_high_released_by_user" />
+              <value name="blink" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="to_string" Value="" />
+            </Attributes>
+          </data>
+        </addData>
+      </dataType>
       <dataType name="DIMMER_CURVE">
         <baseType>
           <enum>
@@ -46,304 +71,6 @@
               <value name="cubic" />
             </values>
           </enum>
-        </baseType>
-        <addData />
-      </dataType>
-      <dataType name="HA_DISCOVER">
-        <baseType>
-          <struct>
-            <variable name="name">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> baseTopic: JSONVAR; //~ </xhtml>
-              </documentation>
-            </variable>
-            <variable name="dev_cla">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">device_class</xhtml>
-              </documentation>
-            </variable>
-            <variable name="obj_id">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object_id</xhtml>
-              </documentation>
-            </variable>
-            <variable name="uniq_id">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">unique_id</xhtml>
-              </documentation>
-            </variable>
-            <variable name="ic">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> icon</xhtml>
-              </documentation>
-            </variable>
-            <variable name="stat_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">state_topic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pl_on">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">payload_on</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pl_off">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">payload_off</xhtml>
-              </documentation>
-            </variable>
-            <variable name="bri_stat_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">brightness_state_topic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="cmd_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">command_topic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="bri_cmd_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> brightness_command_topic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="bri_scl">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">brightness_scale</xhtml>
-              </documentation>
-            </variable>
-            <variable name="opt">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">  optimistic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="on_cmd_type">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">on_command_type</xhtml>
-              </documentation>
-            </variable>
-            <variable name="avty_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">availability_topic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pl_avail">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">payload_available</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pl_not_avail">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">payload_not_available</xhtml>
-              </documentation>
-            </variable>
-            <variable name="exp_aft">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">expire_after</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pl_open">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload_open</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pl_cls">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload_close</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pl_stop">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload_stop</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pos_clsd">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> position_closed</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pos_open">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> position_open</xhtml>
-              </documentation>
-            </variable>
-            <variable name="set_pos_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> set_position_topic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pos_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> position_topic</xhtml>
-              </documentation>
-            </variable>
-            <variable name="dmxChannel">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> dmx metadata:</xhtml>
-              </documentation>
-            </variable>
-            <variable name="dmxWith">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-            </variable>
-            <variable name="dmxUniverse">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-            </variable>
-            <variable name="meta">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> extra metadata</xhtml>
-              </documentation>
-            </variable>
-            <variable name="dev">
-              <type>
-                <derived name="HA_DISCOVER_DEVICE" />
-              </type>
-            </variable>
-          </struct>
-        </baseType>
-        <addData />
-      </dataType>
-      <dataType name="HA_DISCOVER_DEVICE">
-        <baseType>
-          <struct>
-            <variable name="name">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-            </variable>
-            <variable name="cu">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">configuration_url</xhtml>
-              </documentation>
-            </variable>
-            <variable name="ids">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">identifiers</xhtml>
-              </documentation>
-            </variable>
-            <variable name="mf">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">manufacturer</xhtml>
-              </documentation>
-            </variable>
-            <variable name="mdl">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">model</xhtml>
-              </documentation>
-            </variable>
-            <variable name="sw">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">sw_version</xhtml>
-              </documentation>
-            </variable>
-            <variable name="hw">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">hw_version</xhtml>
-              </documentation>
-            </variable>
-          </struct>
         </baseType>
         <addData />
       </dataType>
@@ -2548,7 +2275,7 @@ END_IF		</xhtml>
                 <derived name="MQTT.QoS" />
               </type>
               <initialValue>
-                <simpleValue value="MQTT.QoS.AtLeastOnce" />
+                <simpleValue value="MQTT.QoS.ExactlyOnce" />
               </initialValue>
             </variable>
             <variable name="MqttRetain">
@@ -4670,35 +4397,13 @@ END_IF		</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">
+
+IF Startup THEN
 	OUT := PreviousOUT;
 	Q := PreviousQ;
 END_IF
 
-
-
-(* DMX specific *)
-IF SoftDimToValue = TRUE THEN
-	IF OUT_Target &gt; OUT_Internal THEN // we are moving up to OUT_Internal 
-		IF OUT_Target - OUT_Internal &gt; UpdateValueStep THEN
-			OUT_Internal := OUT_Internal + UpdateValueStep;
-		ELSE
-			OUT_Internal := OUT_Target;
-		END_IF
-	ELSIF OUT_Target &lt; OUT_Internal THEN // we are moving down to OUT_Internal
-		IF OUT_Internal - OUT_Target &gt; UpdateValueStep THEN
-			OUT_Internal := OUT_Internal - UpdateValueStep;
-		ELSE
-			OUT_Internal := OUT_Target;
-			IF SoftDimToQFalse THEN
-				Q := FALSE;
-			END_IF
-		END_IF
-	END_IF
-END_IF
-(* DMX specific *)
-
-	
 IF RST THEN
 	IF rst_out THEN OUT_Internal := 0; END_IF;
 	Q := FALSE;
@@ -4725,19 +4430,7 @@ ELSIF SINGLE THEN
 	(* a single click reverses output Q *)
 	Q := NOT Q;
 	(* when dimmer is turned on we need to limit out to min and max limits *)
-	IF Q THEN 
-		OUT_Target := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);
-		OUT_Internal := 0;
-		SoftDimToValue := TRUE;
-	ELSE
-		IF OUT_Internal &gt; 0 THEN
-			OUT_Target := 0;
-			OUT_Internal_tmp := OUT_Internal;
-			Q := TRUE; // back to true while soft dimming to 0
-			SoftDimToValue := TRUE;
-			SoftDimToQFalse := TRUE;
-		END_IF
-	END_IF;
+	IF Q THEN OUT_Internal := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);	END_IF;
 	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)
 	dir := OUT_Internal &gt; 127;
 ELSIF LONG THEN
@@ -4758,67 +4451,7 @@ END_IF;
 
 
 (* while dimming is active ramp the output out up or down *)
-dim(DIR := dir, e := P_LONG AND Q AND enabled, TR := T_DIMM, rmp := OUT_Internal);
-
-IF P_LONG AND Q AND OUT_Internal &gt;= Max_On AND enabled AND dir AND blinkEnabled THEN // e.g. when OUT_internal = 255 and risisng
-	Step := 1 ;
-END_IF
-
-CASE Step OF
-   0: 	// dont do anything
-   1:  // Wait a bit at full brightness 
-		enabled := FALSE;
-		MqttVariables.MQTT_logger.send('Set delay', 'Dimmer');
-		wait(IN:=TRUE, PT:=waitTimeAtTop);
-		IF wait.Q THEN
-			wait(IN:=FALSE);
-			Step := Step + 1;
-		END_IF
-   2: // An indicating blink
-   		IF  P_LONG THEN
-			MqttVariables.MQTT_logger.send('BLINK', 'Dimmer');
-			OUT_Internal := blinkValue; // temp blink
-			wait(IN:=TRUE, PT:=TIME#100MS);
-			IF wait.Q THEN
-				wait(IN:=FALSE);
-				Step := Step + 1;
-			END_IF
-		ELSE // released
-			Step := 4;
-			OUT_Internal := Max_On; // reset to full brightness
-		END_IF
-	3: // Wait a bit for the user to react
-   		IF  P_LONG THEN
-			OUT_Internal := Max_On; // reset to full brightness
-			wait(IN:=TRUE, PT:=waitTimeAtTop);
-			IF wait.Q THEN
-				wait(IN:=FALSE);
-				Step := Step + 1;
-			END_IF
-		ELSE // released
-			Step := 4;
-			OUT_Internal := Max_On; // reset to full brightness
-		END_IF
-   	4: // Back to ramp.
-		enabled := TRUE;
-		MqttVariables.MQTT_logger.send('END delay', 'Dimmer');
-		dir := FALSE;
-		Step := Step + 1;
-   ELSE
-      Step := 0;
-END_CASE
-// IF P_LONG AND Q AND OUT_Internal = 0 THEN
-// 	MqttVariables.MQTT_logger.send('Set delay', 'Dimmer');
-// // 	enabled := FALSE;
-// 	Delay(IN:=TRUE, PT:=T#1S);
-// 	IF NOT(Delay.Q) THEN
-// 	   RETURN;
-// 	END_IF
-// 	Delay(IN:=FALSE);
-// // 	enabled := TRUE;
-// 	MqttVariables.MQTT_logger.send('Delay done', 'Dimmer');
-// END_IF
-
+dim(DIR := dir, e := P_LONG AND Q, TR := T_DIMM, rmp := OUT_Internal);
 
 (* reverse direction when limits are reached *)
 IF OUT_Internal = 0 THEN
@@ -4841,18 +4474,7 @@ LIN_TRAFO(
 		OUT_MIN:=OUT_LinearScaleMin,
 		OUT_MAX:=OUT_LinearScaleMax
 	);
-	
-
-(* Dimm according to a curve *)
-IF curve = DIMMER_CURVE.linear THEN
-		OUT := REAL_TO_WORD(LIN_TRAFO.OUT);
-ELSIF curve = DIMMER_CURVE.logarithmic THEN 
-		OUT := REAL_TO_WORD(65536 * LN(LIN_TRAFO.OUT + 1) / LN(65536));
-ELSIF curve = DIMMER_CURVE.cubic THEN
-		OUT := REAL_TO_WORD(((0.3 * EXPT((LIN_TRAFO.OUT / 65536), 3)) + (0.6 * EXPT((LIN_TRAFO.OUT / 65536), 2)) + (0.1 * (LIN_TRAFO.OUT / 65536)) + 0.0));
-END_IF
-
-
+OUT:= REAL_TO_WORD(LIN_TRAFO.OUT);
 IF Q THEN
 	Q_OUT:= OUT;
 ELSE
@@ -4863,7 +4485,7 @@ IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm)
 	PreviousOUT:=OUT_Internal;
 	pMqttPublishQueue^.AddMessage(		
 		Payload := BYTE_TO_STRING(OUT_Internal),
-		Topic := CONCAT(MQTTPublishTopic, '/OUT'),
+		Topic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
@@ -4873,11 +4495,13 @@ IF (Q &lt;&gt; PreviousQ OR Startup) AND InitMqttDone THEN
 	PreviousQ:=Q;
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(Q),
-		Topic := CONCAT(MQTTPublishTopic, '/Q'),
+		Topic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),
 		Qos := Qos_Dimm,
 		MqttRetain := TRUE
 	);
 END_IF
+
+Startup:=FALSE;
 
 (* DMX specific *)
 IF InitDmxDone THEN 
