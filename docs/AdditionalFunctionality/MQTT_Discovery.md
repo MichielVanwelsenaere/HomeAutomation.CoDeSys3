@@ -11,12 +11,12 @@ Several home automation systems -like Home Assistant- support [MQTT discovery](h
 Supported function blocks have a `InitMqttDiscovery` method. The method needs a [FB_HomeAssistant_DEVICE](../FunctionBlocks/FB_HomeAssistant_DEVICE.md) instance to work.
 
 - InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the entity automatically.
-  - `name `: The name show in Home Assistant frond-end
-  - `MqttDiscoverPrefix`: pointer to string prefix for the MQTT discover topic
-  - `Device `:The device show in Home Assistant
-  - `overruleId`: OPTIONAL. leave empty to set it to the device + instance name HOUSE_FB_AO_DIMMER_001 for instance name, or overule to e.g. MY_DIMMER_GND_HALL_01
-  - `icon `: OPTIONAL specify icon. Default changes per function block.
-  - `meta `: OPTIONAL Free field for meta data. Only visible in MQTT
+  - `name`: The name show in Home Assistant frond-end
+  - `MqttDiscoverPrefix`: Pointer to string prefix for the MQTT discover topic
+  - `Device`: The device show in Home Assistant
+  - `overruleId`: OPTIONAL. Leave empty to set it to the device + instance name HOUSE_FB_AO_DIMMER_001 for instance name, or overule to e.g. MY_DIMMER_GND_HALL_01
+  - `icon`: OPTIONAL. Specify icon. Default changes per function block
+  - `meta`: OPTIONAL. Free field for meta data. Only visible in MQTT
 
 Example:
 
