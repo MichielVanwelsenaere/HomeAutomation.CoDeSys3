@@ -1,6 +1,6 @@
 ## Getting started guide (é!COCKPIT runtime)
 
-### __Getting to know CoDeSys3__
+### **Getting to know CoDeSys3**
 If you have experience with programming in CodeSys3 you can skip this part. Otherwise, it's advised to gain some experience by checking the sources below:
 
 - Setup environment and creation first project: [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s)
@@ -8,16 +8,16 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 - CoDeSys Sequential Function Charts Explained: [YouTube video](https://www.youtube.com/watch?v=eP42t9O5drk)
 - Getting to know the IEC 61131-3 standard: [iec 61131-3 reference](https://bitbucket.org/ntphx/iec-61131)
 
-### __Setup CoDeSys 3S__
+### **Setup CoDeSys 3S**
 <!-- markdown-link-check-disable -->
 1. Download é!COCKPIT from the [WAGO website](https://www.wago.com/global/automation-technology/discover-software/ecockpit-engineering-software). 
 <!-- markdown-link-check-enable -->
 
-### __Open the project__
+### **Open the project**
 
 1. open the file with *.ecp* extension in é!COCKPIT.
 
-### __Libraries__
+### **Libraries**
 
 1. Go to the *Library Manager* &rarr; *Libary repository* menu:
 
@@ -28,12 +28,12 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 <img src="../_img/GettingStartedGuide/InstallLibrariesecockpit.png" alt="Install libraries ecockpit"/>
 
 
-### __Build__
+### **Build**
 
 1. Build the project
 
 <img src="../_img/GettingStartedGuide/ecockpitbuild.png" alt="ecockpitbuild" width="500"/>
 
-### __Uploading and running the project__
+### **Uploading and running the project**
 
 [This video](https://www.youtube.com/watch?v=K-zUGiEQRAw) provides all instructions. 

@@ -1,11 +1,12 @@
 ## FB_VIRTUAL_REAL_MQTT
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
-### __General__
+### **General**
 A virtual function block can be used in one of two modes:
 - input: inputs a value in the PLC processing logic through MQTT.
 - output: outputs a value from the PLC processing logic through MQTT.
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_VIRTUAL_REAL_MQTT.svg" width="350">
 
@@ -39,7 +40,7 @@ METHOD(S)
 - SetValue: method to set the function block virtual value, only works if the function block is in output mode.
 
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if the function block is configured in output mode, outputting the value on input `IN` or set using the SetValue method through MQTT.  
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -48,7 +49,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if 
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
-### __MQTT Subscription Behaviour__
+### **MQTT Subscription Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable is the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
@@ -58,7 +59,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```
@@ -107,7 +108,7 @@ FB_VIRTUAL_REAL_001.IN:=X;
 ```
 A value X in the PLC is set to the IN value of the virtual function block, the IN value being published through MQTT.
 
-### __Home Assistant YAML__
+### **Home Assistant YAML**
 When using the function block as a virtual output use the YAML code below in your [MQTT Sensor](https://www.home-assistant.io/integrations/sensor.mqtt/) config to integrate with Home Assistant:
 
 ```YAML

@@ -1,15 +1,15 @@
 ## User leds (Codesys 3S runtime)
 
-### __General__
+### **General**
 
 It's possible to control the *U* leds on a WAGO PFC controller. The example below illustrates how.
 
-### __Prerequisites__
+### **Prerequisites**
 the following libaries should be present:
 
 - CmpPfcx00
 
-### __Implementation__
+### **Implementation**
 The project has a working implementation that controls the *U1* led, displaying it green when there is a working connection with the MQTT broker, flashing red if not.
 
 - controlling the led depending on connection with the MQTT broker

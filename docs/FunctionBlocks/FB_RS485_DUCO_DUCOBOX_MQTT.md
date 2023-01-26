@@ -1,6 +1,6 @@
 ## FB_RS485_DUCO_DUCOBOX_MQTT
 
-### __General__
+### **General**
 Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired. Allows finegrained local control on your DucoBox.
 
 ----------------------------
@@ -13,7 +13,7 @@ DUCO DUCOBOX Focus data:
 - [Productlink](https://www.duco.eu/uk/products/mechanical-ventilation/ventilation-units/ducobox-focus)
 - [Modbus registers](../RS485/datasheets/DUCO_DUCOBOX_Modbus_Registers.pdf)
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_RS485_DUCO_DUCOBOX_MQTT.svg" width="500">
 
@@ -26,7 +26,7 @@ METHOD(S)
 - GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -39,7 +39,7 @@ MQTT publish topic is a concatination of the publish prefix and the function blo
 
 Depending on the type of the node the published register value represents a certain parameter value. 
 
-### __MQTT Subscription Behaviour__
+### **MQTT Subscription Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
@@ -51,7 +51,7 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable, fun
 
 Upon a succesfull write operation the received payload will be published on the 'Out' topic. Continuing with the example above this will result in a payload `30` to be published on topic `Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/write/0`.
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```
@@ -82,7 +82,7 @@ The MQTT publish topic in this code example will be `Devices/PLC/House/Out/RS485
 RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_MQTT_001);
 ```
 
-### __Home Assistant YAML__
+### **Home Assistant YAML**
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config.
 
 Main node:

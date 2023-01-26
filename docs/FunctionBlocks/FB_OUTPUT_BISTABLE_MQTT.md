@@ -1,6 +1,7 @@
 ## FB_OUTPUT_BISTABLE_MQTT
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
-### __General__
+### **General**
 Designed to control bistable relays, can be switched using pulses that are high for one clock cycle (for example from `FB_INPUT_PUSHBUTTON_MQTT`), requires a feedback loop from the bistable relay.
 
 ----------------------------
@@ -9,7 +10,7 @@ Designed to control bistable relays, can be switched using pulses that are high 
 
 ----------------------------
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_OUTPUT_BISTABLE_MQTT.svg" width="350">
 
@@ -34,7 +35,7 @@ METHOD(S)
 - ConfigureFunctionBlock: configures the behaviour of output `OUT` using the parameters below:
     - `T_Hold`: duration of the pulse generated on output `OUT` to switch the bistable relais.
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -43,7 +44,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
-### __MQTT Subscription Behaviour__
+### **MQTT Subscription Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
@@ -54,7 +55,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name. 
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```
@@ -94,8 +95,8 @@ FB_DO_BISTABLE_001(OUT=>  DO_001,           (* couple the function block to the 
 );
 ```
 
-### __Home Assistant YAML__
-To integrate with Home Assistant use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
+### **Home Assistant YAML**
+If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
 ```YAML
 

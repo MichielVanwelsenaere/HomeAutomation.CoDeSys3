@@ -1,6 +1,6 @@
 ## FB_RS485_ESERA_OWD_MQTT
 
-### __General__
+### **General**
 Represents a single One Wire Device (OWD) on the 1-Wire bus network.
 The following 1-Wire devices are currently supported:
 
@@ -19,11 +19,11 @@ The following 1-Wire devices are currently supported:
 Note that the Esera documents the full list of supported devices over here: [link](https://esera.de/en/Service-Support/1-Wire-Basics/1-Wire-building-blocks/414/1-Wire-Gateway-10-Modbus-RTU). Yet, only the devices are above are supported in the software due to lack of actual testing devices.
 Nevertheless, adding a new device is a simple job.
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_RS485_ESERA_OWD_MQTT.svg" width="350">
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -45,7 +45,7 @@ Naturally `/TEMP` will only be ommited by the OWD if the physical sensor exposes
 | DEW_POINT | `/DEWP` | °C 
 | BRIGHTNESS | `/BNESS` | Lux
 
-### __Code example__
+### **Code example**
 
 - Enabling the OWD & configuring the OWD polling interval (called once during startup using the managing gateway function block):
 ```
@@ -55,7 +55,7 @@ FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.EnableOwd(
 );
 ```
 
-### __Home Assistant YAML__
+### **Home Assistant YAML**
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config. Adopt where necessary depending on the exposed values of your OWD.
 
 ```YAML

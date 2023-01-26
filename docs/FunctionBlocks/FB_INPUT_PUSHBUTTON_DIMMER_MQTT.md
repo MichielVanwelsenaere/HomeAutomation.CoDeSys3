@@ -1,9 +1,9 @@
 ## FB_INPUT_PUSHBUTTON_DIMMER_MQTT
 
-### __General__
+### **General**
 Big brother of input function block [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md) with additional functionality to output a realtime dimmer value (range 0-255).
 
-### __Block diagram__
+### **Block diagram**
 
 <img src="../_img/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.svg" width="350">
 
@@ -43,10 +43,10 @@ METHOD(S)
     - `Rst_Out`: if input Rst is TRUE, ouput DIM is set to 0, defaults to FALSE.
     - `T_Long`: configures the time parameter specifying the decoding time for long key press. Defaults to 400mS. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`.
 
-### __Function Block Behaviour__
+### **Function Block Behaviour**
 This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events for single, double, long and dimmer events. To fully understand it's logic it's advised to give the documentation present in [the OSCAT building library docs](../_img/oscat_building100_en.pdf) a good read (page 52).
 
-### __MQTT Event Behaviour__
+### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -63,7 +63,7 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 (*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output. 
 
-### __Code example__
+### **Code example**
 
 - variables initiation:
 ```
@@ -89,7 +89,7 @@ FB_DI_PB_001(PB:= DI_001);
 
 - integration with `?`: The output dimmer values can be connected to any light supporting integration through Home Assistant, OpenHAB, etc. For dimming using a PLC analog output check out the [FB_OUTPUT_DIMMER_MQTT docs](./FB_OUTPUT_DIMMER_MQTT.md)
 
-### __Home Assistant YAML__
+### **Home Assistant YAML**
 To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
 
 ```YAML

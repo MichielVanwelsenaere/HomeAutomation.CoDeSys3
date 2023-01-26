@@ -9,7 +9,7 @@ The purpose? Redundancy on a software level but also on a hardware level!
 - PLCs are very (very) robust controllers: no PC, SoC, etc. is more robust and failure resistant. 
 - Hardware continuity: Home automation providers often renew their modules every X years, modules aren't sold anymore or a full upgrade is required when something breaks. PLCs models and their modules are sold decades after their initial release date. For an example, check out the Wago 750 series controllers and modules. 
 - Avoid performing critical operations that should work 24/7 inside a less redundant controller (it will fail sooner or later).
-- Keep your wive/girlfriend happy when you're not at home and your Rpi, Odroid, Banana Pi, Pc crashes (running your MQTT broker, OpenHab, Home Assistant, etc.).
+- Keep your wife/girlfriend happy when you're not at home and your Rpi, Odroid, Banana Pi, Pc crashes (running your MQTT broker, OpenHab, Home Assistant, etc.).
 
 # Supported Runtimes
 The project is developed using the IEC 61131-3 standard, there are multiple development environments with their own runtime that support the standard:
@@ -70,7 +70,8 @@ is used to control access to the RS485 bus between multiple RS485 device functio
 
 # Additional functionality
 
-- [MQTT related settings](./docs/AdditionalFunctionality/General_MQTT.md)
+- [MQTT related settings](./docs/AdditionalFunctionality/MQTT_General.md)
+- [MQTT Discovery](./docs/AdditionalFunctionality/MQTT_Discovery.md)
 - [Controlling Wago PFC user leds](./docs/AdditionalFunctionality/User_leds_éCOCKPIT_runtime.md) (é!COCKPIT runtime)
 - [Controlling Wago PFC user leds](./docs/AdditionalFunctionality/User_leds_Codesys3S_runtime.md) (Codesys 3S runtime)
 
