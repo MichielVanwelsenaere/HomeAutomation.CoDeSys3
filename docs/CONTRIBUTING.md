@@ -51,7 +51,7 @@ An export contains `.export` and `.xml` for people to update. The `.ecp` is upgr
 2. Run export (from your modified ecp)
 
    - Export all files except configs
-   ![](img/clip20230118225100.png)
+   
      <img src="_img/GettingStartedGuide/Export_all_except_POU.png" height="400">
      
      So no `*variables`, `PRG's` and `PersistenceVars`
