@@ -46,7 +46,7 @@ MqttVariables.MQTT_logger.send('Init finished');
 ```
 
 ### **Home Assistant YAML**
-If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the following to your `configuration.yaml`:
+If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the following to your `configuration.yaml`:
 
 ```yaml
 - name: "plc_log"
