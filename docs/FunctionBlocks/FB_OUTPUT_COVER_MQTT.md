@@ -3,8 +3,7 @@
 
 ### **General**
 
-The cover function block allows you to control covers such as a roller shutter or a garage door. Using a time variable (`T_UD`) that specifies the time to close/open a cover completely its possible to control the specific position of the cover. That specific position variable is maintained through power cycles using a persistent variable.
-
+The cover function block allows you to control covers such as a roller shutter or a garage door. A time variable (`T_UD`) is required that specifies the time to close/open a cover completely. The cover can be controled via MQTT using 'OPEN/STOP/CLOSE' commands or via a digital 'TOGGLE' input that will switch between 'OPEN/STOP/CLOSE' states.
 ---
 
 :rotating_light: Do not use this function block if the mechanical safety on your electric roller shutters hasn't been configured properly!
@@ -133,7 +132,7 @@ If two SPDT relays for each cover from the appraoch above consumes to much place
 
 ### **Home Assistant YAML**
 
-If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
+If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT cover](https://www.home-assistant.io/components/cover.mqtt/) config:
 
 ```YAML
 mqtt:
