@@ -1,4 +1,5 @@
 ## FB_INPUT_BINARYSENSOR_MQTT
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
 Binary sensors gather information about the state of devices which have a "digital" return value (either 1 or 0). These can be switches, contacts, pins, etc. These sensors only have two states: *0/off/low/closed/false* and *1/on/high/open/true*
@@ -69,7 +70,7 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 ```
 
 ### **Home Assistant YAML**
-To integrate with Home Assistant use the YAML code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor.mqtt/) config:
+If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor.mqtt/) config:
 
 ```YAML
 mqtt:
