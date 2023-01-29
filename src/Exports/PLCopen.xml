@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-01-26T14:43:01.4450175" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2023-01-26T14:40:55.50796">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-01-29T16:01:55.5875664" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2023-01-29T16:01:25.4773825">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -275,6 +275,22 @@
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> position_open</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_open">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state open</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_clsd">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state closed	</xhtml>
               </documentation>
             </variable>
             <variable name="set_pos_t">
@@ -3078,25 +3094,16 @@ END_IF
                     <type>
                       <string />
                     </type>
-                    <initialValue>
-                      <simpleValue value="'Devices/PLC/House/availability'" />
-                    </initialValue>
                   </variable>
                   <variable name="availabilityOnline">
                     <type>
                       <string />
                     </type>
-                    <initialValue>
-                      <simpleValue value="'online'" />
-                    </initialValue>
                   </variable>
                   <variable name="availabilityOffline">
                     <type>
                       <string />
                     </type>
-                    <initialValue>
-                      <simpleValue value="'offline'" />
-                    </initialValue>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -4247,19 +4254,9 @@ END_IF </xhtml>
       <pou name="FB_OUTPUT_COVER_MQTT" pouType="functionBlock">
         <interface>
           <inputVars>
-            <variable name="UP">
+            <variable name="TOGGLE">
               <type>
                 <BOOL />
-              </type>
-            </variable>
-            <variable name="DN">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="PI">
-              <type>
-                <BYTE />
               </type>
             </variable>
             <variable name="PRIO_LOCK">
@@ -4276,21 +4273,6 @@ END_IF </xhtml>
               <type>
                 <BOOL />
               </type>
-            </variable>
-            <variable name="SENS">
-              <type>
-                <BYTE />
-              </type>
-              <initialValue>
-                <simpleValue value="1" />
-              </initialValue>
-              <addData>
-                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-                  <Attributes>
-                    <Attribute Name="input_constant" Value="" />
-                  </Attributes>
-                </data>
-              </addData>
             </variable>
             <variable name="T_LOCKOUT">
               <type>
@@ -4324,11 +4306,6 @@ END_IF </xhtml>
             </variable>
           </inputVars>
           <outputVars>
-            <variable name="POS">
-              <type>
-                <BYTE />
-              </type>
-            </variable>
             <variable name="MU">
               <type>
                 <BOOL />
@@ -4354,50 +4331,12 @@ END_IF </xhtml>
                 </data>
               </addData>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Refelection: object's full instance name</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
               </documentation>
             </variable>
-            <variable name="Startup">
+            <variable name="lock">
               <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="TRUE" />
-              </initialValue>
-            </variable>
-            <variable name="FB_ACT">
-              <type>
-                <derived name="BLIND_ACTUATOR" />
-              </type>
-            </variable>
-            <variable name="delta">
-              <type>
-                <BYTE />
-              </type>
-            </variable>
-            <variable name="internal_UP">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="internal_DN">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="Qos_POS">
-              <type>
-                <derived name="MQTT.QoS" />
-              </type>
-            </variable>
-            <variable name="Delta_POS">
-              <type>
-                <INT />
-              </type>
-            </variable>
-            <variable name="Cover_State">
-              <type>
-                <derived name="COVER_STATES" />
+                <derived name="OSCAT_BASIC.INTERLOCK" />
               </type>
             </variable>
             <variable name="Cover_State_Timer">
@@ -4405,7 +4344,12 @@ END_IF </xhtml>
                 <derived name="TOF" />
               </type>
             </variable>
-            <variable name="MqttRequestAuto">
+            <variable name="internalUp">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="internalDown">
               <type>
                 <BOOL />
               </type>
@@ -4415,24 +4359,24 @@ END_IF </xhtml>
                 <BOOL />
               </type>
             </variable>
-            <variable name="MqttRequestCalibrateUp">
+            <variable name="MqttRequestOpen">
               <type>
                 <BOOL />
               </type>
             </variable>
-            <variable name="MqttRequestCalibrateDn">
+            <variable name="MqttRequestClose">
               <type>
                 <BOOL />
               </type>
             </variable>
           </localVars>
           <localVars persistent="true">
-            <variable name="PreviousPos">
+            <variable name="internalDir">
               <type>
-                <BYTE />
+                <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> To retain position through powercycles</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">down = false, up = true</xhtml>
               </documentation>
             </variable>
           </localVars>
@@ -4452,127 +4396,224 @@ END_IF </xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
-	POS:=PreviousPos;
-	FB_ACT.SetPOS(PreviousPos);
-END_IF
-
-Cover_State_Timer(PT:=2 * T_UD);
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Run the timer to not power the motors for to long *)
+Cover_State_Timer(PT:=T_UD);
 Cover_State_Timer.IN:=FALSE;
 
-CASE Cover_State OF
-	COVER_STATES.Idle:
-		internal_UP:=FALSE;
-		internal_DN:=FALSE;
-		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
-	COVER_STATES.Prio_up:
-		// Only power an engine for maximum twice T_UD
-		IF Cover_State_Timer.Q THEN
-			internal_UP:=TRUE;
-			internal_DN:=FALSE;
-		ELSE
-			internal_UP:=FALSE;
-			internal_DN:=FALSE;
-		END_IF
-		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
-	COVER_STATES.Prio_dn:
-		// Only power an engine for maximum twice T_UD
-		IF Cover_State_Timer.Q THEN
-			internal_UP:=FALSE;
-			internal_DN:=TRUE;
-		ELSE
-			internal_UP:=FALSE;
-			internal_DN:=FALSE;
-		END_IF
-		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
-	COVER_STATES.Auto:
-		internal_UP:=TRUE;
-		internal_DN:=TRUE;
-		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
-	COVER_STATES.Manual:
-		internal_UP:=UP;
-		internal_DN:=DN;
-		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
-	COVER_STATES.Calibrate_up:
-		// Only power an engine for maximum twice T_UD
-		IF Cover_State_Timer.Q THEN
-			internal_UP:=FALSE;
-			internal_DN:=TRUE;
-		ELSE
-			internal_UP:=FALSE;
-			internal_DN:=FALSE;
-			//Finish the request
-			MqttRequestCalibrateUp:=FALSE;
-		END_IF
-		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
-	COVER_STATES.Calibrate_dn:
-		// Only power an engine for maximum twice T_UD
-		IF Cover_State_Timer.Q THEN
-			internal_UP:=FALSE;
-			internal_DN:=TRUE;
-		ELSE
-			internal_UP:=FALSE;
-			internal_DN:=FALSE;
-			//Finish the request
-			MqttRequestCalibrateDn:=FALSE;
-		END_IF
-		//Calculate the next state
-		Cover_State := CALC_COVER_STATE(UP:=UP,DN:=DN,PRIO_LOCK:=PRIO_LOCK,PRIO_UP:=PRIO_UP,PRIO_DN:=PRIO_DN,PI:=PI,POS:=POS,MqttRequestAuto:=ADR(MqttRequestAuto),MqttRequestStop:=ADR(MqttRequestStop),MqttRequestCalibrateUp:=ADR(MqttRequestCalibrateUp),MqttRequestCalibrateDn:=ADR(MqttRequestCalibrateDn),CurrentState:=Cover_State,StateTimer:=ADR(Cover_State_Timer));
-	ELSE
-		Cover_State:=COVER_STATES.Idle;
-END_CASE
-
-(* Check Position*)
-FB_ACT(T_UD:=T_UD, T_ANGLE:=T#0S, T_lockout := T_Lockout);
-
-IF internal_UP AND internal_DN THEN
-	(* automatic modus detected *)
-	(* first find correct position *)
-	IF BYTE_TO_INT(FB_ACT.pos) &lt; BYTE_TO_INT(pi) - delta THEN
-		FB_ACT.UP := TRUE;
-		FB_ACT.DN := FALSE;
-		delta := 0;
-	ELSIF BYTE_TO_INT(FB_ACT.pos) &gt; BYTE_TO_INT(pi) + delta THEN
-		FB_ACT.UP := FALSE;
-		FB_ACT.DN := TRUE;
-		delta := 0;
-	(* correct position reached *)
-	ELSE
-		FB_ACT.UP := FALSE;
-		FB_ACT.DN := FALSE;
-		delta := sens;
-	END_IF;
-ELSE
-	FB_ACT.UP := internal_UP;
-	FB_ACT.DN := internal_DN;
-END_IF;
-
-(* blind control calls blind_actuator *)
-FB_ACT(T_UD:=T_UD, T_ANGLE:=T#0S, T_lockout := T_Lockout);
-POS := FB_ACT.pos;
-MU := FB_ACT.QU;
-MD := FB_ACT.QD;
-
-IF ((ABS(BYTE_TO_INT(PreviousPos) - BYTE_TO_INT(POS)) &gt;= Delta_POS  OR (MU = FALSE AND MD = FALSE)) AND POS &lt;&gt; PreviousPos OR Startup) AND InitMqttDone THEN
-	PreviousPos:=POS;
+IF NOT(Cover_State_Timer.Q) AND internalUp THEN
 	pMqttPublishQueue^.AddMessage(
-		Payload := INT_TO_STRING(REAL_TO_INT(OSCAT_BASIC.SCALE_B(X:=POS, I_LO:=0, I_HI:=255, O_LO:=0, O_HI:=100))),
-		Topic := MqttPublishTopic,
-		Qos := Qos_POS,
+		Payload := 'OPEN',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
-	Startup:=FALSE;
 END_IF
-</xhtml>
+
+IF NOT(Cover_State_Timer.Q) AND internalDown THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'CLOSED',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF
+
+
+(* Check what to do *)
+IF NOT(Cover_State_Timer.Q) AND internalUp THEN // don't run the motors for to long, assume we've reached end and toggle dir
+	internalUp := FALSE;
+	internalDown := FALSE;
+	internalDir := FALSE;
+ELSIF NOT(Cover_State_Timer.Q) AND internalDown THEN // don't run the motors for to long, assume we've reached end and toggle dir
+	internalUp := FALSE;
+	internalDown := FALSE;
+	internalDir := TRUE;
+ELSIF PRIO_LOCK THEN	
+	internalUp := FALSE;
+	internalDown := FALSE;
+ELSIF PRIO_UP THEN	
+	internalUp := TRUE;
+	internalDown := FALSE;
+	Cover_State_Timer.IN:=TRUE;
+ELSIF PRIO_DN THEN	
+	internalUp := FALSE;
+	internalDown := TRUE;
+	Cover_State_Timer.IN:=TRUE;
+ELSIF TOGGLE AND (internalUp OR internalDown) THEN	// stop and toggle dir
+	internalUp := FALSE;
+	internalDown := FALSE;
+	internalDir := NOT(internalDir);
+ELSIF TOGGLE AND NOT(internalDir) THEN //move down
+	internalUp := FALSE;
+	internalDown := TRUE;
+	Cover_State_Timer.IN:=TRUE;
+ELSIF TOGGLE AND internalDir THEN //move upwards
+	internalUp := TRUE;
+	internalDown := FALSE;	
+	Cover_State_Timer.IN:=TRUE;
+ELSIF MqttRequestStop THEN
+	internalUp := FALSE;
+	internalDown := FALSE;
+	MqttRequestStop := FALSE;
+ELSIF MqttRequestOpen THEN
+	internalUp := TRUE;
+	internalDown := FALSE;
+	MqttRequestOpen := FALSE;
+	Cover_State_Timer.IN:=TRUE;;
+ELSIF MqttRequestClose THEN
+	internalUp := FALSE;
+	internalDown := TRUE;
+	MqttRequestClose := FALSE;
+	Cover_State_Timer.IN:=TRUE;
+END_IF
+
+(* make sure only one motor is active at a given time *)
+lock(i1 := internalUp, I2 := InternalDown, TL := T_lockout);
+MU := lock.Q1;
+MD := lock.Q2;</xhtml>
           </ST>
         </body>
         <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="InstanceNamePt">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//now process the data
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN			
+		THIS^.MqttRequestStop:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
+		THIS^.MqttRequestOpen:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN
+		THIS^.MqttRequestClose:=TRUE;
+	END_IF
+
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="T_LOCKOUT">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="T_UD">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_LOCKOUT:=T_LOCKOUT;
+THIS^.T_UD:=T_UD;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitMqttDiscovery">
               <interface>
@@ -4596,7 +4637,7 @@ END_IF
                       <string length="255" />
                     </type>
                     <initialValue>
-                      <simpleValue value="'mdi:lightbulb'" />
+                      <simpleValue value="'mdi:window-shutter'" />
                     </initialValue>
                   </variable>
                   <variable name="name">
@@ -4648,13 +4689,13 @@ END_IF
 	// Cover specific
 	HADiscoverIDEntity := 'cover';
 	//https://github.com/home-assistant/core/blob/dev/homeassistant/components/cover/__init__.py
-	HADiscoveryObj.dev_cla.CharString :=  'BLIND';
+	HADiscoveryObj.dev_cla.CharString :=  'SHUTTER';
 	HADiscoveryObj.opt.Boolean :=  FALSE;
 	HADiscoveryObj.pl_open.CharString := 'OPEN';
 	HADiscoveryObj.pl_cls.CharString := 'CLOSE';
 	HADiscoveryObj.pl_stop.CharString := 'STOP';
-	HADiscoveryObj.pos_clsd.Number := 0;
-	HADiscoveryObj.pos_open.Number := 100;
+	HADiscoveryObj.stat_open.CharString := 'OPEN';
+	HADiscoveryObj.stat_clsd.CharString := 'CLOSED';
 	HADiscoveryObj.set_pos_t.CharString := 	THIS^.MQTTSubscribeTopic;
 	HADiscoveryObj.pos_t.CharString := THIS^.MQTTSubscribeTopic;
 	HADiscoveryObj.cmd_t.CharString := THIS^.MQTTSubscribeTopic;
@@ -4671,173 +4712,6 @@ END_IF
 	);
 	init := TRUE;
 END_IF		</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="MQTTSubscribePrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttCallbackCollector">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="MQTT.CallbackCollector" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="Qos_POS">
-                    <type>
-                      <derived name="MQTT.QoS" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cover specific</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="Delta_POS">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
-THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
-THIS^.pMqttPublishQueue:=pMqttPublishQueue;
-
-// Cover specific
-THIS^.Qos_POS:=Qos_POS;
-THIS^.Delta_POS:=REAL_TO_INT(OSCAT_BASIC.SCALE_B(X:=INT_TO_BYTE(Delta_POS), I_LO:=0, I_HI:=100, O_LO:=0, O_HI:=255));
-
-
-SUPER^.InitBaseMqtt();
-pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
-IF NOT(InitMqttDone) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-	//now process the data
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN			
-		THIS^.MqttRequestStop:=TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
-		THIS^.PI:=255;
-		THIS^.MqttRequestAuto:=TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN		
-		THIS^.PI:=0;
-		THIS^.MqttRequestAuto:=TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CAL_UP')) THEN
-		THIS^.MqttRequestCalibrateUp:=TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CAL_DN')) THEN
-		THIS^.MqttRequestCalibrateDn:=TRUE;
-	ELSIF OSCAT_BASIC.IS_NUM(str:= Data.PayloadString^) THEN
-		THIS^.PI:=REAL_TO_BYTE(OSCAT_BASIC.SCALE_B(X:=STRING_TO_BYTE(Data.PayloadString^), I_LO:=0, I_HI:=100, O_LO:=0, O_HI:=255));
-		THIS^.MqttRequestAuto:=TRUE;
-	END_IF
-
-END_IF </xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlock">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="T_LOCKOUT">
-                    <type>
-                      <TIME />
-                    </type>
-                  </variable>
-                  <variable name="T_UD">
-                    <type>
-                      <TIME />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_LOCKOUT:=T_LOCKOUT;
-THIS^.T_UD:=T_UD;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -6327,6 +6201,66 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RegisterDevice">
+              <interface>
+                <inputVars>
+                  <variable name="device">
+                    <type>
+                      <derived name="RS485Device" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF devicesCount &lt;&gt; 32 THEN
+	devices[devicesCount] := device;
+	devicesCount := devicesCount + 1;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ReleaseBus">
+              <interface>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Start a timer to release the bus
+THIS^.tonDelay.PT := THIS^.SilenceTime;
+THIS^.tonDelay.IN := TRUE;
+THIS^.deviceActive := FALSE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetBusOccupied">
+              <interface>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.tonDelay.IN := FALSE;
+THIS^.deviceActive := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="Init">
               <interface>
                 <inputVars>
@@ -6390,66 +6324,6 @@ THIS^.SilenceTime := SilenceTime;
 THIS^.BusTrigger := BusTrigger;
 THIS^.BusData := BusData;
 THIS^.BusError := BusError;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="SetBusOccupied">
-              <interface>
-                <addData>
-                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
-                    <AccessModifiers Private="true" />
-                  </data>
-                </addData>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.tonDelay.IN := FALSE;
-THIS^.deviceActive := TRUE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ReleaseBus">
-              <interface>
-                <addData>
-                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
-                    <AccessModifiers Private="true" />
-                  </data>
-                </addData>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Start a timer to release the bus
-THIS^.tonDelay.PT := THIS^.SilenceTime;
-THIS^.tonDelay.IN := TRUE;
-THIS^.deviceActive := FALSE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RegisterDevice">
-              <interface>
-                <inputVars>
-                  <variable name="device">
-                    <type>
-                      <derived name="RS485Device" />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF devicesCount &lt;&gt; 32 THEN
-	devices[devicesCount] := device;
-	devicesCount := devicesCount + 1;
-END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -12438,7 +12312,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="1969566054" />
+                <Attribute Name="checksumnoinit_override" Value="2441193673" />
                 <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
@@ -13192,9 +13066,7 @@ FB_DO_SW_030.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubSwitchPrefix)
 FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubCoverPrefix),	(* pointer to string prefix for the mqtt publish topic *)
 	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubCoverPrefix),					(* pointer to string prefix for the mqtt subscribe topic *)
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						(* pointer to MqttPublishQueue to send a new Mqtt event *)
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT), 	(* pointer to CallbackCollector to receive Mqtt subscription events *)
-	MQTT.QoS.ExactlyOnce, 															(* specify the QoS for the POS mqtt events (values 0-100) *)
-	2																				(* specify the resolution for the POS mqtt events *)
+	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT)  	(* pointer to CallbackCollector to receive Mqtt subscription events *)
 );
 
 fb_do_cover_001.initmqttdiscovery(								(*see dimmer for full example *)
@@ -13293,11 +13165,10 @@ MqttVariables.MQTT_logger.send('Init finished', 'MAIN_INIT');
                   <body>
                     <ST>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DO_COVER_001(
-	UP:=FB_DI_PB_013.P_LONG,
-	DN:=FB_DI_PB_015.P_LONG,
+	TOGGLE:=FB_DI_PB_013.P_LONG,
 	MU=&gt;DO_031,
 	MD=&gt;DO_032	
-	);</xhtml>
+);</xhtml>
                     </ST>
                   </body>
                   <addData />

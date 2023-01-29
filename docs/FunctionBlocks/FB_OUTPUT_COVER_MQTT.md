@@ -17,32 +17,25 @@ The cover function block allows you to control covers such as a roller shutter o
 
 INPUT(S)
 
-- UP: bool input, when high the cover moves up.
-- DN: bool input, when high the cover moves down.
-- PI: byte input, position to move the cover to in automode. Automode can be enabled by making UP and DN high simultaneous.
+- TOGGLE: toggles the direction of the cover.
 - PRIO_LOCK: bool input, when high the cover will be locked in its current position ignoring all other inputs. (\*)
 - PRIO_UP: bool input, when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. (\*)
 - PRIO_DN: bool input, when low the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (\*)
 
-(\*) When high, all incoming MQTT commands and the UP/DN inputs will be ignored.
+(\*) When high, all incoming MQTT commands and the TOGGLE input will be ignored.
 
 OUTPUT(S)
 
-- POS: byte output, cover position value (range 0-255).
 - MU: bool output, motor up signal.
 - MD: bool output, motor down signal.
 
 METHOD(S)
 
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-
   - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. The suffix is automatically set to FB name.
   - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `Qos_POS`: datatype _SD_MQTT.QoS_, MQTT QoS of the POS MQTT events.
-  - `Delta_POS`: datatype _INT_, resolution of the MQTT POS events. For example: specifying value _5_ will configure the FB to only emit an MQTT event when the POS output differs _5_ or more than its previous value. Note that the last value of output POS (when it has reached position the desired position) is always published. Even if the resolution delta hasn't been reached yet. This way the last POS value published through MQTT is always synchronized with the POS output of the FB.
 
 - ConfigureFunctionBlock: configures the behaviour of the cover using the parameters below:
-
   - `T_LOCKOUT`: delay between change of direction.
   - `T_UD`: run time to move the cover completely up/down.
 
@@ -54,7 +47,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event                   | Description                           | MQTT payload | QoS                                  | Retain flag | Published on startup |
 | :---------------------- | :------------------------------------ | :----------- | :----------------------------------- | :---------- | :------------------- |
-| **Output changes: POS** | A change is detected on output `POS`. | `0-100`      | configured in method call `InitMQTT` | `TRUE`      | yes                  |
+| **Cover reaches position** | Cover reaches a open or closed position | `OPEN` or `CLOSED` | 2 | `TRUE`      | no                  |
 
 MQTT publish topic is a concatination of the publish prefix and the function block name.
 
@@ -68,15 +61,9 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 | **Open cover**             | Request to open the cover.                                                  | `OPEN`           | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low. |
 | **Close cover**            | Request to close the cover.                                                 | `CLOSE`          | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low. |
 | **Stop cover**             | Request to stop the cover from moving.                                      | `STOP`           | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low. |
-| **Calibrate cover up**     | Request to power the up motor (`MU` output) for twice the time of `T_UD`.   | `CAL_UP` (\*)    | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low. |
-| **Calibrate cover down**   | Request to power the down motor (`MD` output) for twice the time of `T_UD`. | `CAL_DN` (\*)    | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low. |
-| **Move cover to position** | Request to move the cover to a specific position.                           | `0-100` (\*\*)   | Command only executed when `PRIO_UP` and `PRIO_DN` inputs are low. |
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name.
 
-(\*): Useful for calibrating the cover in case the persistent position got lost (by, for example, uploading a new program to the PLC). When this command is executed the cover will be powered up or down by twice the time of `T_UD` guaranteeing a correct `POS` output.
-
-(\*\*): `0` meaning completely closed, `100` completely open.
 
 ### **Code example**
 
@@ -94,9 +81,7 @@ FB_DO_COVER_001				:FB_OUTPUT_COVER_MQTT;
 FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),               (* pointer to string prefix for the mqtt publish topic *)
     MQTTSubscribePrefix:= ADR(MqttSubCoverPrefix),                                  (* pointer to string prefix for the mqtt subscribe topic *)
     pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),                     (* pointer to MqttPublishQueue to send a new Mqtt event *)
-    pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT),    (* pointer to CallbackCollector to receive Mqtt subscription events *)
-    SD_MQTT.QoS.ExactlyOnce,                                                        (* specify the QoS for the POS mqtt events (values 0-100) *)
-    2                                                                               (* specify the resolution for the POS mqtt events *)
+    pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT)     (* pointer to CallbackCollector to receive Mqtt subscription events *)
 );
 ```
 
@@ -112,8 +97,7 @@ FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,                         
 
 ```
 FB_DO_COVER_001(
-    UP:=DI_001,                                                                     (* digital input to receive signal to move cover up *)
-    DN:=DI_002,                                                                     (* digital input to receive signal to move cover down *)
+    TOGGLE:=DI_002,                                                                 (* digital input to receive signal to toggle cover direction *)
     MU=>DO_001,                                                                     (* digital output to couple to cover motor up wire *)
     MD=>DO_002                                                                      (* digital output to couple to cover motor down wire *)
     );
@@ -123,8 +107,7 @@ FB_DO_COVER_001(
 
 ```
 FB_DO_COVER_001(
-    UP:=FB_DI_PB_001.P_LONG,                                                        (* move cover up during a longpush on input pushbutton 1 *)
-    DN:=FB_DI_PB_002.P_LONG,                                                        (* move cover down during a longpush on input pushbutton 2 *)
+    TOGGLE:=FB_DI_PB_001.P_LONG,                                                    (* move cover during a longpush on input pushbutton 1 *)
     MU=>DO_001,                                                                     (* digital output to couple to cover motor up wire *)
     MD=>DO_002                                                                      (* digital output to couple to cover motor down wire *)
     );
@@ -156,14 +139,13 @@ If [Home Assistant MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md)
 mqtt:
   cover:
   - name: "FB_DO_COVER_001"
+    state_topic: "Devices/PLC/House/Out/Covers/FB_DO_COVER_001"
+    state_open: "OPEN"
+    state_closed: "CLOSED"
     command_topic: "Devices/PLC/House/In/Covers/FB_DO_COVER_001"
-    position_topic: "Devices/PLC/House/Out/Covers/FB_DO_COVER_001"
-    set_position_topic: "Devices/PLC/House/In/Covers/FB_DO_COVER_001"
     payload_open: "OPEN"
     payload_close: "CLOSE"
     payload_stop: "STOP"
-    position_open: 100
-    position_closed: 0
     qos: 2
     optimistic: false
     availability_topic: "Devices/PLC/House/availability"
