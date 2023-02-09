@@ -149,7 +149,7 @@ To get started:
 1. In the *WRITE_SWITCHES* action update *FB_DO_SW_001* to write the physical output variable created in the previous step *"Naming modules"*.
 1. Link the input pushbutton from previous step to switch the *FB_DO_SW_001* output to toggle the output when the pushbutton receives a single press: `TOGGLE	:=FB_DI_PB_001.SINGLE`
 
-For more information on the *FB_OUTPUT_SWITCH_MQTT* function block, check the [dedicated docs](../FunctionBlocks/FB_OUTPUT_SWITCH_MQTT.md).
+For more information on the *FB_OUTPUT_BINARY_MQTT* function block, check the [dedicated docs](../FunctionBlocks/FB_OUTPUT_BINARY_MQTT.md).
 
 #### Persistant Variables
 

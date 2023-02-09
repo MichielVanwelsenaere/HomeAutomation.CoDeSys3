@@ -94,6 +94,32 @@ FB_DO_BISTABLE_001(OUT=>  DO_001,           (* couple the function block to the 
     FEEDBACK:=      DI_001                  (* feedback input, required to know state *)	
 );
 ```
+- MQTT discovery (choose one):
+```
+(* switch entity *)
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsSwitch(
+	Name := 'switch 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* light entity *)
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsLight(
+	Name := 'light 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* siren entity *)
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsSiren(
+	Name := 'siren 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* lock entity *)
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsLock(
+	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+```
 
 ### **Home Assistant YAML**
 If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:

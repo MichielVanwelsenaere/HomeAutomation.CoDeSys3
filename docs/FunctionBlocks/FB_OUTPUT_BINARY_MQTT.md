@@ -1,4 +1,4 @@
-## FB_OUTPUT_SWITCH_MQTT
+## FB_OUTPUT_BINARY_MQTT
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
@@ -6,7 +6,7 @@ Can be switched using pulses that are high for one clock cycle (for example from
 
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_SWITCH_MQTT.svg" width="350">
+<img src="../_img/FB_OUTPUT_BINARY_MQTT.svg" width="350">
 
 INPUT(S)
 - TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
@@ -24,14 +24,6 @@ METHOD(S)
     - `pMqttCallbackCollector`: datatype *SD_MQTT.CallbackCollector*, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
-
-- InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the dimmer automatically.
-	- `name `: The name show in Home Assistant frond-end
-	- `overruleId`: set to 'FB_DO_SW_001' for instance name, or overule to e.g. 'My_Switch_001'  
-	- `icon `: specify icon. Default 'mdi:lightbulb'
-	- `MqttDiscoverPrefix`:  pointer to string prefix for the MQTT discover topic 
-	- `Device `:The device show in Home Assistant 
-	- `meta `: OPTIONAL Free field for meta data. Only visible in MQTT 
 
 ### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -59,7 +51,7 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 ```
 MQTTPubSwitchPrefix     :STRING(100) := 'Devices/PLC/House/Out/DigitalOutputs/';
 MQTTSubSwitchPrefix     :STRING(100) := 'Devices/PLC/House/In/DigitalOutputs/';
-FB_DO_SW_001            :FB_OUTPUT_SWITCH_MQTT;
+FB_DO_SW_001            :FB_OUTPUT_BINARY_MQTT;
 ```
 
 - Init MQTT method call (called once during startup):
@@ -67,7 +59,7 @@ FB_DO_SW_001            :FB_OUTPUT_SWITCH_MQTT;
 FB_DO_SW_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),                 (* pointer to string prefix for the MQTT publish topic *)
     MQTTSubscribePrefix:= ADR(MQTTSubSwitchPrefix),                                 (* pointer to string prefix for the MQTT subscribe topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),                     (* pointer to MQTTPublishQueue to send a new MQTT event *)
-    pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_SWITCH_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
+    pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_BINARY_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
 );
 ```
 The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalOutputs/FB_DO_SW_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/DigitalOutputs/FB_DO_SW_001` (MQTTSubSwitchPrefix variable + function block name).
@@ -88,6 +80,33 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
     PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
     PRIO_LOW:=      FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
     TOGGLE:=        FB_DI_PB_001.SINGLE     (* for toggling the output *)	
+);
+```
+
+- MQTT discovery (choose one):
+```
+(* switch entity *)
+FB_DO_SW_001.InitMqttDiscoveryAsSwitch(
+	Name := 'switch 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* light entity *)
+FB_DO_SW_001.InitMqttDiscoveryAsLight(
+	Name := 'light 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* siren entity *)
+FB_DO_SW_001.InitMqttDiscoveryAsSiren(
+	Name := 'siren 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* lock entity *)
+FB_DO_SW_001.InitMqttDiscoveryAsLock(
+	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
 );
 ```
 
