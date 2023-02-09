@@ -60,7 +60,7 @@ FB_INPUT_BINARYSENSOR_MQTT.ConfigureFunctionBlock(T_TurnOffDelay:= T#5S);       
 FB_DI_BS_001(BS:= DI_001);
 ```
 
-- integration with `FB_OUTPUT_SWITCH_MQTT`:
+- integration with `FB_OUTPUT_BINARY_MQTT`:
 ```
 FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
     PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
