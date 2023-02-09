@@ -1,5 +1,4 @@
 ## FB_VIRTUAL_BOOL_MQTT
-![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
 A virtual function block can be used in one of two modes:

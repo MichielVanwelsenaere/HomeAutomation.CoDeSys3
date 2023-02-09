@@ -102,7 +102,6 @@ Note that the function block also accepts float values for setting the dimmer ou
 ### **Code example**
 
 - variables initiation:
-
 ```
 MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/Out/Dimmers/';
 MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/In/Dimmers/';
@@ -110,7 +109,6 @@ FB_AO_DIMMER_001			:FB_OUTPUT_DIMMER_MQTT;
 ```
 
 - Init MQTT method call (called once during startup):
-
 ```
 FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttPubDimmerPrefix),     (* pointer to string prefix for the MQTT publish topic *)
     MQTTSubscribePrefix:= ADR(MqttSubDimmerPrefix),                         (* pointer to string prefix for the MQTT subscribe topic *)
@@ -125,7 +123,6 @@ FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttPubDimmerPrefix),     (* p
 The MQTT publish topic in this code example will be `Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001` (MQTTSubSwitchPrefix variable + function block name).
 
 - ConfigureFunctionBlock (called once during startup):
-
 ```
 FB_AO_DIMMER_001.ConfigureFunctionBlock(
 	T_Debounce:=T#10MS,
@@ -145,7 +142,6 @@ FB_AO_DIMMER_001.ConfigureFunctionBlock(
 The dimmer behavior in the example above is adjusted to start dimming from '11000' instead of the default '0' value. This can be important as different dimming devices will have different lower bound 'on' voltages. In addition, depending on your PLC device, the maximum out value will differ. Note that this method only requires a call when it's desired to change the default behavior characteristics.
 
 - checking for events to switch the digital output (cyclic), example 1:
-
 ```
 FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
     LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
@@ -160,7 +156,6 @@ FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 'on/off' digital input that is wired to the 'Q' output of the dimmer & a 0/1-10V analog input that is wired to the 'OUT' output of the dimmer.
 
 - checking for events to switch the digital output (cyclic), example 2:
-
 ```
 FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q *)
     LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
@@ -172,8 +167,7 @@ FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q
 ```
 
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 0/1-10V analog input that is wired to the 'Q_OUT' output of the dimmer.
-
-```ST
+```
 FB_AO_DMX_DIMMER_001.InitDmx(
     DmxChannel := 1,
     DmxWidth:=1,
@@ -183,6 +177,14 @@ FB_AO_DMX_DIMMER_001.InitDmx(
 ```
 
 The above illustrates how to initiate dmx capabilities. If `InitDmx` is before `InitMqttDiscovery`, the config json in MQTT also contains the dmx channel, width and universe.
+
+- MQTT discovery:
+```
+FB_AO_DIMMER_001.InitMqttDiscovery(
+	name := '001. Office strip cold',				(* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_Device),							(* The device show in Home Assistant *)
+);
+```
 
 ### **Home Assistant YAML**
 If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:

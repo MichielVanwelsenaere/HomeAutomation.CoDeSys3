@@ -23,13 +23,11 @@ METHOD(S)
 ### **Code example**
 
 - variables initiation: (inside MqttVariables)
-
 ```
 	MQTT_logger							:FB_MQTT_LOG;
 ```
 
 - Init MQTT method call (called once during startup):
-
 ```
 MqttVariables.MQTT_logger.InitMqtt(
 	MQTTPublishPrefix:= ADR(MqttPubLogPrefix),
@@ -39,12 +37,17 @@ MqttVariables.MQTT_logger.InitMqtt(
 );
 ```
 
-To send a message to MQTT:
-
+- To send a message to MQTT:
 ```
 MqttVariables.MQTT_logger.send('Init finished');
 ```
 
+- MQTT discovery:
+```
+MqttVariables.MQTT_logger.InitMqttDiscovery(
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+```
 ### **Home Assistant YAML**
 If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the following to your `configuration.yaml`:
 

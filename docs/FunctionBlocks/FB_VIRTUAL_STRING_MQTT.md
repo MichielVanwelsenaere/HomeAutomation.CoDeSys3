@@ -1,5 +1,4 @@
 ## FB_VIRTUAL_STRING_MQTT
-![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
 

@@ -69,6 +69,14 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 );
 ```
 
+- MQTT discovery:
+```
+FB_DI_BS_001.InitMqttDiscovery(
+	Name := 'Binary sensor 001',			(* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+```
+
 ### **Home Assistant YAML**
 If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor.mqtt/) config:
 

@@ -67,7 +67,6 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 ### **Code example**
 
 - variables initiation:
-
 ```
 MqttPubCoverPrefix			:STRING(100) := 'Devices/PLC/House/Out/Covers/';
 MqttSubCoverPrefix			:STRING(100) := 'Devices/PLC/House/In/Covers/';
@@ -75,7 +74,6 @@ FB_DO_COVER_001				:FB_OUTPUT_COVER_MQTT;
 ```
 
 - Init MQTT method call (called once during startup):
-
 ```
 FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),               (* pointer to string prefix for the mqtt publish topic *)
     MQTTSubscribePrefix:= ADR(MqttSubCoverPrefix),                                  (* pointer to string prefix for the mqtt subscribe topic *)
@@ -85,7 +83,6 @@ FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),           
 ```
 
 - Init configuration method call (called once during startup):
-
 ```
 FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,                             (* delay between change of direction *)
     T_UD:=T#20S                                                                     (* run time to move the cover completely up/down *)
@@ -93,7 +90,6 @@ FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,                         
 ```
 
 - checking for events to move the cover (cyclic):
-
 ```
 FB_DO_COVER_001(
     TOGGLE:=DI_002,                                                                 (* digital input to receive signal to toggle cover direction *)
@@ -103,13 +99,39 @@ FB_DO_COVER_001(
 ```
 
 - integration with `FB_INPUT_PUSHBUTTON_MQTT`:
-
 ```
 FB_DO_COVER_001(
     TOGGLE:=FB_DI_PB_001.P_LONG,                                                    (* move cover during a longpush on input pushbutton 1 *)
     MU=>DO_001,                                                                     (* digital output to couple to cover motor up wire *)
     MD=>DO_002                                                                      (* digital output to couple to cover motor down wire *)
     );
+```
+
+- MQTT discovery (choose one):
+```
+(* switch entity *)
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsSwitch(
+	Name := 'switch 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* light entity *)
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsLight(
+	Name := 'light 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* siren entity *)
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsSiren(
+	Name := 'siren 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+
+(* lock entity *)
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsLock(
+	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
 ```
 
 ### **Wiring**
