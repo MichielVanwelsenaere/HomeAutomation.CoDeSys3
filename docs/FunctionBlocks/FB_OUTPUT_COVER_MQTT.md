@@ -107,29 +107,10 @@ FB_DO_COVER_001(
     );
 ```
 
-- MQTT discovery (choose one):
+- MQTT discovery:
 ```
-(* switch entity *)
-FB_DO_BISTABLE_001.InitMqttDiscoveryAsSwitch(
-	Name := 'switch 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
-);
-
-(* light entity *)
-FB_DO_BISTABLE_001.InitMqttDiscoveryAsLight(
-	Name := 'light 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
-);
-
-(* siren entity *)
-FB_DO_BISTABLE_001.InitMqttDiscoveryAsSiren(
-	Name := 'siren 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
-);
-
-(* lock entity *)
-FB_DO_BISTABLE_001.InitMqttDiscoveryAsLock(
-	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
+FB_DO_COVER_001.InitMqttDiscovery(
+	Name := 'Cover 001',			        (* The name show in Home Assistant frond-end*)
 	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
 );
 ```
