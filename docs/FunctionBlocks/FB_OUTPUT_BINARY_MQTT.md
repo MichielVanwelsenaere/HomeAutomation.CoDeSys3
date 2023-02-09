@@ -25,14 +25,6 @@ METHOD(S)
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
-- InitMqttDiscovery: Sets all config needed for letting Home Assistant discover the dimmer automatically.
-	- `name `: The name show in Home Assistant frond-end
-	- `overruleId`: set to 'FB_DO_SW_001' for instance name, or overule to e.g. 'My_Switch_001'  
-	- `icon `: specify icon. Default 'mdi:lightbulb'
-	- `MqttDiscoverPrefix`:  pointer to string prefix for the MQTT discover topic 
-	- `Device `:The device show in Home Assistant 
-	- `meta `: OPTIONAL Free field for meta data. Only visible in MQTT 
-
 ### **MQTT Event Behaviour**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 

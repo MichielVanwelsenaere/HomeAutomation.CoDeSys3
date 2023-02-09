@@ -56,8 +56,6 @@ METHOD(S)
   - `DmxWidth`: Width of the channel, in channels. (often 1 or 2)
   - `pDmxValues`: datatype _POINTER TO oscat_network.NETWORK_BUFFER_SHORT_, pointer to a global buffer. There is now only one buffer, thus one universe
   - `dmxUniverse`: Integer value of the universe. Meta data for MQTT only.
-- InitMqttDiscovery:
-  - See [MQTT Discovery](./../AdditionalFunctionality/MQTT_Discovery.md) for more info.
 
 ### **Function Block Behaviour**
 
