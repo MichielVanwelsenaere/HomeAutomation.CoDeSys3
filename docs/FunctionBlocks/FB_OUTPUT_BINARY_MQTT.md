@@ -1,4 +1,4 @@
-## FB_OUTPUT_SWITCH_MQTT
+## FB_OUTPUT_BINARY_MQTT
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
@@ -6,7 +6,7 @@ Can be switched using pulses that are high for one clock cycle (for example from
 
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_SWITCH_MQTT.svg" width="350">
+<img src="../_img/FB_OUTPUT_BINARY_MQTT.svg" width="350">
 
 INPUT(S)
 - TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
@@ -59,7 +59,7 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 ```
 MQTTPubSwitchPrefix     :STRING(100) := 'Devices/PLC/House/Out/DigitalOutputs/';
 MQTTSubSwitchPrefix     :STRING(100) := 'Devices/PLC/House/In/DigitalOutputs/';
-FB_DO_SW_001            :FB_OUTPUT_SWITCH_MQTT;
+FB_DO_SW_001            :FB_OUTPUT_BINARY_MQTT;
 ```
 
 - Init MQTT method call (called once during startup):
@@ -67,7 +67,7 @@ FB_DO_SW_001            :FB_OUTPUT_SWITCH_MQTT;
 FB_DO_SW_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),                 (* pointer to string prefix for the MQTT publish topic *)
     MQTTSubscribePrefix:= ADR(MQTTSubSwitchPrefix),                                 (* pointer to string prefix for the MQTT subscribe topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),                     (* pointer to MQTTPublishQueue to send a new MQTT event *)
-    pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_SWITCH_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
+    pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_BINARY_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
 );
 ```
 The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalOutputs/FB_DO_SW_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/DigitalOutputs/FB_DO_SW_001` (MQTTSubSwitchPrefix variable + function block name).
