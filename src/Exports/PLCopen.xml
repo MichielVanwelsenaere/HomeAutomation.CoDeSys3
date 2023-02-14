@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-02-09T18:04:59.3386506" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2023-02-09T18:04:38.0443981">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-02-14T16:35:42.279295" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2023-02-14T16:35:08.3007094">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -58,6 +58,18 @@
         </baseType>
         <addData />
       </dataType>
+      <dataType name="MQTT_DISCOVERY_AVTY_T">
+        <baseType>
+          <struct>
+            <variable name="topic">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+            </variable>
+          </struct>
+        </baseType>
+        <addData />
+      </dataType>
       <dataType name="MQTT_DISCOVERY_BASE">
         <baseType>
           <struct>
@@ -82,12 +94,25 @@
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">unique_id</xhtml>
               </documentation>
             </variable>
-            <variable name="avty_t">
+            <variable name="avty">
+              <type>
+                <array>
+                  <dimension lower="1" upper="2" />
+                  <baseType>
+                    <derived name="MQTT_DISCOVERY_AVTY_T" />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> availability</xhtml>
+              </documentation>
+            </variable>
+            <variable name="avty_mode">
               <type>
                 <derived name="JSONVAR" />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">availability_topic</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> availability mode</xhtml>
               </documentation>
             </variable>
             <variable name="pl_avail">
@@ -112,6 +137,14 @@
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> device</xhtml>
+              </documentation>
+            </variable>
+            <variable name="qos">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> mqtt qos</xhtml>
               </documentation>
             </variable>
             <variable name="meta">
@@ -167,6 +200,27 @@
           <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
             <Inheritance>
               <Extends>MQTT_DISCOVERY_BASE</Extends>
+            </Inheritance>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_BINARY_SENSOR_ENT_CAT">
+        <baseType>
+          <struct>
+            <variable name="ent_cat">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity category</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BINARY_SENSOR</Extends>
             </Inheritance>
           </data>
         </addData>
@@ -530,6 +584,27 @@
           </data>
         </addData>
       </dataType>
+      <dataType name="MQTT_DISCOVERY_SENSOR_ENT_CAT">
+        <baseType>
+          <struct>
+            <variable name="ent_cat">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity category</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_SENSOR</Extends>
+            </Inheritance>
+          </data>
+        </addData>
+      </dataType>
       <dataType name="MQTT_DISCOVERY_SIREN">
         <baseType>
           <struct>
@@ -870,43 +945,12 @@
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> must identic to the name in the device tree</xhtml>
               </documentation>
             </variable>
-            <variable name="iecResult">
-              <type>
-                <derived name="RTS_IEC_RESULT" />
-              </type>
-            </variable>
             <variable name="xInit">
               <type>
                 <BOOL />
               </type>
               <initialValue>
                 <simpleValue value="TRUE" />
-              </initialValue>
-            </variable>
-            <variable name="pApp">
-              <type>
-                <pointer>
-                  <baseType>
-                    <derived name="CmpApp.APPLICATION" />
-                  </baseType>
-                </pointer>
-              </type>
-            </variable>
-            <variable name="stAppInfo">
-              <type>
-                <derived name="CmpApp.APPLICATION_INFO" />
-              </type>
-            </variable>
-            <variable name="pstAppInfo">
-              <type>
-                <pointer>
-                  <baseType>
-                    <derived name="CmpApp.APPLICATION_INFO" />
-                  </baseType>
-                </pointer>
-              </type>
-              <initialValue>
-                <simpleValue value="ADR(stAppInfo)" />
               </initialValue>
             </variable>
             <variable name="InstanceName">
@@ -947,7 +991,12 @@
                 </pointer>
               </type>
             </variable>
-            <variable name="availabilityTopic">
+            <variable name="availabilityTopic1">
+              <type>
+                <string />
+              </type>
+            </variable>
+            <variable name="availabilityTopic2">
               <type>
                 <string />
               </type>
@@ -967,9 +1016,19 @@
                 <string />
               </type>
             </variable>
+            <variable name="MqttDiagnosticTopic">
+              <type>
+                <string />
+              </type>
+            </variable>
             <variable name="MqttDiscMsgBinSens">
               <type>
                 <derived name="MQTT_DISCOVERY_BINARY_SENSOR" />
+              </type>
+            </variable>
+            <variable name="MqttDiscMsgBinSensWCat">
+              <type>
+                <derived name="MQTT_DISCOVERY_BINARY_SENSOR_ENT_CAT" />
               </type>
             </variable>
             <variable name="MqttDiscMsgCover">
@@ -995,6 +1054,11 @@
             <variable name="MqttDiscMsgSensor">
               <type>
                 <derived name="MQTT_DISCOVERY_SENSOR" />
+              </type>
+            </variable>
+            <variable name="MqttDiscMsgSensorWCat">
+              <type>
+                <derived name="MQTT_DISCOVERY_SENSOR_ENT_CAT" />
               </type>
             </variable>
             <variable name="MqttDiscMsgSiren">
@@ -1118,9 +1182,12 @@ MqttDiscMsgBinSens.pl_off.CharString := PayloadOff;
 MqttDiscMsgBinSens.dev_cla.CharString := DeviceClass;
 
 // Availabilty related
-MqttDiscMsgBinSens.avty_t.CharString :=  THIS^.availabilityTopic;
+MqttDiscMsgBinSens.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgBinSens.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgBinSens.avty_mode.CharString := 'all';
 MqttDiscMsgBinSens.pl_avail.CharString :=   THIS^.availabilityOnline;
 MqttDiscMsgBinSens.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgBinSens.qos.Integer := 2;
 
 // Device related
 MqttDiscMsgBinSens.dev.cu.CharString := THIS^.cu;
@@ -1276,9 +1343,12 @@ MqttDiscMsgCover.opt.Boolean := FALSE;
 MqttDiscMsgCover.dev_cla.CharString := Deviceclass;
 
 // Availabilty related
-MqttDiscMsgCover.avty_t.CharString :=  THIS^.availabilityTopic;
+MqttDiscMsgCover.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgCover.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgCover.avty_mode.CharString := 'all';
 MqttDiscMsgCover.pl_avail.CharString :=   THIS^.availabilityOnline;
 MqttDiscMsgCover.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgCover.qos.Integer := 2;
 
 // Device related
 MqttDiscMsgCover.dev.cu.CharString := THIS^.cu;
@@ -1381,6 +1451,14 @@ END_IF
                       <string />
                     </type>
                   </variable>
+                  <variable name="availabilityTopic2">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
                   <variable name="availabilityOnline">
                     <type>
                       <string />
@@ -1392,6 +1470,11 @@ END_IF
                     </type>
                   </variable>
                   <variable name="MqttDiscoveryPrefix">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="MqttDiagnosticTopic">
                     <type>
                       <string />
                     </type>
@@ -1409,11 +1492,19 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.availabilityTopic := availabilityTopic;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.availabilityTopic1 := availabilityTopic;
+
+IF CommonTypesAndFunctions.StrEquals(str1:= ADR(availabilityTopic2), str2:= ADR('')) THEN
+	THIS^.availabilityTopic2 := availabilityTopic;
+ELSE
+	THIS^.availabilityTopic2 := availabilityTopic2;
+END_IF
+
 THIS^.availabilityOnline := availabilityOnline;
 THIS^.availabilityOffline := availabilityOffline;
 THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttDiscoveryPrefix := MqttDiscoveryPrefix;
+THIS^.MqttDiagnosticTopic := MqttDiagnosticTopic;
 
 THIS^.name := Name;
 THIS^.cu:= ConfigurationUrl;
@@ -1421,9 +1512,31 @@ THIS^.ids:= Identifiers;
 THIS^.mf:= Manufacturer;
 THIS^.mdl:= Model;
 THIS^.hw:= HardwareVersion;
+THIS^.sw:= SoftwareVersion;
 THIS^.ip := IpAddress;
 THIS^.mac := MacAddress;
 
+//Create a diagnostics availability binary sensor
+CreateBinarySensorEntityWithCategory(
+	Name := 'Availability',
+	Id := CONCAT(THIS^.Name,'_diag_availability'),
+	Meta := '',
+	StateTopic := availabilityTopic,
+	PayloadOn := availabilityOnline,
+	PayloadOff := availabilityOffline,
+	DeviceClass := 'CONNECTIVITY',
+	EntityCategory := 'diagnostic');
+	
+// MAC address
+IF NOT(MacAddress = '') THEN
+	CreateSensorEntityWithCategory(
+		Name := 'MAC',
+		Id := CONCAT(THIS^.Name,'_diag_mac'),
+		Meta := '',
+		StateTopic := CONCAT(MqttDiagnosticTopic, '/MAC'),
+		StateValue := MacAddress,
+		EntityCategory := 'diagnostic');	
+END_IF
 
 
 </xhtml>
@@ -1521,9 +1634,12 @@ MqttDiscMsgLight.stat_t.CharString := StateTopic;
 MqttDiscMsgLight.opt.Boolean := FALSE;
 
 // Availabilty related
-MqttDiscMsgLight.avty_t.CharString :=  THIS^.availabilityTopic;
+MqttDiscMsgLight.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgLight.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgLight.avty_mode.CharString := 'all';
 MqttDiscMsgLight.pl_avail.CharString :=   THIS^.availabilityOnline;
 MqttDiscMsgLight.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgLight.qos.Integer := 2;
 
 // Device related
 MqttDiscMsgLight.dev.cu.CharString := THIS^.cu;
@@ -1667,9 +1783,12 @@ MqttDiscMsgLock.stat_unlocked.CharString := StateUnlocked;
 MqttDiscMsgLock.opt.Boolean := FALSE;
 
 // Availabilty related
-MqttDiscMsgLock.avty_t.CharString :=  THIS^.availabilityTopic;
+MqttDiscMsgLock.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgLock.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgLock.avty_mode.CharString := 'all';
 MqttDiscMsgLock.pl_avail.CharString :=   THIS^.availabilityOnline;
 MqttDiscMsgLock.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgLock.qos.Integer := 2;
 
 // Device related
 MqttDiscMsgLock.dev.cu.CharString := THIS^.cu;
@@ -1813,9 +1932,13 @@ MqttDiscMsgSiren.stat_off.CharString := StateOffPayload;
 MqttDiscMsgSiren.opt.Boolean := FALSE;
 
 // Availabilty related
-MqttDiscMsgSiren.avty_t.CharString :=  THIS^.availabilityTopic;
+MqttDiscMsgSiren.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgSiren.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgSiren.avty_mode.CharString := 'all';
 MqttDiscMsgSiren.pl_avail.CharString :=   THIS^.availabilityOnline;
 MqttDiscMsgSiren.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgSiren.qos.Integer := 2;
+
 
 // Device related
 MqttDiscMsgSiren.dev.cu.CharString := THIS^.cu;
@@ -1938,9 +2061,12 @@ MqttDiscMsgSensor.stat_t.CharString := StateTopic;
 MqttDiscMsgSensor.exp_aft.Integer := ExpiryAfter;
 
 // Availabilty related
-MqttDiscMsgSensor.avty_t.CharString :=  THIS^.availabilityTopic;
+MqttDiscMsgSensor.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgSensor.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgSensor.avty_mode.CharString := 'all';
 MqttDiscMsgSensor.pl_avail.CharString :=   THIS^.availabilityOnline;
 MqttDiscMsgSensor.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgSensor.qos.Integer := 2;
 
 // Device related
 MqttDiscMsgSensor.dev.cu.CharString := THIS^.cu;
@@ -2123,9 +2249,12 @@ MqttDiscMsgLightDim.dmxWidth.Integer := DmxWidth;
 MqttDiscMsgLightDim.dmxUniverse.Integer := DmxUniverse;
 
 // Availabilty related
-MqttDiscMsgLightDim.avty_t.CharString :=  THIS^.availabilityTopic;
+MqttDiscMsgLightDim.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgLightDim.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgLightDim.avty_mode.CharString := 'all';
 MqttDiscMsgLightDim.pl_avail.CharString :=   THIS^.availabilityOnline;
 MqttDiscMsgLightDim.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgLightDim.qos.Integer := 2;
 
 // Device related
 MqttDiscMsgLightDim.dev.cu.CharString := THIS^.cu;
@@ -2275,9 +2404,12 @@ MqttDiscMsgSwitch.opt.Boolean := FALSE;
 MqttDiscMsgSwitch.dev_cla.CharString := DeviceClass;
 
 // Availabilty related
-MqttDiscMsgSwitch.avty_t.CharString :=  THIS^.availabilityTopic;
+MqttDiscMsgSwitch.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgSwitch.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgSwitch.avty_mode.CharString := 'all';
 MqttDiscMsgSwitch.pl_avail.CharString :=   THIS^.availabilityOnline;
 MqttDiscMsgSwitch.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgSwitch.qos.Integer := 2;
 
 // Device related
 MqttDiscMsgSwitch.dev.cu.CharString := THIS^.cu;
@@ -2312,6 +2444,313 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
+	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateBinarySensorEntityWithCategory">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PayloadOn">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="PayloadOff">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="EntityCategory">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> config or diagnostic</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'binary_sensor'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                    <Attributes>
+                      <Attribute Name="reflection" Value="" />
+                    </Attributes>
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
+
+
+// 	Entity related: Basis
+MqttDiscMsgBinSensWCat.name.CharString :=  name; // friendly name
+MqttDiscMsgBinSensWCat.obj_id.CharString :=  Id; 
+MqttDiscMsgBinSensWCat.uniq_id.CharString :=  Id; 
+
+// Entity related: Specific
+MqttDiscMsgBinSensWCat.stat_t.CharString := StateTopic;
+MqttDiscMsgBinSensWCat.pl_on.CharString := PayloadOn;
+MqttDiscMsgBinSensWCat.pl_off.CharString := PayloadOff;
+MqttDiscMsgBinSensWCat.dev_cla.CharString := DeviceClass;
+MqttDiscMsgBinSensWCat.ent_cat.CharString := EntityCategory;
+
+// Availabilty related
+MqttDiscMsgBinSensWCat.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgBinSensWCat.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgBinSensWCat.avty_mode.CharString := 'all';
+MqttDiscMsgBinSensWCat.pl_avail.CharString :=   THIS^.availabilityOnline;
+MqttDiscMsgBinSensWCat.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgBinSensWCat.qos.Integer := 2;
+
+// Device related
+MqttDiscMsgBinSensWCat.dev.cu.CharString := THIS^.cu;
+MqttDiscMsgBinSensWCat.dev.name.CharString := THIS^.name;
+MqttDiscMsgBinSensWCat.dev.hw.CharString := THIS^.hw;
+MqttDiscMsgBinSensWCat.dev.ids.CharString := THIS^.ids;
+MqttDiscMsgBinSensWCat.dev.sw.CharString := THIS^.sw;
+MqttDiscMsgBinSensWCat.dev.mdl.CharString := THIS^.mdl;
+MqttDiscMsgBinSensWCat.dev.mf.CharString := THIS^.mf;
+	
+// Extra meta-data
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+	MqttDiscMsgBinSensWCat.meta.CharString := meta;
+END_IF
+
+ComposeJSON(
+	JSONString:= ADR(MqttJSON), 
+	JSONStringSize:= SIZEOF(MqttJSON),
+	JSONVars:= ADR(MqttDiscMsgBinSensWCat),
+	NumberOfVars:= SIZEOF(MqttDiscMsgBinSensWCat) / SIZEOF(JSONVAR),
+	MaxLevel := 1,
+);
+ComposeJSON.Execute := TRUE;
+ComposeJSON();
+
+IF MqttJSON = '' THEN
+	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+ELSIF NOT (MqttJSON = '') THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload:= MqttJSON,
+		Topic := MqttTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE,
+	);
+	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateSensorEntityWithCategory">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="StateValue">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="EntityCategory">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> config or diagnostic</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="ExpiryAfter">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="0" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'sensor'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
+
+// 	Entity related: Basis
+MqttDiscMsgSensorWCat.name.CharString :=  name; // friendly name
+MqttDiscMsgSensorWCat.obj_id.CharString :=  Id; 
+MqttDiscMsgSensorWCat.uniq_id.CharString :=  Id; 
+
+// Entity related: Specific
+//MqttDiscoverySensorMessage.ic.CharString := Icon;
+MqttDiscMsgSensorWCat.stat_t.CharString := StateTopic;
+MqttDiscMsgSensorWCat.exp_aft.Integer := ExpiryAfter;
+MqttDiscMsgSensorWCat.ent_cat.CharString := EntityCategory;
+
+// Availabilty related
+MqttDiscMsgSensorWCat.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgSensorWCat.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgSensorWCat.avty_mode.CharString := 'all';
+MqttDiscMsgSensorWCat.pl_avail.CharString :=   THIS^.availabilityOnline;
+MqttDiscMsgSensorWCat.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgSensorWCat.qos.Integer := 2;
+
+// Device related
+MqttDiscMsgSensorWCat.dev.cu.CharString := THIS^.cu;
+MqttDiscMsgSensorWCat.dev.name.CharString := THIS^.name;
+MqttDiscMsgSensorWCat.dev.hw.CharString := THIS^.hw;
+MqttDiscMsgSensorWCat.dev.ids.CharString := THIS^.ids;
+MqttDiscMsgSensorWCat.dev.sw.CharString := THIS^.sw;
+MqttDiscMsgSensorWCat.dev.mdl.CharString := THIS^.mdl;
+MqttDiscMsgSensorWCat.dev.mf.CharString := THIS^.mf;
+	
+// Extra meta-data
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+	MqttDiscMsgSensorWCat.meta.CharString := meta;
+END_IF
+
+ComposeJSON(
+	JSONString:= ADR(MqttJSON), 
+	JSONStringSize:= SIZEOF(MqttJSON),
+	JSONVars:= ADR(MqttDiscMsgSensorWCat),
+	NumberOfVars:= SIZEOF(MqttDiscMsgSensorWCat) / SIZEOF(JSONVAR),
+	MaxLevel := 1,
+);
+ComposeJSON.Execute := TRUE;
+ComposeJSON();
+
+IF MqttJSON = '' THEN
+	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+ELSIF NOT (MqttJSON = '') THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload:= MqttJSON,
+		Topic := MqttTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE,
+	);
+	IF NOT (StateValue = '') THEN		
+		pMqttPublishQueue^.AddMessage(
+			Payload:= StateValue,
+			Topic := StateTopic,
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE,
+		);
+	END_IF
+	
 	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
 END_IF
 </xhtml>
@@ -2482,38 +2921,19 @@ END_IF</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
+            <Method name="ConfigureFunctionBlock">
               <interface>
                 <inputVars>
-                  <variable name="MQTTPublishPrefix">
+                  <variable name="T_TurnOffDelay">
                     <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
+                      <TIME />
                     </type>
                   </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
-SUPER^.InitBaseMqtt();
-</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_TurnOffDelay:=T_TurnOffDelay;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -2597,19 +3017,38 @@ END_IF		</xhtml>
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlock">
+            <Method name="InitMqtt">
               <interface>
                 <inputVars>
-                  <variable name="T_TurnOffDelay">
+                  <variable name="MQTTPublishPrefix">
                     <type>
-                      <TIME />
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
                     </type>
                   </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_TurnOffDelay:=T_TurnOffDelay;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -2979,74 +3418,6 @@ END_IF</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="OutputDimmer">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="Qos_Dimm">
-                    <type>
-                      <derived name="MQTT.QoS" />
-                    </type>
-                  </variable>
-                  <variable name="Delta_Dimm">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-
-InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
-
-THIS^.OutputDimmer:=OutputDimmer;
-THIS^.Qos_Dimm:=Qos_Dimm;
-THIS^.Delta_Dimm:=Delta_Dimm;
-
-InitMqttDone := TRUE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="ConfigureFunctionBlock">
               <interface>
                 <inputVars>
@@ -3124,6 +3495,74 @@ THIS^.Min_On:=Min_On;
 THIS^.Max_On:=Max_On;
 
 THIS^.T_Long:=T_Long;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="OutputDimmer">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="Qos_Dimm">
+                    <type>
+                      <derived name="MQTT.QoS" />
+                    </type>
+                  </variable>
+                  <variable name="Delta_Dimm">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="InstanceNamePt">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+
+InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
+THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
+
+THIS^.OutputDimmer:=OutputDimmer;
+THIS^.Qos_Dimm:=Qos_Dimm;
+THIS^.Delta_Dimm:=Delta_Dimm;
+
+InitMqttDone := TRUE;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -3289,6 +3728,66 @@ END_IF</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="T_Long">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_Long:=T_Long;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitMqttDiscovery">
               <interface>
                 <inputVars>
@@ -3350,66 +3849,6 @@ END_IF</xhtml>
 
 	initMqttDiscoveryDone := TRUE;
 END_IF		</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
-SUPER^.InitBaseMqtt();
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlock">
-              <interface>
-                <inputVars>
-                  <variable name="T_Long">
-                    <type>
-                      <TIME />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_Long:=T_Long;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -3643,6 +4082,98 @@ InitMqttDone := TRUE;</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MqttQos">
+                    <type>
+                      <derived name="MQTT.QoS" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="MQTT.QoS.ExactlyOnce" />
+                    </initialValue>
+                  </variable>
+                  <variable name="MqttRetain">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+THIS^.MqttQos := MqttQos;
+THIS^.MqttRetain := MqttRetain;
+
+SUPER^.InitBaseMqtt();</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="send">
+              <interface>
+                <inputVars>
+                  <variable name="str">
+                    <type>
+                      <string length="128" />
+                    </type>
+                  </variable>
+                  <variable name="instance">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload:= CONCAT(CONCAT(instance,' | '),str),
+		Topic := THIS^.MQTTPublishTopic,
+		Qos := 1,
+		MqttRetain := TRUE
+	);
+END_IF		</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitMqttDiscovery">
               <interface>
                 <inputVars>
@@ -3706,98 +4237,6 @@ InitMqttDone := TRUE;</xhtml>
 
 	initMqttDiscoveryDone := TRUE;
 END_IF		</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="send">
-              <interface>
-                <inputVars>
-                  <variable name="str">
-                    <type>
-                      <string length="128" />
-                    </type>
-                  </variable>
-                  <variable name="instance">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= CONCAT(CONCAT(instance,' | '),str),
-		Topic := THIS^.MQTTPublishTopic,
-		Qos := 1,
-		MqttRetain := TRUE
-	);
-END_IF		</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="MqttQos">
-                    <type>
-                      <derived name="MQTT.QoS" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="MQTT.QoS.ExactlyOnce" />
-                    </initialValue>
-                  </variable>
-                  <variable name="MqttRetain">
-                    <type>
-                      <BOOL />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="FALSE" />
-                    </initialValue>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
-THIS^.pMqttPublishQueue:=pMqttPublishQueue;
-
-THIS^.MqttQos := MqttQos;
-THIS^.MqttRetain := MqttRetain;
-
-SUPER^.InitBaseMqtt();</xhtml>
                 </ST>
               </body>
               <addData />
@@ -4771,131 +5210,6 @@ PulseTrigger:=FALSE;</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="MQTTSubscribePrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttCallbackCollector">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="MQTT.CallbackCollector" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
-THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
-THIS^.pMqttPublishQueue:=pMqttPublishQueue;
-
-
-
-SUPER^.InitBaseMqtt();
-pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
-
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
-IF NOT(InitMqttDone) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-	//now process the data
-	IF FIND(Data.PayloadString^, 'TRUE') &gt; 0 THEN
-		MqttHighRequest := TRUE;
-	END_IF
-	IF FIND(Data.PayloadString^, 'FALSE') &gt; 0 THEN
-		MqttLowRequest := TRUE;
-	END_IF
-END_IF </xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlock">
-              <interface>
-                <inputVars>
-                  <variable name="T_hold">
-                    <type>
-                      <TIME />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_hold:=T_hold;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitMqttDiscoveryAsSwitch">
               <interface>
                 <inputVars>
@@ -4970,6 +5284,131 @@ END_IF </xhtml>
 	
 	initMqttDiscoveryDone := TRUE;
 END_IF		</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="T_hold">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default value for click mode, can be overwritten by method call </xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_hold:=T_hold;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//now process the data
+	IF FIND(Data.PayloadString^, 'TRUE') &gt; 0 THEN
+		MqttHighRequest := TRUE;
+	END_IF
+	IF FIND(Data.PayloadString^, 'FALSE') &gt; 0 THEN
+		MqttLowRequest := TRUE;
+	END_IF
+END_IF </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
+
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -5417,146 +5856,6 @@ MD := lock.Q2;</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="MQTTSubscribePrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttCallbackCollector">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="MQTT.CallbackCollector" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
-THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
-THIS^.pMqttPublishQueue:=pMqttPublishQueue;
-
-SUPER^.InitBaseMqtt();
-pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
-IF NOT(InitMqttDone) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-	//now process the data
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN			
-		THIS^.MqttRequestStop:=TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
-		THIS^.MqttRequestOpen:=TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN
-		THIS^.MqttRequestClose:=TRUE;
-	END_IF
-
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlock">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="T_LOCKOUT">
-                    <type>
-                      <TIME />
-                    </type>
-                  </variable>
-                  <variable name="T_UD">
-                    <type>
-                      <TIME />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_LOCKOUT:=T_LOCKOUT;
-THIS^.T_UD:=T_UD;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitMqttDiscovery">
               <interface>
                 <inputVars>
@@ -5633,6 +5932,146 @@ THIS^.T_UD:=T_UD;</xhtml>
 
 	initMqttDiscoveryDone := TRUE;
 END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="T_LOCKOUT">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="T_UD">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_LOCKOUT:=T_LOCKOUT;
+THIS^.T_UD:=T_UD;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//now process the data
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN			
+		THIS^.MqttRequestStop:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
+		THIS^.MqttRequestOpen:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN
+		THIS^.MqttRequestClose:=TRUE;
+	END_IF
+
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="InstanceNamePt">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received</xhtml>
                 </ST>
               </body>
               <addData />
@@ -6164,57 +6603,212 @@ Startup:=FALSE;
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
+            <Method name="InitMqttDiscovery">
               <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
                 <inputVars>
-                  <variable name="Data">
+                  <variable name="Device">
                     <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
                     </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
+	END_IF
+	
+	Device^.CreateLightDimmerEntity(
+		Name := name,
+		Id := Id,
+		Meta := meta,
+		CommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/Q'),
+		PayloadOn := 'TRUE',
+		PayloadOff := 'FALSE',
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),
+		BrightnessCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/OUT'),
+		BrightnessStateTopic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),
+		BrightnessScale := 255,
+		DmxChannel := THIS^.DmxChannel,
+		DmxWidth := THIS^.DmxWidth,
+		DmxUniverse := THIS^.DmxUniverse);
+
+	initMqttDiscoveryDone := TRUE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="initDMX">
+              <interface>
+                <inputVars>
+                  <variable name="DmxChannel">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="DmxWidth">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="1" />
+                    </initialValue>
+                  </variable>
+                  <variable name="DmxUniverse">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="1" />
+                    </initialValue>
+                  </variable>
+                  <variable name="pDmxValues">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="oscat_network.NETWORK_BUFFER_SHORT" />
+                        </baseType>
+                      </pointer>
+                    </type>
                   </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
-IF NOT(InitMqttDone) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CONCAT(MQTTSubscribeTopic,'/Q') =  Data.TopicOut^ THEN
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
-		MqttHighRequest := TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
-		MqttLowRequest := TRUE;
-	END_IF;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
+IF NOT THIS^.InitDmxDone THEN
+	THIS^.DmxChannel := DmxChannel;
+	THIS^.pDmxValues := pDmxValues;
+	THIS^.DmxWidth := DmxWidth;
+	THIS^.InitDmxDone := TRUE;
 	
-ELSIF CONCAT(MQTTSubscribeTopic,'/OUT') =  Data.TopicOut^ THEN
-	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
-		THIS^.OUT_Target:=STRING_TO_BYTE(Data.PayloadString^);
-		THIS^.SoftDimToValue:=TRUE;
-	END_IF
-	
-	
-// Legacy! backwards compatiably with /+ topics instead of /#
-ELSIF CommonTypesAndFunctions.StrEqualsAtStart(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-	//now process the data
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
-		MqttHighRequest := TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
-		MqttLowRequest := TRUE;
-	ELSIF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
-		THIS^.OUT_Target:=STRING_TO_BYTE(Data.PayloadString^);
-		THIS^.SoftDimToValue:=TRUE;
-	END_IF
-END_IF </xhtml>
+	THIS^.InitDmxDone := TRUE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="OutputDimmer">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Dimmer specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Qos_Dimm">
+                    <type>
+                      <derived name="MQTT.QoS" />
+                    </type>
+                  </variable>
+                  <variable name="Delta_Dimm">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+// Dimmer specific
+THIS^.OutputDimmer:=OutputDimmer;
+THIS^.Qos_Dimm:=Qos_Dimm;
+THIS^.Delta_Dimm:=Delta_Dimm;
+
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
+
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -6336,212 +6930,57 @@ THIS^.OUT_LinearScaleMax:=OUT_LinearScaleMax;</xhtml>
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
+            <Method name="PublishReceived">
               <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
                 <inputVars>
-                  <variable name="MQTTPublishPrefix">
+                  <variable name="Data">
                     <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="MQTTSubscribePrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttCallbackCollector">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="MQTT.CallbackCollector" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="OutputDimmer">
-                    <type>
-                      <BOOL />
+                      <derived name="MQTT.CALLBACK_DATA" />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Dimmer specific</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
                     </documentation>
                   </variable>
-                  <variable name="Qos_Dimm">
-                    <type>
-                      <derived name="MQTT.QoS" />
-                    </type>
-                  </variable>
-                  <variable name="Delta_Dimm">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
-THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
-THIS^.pMqttPublishQueue:=pMqttPublishQueue;
-
-// Dimmer specific
-THIS^.OutputDimmer:=OutputDimmer;
-THIS^.Qos_Dimm:=Qos_Dimm;
-THIS^.Delta_Dimm:=Delta_Dimm;
-
-
-SUPER^.InitBaseMqtt();
-pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
-
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="initDMX">
-              <interface>
-                <inputVars>
-                  <variable name="DmxChannel">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                  <variable name="DmxWidth">
-                    <type>
-                      <INT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="1" />
-                    </initialValue>
-                  </variable>
-                  <variable name="DmxUniverse">
-                    <type>
-                      <INT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="1" />
-                    </initialValue>
-                  </variable>
-                  <variable name="pDmxValues">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="oscat_network.NETWORK_BUFFER_SHORT" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">
-IF NOT THIS^.InitDmxDone THEN
-	THIS^.DmxChannel := DmxChannel;
-	THIS^.pDmxValues := pDmxValues;
-	THIS^.DmxWidth := DmxWidth;
-	THIS^.InitDmxDone := TRUE;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CONCAT(MQTTSubscribeTopic,'/Q') =  Data.TopicOut^ THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
+		MqttHighRequest := TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
+		MqttLowRequest := TRUE;
+	END_IF;
 	
-	THIS^.InitDmxDone := TRUE;
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery">
-              <interface>
-                <inputVars>
-                  <variable name="Device">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="Name">
-                    <type>
-                      <string length="255" />
-                    </type>
-                  </variable>
-                  <variable name="overruleId">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="id">
-                    <type>
-                      <string length="255" />
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
-	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
+ELSIF CONCAT(MQTTSubscribeTopic,'/OUT') =  Data.TopicOut^ THEN
+	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
+		THIS^.OUT_Target:=STRING_TO_BYTE(Data.PayloadString^);
+		THIS^.SoftDimToValue:=TRUE;
 	END_IF
 	
-	Device^.CreateLightDimmerEntity(
-		Name := name,
-		Id := Id,
-		Meta := meta,
-		CommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/Q'),
-		PayloadOn := 'TRUE',
-		PayloadOff := 'FALSE',
-		StateTopic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),
-		BrightnessCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/OUT'),
-		BrightnessStateTopic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),
-		BrightnessScale := 255,
-		DmxChannel := THIS^.DmxChannel,
-		DmxWidth := THIS^.DmxWidth,
-		DmxUniverse := THIS^.DmxUniverse);
-
-	initMqttDiscoveryDone := TRUE;
-END_IF</xhtml>
+	
+// Legacy! backwards compatiably with /+ topics instead of /#
+ELSIF CommonTypesAndFunctions.StrEqualsAtStart(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//now process the data
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
+		MqttHighRequest := TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
+		MqttLowRequest := TRUE;
+	ELSIF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
+		THIS^.OUT_Target:=STRING_TO_BYTE(Data.PayloadString^);
+		THIS^.SoftDimToValue:=TRUE;
+	END_IF
+END_IF </xhtml>
                 </ST>
               </body>
               <addData />
@@ -6551,6 +6990,18 @@ END_IF</xhtml>
       </pou>
       <pou name="FB_PLC_MQTT_DISCOVERY_DEVICE" pouType="functionBlock">
         <interface>
+          <localVars>
+            <variable name="MqttDiagnosticTopicIP">
+              <type>
+                <string />
+              </type>
+            </variable>
+            <variable name="MqttRefreshIP">
+              <type>
+                <derived name="OSCAT_BASIC.GEN_PULSE" />
+              </type>
+            </variable>
+          </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
@@ -6566,7 +7017,18 @@ END_IF</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* allow the pulse generator to generate a pulse, used for refreshing IP address *)
+MqttRefreshIP();
+
+(* Refresh the IP address on every pulse *)
+IF NOT(xInit) AND MqttRefreshIP.Q THEN		
+	pMqttPublishQueue^.AddMessage(
+		Payload:= GetIpAddress(),
+		Topic := MqttDiagnosticTopicIP,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE,
+	);
+END_IF</xhtml>
           </ST>
         </body>
         <addData>
@@ -6602,6 +7064,11 @@ END_IF</xhtml>
                       <string />
                     </type>
                   </variable>
+                  <variable name="MqttDiagnosticTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
                   <variable name="pMqttPublishQueue">
                     <type>
                       <pointer>
@@ -6613,11 +7080,6 @@ END_IF</xhtml>
                   </variable>
                 </inputVars>
                 <localVars>
-                  <variable name="Author">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
                   <variable name="LocalUrl">
                     <type>
                       <string />
@@ -6628,28 +7090,44 @@ END_IF</xhtml>
                       <INT />
                     </type>
                   </variable>
-                  <variable name="AdapterInfo">
+                  <variable name="iecResult">
                     <type>
-                      <derived name="SOCK_ADAPTER_INFORMATION" />
+                      <derived name="SysTypes.RTS_IEC_RESULT" />
                     </type>
                   </variable>
-                  <variable name="hAdapter">
+                  <variable name="sAppName">
                     <type>
-                      <derived name="RTS_IEC_HANDLE" />
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> must identic to the name in the device tree</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="pApp">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="CmpApp.APPLICATION" />
+                        </baseType>
+                      </pointer>
                     </type>
                   </variable>
-                  <variable name="udiStructSize">
+                  <variable name="stAppInfo">
                     <type>
-                      <UDINT />
+                      <derived name="CmpApp.APPLICATION_INFO" />
+                    </type>
+                  </variable>
+                  <variable name="pstAppInfo">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="CmpApp.APPLICATION_INFO" />
+                        </baseType>
+                      </pointer>
                     </type>
                     <initialValue>
-                      <simpleValue value="SIZEOF(AdapterInfo)" />
+                      <simpleValue value="ADR(stAppInfo)" />
                     </initialValue>
-                  </variable>
-                  <variable name="rResult">
-                    <type>
-                      <derived name="RTS_IEC_RESULT" />
-                    </type>
                   </variable>
                   <variable name="sIpAddr">
                     <type>
@@ -6661,58 +7139,31 @@ END_IF</xhtml>
                       <string length="17" />
                     </type>
                   </variable>
-                  <variable name="xFirstAdapter">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="xReadInfo">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="xRead">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="iecResult">
-                    <type>
-                      <derived name="SysTypes.RTS_IEC_RESULT" />
-                    </type>
-                  </variable>
-                  <variable name="dwType">
-                    <type>
-                      <DWORD />
-                    </type>
-                  </variable>
-                  <variable name="dwTargetId">
-                    <type>
-                      <DWORD />
-                    </type>
-                  </variable>
-                  <variable name="wsDeviceName">
+                  <variable name="manufacturer">
                     <type>
                       <wstring />
                     </type>
                   </variable>
-                  <variable name="wsDev">
+                  <variable name="manufacturerSize">
+                    <type>
+                      <UDINT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="SIZEOF(manufacturer)" />
+                    </initialValue>
+                  </variable>
+                  <variable name="model">
+                    <type>
+                      <wstring />
+                    </type>
+                  </variable>
+                  <variable name="modelSize">
                     <type>
                       <DINT />
                     </type>
                     <initialValue>
-                      <simpleValue value="SIZEOF(wsDeviceName)" />
+                      <simpleValue value="SIZEOF(model)" />
                     </initialValue>
-                  </variable>
-                  <variable name="udiProcessorId">
-                    <type>
-                      <UDINT />
-                    </type>
-                  </variable>
-                  <variable name="udiOsId">
-                    <type>
-                      <UDINT />
-                    </type>
                   </variable>
                   <variable name="sSerialNumber">
                     <type>
@@ -6739,13 +7190,15 @@ END_IF</xhtml>
                       <simpleValue value="SIZEOF(sSerialNumber)" />
                     </initialValue>
                   </variable>
-                  <variable name="xInit">
+                  <variable name="CompilerVersion">
                     <type>
-                      <BOOL />
+                      <derived name="Version" />
                     </type>
-                    <initialValue>
-                      <simpleValue value="TRUE" />
-                    </initialValue>
+                  </variable>
+                  <variable name="SCompilerVersion">
+                    <type>
+                      <string />
+                    </type>
                   </variable>
                 </localVars>
               </interface>
@@ -6754,95 +7207,234 @@ END_IF</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF xInit THEN
     xInit := FALSE;
 	
-    xFirstAdapter := TRUE;
-    rResult := 0;
-    WHILE rResult = 0 DO   
-        IF xFirstAdapter THEN
-            hAdapter := SysSockGetFirstAdapterInfo(ADR(AdapterInfo), ADR(udiStructSize), ADR(rResult));
-        ELSE   
-            hAdapter := SysSockGetNextAdapterInfo(hAdapter, ADR(AdapterInfo), ADR(udiStructSize), ADR(rResult));
-        END_IF
-        IF rResult = 0 THEN
-            sIpAddr := Standard.CONCAT(BYTE_TO_STRING(AdapterInfo.IpAddr.S_un_b.s_b1),'.');
-            sIpAddr := Standard.CONCAT(sIpAddr,BYTE_TO_STRING(AdapterInfo.IpAddr.S_un_b.s_b2));
-            sIpAddr := Standard.CONCAT(sIpAddr,'.');
-            sIpAddr := Standard.CONCAT(sIpAddr,BYTE_TO_STRING(AdapterInfo.IpAddr.S_un_b.s_b3));
-            sIpAddr := Standard.CONCAT(sIpAddr,'.');
-            sIpAddr := Standard.CONCAT(sIpAddr,BYTE_TO_STRING(AdapterInfo.IpAddr.S_un_b.s_b4));
-            sMacAddr := Standard.CONCAT(SM0.Byte_To_HexString(AdapterInfo.abyMac[0]),'-');
-            sMacAddr := Standard.CONCAT(sMacAddr,SM0.Byte_To_HexString(AdapterInfo.abyMac[1]));
-            sMacAddr := Standard.CONCAT(sMacAddr,'-');
-            sMacAddr := Standard.CONCAT(sMacAddr,SM0.Byte_To_HexString(AdapterInfo.abyMac[2]));
-            sMacAddr := Standard.CONCAT(sMacAddr,'-');
-            sMacAddr := Standard.CONCAT(sMacAddr,SM0.Byte_To_HexString(AdapterInfo.abyMac[3]));
-            sMacAddr := Standard.CONCAT(sMacAddr,'-');
-            sMacAddr := Standard.CONCAT(sMacAddr,SM0.Byte_To_HexString(AdapterInfo.abyMac[4]));
-            sMacAddr := Standard.CONCAT(sMacAddr,'-');
-            sMacAddr := Standard.CONCAT(sMacAddr,SM0.Byte_To_HexString(AdapterInfo.abyMac[5]));
-        END_IF
-        xFirstAdapter := FALSE;   
-    END_WHILE
+	(* get the appname first *)
+	sAppName := PRO_JSON.GPL_JSON.ApplicationName;
+	
+	(* IP address and MAC *)
+	sIpAddr := GetIpAddress();
+	sMacAddr := GetMac();
 
-
- 
-    //  Control WinV3: 4096 - 0000 0001
-    iecResult := SysTarget.SysTargetGetType(pulType := ADR(dwType));
-    iecResult := SysTarget.SysTargetGetId(pulTargetId := ADR(dwTargetId));
- 
-    iecResult := SysTarget.SysTargetGetDeviceName(pwszName := ADR(wsDeviceName), pnMaxLength := ADR(wsDev));
- 
- 
-    //Unique RT identifier
+	(* manufacturer *)
+	iecResult := SysTarget.SysTargetGetVendorName(pwszName := ADR(manufacturer), pnMaxLength := ADR(manufacturerSize));
+	(* model *)
+    iecResult := SysTarget.SysTargetGetDeviceName(pwszName := ADR(model), pnMaxLength := ADR(modelSize));
+    (* serial number *)
     iecResult := SysTarget.SysTargetGetSerialNumber(ppsSerialNumber := ADR(psSerialNumber), pnMaxLen := ADR(diSerialNumber));
 
-	
+	(* device name *)	
     pApp := AppFindApplicationByName(pszString := sAppName, pResult := ADR(iecResult));   
-    pstAppInfo := AppGetApplicationInfo(pApp := pApp, pResult := ADR(iecResult));   
-		//         MqttVariables.version := pstAppInfo^.pstVersion^;
-		//         MqttVariables.desc := pstAppInfo^.pstDescription^;
-
-    IF iecResult = 0 THEN
-		
-		iSplitLocation := COL.Stu.StrFindA(
-			pst1:= ADR(THIS^.InstanceName), 
-			pst2:= ADR('.'), 
-			uiSearchStart:= 1
-		) - 1;
+    pstAppInfo := AppGetApplicationInfo(pApp := pApp, pResult := ADR(iecResult)); 		
+	iSplitLocation := COL.Stu.StrFindA(
+		pst1:= ADR(THIS^.InstanceName), 
+		pst2:= ADR('.'), 
+		uiSearchStart:= 1
+	) - 1;	
 	
+	(* sw version *)
+	CompilerVersion := __SYSTEM.Constants.CompilerVersion;
+	SCompilerVersion := CONCAT(UINT_TO_STRING(CompilerVersion.uiMajor), '.');
+	SCompilerVersion := CONCAT(SCompilerVersion, UINT_TO_STRING(CompilerVersion.uiMinor));
+	SCompilerVersion := CONCAT(SCompilerVersion, '.');
+	SCompilerVersion := CONCAT(SCompilerVersion, UINT_TO_STRING(CompilerVersion.uiServicePack));
+	SCompilerVersion := CONCAT(SCompilerVersion, '.');
+	SCompilerVersion := CONCAT(SCompilerVersion, UINT_TO_STRING(CompilerVersion.uiPatch));	
 	
-		IF CommonTypesAndFunctions.StrEquals(str1:= ADR(pstAppInfo^.pstAuthor), str2:= ADR('')) THEN
-			Author := 'MichielVanwelsenaere et al.';
-		ELSE
-			Author := pstAppInfo^.pstAuthor^; // 'DIMMER_GND_HALL_01'
-		END_IF	
+	(* url *)
+	IF CommonTypesAndFunctions.StrEquals(ADR(url), ADR('')) THEN
+		LocalUrl := CONCAT('https://', sIpAddr);
+	ELSE
+		LocalUrl := url;
+	END_IF
+	
+	SUPER^.initBaseDevice(
+		Name := LEFT(THIS^.InstanceName,iSplitLocation),
+		ConfigurationUrl := LocalUrl,
+		Identifiers := psSerialNumber^,
+		Manufacturer := WSTRING_TO_STRING(manufacturer),
+		Model := WSTRING_TO_STRING(model),
+		SoftwareVersion := SCompilerVersion,
+		HardwareVersion := DT_TO_STRING(pstAppInfo^.dtLastChanges),
+		IpAddress := sIpAddr,
+		MacAddress := sMacAddr,
+		availabilityTopic := availabilityTopic,			
+		availabilityOnline := availabilityOnline,
+		availabilityOffline := availabilityOffline,
+		MqttDiscoveryPrefix := MqttDiscoveryPrefix,
+		MqttDiagnosticTopic := MqttDiagnosticTopic,
+		pMqttPublishQueue := pMqttPublishQueue);
 		
-		IF CommonTypesAndFunctions.StrEquals(ADR(url), ADR('')) THEN
-			LocalUrl := CONCAT('https://', sIpAddr);
-		ELSE
-			LocalUrl := url;
-		END_IF
-			
-		SUPER^.initBaseDevice(
-			Name := LEFT(THIS^.InstanceName,iSplitLocation),
-			ConfigurationUrl := LocalUrl,
-			Identifiers := psSerialNumber^,
-			Manufacturer := Author,
-			Model := pstAppInfo^.pstDescription^,
-			SoftwareVersion := CONCAT(CONCAT( DT_TO_STRING(pstAppInfo^.dtLastChanges),' '), pstAppInfo^.pstProjectName^),
-			HardwareVersion := WSTRING_TO_STRING(wsDeviceName),
-			IpAddress := sIpAddr,
-			MacAddress := sMacAddr,
-			availabilityTopic := availabilityTopic,			
-			availabilityOnline := availabilityOnline,
-			availabilityOffline := availabilityOffline,
-			MqttDiscoveryPrefix := MqttDiscoveryPrefix,
-			pMqttPublishQueue := pMqttPublishQueue);
-    END_IF
+	// Serial number diagnostic
+	CreateSensorEntityWithCategory(
+		Name := 'Serial number',
+		Id := CONCAT(THIS^.Name,'_diag_sn'),
+		Meta := '',
+		StateTopic := CONCAT(MqttDiagnosticTopic, '/SN'),
+		StateValue := psSerialNumber^,
+		EntityCategory := 'diagnostic');
+		
+	// Serial number diagnostic
+	CreateSensorEntityWithCategory(
+		Name := 'Serial number',
+		Id := CONCAT(THIS^.Name,'_diag_sn'),
+		Meta := '',
+		StateTopic := CONCAT(MqttDiagnosticTopic, '/SN'),
+		StateValue := psSerialNumber^,
+		EntityCategory := 'diagnostic');
+		
+	// IP address diagnostic, initial publish. done cyclic as well
+	THIS^.MqttDiagnosticTopicIP := CONCAT(MqttDiagnosticTopic, '/IP');	
+	MqttRefreshIP(ENQ:=TRUE, PTH:=T#0S, PTL:=T#1M);
+	CreateSensorEntityWithCategory(
+		Name := 'IP',
+		Id := CONCAT(THIS^.Name,'_diag_ip'),
+		Meta := '',
+		StateTopic := THIS^.MqttDiagnosticTopicIP,
+		StateValue := sIpAddr,
+		EntityCategory := 'diagnostic');
+		
 END_IF
 
 
 
 </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetIpAddress">
+              <interface>
+                <returnType>
+                  <string length="15" />
+                </returnType>
+                <localVars>
+                  <variable name="AdapterInfo">
+                    <type>
+                      <derived name="SOCK_ADAPTER_INFORMATION" />
+                    </type>
+                  </variable>
+                  <variable name="hAdapter">
+                    <type>
+                      <derived name="RTS_IEC_HANDLE" />
+                    </type>
+                  </variable>
+                  <variable name="udiStructSize">
+                    <type>
+                      <UDINT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="SIZEOF(AdapterInfo)" />
+                    </initialValue>
+                  </variable>
+                  <variable name="rResult">
+                    <type>
+                      <derived name="RTS_IEC_RESULT" />
+                    </type>
+                  </variable>
+                  <variable name="xFirstAdapter">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">xFirstAdapter := TRUE;
+rResult := 0;
+WHILE rResult = 0 DO   
+	IF xFirstAdapter THEN
+		hAdapter := SysSockGetFirstAdapterInfo(ADR(AdapterInfo), ADR(udiStructSize), ADR(rResult));
+	ELSE   
+		hAdapter := SysSockGetNextAdapterInfo(hAdapter, ADR(AdapterInfo), ADR(udiStructSize), ADR(rResult));
+	END_IF
+	IF rResult = 0 THEN
+		GetIpAddress := Standard.CONCAT(BYTE_TO_STRING(AdapterInfo.IpAddr.S_un_b.s_b1),'.');
+		GetIpAddress := Standard.CONCAT(GetIpAddress,BYTE_TO_STRING(AdapterInfo.IpAddr.S_un_b.s_b2));
+		GetIpAddress := Standard.CONCAT(GetIpAddress,'.');
+		GetIpAddress := Standard.CONCAT(GetIpAddress,BYTE_TO_STRING(AdapterInfo.IpAddr.S_un_b.s_b3));
+		GetIpAddress := Standard.CONCAT(GetIpAddress,'.');
+		GetIpAddress := Standard.CONCAT(GetIpAddress,BYTE_TO_STRING(AdapterInfo.IpAddr.S_un_b.s_b4));
+	END_IF
+	xFirstAdapter := FALSE;   
+END_WHILE</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetMac">
+              <interface>
+                <returnType>
+                  <string length="17" />
+                </returnType>
+                <localVars>
+                  <variable name="AdapterInfo">
+                    <type>
+                      <derived name="SOCK_ADAPTER_INFORMATION" />
+                    </type>
+                  </variable>
+                  <variable name="hAdapter">
+                    <type>
+                      <derived name="RTS_IEC_HANDLE" />
+                    </type>
+                  </variable>
+                  <variable name="udiStructSize">
+                    <type>
+                      <UDINT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="SIZEOF(AdapterInfo)" />
+                    </initialValue>
+                  </variable>
+                  <variable name="rResult">
+                    <type>
+                      <derived name="RTS_IEC_RESULT" />
+                    </type>
+                  </variable>
+                  <variable name="xFirstAdapter">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">xFirstAdapter := TRUE;
+rResult := 0;
+WHILE rResult = 0 DO   
+	IF xFirstAdapter THEN
+		hAdapter := SysSockGetFirstAdapterInfo(ADR(AdapterInfo), ADR(udiStructSize), ADR(rResult));
+	ELSE   
+		hAdapter := SysSockGetNextAdapterInfo(hAdapter, ADR(AdapterInfo), ADR(udiStructSize), ADR(rResult));
+	END_IF
+	IF rResult = 0 THEN
+		GetMac := Standard.CONCAT(SM0.Byte_To_HexString(AdapterInfo.abyMac[0]),'-');
+		GetMac := Standard.CONCAT(GetMac,SM0.Byte_To_HexString(AdapterInfo.abyMac[1]));
+		GetMac := Standard.CONCAT(GetMac,'-');
+		GetMac := Standard.CONCAT(GetMac,SM0.Byte_To_HexString(AdapterInfo.abyMac[2]));
+		GetMac := Standard.CONCAT(GetMac,'-');
+		GetMac := Standard.CONCAT(GetMac,SM0.Byte_To_HexString(AdapterInfo.abyMac[3]));
+		GetMac := Standard.CONCAT(GetMac,'-');
+		GetMac := Standard.CONCAT(GetMac,SM0.Byte_To_HexString(AdapterInfo.abyMac[4]));
+		GetMac := Standard.CONCAT(GetMac,'-');
+		GetMac := Standard.CONCAT(GetMac,SM0.Byte_To_HexString(AdapterInfo.abyMac[5]));
+	END_IF
+	xFirstAdapter := FALSE;   
+END_WHILE</xhtml>
                 </ST>
               </body>
               <addData />
@@ -7041,66 +7633,6 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RegisterDevice">
-              <interface>
-                <inputVars>
-                  <variable name="device">
-                    <type>
-                      <derived name="RS485Device" />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF devicesCount &lt;&gt; 32 THEN
-	devices[devicesCount] := device;
-	devicesCount := devicesCount + 1;
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ReleaseBus">
-              <interface>
-                <addData>
-                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
-                    <AccessModifiers Private="true" />
-                  </data>
-                </addData>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Start a timer to release the bus
-THIS^.tonDelay.PT := THIS^.SilenceTime;
-THIS^.tonDelay.IN := TRUE;
-THIS^.deviceActive := FALSE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="SetBusOccupied">
-              <interface>
-                <addData>
-                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
-                    <AccessModifiers Private="true" />
-                  </data>
-                </addData>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.tonDelay.IN := FALSE;
-THIS^.deviceActive := TRUE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="Init">
               <interface>
                 <inputVars>
@@ -7164,6 +7696,66 @@ THIS^.SilenceTime := SilenceTime;
 THIS^.BusTrigger := BusTrigger;
 THIS^.BusData := BusData;
 THIS^.BusError := BusError;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetBusOccupied">
+              <interface>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.tonDelay.IN := FALSE;
+THIS^.deviceActive := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ReleaseBus">
+              <interface>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">// Start a timer to release the bus
+THIS^.tonDelay.PT := THIS^.SilenceTime;
+THIS^.tonDelay.IN := TRUE;
+THIS^.deviceActive := FALSE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RegisterDevice">
+              <interface>
+                <inputVars>
+                  <variable name="device">
+                    <type>
+                      <derived name="RS485Device" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF devicesCount &lt;&gt; 32 THEN
+	devices[devicesCount] := device;
+	devicesCount := devicesCount + 1;
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -10065,6 +10657,141 @@ END_IF</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlockAsVirtualOutput">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="PublishAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.PublishAtStartup:=PublishAtStartup;
+THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetValue">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Value">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=Value;
+THIS^.UpdateFlag:=TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlockAsVirtualInput">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="DefaultValue">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="SetDefaultValueStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PublishAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="UsePersistentAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="ConfirmReceival">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DefaultValue:=DefaultValue;
+THIS^.SetDefaultValueStartup:=SetDefaultValueStartup;
+THIS^.PublishAtStartup:=PublishAtStartup;
+THIS^.UsePersistentAtStartup:=UsePersistentAtStartup;
+THIS^.ConfirmReceival:=ConfirmReceival;
+THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
+IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//process the data
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
+		THIS^.OUT := TRUE;
+		MqttMessageReceived := TRUE;
+	END_IF
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
+		THIS^.OUT := FALSE;
+		MqttMessageReceived := TRUE;
+	END_IF
+END_IF </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitMqtt">
               <interface>
                 <inputVars>
@@ -10135,141 +10862,6 @@ SUPER^.InitBaseMqtt();
 pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
 
 </xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
-IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-	//process the data
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
-		THIS^.OUT := TRUE;
-		MqttMessageReceived := TRUE;
-	END_IF
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
-		THIS^.OUT := FALSE;
-		MqttMessageReceived := TRUE;
-	END_IF
-END_IF </xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlockAsVirtualInput">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="DefaultValue">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="SetDefaultValueStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="PublishAtStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="UsePersistentAtStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="ConfirmReceival">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DefaultValue:=DefaultValue;
-THIS^.SetDefaultValueStartup:=SetDefaultValueStartup;
-THIS^.PublishAtStartup:=PublishAtStartup;
-THIS^.UsePersistentAtStartup:=UsePersistentAtStartup;
-THIS^.ConfirmReceival:=ConfirmReceival;
-THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="SetValue">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Value">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=Value;
-THIS^.UpdateFlag:=TRUE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlockAsVirtualOutput">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="PublishAtStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.PublishAtStartup:=PublishAtStartup;
-THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -10426,13 +11018,56 @@ END_IF</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlockAsVirtualOutput">
+            <Method name="SetValue">
               <interface>
                 <returnType>
                   <BOOL />
                 </returnType>
                 <inputVars>
+                  <variable name="Value">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=Value;
+THIS^.UpdateFlag:=TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlockAsVirtualInput">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="DefaultValue">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="SetDefaultValueStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
                   <variable name="PublishAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="UsePersistentAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="ConfirmReceival">
                     <type>
                       <BOOL />
                     </type>
@@ -10441,8 +11076,50 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.PublishAtStartup:=PublishAtStartup;
-THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DefaultValue:=DefaultValue;
+THIS^.SetDefaultValueStartup:=SetDefaultValueStartup;
+THIS^.PublishAtStartup:=PublishAtStartup;
+THIS^.UsePersistentAtStartup:=UsePersistentAtStartup;
+THIS^.ConfirmReceival:=ConfirmReceival;
+THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
+IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//process the data
+	IF OSCAT_BASIC.IS_NUM(str:= Data.PayloadString^) THEN
+		THIS^.OUT := STRING_TO_INT(Data.PayloadString^);	
+		MqttMessageReceived := TRUE;	
+	END_IF
+END_IF </xhtml>
                 </ST>
               </body>
               <addData />
@@ -10525,108 +11202,23 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
+            <Method name="ConfigureFunctionBlockAsVirtualOutput">
               <interface>
                 <returnType>
                   <BOOL />
                 </returnType>
                 <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
-IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-	//process the data
-	IF OSCAT_BASIC.IS_NUM(str:= Data.PayloadString^) THEN
-		THIS^.OUT := STRING_TO_INT(Data.PayloadString^);	
-		MqttMessageReceived := TRUE;	
-	END_IF
-END_IF </xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlockAsVirtualInput">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="DefaultValue">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                  <variable name="SetDefaultValueStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                   <variable name="PublishAtStartup">
                     <type>
                       <BOOL />
                     </type>
                   </variable>
-                  <variable name="UsePersistentAtStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="ConfirmReceival">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DefaultValue:=DefaultValue;
-THIS^.SetDefaultValueStartup:=SetDefaultValueStartup;
-THIS^.PublishAtStartup:=PublishAtStartup;
-THIS^.UsePersistentAtStartup:=UsePersistentAtStartup;
-THIS^.ConfirmReceival:=ConfirmReceival;
-THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="SetValue">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Value">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=Value;
-THIS^.UpdateFlag:=TRUE;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.PublishAtStartup:=PublishAtStartup;
+THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -10783,13 +11375,56 @@ END_IF</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlockAsVirtualOutput">
+            <Method name="SetValue">
               <interface>
                 <returnType>
                   <BOOL />
                 </returnType>
                 <inputVars>
+                  <variable name="Value">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=Value;
+THIS^.UpdateFlag:=TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlockAsVirtualInput">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="DefaultValue">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                  <variable name="SetDefaultValueStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
                   <variable name="PublishAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="UsePersistentAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="ConfirmReceival">
                     <type>
                       <BOOL />
                     </type>
@@ -10798,8 +11433,48 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.PublishAtStartup:=PublishAtStartup;
-THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DefaultValue:=DefaultValue;
+THIS^.SetDefaultValueStartup:=SetDefaultValueStartup;
+THIS^.PublishAtStartup:=PublishAtStartup;
+THIS^.UsePersistentAtStartup:=UsePersistentAtStartup;
+THIS^.ConfirmReceival:=ConfirmReceival;
+THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
+IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//process the data
+	THIS^.OUT := STRING_TO_REAL(Data.PayloadString^);	
+	MqttMessageReceived := TRUE;	
+END_IF </xhtml>
                 </ST>
               </body>
               <addData />
@@ -10882,106 +11557,23 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
+            <Method name="ConfigureFunctionBlockAsVirtualOutput">
               <interface>
                 <returnType>
                   <BOOL />
                 </returnType>
                 <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
-IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-	//process the data
-	THIS^.OUT := STRING_TO_REAL(Data.PayloadString^);	
-	MqttMessageReceived := TRUE;	
-END_IF </xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlockAsVirtualInput">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="DefaultValue">
-                    <type>
-                      <REAL />
-                    </type>
-                  </variable>
-                  <variable name="SetDefaultValueStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                   <variable name="PublishAtStartup">
                     <type>
                       <BOOL />
                     </type>
                   </variable>
-                  <variable name="UsePersistentAtStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="ConfirmReceival">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DefaultValue:=DefaultValue;
-THIS^.SetDefaultValueStartup:=SetDefaultValueStartup;
-THIS^.PublishAtStartup:=PublishAtStartup;
-THIS^.UsePersistentAtStartup:=UsePersistentAtStartup;
-THIS^.ConfirmReceival:=ConfirmReceival;
-THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="SetValue">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Value">
-                    <type>
-                      <REAL />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=Value;
-THIS^.UpdateFlag:=TRUE;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.PublishAtStartup:=PublishAtStartup;
+THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -11138,6 +11730,135 @@ END_IF</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlockAsVirtualOutput">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="PublishAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.PublishAtStartup:=PublishAtStartup;
+THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetValue">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Value">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=Value;
+THIS^.UpdateFlag:=TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlockAsVirtualInput">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="DefaultValue">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="SetDefaultValueStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="PublishAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="UsePersistentAtStartup">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="ConfirmReceival">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DefaultValue:=DefaultValue;
+THIS^.SetDefaultValueStartup:=SetDefaultValueStartup;
+THIS^.PublishAtStartup:=PublishAtStartup;
+THIS^.UsePersistentAtStartup:=UsePersistentAtStartup;
+THIS^.ConfirmReceival:=ConfirmReceival;
+THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
+IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//process the data
+	THIS^.OUT := Data.PayloadString^;	
+	MqttMessageReceived := TRUE;
+END_IF </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitMqtt">
               <interface>
                 <inputVars>
@@ -11213,135 +11934,6 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
               <addData />
             </Method>
           </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Data">
-                    <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
-IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-	//process the data
-	THIS^.OUT := Data.PayloadString^;	
-	MqttMessageReceived := TRUE;
-END_IF </xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlockAsVirtualInput">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="DefaultValue">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="SetDefaultValueStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="PublishAtStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="UsePersistentAtStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="ConfirmReceival">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DefaultValue:=DefaultValue;
-THIS^.SetDefaultValueStartup:=SetDefaultValueStartup;
-THIS^.PublishAtStartup:=PublishAtStartup;
-THIS^.UsePersistentAtStartup:=UsePersistentAtStartup;
-THIS^.ConfirmReceival:=ConfirmReceival;
-THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="SetValue">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="Value">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OUT:=Value;
-THIS^.UpdateFlag:=TRUE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ConfigureFunctionBlockAsVirtualOutput">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="PublishAtStartup">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.PublishAtStartup:=PublishAtStartup;
-THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
         </addData>
       </pou>
       <pou name="SwapWordsToReal" pouType="function">
@@ -11396,22 +11988,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
     <data name="http://www.3s-software.com/plcopenxml/interface" handleUnknown="implementation">
       <Interface name="RS485Device">
         <Methods>
-          <Method name="RequestBusTime">
-            <interface>
-              <returnType>
-                <BOOL />
-              </returnType>
-            </interface>
-            <addData />
-          </Method>
-          <Method name="GetRtuQuery">
-            <interface>
-              <returnType>
-                <derived name="RS485_RtuQuery" />
-              </returnType>
-            </interface>
-            <addData />
-          </Method>
           <Method name="ProcessDataArray">
             <interface>
               <inputVars>
@@ -11439,6 +12015,22 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                   </type>
                 </variable>
               </inputVars>
+            </interface>
+            <addData />
+          </Method>
+          <Method name="GetRtuQuery">
+            <interface>
+              <returnType>
+                <derived name="RS485_RtuQuery" />
+              </returnType>
+            </interface>
+            <addData />
+          </Method>
+          <Method name="RequestBusTime">
+            <interface>
+              <returnType>
+                <BOOL />
+              </returnType>
             </interface>
             <addData />
           </Method>
@@ -11625,6 +12217,14 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <documentation>
               <xhtml xmlns="http://www.w3.org/1999/xhtml"> e.g. Devices/PLC/House</xhtml>
             </documentation>
+          </variable>
+          <variable name="MqttDiagnosticTopic">
+            <type>
+              <string length="100" />
+            </type>
+            <initialValue>
+              <simpleValue value="CONCAT(MqttBaseTopic, 'diagnostic')" />
+            </initialValue>
           </variable>
           <variable name="MqttAvailabilityTopic">
             <type>
@@ -11821,6 +12421,8 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
+                <Attribute Name="checksumnoinit_override" Value="909082025" />
+                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
@@ -11979,7 +12581,8 @@ PLC_Device.initPlcDevice(
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
 	availabilityTopic := MqttVariables.MqttAvailabilityTopic,
 	availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
-	availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload
+	availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
+	MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic
 );
 
 (* MQTT logger*)
