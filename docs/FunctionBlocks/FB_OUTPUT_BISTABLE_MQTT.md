@@ -121,6 +121,16 @@ FB_DO_BISTABLE_001.InitMqttDiscoveryAsLock(
 );
 ```
 
+By default a 'NO' (Normally Open) contact is asumed for MQTT discovery yet this can be inverted to a 'NC' (Normally Closed) contact by leveraging the 'Invert' parameter:
+
+```
+FB_DO_BISTABLE_001.InitMqttDiscoveryAsLock(
+	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+    Invert := TRUE                          (* FALSE by default = NO, TRUE = NC *)
+);
+```
+
 ### **Home Assistant YAML**
 If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
 
