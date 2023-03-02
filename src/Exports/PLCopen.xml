@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-02-25T14:05:36.7340461" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2023-02-25T14:04:52.2434242">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2023-03-02T20:03:50.5081247" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2023-03-02T20:03:18.8220744">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -991,6 +991,11 @@
                 </pointer>
               </type>
             </variable>
+            <variable name="logger">
+              <type>
+                <derived name="FB_MQTT_LOG" />
+              </type>
+            </variable>
             <variable name="availabilityTopic1">
               <type>
                 <string />
@@ -1225,7 +1230,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -1233,7 +1238,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -1413,7 +1418,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -1421,7 +1426,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -1541,7 +1546,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -1549,7 +1554,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -1691,7 +1696,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -1699,7 +1704,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -1840,7 +1845,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -1848,7 +1853,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -1977,7 +1982,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -1985,7 +1990,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -2128,6 +2133,14 @@ CreateBinarySensorEntityWithCategory(
 	PayloadOff := availabilityOffline,
 	DeviceClass := 'CONNECTIVITY',
 	EntityCategory := 'diagnostic');
+	
+//Logger
+CreateSensorEntityWithCategory(
+		Name := 'Log',
+		Id := CONCAT(THIS^.Name,'_diag_log'),
+		Meta := '',
+		StateTopic := CONCAT(MqttDiagnosticTopic, '/Log'),
+		EntityCategory := 'diagnostic');
 	
 // MAC address
 IF NOT(MacAddress = '') THEN
@@ -2292,7 +2305,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -2300,7 +2313,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -2436,7 +2449,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -2444,7 +2457,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -2589,7 +2602,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -2597,7 +2610,7 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -2734,7 +2747,7 @@ ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
 IF MqttJSON = '' THEN
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
 ELSIF NOT (MqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= MqttJSON,
@@ -2751,9 +2764,44 @@ ELSIF NOT (MqttJSON = '') THEN
 		);
 	END_IF
 	
-	Mqttvariables.MQTT_logger.send(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := 'bla');
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SendLogMessage">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="str">
+                    <type>
+                      <string length="128" />
+                    </type>
+                  </variable>
+                  <variable name="instance">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">pMqttPublishQueue^.AddMessage(
+	Payload:= CONCAT(CONCAT(instance,' | '),str),
+	Topic := CONCAT(MqttDiagnosticTopic, '/Log'),
+	Qos := 1,
+	MqttRetain := TRUE
+);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -4727,10 +4775,14 @@ ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= D
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 	//now process the data
-	IF FIND(Data.PayloadString^, 'TRUE') &gt; 0 THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
 		MqttHighRequest := TRUE;
-	END_IF
-	IF FIND(Data.PayloadString^, 'FALSE') &gt; 0 THEN
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
+		MqttLowRequest := TRUE;
+	// Siren sends out a JSON
+	ELSIF FIND(Data.PayloadString^, 'TRUE') &gt; 0 THEN
+		MqttHighRequest := TRUE;
+	ELSIF FIND(Data.PayloadString^, 'FALSE') &gt; 0 THEN
 		MqttLowRequest := TRUE;
 	END_IF
 END_IF </xhtml>
@@ -5380,10 +5432,14 @@ ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= D
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 	//now process the data
-	IF FIND(Data.PayloadString^, 'TRUE') &gt; 0 THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
 		MqttHighRequest := TRUE;
-	END_IF
-	IF FIND(Data.PayloadString^, 'FALSE') &gt; 0 THEN
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
+		MqttLowRequest := TRUE;
+	// Siren sends out a JSON
+	ELSIF FIND(Data.PayloadString^, 'TRUE') &gt; 0 THEN
+		MqttHighRequest := TRUE;
+	ELSIF FIND(Data.PayloadString^, 'FALSE') &gt; 0 THEN
 		MqttLowRequest := TRUE;
 	END_IF
 END_IF </xhtml>
@@ -12230,11 +12286,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               <derived name="MQTT.CallbackCollector" />
             </type>
           </variable>
-          <variable name="MQTT_logger">
-            <type>
-              <derived name="FB_MQTT_LOG" />
-            </type>
-          </variable>
           <variable name="MQTT_QOS_EXACTLY_ONCE">
             <type>
               <derived name="MQTT.QoS" />
@@ -12244,6 +12295,14 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </initialValue>
             <documentation>
               <xhtml xmlns="http://www.w3.org/1999/xhtml"> QOS Constants </xhtml>
+            </documentation>
+          </variable>
+          <variable name="PLC_Device">
+            <type>
+              <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+            </type>
+            <documentation>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml"> HOME ASSISTANT DISCOVERY VIA MQTT</xhtml>
             </documentation>
           </variable>
           <variable name="MqttMain">
@@ -12322,14 +12381,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </type>
             <initialValue>
               <simpleValue value="TIME#5s0ms" />
-            </initialValue>
-          </variable>
-          <variable name="MqttPubLogPrefix">
-            <type>
-              <string length="100" />
-            </type>
-            <initialValue>
-              <simpleValue value="CONCAT(MqttBaseTopic, 'logger/')" />
             </initialValue>
           </variable>
           <variable name="MqttHADiscoveryPrefix">
@@ -12525,14 +12576,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <pou name="PLC_PRG_MAIN" pouType="program">
               <interface>
                 <localVars>
-                  <variable name="PLC_Device">
-                    <type>
-                      <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> HOME ASSISTANT DISCOVERY VIA MQTT</xhtml>
-                    </documentation>
-                  </variable>
                   <variable name="FB_DI_PB_001">
                     <type>
                       <derived name="FB_INPUT_PUSHBUTTON_MQTT" />
@@ -12642,24 +12685,13 @@ FB_DO_BISTABLE_001();</xhtml>
                   <body>
                     <ST>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml">(* MQTT Discovery device*)
-PLC_Device.initPlcDevice(
+MqttVariables.PLC_Device.initPlcDevice(
 	MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
 	availabilityTopic := MqttVariables.MqttAvailabilityTopic,
 	availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
 	availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
 	MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic
-);
-
-(* MQTT logger*)
-MqttVariables.MQTT_logger.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubLogPrefix),											
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),				
-	MqttQos:=MQTT.QoS.ExactlyOnce, 
-	MqttRetain:=FALSE											
-);
-MqttVariables.MQTT_logger.InitMqttDiscovery(
-	Device := ADR(PLC_Device),							(* The device show in Home Assistant *)
 );
 
 
@@ -12671,7 +12703,7 @@ FB_DI_PB_001.InitMqtt(
 
 FB_DI_PB_001.InitMqttDiscovery(
 	name := 'Button number 001',						(* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_Device),							(* The device show in Home Assistant *)
+	Device := ADR(MqttVariables.PLC_Device),							(* The device show in Home Assistant *)
 );
 
 FB_DI_PB_002.InitMqtt(
@@ -12709,7 +12741,7 @@ FB_AO_DIMMER_001.InitDmx(
 (* INIT HOME ASSISTANT DISCOVERTY*)
 FB_AO_DIMMER_001.InitMqttDiscovery(
 	name := '001. Office strip cold',					(* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_Device),							(* The device show in Home Assistant *)
+	Device := ADR(MqttVariables.PLC_Device),							(* The device show in Home Assistant *)
 );
 
 
@@ -12723,7 +12755,7 @@ FB_DO_BISTABLE_001.InitMqtt(
 
 FB_DO_BISTABLE_001.InitMqttDiscoveryAsLight(
 	name := 'light number 1',						(* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_Device),							(* The device show in Home Assistant *)
+	Device := ADR(MqttVariables.PLC_Device),							(* The device show in Home Assistant *)
 );
 
 FB_DO_BIN_001.InitMqtt(
@@ -12735,7 +12767,7 @@ FB_DO_BIN_001.InitMqtt(
 
 FB_DO_BIN_001.InitMqttDiscoveryAsLight(
 	name := 'light number 2',						(* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_Device),							(* The device show in Home Assistant *)
+	Device := ADR(MqttVariables.PLC_Device),							(* The device show in Home Assistant *)
 );
 
 (* INIT COVERS STUFF *)
@@ -12747,7 +12779,7 @@ FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubCoverPrefi
 
 FB_DO_COVER_001.initmqttdiscovery(								(*see dimmer for full example *)
 	name := 'cover number 001',									(* the name show in home assistant frond-end*)
-	device := ADR(PLC_Device),										(* the device show in home assistant *)
+	device := ADR(MqttVariables.PLC_Device),										(* the device show in home assistant *)
 );
 
 FB_DO_COVER_001.ConfigureFunctionBlock(
@@ -12800,7 +12832,7 @@ FB_VIRTUAL_REAL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=0.1,SetDe
 
 
 
-MqttVariables.MQTT_logger.send('Init finished', 'MAIN_INIT');
+MqttVariables.PLC_Device.SendLogMessage('Init finished', 'MAIN_INIT');
 
 </xhtml>
                     </ST>
@@ -14159,7 +14191,7 @@ CASE Step OF
 		LED_1_BrokerStatus(eID:=eLedID.AppLED_1, xOpen:=TRUE );
 		LED_1_BrokerStatus.SetFlash(T#2S,eLedColor.Red, eLedColor.Off);
 		IF IP_C.ERROR = 33554432  THEN
-		MqttVariables.MQTT_logger.send(CONCAT('ERROR|DMX has a connection error ', DWORD_TO_STRING(IP_C.ERROR)));
+		MqttVariables.PLC_Device.SendLogMessage(CONCAT('ERROR|DMX has a connection error ', DWORD_TO_STRING(IP_C.ERROR)));
 		
 		END_IF;
 		
@@ -14219,7 +14251,7 @@ IF DMXnodeReachable = 0 THEN
 // 	MqttVariables.MQTT_logger.send('DMX ping OK');
 ELSIF DMXnodeReachable = 5 THEN
 	LED_1_BrokerStatus.SetFlash(T#1S,eLedColor.Red, eLedColor.Off);
-	MqttVariables.MQTT_logger.send('DMX ping Error');
+	MqttVariables.PLC_Device.SendLogMessage('DMX ping Error');
 END_IF</xhtml>
                 </ST>
               </body>
