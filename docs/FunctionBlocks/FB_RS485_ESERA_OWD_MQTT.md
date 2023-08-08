@@ -7,17 +7,17 @@ The following 1-Wire devices are currently supported:
 | Device | Devicecode | exports | link |
 |:-------------|:------------------|:------------------|:------------------|
 | Maxim integrated DS1820 & DS18B20  | 1820 | temperature | [link](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf)
-| Esera multisensor Pro 1 | 11151 | air quality, humidity, temperature | [link](https://esera.de/en/Products/1-Wire-Bus-Smart-Home/Air-quality-humidity-temperature-sensor/428/1-Wire-Multisensor-Air-Quality-Humidity-and-Temperature-Pro-I)
-| Esera multisensor Pro 2  | 11152 | air quality, humidity, temperature | [link](https://esera.de/en/Products/1-Wire-Smart-Home-and-Commercial/1-Wire-air-quality-sensor-air-quality/461/1-Wire-Multisensor-Air-Quality-Humidity-and-Temperature-Sensor-Pro-II)
-| Esera temperature sensor living space Pro | 11148 | humidity, temperature | [link](https://esera.de/en/Products/1-Wire-Bus-Smart-Home/1-Wire-Temperature-Sensor/1-Wire-Temperatur-Sensor-Wall-Mount/382/1-Wire-temperature-sensor-living-space-Pro)
-| Esera MSP 105 multisensor Pro Air Humidity and Temperature Sensor   | 11150 | humidity, temperature | [link](https://esera.de/en/Products/1-Wire-Smart-Home-and-Commercial/1-Wire-Multisensors-Humidity-Temperature-Brightness-Sensor/469/1-Wire-Multisensor-Pro-Air-Humidity-and-Temperature-Sensor)
-| Esera multisensor Pro temperature, humidity living room flush-mounted for Berker, Jung, Merten | 11160 | humidity, temperature | [link](https://esera.de/en/11160.3/1-wire-multisensor-pro-temperature-humidity-living-room-flush-mounted-for-berker-jung-merten)
-| Esera MS105 multisensor temperature, humidity living room flush-mounted for Berker, Jung, Merten | 11132 | humidity, temperature, brightness | [link](https://esera.de/en/11132.4/ms105-1-wire-multisensor-temperature-humidity-living-room-flush-mounted-for-berker-jung-merten-kopie)
-| Esera multisensor for temperature, humidity, brightness, indoor, surface  | 11134 | humidity, temperature, brightness | [link](https://esera.de/en/Products/1-Wire-Smart-Home-and-Commercial/1-Wire-Multisensors-Humidity-Temperature-Brightness-Sensor/511/1-Wire-multi-sensor-for-temperature-humidity-brightness-indoor-surface)
+| Esera multisensor Pro 1 | 11151 | air quality, humidity, temperature | [link](https://esera.de/en/Produkte/11151/1-Wire-Multisensor-Air-Quality-Humidity-and-Temperature-Pro-I)
+| Esera multisensor Pro 2  | 11152 | air quality, humidity, temperature | [link](https://esera.de/en/Produkte/11152/1-Wire-Multisensor-Air-Quality-Humidity-and-Temperature-Sensor-Pro-II)
+| Esera temperature sensor living space Pro | 11148 | humidity, temperature | [link](https://esera.de/en/Produkte/11148/1-Wire-temperature-sensor-living-space-Pro)
+| Esera MSP 105 multisensor Pro Air Humidity and Temperature Sensor   | 11150 | humidity, temperature | [link](https://esera.de/en/Produkte/11150/MSP-105-1-Wire-Multisensor-Pro-Air-Humidity-and-Temperature-Sensor)
+| Esera multisensor Pro temperature, humidity living room flush-mounted for Berker, Jung, Merten | 11160 | humidity, temperature | [link](https://esera.de/en/Produkte/11160.3/1-Wire-Multisensor-Pro-temperature-humidity-living-room-flush-mounted-for-Berker-Jung-Merten)
+| Esera MS105 multisensor temperature, humidity living room flush-mounted for Berker, Jung, Merten | 11132 | humidity, temperature, brightness | [link](https://esera.de/en/Produkte/11132.3/MS105-1-Wire-Multisensor-temperature-humidity-living-room-flush-mounted-for-Berker-Jung-Merten-Kopie)
+| Esera multisensor for temperature, humidity, brightness, indoor, surface  | 11134 | humidity, temperature, brightness | [link](https://esera.de/en/Produkte/11134/1-Wire-multi-sensor-for-temperature-humidity-brightness-indoor-surface)
 
 
-Note that the Esera documents the full list of supported devices over here: [link](https://esera.de/en/Service-Support/1-Wire-Basics/1-Wire-building-blocks/414/1-Wire-Gateway-10-Modbus-RTU). Yet, only the devices are above are supported in the software due to lack of actual testing devices.
-Nevertheless, adding a new device is a simple job.
+Note that the Esera documents the full list of supported devices over here: [link](https://esera.de/en/Produkte/11324/1-Wire-Gateway-10-Modbus-RTU). Yet, only the devices are above are supported in the software due to lack of actual testing devices.
+Nevertheless, adding a new device is a simple task, feel free to reach out.
 
 ### **Block diagram**
 

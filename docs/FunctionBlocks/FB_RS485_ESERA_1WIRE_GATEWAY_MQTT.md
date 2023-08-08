@@ -7,7 +7,7 @@ Esera supports and produces a wide range of 1-Wire devices; indoor/outdoor tempe
 
 Required hardware:
 
-[1-Wire Gateway 10 Modbus RTU](https://esera.de/shop/en/Service-Support/1-Wire-Basics/1-Wire-building-blocks/414/1-Wire-Gateway-10-Modbus-RTU): [manual](../RS485/datasheets/Esera_ModbusGateway10_Manual.pdf), [wiring](../RS485/datasheets/Esera_ModbusGateway10_Wiring.pdf), [software](https://download.esera.de/download/technical/config%20tool%203)
+[1-Wire Gateway 10 Modbus RTU](https://esera.de/en/Produkte/11324/1-Wire-Gateway-10-Modbus-RTU): [manual](../RS485/datasheets/Esera_ModbusGateway10_Manual.pdf), [wiring](../RS485/datasheets/Esera_ModbusGateway10_Wiring.pdf), [software](https://download.esera.de/download/technical/config%20tool%203)
 
 ### **Modbus configuration**
 The Esera gateways & controllers use a fixed communication baudrate of 19200 with a 8N1 bit configuration making it a dominant slave device in terms of configuration. Make sure any other Modbus devices on the network are able to leverage the same settigs.
