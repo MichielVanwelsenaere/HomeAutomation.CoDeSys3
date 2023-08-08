@@ -29,10 +29,9 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **Pushbutton single press** | A single pushbutton press is detected on input `PB`. | `SINGLE` | 2 | `FALSE` | no
-| **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `DOUBLE` | 2 | `FALSE` | no
-| **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
-| **Output changes: P_LONG**   | A change is detected on output `P_LONG`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
+| **Pushbutton single press** | A single pushbutton press is detected on input `PB`. | `{"event_type": "SINGLE"}` | 2 | `FALSE` | no
+| **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `{"event_type": "DOUBLE"}` | 2 | `FALSE` | no
+| **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `{"event_type": "LONG"}` | 2 | `FALSE` | no
 
 MQTT publish topic is a concatenation of the publish prefix variable and the function block name.
 
@@ -77,23 +76,20 @@ FB_DI_PB_001.InitMqttDiscovery(
 ```
 
 ### **Home Assistant YAML**
-If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT events](https://www.home-assistant.io/integrations/event.mqtt/) config:
 
 ```YAML
 mqtt:
-  sensor:
+  event:
   # To receive single/double/long events
   - name: "FB_DI_PB_001"
     state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
-    qos: 2
-    expire_after: 3
-    availability_topic: "Devices/PLC/House/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
-  # To receive state of output P_LONG
-  - name: "FB_DI_PB_001_P_LONG"
-    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
-    qos: 2
+    event_types:
+      - "SINGLE"
+      - "DOUBLE"
+      - "LONG"
+    qos: 2    
+    device_class: "button"
     availability_topic: "Devices/PLC/House/availability"
     payload_available: "online"
     payload_not_available: "offline"
