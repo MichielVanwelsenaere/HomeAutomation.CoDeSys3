@@ -9,7 +9,7 @@ Several home automation systems -like Home Assistant- support [MQTT discovery](h
 
 Supported function blocks have a `InitMqttDiscovery` method. The method needs a [FB_PLC_MQTT_DISCOVERY_DEVICE](../FunctionBlocks/FB_PLC_MQTT_DISCOVERY_DEVICE.md) instance to work.
 
-[MqttDiscoveryGif](../_img/MqttDiscovery.gif)
+![MqttDiscoveryGif](../_img/MqttDiscovery.gif)
 
 
 ### JSON library configuration
