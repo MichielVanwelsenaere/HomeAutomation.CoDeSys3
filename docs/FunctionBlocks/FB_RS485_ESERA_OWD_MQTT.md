@@ -16,8 +16,8 @@ The following 1-Wire devices are currently supported:
 | Esera multisensor for temperature, humidity, brightness, indoor, surface  | 11134 | humidity, temperature, brightness | [link](https://esera.de/en/Produkte/11134/1-Wire-multi-sensor-for-temperature-humidity-brightness-indoor-surface)
 
 
-Note that the Esera documents the full list of supported devices over here: [link](https://esera.de/en/Service-Support/1-Wire-Basics/1-Wire-building-blocks/414/1-Wire-Gateway-10-Modbus-RTU). Yet, only the devices are above are supported in the software due to lack of actual testing devices.
-Nevertheless, adding a new device is a simple task, feel free to reach outZ.
+Note that the Esera documents the full list of supported devices over here: [link](https://esera.de/en/Produkte/11324/1-Wire-Gateway-10-Modbus-RTU). Yet, only the devices are above are supported in the software due to lack of actual testing devices.
+Nevertheless, adding a new device is a simple task, feel free to reach out.
 
 ### **Block diagram**
 
