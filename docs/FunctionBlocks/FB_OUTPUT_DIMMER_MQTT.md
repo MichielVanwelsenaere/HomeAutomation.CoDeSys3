@@ -108,12 +108,12 @@ FB_AO_DIMMER_001			:FB_OUTPUT_DIMMER_MQTT;
 
 - Init MQTT method call (called once during startup):
 ```
-FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttPubDimmerPrefix),     (* pointer to string prefix for the MQTT publish topic *)
-    MQTTSubscribePrefix:= ADR(MqttSubDimmerPrefix),                         (* pointer to string prefix for the MQTT subscribe topic *)
+FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPrefix),     (* pointer to string prefix for the MQTT publish topic *)
+    MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubDimmerPrefix),                         (* pointer to string prefix for the MQTT subscribe topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),             (* pointer to MQTTPublishQueue to send a new MQTT event *)
     pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT),  (* pointer to CallbackCollector to receive Mqtt subscription events *)
     TRUE,                                                                   (* specify whether dimmer value should be outputted on MQTT topic *)
-    SD_MQTT.QoS.ExactlyOnce,                                                (* specify the QoS for the dimmer mqtt events (values 0-255) *)
+    MQTT.QoS.ExactlyOnce,                                                (* specify the QoS for the dimmer mqtt events (values 0-255) *)
     5                                                                       (* specify the resolution for the dimmer mqtt events *)
 );
 ```
