@@ -145,7 +145,7 @@ FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q
     LONG:=                  FB_DI_PB_041.LONG,      (* for controlling the dimmer output OUT *)
     P_LONG:=                FB_DI_PB_041.P_LONG,    (* for controlling the dimmer output OUT *)
     Q=>                     DO_001,                 (* couple the function block to the physical digital output *)
-    OUT:=                   AO_001,                 (* couple the function block to the physical anolog output *)
+    OUT=>                   AO_001,                 (* couple the function block to the physical anolog output *)
     VAL:=                   255,                    (* value to set on output OUT when input SET is high *)
     SET:=                   FB_DI_PB_041.DOUBLE     (* when high, VAL is set on output OUT *)
 );
