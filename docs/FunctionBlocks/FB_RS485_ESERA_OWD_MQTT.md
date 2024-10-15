@@ -23,7 +23,7 @@ Nevertheless, adding a new device is a simple task, feel free to reach out.
 
 <img src="../_img/FB_RS485_ESERA_OWD_MQTT.svg" width="350">
 
-### **MQTT Event Behaviour**
+### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |

@@ -25,7 +25,7 @@ METHOD(S)
     
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
-### **MQTT Event Behaviour**
+### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -34,7 +34,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
-### **MQTT Subscription Behaviour**
+### **MQTT subscribe behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
