@@ -68,7 +68,7 @@ To translate the byte array received by the modbus device to their actual value 
 In addition to the above a buscontroller function block ([FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md))
 is used to control access to the RS485 bus between multiple RS485 device function blocks.
 
-### DALI
+## DALI
 Control DALI drivers using the WAGO DALI modules (753-647).
 
 - [FB_OUTPUT_DIMMER_DALI_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_DALI_MQTT.md)
