@@ -36,6 +36,7 @@ METHOD(S)
   - `OutputDimmer`: datatype _BOOL_, specify whether the DIM values (0-255) should be outputted as MQTT events.
   - `Qos_Dimm`: datatype _SD_MQTT.QoS_, MQTT QoS of the DIM MQTT events.
   - `Delta_Dimm`: datatype _INT_, resolution of the MQTT OUT events. For example: specifying value _5_ will configure the FB to only emit an MQTT event when the OUT output differs _5_ or more than its previous value. Note that the last value of output OUT (when input `P_LONG` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last OUT value published through MQTT is always synchronized with the OUT output of the FB.
+  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
 
 - ConfigureFunctionBlock: configures the dimmer with your prefered configurations, an overview of the parameters and their default values.
   - `T_Debounce`: debounce time for input PB, defaults to 10ms.
@@ -72,7 +73,7 @@ The following table shows the operating status of the dimmer:
 
 This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events. To fully understand it's logic it's advised to give the documentation present in [the OSCAT building library docs](../_img/oscat_building100_en.pdf) a good read (page 52).
 
-### **MQTT Event Behaviour**
+### **MQTT publish behavior**
 
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
@@ -83,7 +84,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 (\*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output.
 
-### **MQTT Subscription Behaviour**
+### **MQTT subscribe behavior**
 
 Requires method call `InitMQTT` to enable MQTT capabilities.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.

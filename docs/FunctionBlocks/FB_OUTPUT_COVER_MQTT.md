@@ -34,6 +34,7 @@ METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
   - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. The suffix is automatically set to FB name.
   - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
+  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
 
 - ConfigureFunctionBlock: configures the behaviour of the cover using the parameters below:
   - `T_LOCKOUT`: delay between change of direction.
@@ -41,7 +42,7 @@ METHOD(S)
 
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
-### **MQTT Event Behaviour**
+### **MQTT publish behavior**
 
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
@@ -51,7 +52,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 MQTT publish topic is a concatination of the publish prefix and the function block name.
 
-### **MQTT Subscription Behaviour**
+### **MQTT subscribe behavior**
 
 Requires method call `InitMQTT` to enable MQTT capabilities.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.

@@ -12,8 +12,8 @@ If you have experience with programming in CodeSys3 you can skip this part. Othe
 
 1. Download CoDeSys3 from the [CoDeSys store](https://store.codesys.com/). Note that you need to create an account to be able to download the installer.
 2. Install your device target package. Steps explained in this [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s), steps might differ slightly depending on your device target.
-    - Common device target package: [WAGO-PFC100](https://store.codesys.com/codesys-control-for-pfc100-sl.html)
-    - Common device target package: [WAGO-PFC200](https://store.codesys.com/codesys-control-for-pfc200-sl.html)
+    - Common device target package: [WAGO-PFC100](https://store.codesys.com/en/codesys-control-for-pfc100-sl-1.html)
+    - Common device target package: [WAGO-PFC200](https://store.codesys.com/en/codesys-control-for-pfc200-sl-1.html)
 
 Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. Using the free version the PLC is able to run the CodeSys runtime for 2 hours after which the program stops running. A license is required to remove this limitation.
 

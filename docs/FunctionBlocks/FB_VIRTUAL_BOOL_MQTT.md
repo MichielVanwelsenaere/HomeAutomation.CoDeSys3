@@ -39,7 +39,7 @@ METHOD(S)
 - SetValue: method to set the function block virtual value, only works if the function block is in output mode.
 
 
-### **MQTT Event Behaviour**
+### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if the function block is configured in output mode, outputting the value on input `IN` or set using the SetValue method through MQTT.  
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -48,7 +48,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if 
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
-### **MQTT Subscription Behaviour**
+### **MQTT subscribe behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable is the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 

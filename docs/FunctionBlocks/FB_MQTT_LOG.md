@@ -14,6 +14,7 @@ METHOD(S)
   - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
   - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
   - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
+  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
 - send: allows logging to MQTT. The output string is formatted as follows: `instance | payload`
   - `instance` String for your own choice.
   - `payload`: datatype _STRING_, the payload to be sent to MQTT. String(128)

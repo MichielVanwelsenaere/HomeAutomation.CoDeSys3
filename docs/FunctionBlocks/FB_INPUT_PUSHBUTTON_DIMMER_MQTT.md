@@ -29,6 +29,7 @@ METHOD(S)
     - `OutputDimmer`: datatype *BOOL*, specify whether the DIM values (0-255) should be outputted as MQTT events.
     - `Qos_Dimm`: datatype *SD_MQTT.QoS*, MQTT QoS of the DIM MQTT events.
     - `Delta_Dimm`: datatype *INT*, resolution of the MQTT DIM events. For example: specifying value *5* will configure the FB to only emit an MQTT event when the DIM output differs *5* or more than its previous value. Note that the last value of output DIM (when input `PB` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last DIM value published through MQTT is always synchronized with the DIM output of the FB.
+    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
 
 - ConfigureFunctionBlock: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
     - `T_Debounce`: debounce time for input PB, defaults to 10ms.
@@ -46,7 +47,7 @@ METHOD(S)
 ### **Function Block Behaviour**
 This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events for single, double, long and dimmer events. To fully understand it's logic it's advised to give the documentation present in [the OSCAT building library docs](../_img/oscat_building100_en.pdf) a good read (page 52).
 
-### **MQTT Event Behaviour**
+### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |

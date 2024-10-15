@@ -35,7 +35,7 @@ METHOD(S)
 - ConfigureFunctionBlock: configures the behaviour of output `OUT` using the parameters below:
     - `T_Hold`: duration of the pulse generated on output `OUT` to switch the bistable relais.
 
-### **MQTT Event Behaviour**
+### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
@@ -44,7 +44,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 MQTT publish topic is a concatination of the publish prefix and the function block name. 
 
-### **MQTT Subscription Behaviour**
+### **MQTT subscribe behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
