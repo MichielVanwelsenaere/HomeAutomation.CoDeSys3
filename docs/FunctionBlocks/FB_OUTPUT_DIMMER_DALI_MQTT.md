@@ -88,7 +88,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name.
 Note that the function block also accepts float values for setting the dimmer output value, the float value will get rounded to the nearest integer value.
 
-### **Code example** //TODO
+### **Code example**
 
 - DALI global variable initiation:
 ```
