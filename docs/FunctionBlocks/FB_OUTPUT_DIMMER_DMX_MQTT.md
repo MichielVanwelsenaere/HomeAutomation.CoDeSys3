@@ -1,4 +1,4 @@
-## FB_OUTPUT_DIMMER_MQTT
+## FB_OUTPUT_DIMMER_DMX_MQTT
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
@@ -52,7 +52,13 @@ METHOD(S)
   - `OUT_LinearScaleMax`: Upper bound value used for linear scaleout output OUT from datatype byte to word. Defaults to 32767.
 - PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
 
-### **Function Block Behavior**
+- initDMX: configures the dimmer with DMX configuration. For more info about Art-Net and DMX [read this](./../AdditionalFunctionality/DMX_artnet.md)
+  - `DmxChannel`: Which channel 1-256. (not 0)
+  - `DmxWidth`: Width of the channel, in channels. (often 1 or 2)
+  - `pDmxValues`: datatype _POINTER TO oscat_network.NETWORK_BUFFER_SHORT_, pointer to a global buffer. There is now only one buffer, thus one universe
+  - `dmxUniverse`: Integer value of the universe. Meta data for MQTT only.
+
+### **Function Block Behaviour**
 
 The following table shows the operating status of the dimmer:
 
@@ -160,6 +166,16 @@ FB_AO_DIMMER_001(SINGLE:=   FB_DI_PB_041.SINGLE,    (* for toggling the output Q
 ```
 
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). The dimmer module in this example has a 0/1-10V analog input that is wired to the 'Q_OUT' output of the dimmer.
+```
+FB_AO_DMX_DIMMER_001.InitDmx(
+    DmxChannel := 1,
+    DmxWidth:=1,
+    pDmxValues := ADR(DMXVariables.DMX.BUFFER)
+    dmxUniverse := 1,
+);
+```
+
+The above illustrates how to initiate dmx capabilities. If `InitDmx` is before `InitMqttDiscovery`, the config json in MQTT also contains the dmx channel, width and universe.
 
 - MQTT discovery:
 ```
