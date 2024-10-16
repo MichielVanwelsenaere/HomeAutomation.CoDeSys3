@@ -32,7 +32,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **Output changes: OUT**   | A change is detected on output `OUT`. | `TRUE/FALSE` | 2 | `TRUE` | yes
 
-MQTT publish topic is a concatination of the publish prefix and the function block name. 
+MQTT publish topic is a concatenation of the publish prefix and the function block name. 
 
 ### **MQTT subscribe behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.

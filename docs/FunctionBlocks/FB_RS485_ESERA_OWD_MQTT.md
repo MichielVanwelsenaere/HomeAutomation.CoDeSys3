@@ -30,11 +30,11 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **sensor data is received**   | temperature, humidity, etc readings received. | real value | 2 | `FALSE` | no
 
-MQTT publish topic is a concatination of the publish prefix and the function block name, the OWD numer and a unique sensor value. For example:
+MQTT publish topic is a concatenation of the publish prefix and the function block name, the OWD number and a unique sensor value. For example:
 
 `Devices/PLC/House/Out/RS485/FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME/OWD/1/TEMP`
 
-Naturally `/TEMP` will only be ommited by the OWD if the physical sensor exposes it.
+Naturally `/TEMP` will only be omitted by the OWD if the physical sensor exposes it.
 
 | output       | MQTT topc suffic | Unit         | 
 |:-------------|:------------------|:------------------|

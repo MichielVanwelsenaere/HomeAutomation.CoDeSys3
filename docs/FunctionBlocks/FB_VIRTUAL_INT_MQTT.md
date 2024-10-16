@@ -46,7 +46,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if 
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **input changes: IN**   | A change is detected on input `IN`. | `TRUE/FALSE` | configured in method call `InitMQTT` | configured in method call `InitMQTT` | configured in method call `InitMQTT`
 
-MQTT publish topic is a concatination of the publish prefix and the function block name. 
+MQTT publish topic is a concatenation of the publish prefix and the function block name. 
 
 ### **MQTT subscribe behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable is the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
