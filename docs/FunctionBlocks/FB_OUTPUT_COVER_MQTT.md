@@ -49,8 +49,12 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | Event                   | Description                           | MQTT payload | QoS                                  | Retain flag | Published on startup |
 | :---------------------- | :------------------------------------ | :----------- | :----------------------------------- | :---------- | :------------------- |
 | **Cover reaches position** | Cover reaches a open or closed position | `OPEN` or `CLOSED` | 2 | `TRUE`      | no                  |
+| Event                   | Description                           | MQTT payload | QoS                                  | Retain flag | Published on startup |
+| :---------------------- | :------------------------------------ | :----------- | :----------------------------------- | :---------- | :------------------- |
+| **Cover moves** | Cover moves | `OPENING` or `CLOSING` | 2 | `TRUE`      | no                  |
+| **Cover stops** | Cover stopped moving without reaching fully open or closed position | `STOPPED` | 2 | `TRUE`      | no                  |
 
-MQTT publish topic is a concatination of the publish prefix and the function block name.
+MQTT publish topic is a concatenation of the publish prefix and the function block name.
 
 ### **MQTT subscribe behavior**
 

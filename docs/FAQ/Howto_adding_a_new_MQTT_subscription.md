@@ -65,6 +65,6 @@ A more in depth implementation can be found in the *InitMqtt* method of every MQ
 	        Data	: SD_MQTT.CALLBACK_DATA;
         END_VAR
         ```
-    - Add logic to process the received MQTT message: in this reference project a check is executed if the subscription that triggered the callback method matches the subscription configured in the *MqttInit* method. In that method the subscription topic is automatically concatinated with the function block name. For more in depth details study the *PublishReceived* and *MqttInit* methods of every MQTT function block in the reference project.
+    - Add logic to process the received MQTT message: in this reference project a check is executed if the subscription that triggered the callback method matches the subscription configured in the *MqttInit* method. In that method the subscription topic is automatically concatenated with the function block name. For more in depth details study the *PublishReceived* and *MqttInit* methods of every MQTT function block in the reference project.
 
 

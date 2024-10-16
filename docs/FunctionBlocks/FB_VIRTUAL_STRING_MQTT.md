@@ -52,7 +52,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if 
 | :-------------------- | :---------------------------------- | :----------- | :----------------------------------- | :----------------------------------- | :----------------------------------- |
 | **input changes: IN** | A change is detected on input `IN`. | `TRUE/FALSE` | configured in method call `InitMQTT` | configured in method call `InitMQTT` | configured in method call `InitMQTT` |
 
-MQTT publish topic is a concatination of the publish prefix and the function block name.
+MQTT publish topic is a concatenation of the publish prefix and the function block name.
 
 ### **MQTT subscribe behavior**
 

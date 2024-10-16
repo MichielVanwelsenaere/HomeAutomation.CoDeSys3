@@ -41,7 +41,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **output is updated**   | the output is updated. | real value | 2 | `FALSE` | no
 
-MQTT publish topic is a concatination of the publish prefix and the function block name and a unique value: 
+MQTT publish topic is a concatenation of the publish prefix and the function block name and a unique value: 
 | output       | MQTT topc suffic | Unit         | 
 |:-------------|:------------------|:------------------|
 | ACTIVEPOWER |  `/ACTP` | Watts
