@@ -110,7 +110,14 @@ FB_DO_SW_001.InitMqttDiscoveryAsLock(
 );
 ```
 
-By default a 'NO' (Normally Open) contact is asumed for MQTT discovery yet this can be inverted to a 'NC' (Normally Closed) contact by leveraging the 'Invert' parameter:
+(* valve entity *)
+FB_DO_SW_001.InitMqttDiscoveryAsValve(
+	Name := 'valve 001',			        (* The name show in Home Assistant frond-end*)
+	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+);
+```
+
+By default a 'NO' (Normally Open) contact is assumed for MQTT discovery yet this can be inverted to a 'NC' (Normally Closed) contact by leveraging the 'Invert' parameter:
 
 ```
 FB_DO_SW_001.InitMqttDiscoveryAsLock(
