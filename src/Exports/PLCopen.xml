@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-16T12:09:15.1939295" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-16T12:08:36.8319019">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-16T19:16:24.6920274" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-16T19:14:29.3641422">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -7239,7 +7239,7 @@ DaliSendFadeRate.bFadeRate := FadeRate;</xhtml>
           </data>
         </addData>
       </pou>
-      <pou name="FB_OUTPUT_DIMMER_MQTT" pouType="functionBlock">
+      <pou name="FB_OUTPUT_DIMMER_DMX_MQTT" pouType="functionBlock">
         <interface>
           <inputVars>
             <variable name="SINGLE">
@@ -8131,6 +8131,685 @@ ELSIF CommonTypesAndFunctions.StrEqualsAtStart(str1:= ADR(MQTTSubscribeTopic), s
 		THIS^.SoftDimToValue:=TRUE;
 	END_IF
 END_IF </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_OUTPUT_DIMMER_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="SINGLE">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="LONG">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="P_LONG">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="PRIO_HIGH">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="PRIO_LOW">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="SET">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="VAL">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+            <variable name="RST">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="Q">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="Q_OUT">
+              <type>
+                <WORD />
+              </type>
+            </variable>
+            <variable name="OUT">
+              <type>
+                <WORD />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="t3">
+              <type>
+                <derived name="OSCAT_BASIC.TON" />
+              </type>
+            </variable>
+            <variable name="dim">
+              <type>
+                <derived name="OSCAT_BASIC._RMP_B" />
+              </type>
+            </variable>
+            <variable name="dir">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="OUT_Internal">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+            <variable name="LIN_TRAFO">
+              <type>
+                <derived name="Util.LIN_TRAFO" />
+              </type>
+            </variable>
+            <variable name="OUT_LinearScaleMin">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="OUT_LinearScaleMax">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="32767" />
+              </initialValue>
+            </variable>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Refelection: object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="OutputDimmer">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="Qos_Dimm">
+              <type>
+                <derived name="MQTT.QoS" />
+              </type>
+            </variable>
+            <variable name="Delta_Dimm">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="T_Debounce">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#10ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+              </documentation>
+            </variable>
+            <variable name="T_Reconfig">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#10s0ms" />
+              </initialValue>
+            </variable>
+            <variable name="T_On_Max">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#0ms" />
+              </initialValue>
+            </variable>
+            <variable name="T_Dimm_Start">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#400ms" />
+              </initialValue>
+            </variable>
+            <variable name="T_Dimm">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#3s0ms" />
+              </initialValue>
+            </variable>
+            <variable name="Min_On">
+              <type>
+                <BYTE />
+              </type>
+              <initialValue>
+                <simpleValue value="50" />
+              </initialValue>
+            </variable>
+            <variable name="Max_On">
+              <type>
+                <BYTE />
+              </type>
+              <initialValue>
+                <simpleValue value="255" />
+              </initialValue>
+            </variable>
+            <variable name="Soft_Dimm">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="Rst_Out">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </localVars>
+          <localVars persistent="true">
+            <variable name="PreviousOUT">
+              <type>
+                <BYTE />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> To retain output state through powercycles</xhtml>
+              </documentation>
+            </variable>
+            <variable name="PreviousQ">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> To retain output state through powercycles</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+                <Implements>MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
+	OUT := PreviousOUT;
+	Q := PreviousQ;
+END_IF
+
+IF RST THEN
+	IF rst_out THEN OUT_Internal := 0; END_IF;
+	Q := FALSE;
+	dir := OUT_Internal &gt; 127;
+ELSIF PRIO_HIGH THEN
+	Q := TRUE;
+	OUT_Internal := 255;
+ELSIF PRIO_LOW THEN
+	Q := FALSE;
+ELSIF MqttHighRequest THEN
+	Q:= TRUE;
+	MqttHighRequest := FALSE;
+	MqttLowRequest := FALSE;
+ELSIF MqttLowRequest THEN
+	Q:= FALSE;
+	MqttHighRequest := FALSE;
+	MqttLowRequest := FALSE;
+ELSIF set THEN
+	OUT_Internal := val;
+	Q := TRUE;
+	(* set direction to up when value &lt; 127 otherwise set dir down dir is reversed because next action will reverse again *)
+	dir := OUT_Internal &gt; 127;
+ELSIF SINGLE THEN
+	(* a single click reverses output Q *)
+	Q := NOT Q;
+	(* when dimmer is turned on we need to limit out to min and max limits *)
+	IF Q THEN OUT_Internal := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);	END_IF;
+	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)
+	dir := OUT_Internal &gt; 127;
+ELSIF LONG THEN
+	IF NOT Q THEN
+		IF SOFT_DIMM THEN
+			OUT_Internal := 1;
+			dir := TRUE;
+		ELSE
+			OUT_Internal := LIMIT(MAX(MIN_ON,1), OUT_Internal, MAX_ON);
+			DIR := OUT_Internal &lt; 127;
+		END_IF;
+		Q := TRUE;
+	ELSE
+		(* reverse direction with every long click *)
+		dir := NOT dir;
+	END_IF;
+END_IF;
+
+
+(* while dimming is active ramp the output out up or down *)
+dim(DIR := dir, e := P_LONG AND Q, TR := T_DIMM, rmp := OUT_Internal);
+
+(* reverse direction when limits are reached *)
+IF OUT_Internal = 0 THEN
+	dir := TRUE;
+ELSIF OUT_Internal = 255 THEN
+	dir := FALSE;
+END_IF;
+
+(* limit the maximum runtime *)
+IF t_ON_MAX &gt; t#0s THEN
+	t3(in := q, pt := T_ON_MAX);
+	Q := Q XOR t3.Q;
+END_IF;
+
+(* Scale the internal OUT to the actual OUT *)
+LIN_TRAFO(
+		IN:= OUT_Internal,
+		IN_MIN:= 0,
+		IN_MAX:= 255,
+		OUT_MIN:=OUT_LinearScaleMin,
+		OUT_MAX:=OUT_LinearScaleMax
+	);
+OUT:= REAL_TO_WORD(LIN_TRAFO.OUT);
+IF Q THEN
+	Q_OUT:= OUT;
+ELSE
+	Q_OUT:= 0;
+END_IF
+
+IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
+	PreviousOUT:=OUT_Internal;
+	pMqttPublishQueue^.AddMessage(		
+		Payload := BYTE_TO_STRING(OUT_Internal),
+		Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/OUT'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF
+
+IF (Q &lt;&gt; PreviousQ OR Startup) AND InitMqttDone THEN
+	PreviousQ:=Q;
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(Q),
+		Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/Q'),
+		Qos := Qos_Dimm,
+		MqttRetain := TRUE
+	);
+END_IF
+
+Startup:=FALSE;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
+	END_IF
+	
+	Device^.CreateLightDimmerEntity(
+		Name := name,
+		Id := Id,
+		Meta := meta,
+		CommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/Q'),
+		PayloadOn := 'TRUE',
+		PayloadOff := 'FALSE',
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),
+		BrightnessCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/OUT'),
+		BrightnessStateTopic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),
+		BrightnessScale := 255);
+
+	initMqttDiscoveryDone := TRUE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="OutputDimmer">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Dimmer specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Qos_Dimm">
+                    <type>
+                      <derived name="MQTT.QoS" />
+                    </type>
+                  </variable>
+                  <variable name="Delta_Dimm">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+// Dimmer specific
+THIS^.OutputDimmer:=OutputDimmer;
+THIS^.Qos_Dimm:=Qos_Dimm;
+THIS^.Delta_Dimm:=Delta_Dimm;
+
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
+
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock">
+              <interface>
+                <inputVars>
+                  <variable name="T_Debounce">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#10ms" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="T_Reconfig">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#10s0ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_On_Max">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#0ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_Dimm_Start">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#400ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="T_Dimm">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#3s0ms" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Min_On">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="50" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Max_On">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="255" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Soft_Dimm">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TRUE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Rst_Out">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="OUT_LinearScaleMin">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="0" />
+                    </initialValue>
+                  </variable>
+                  <variable name="OUT_LinearScaleMax">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="32767" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.T_Debounce:=T_Debounce;
+THIS^.T_Reconfig:=T_Reconfig;
+THIS^.T_On_Max:=T_On_Max;
+THIS^.T_Dimm_Start:=T_Dimm_Start;
+THIS^.T_Dimm:=T_Dimm;
+THIS^.Min_On:=Min_On;
+THIS^.Max_On:=Max_On;
+THIS^.Soft_Dimm:=Soft_Dimm;
+THIS^.Rst_Out:=Rst_Out;
+THIS^.OUT_LinearScaleMin:=OUT_LinearScaleMin;
+THIS^.OUT_LinearScaleMax:=OUT_LinearScaleMax;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CONCAT(MQTTSubscribeTopic,'/Q') =  Data.TopicOut^ THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
+		MqttHighRequest := TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
+		MqttLowRequest := TRUE;
+	END_IF;
+	
+ELSIF CONCAT(MQTTSubscribeTopic,'/OUT') =  Data.TopicOut^ THEN
+	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
+		THIS^.OUT_Internal:=STRING_TO_BYTE(Data.PayloadString^);
+	END_IF
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13796,14 +14475,6 @@ FB_AO_DIMMER_001.ConfigureFunctionBlock(
 	Rst_Out:=FALSE,
 	OUT_LinearScaleMin:=11000,
 	OUT_LinearScaleMax:=32767
-);
-
-(* INIT DMX / ART-NET OUTPUT, OPTIONAL*)
-FB_AO_DIMMER_001.InitDmx(
-	DmxChannel := 1,							(* The channel *)
-	DmxWidth:=1, 								(* Width of DMX channel, 1 or 2, aka 8 or 16 bit *)
-	pDmxValues := ADR(DMXVariables.DMX.BUFFER), (* pointer to network buffer *)
-	DmxUniverse:=1								(* Universe, but the buffer desides, this is only meta data that ends up in MQTT*)
 );
 
 (* INIT HOME ASSISTANT DISCOVERTY*)

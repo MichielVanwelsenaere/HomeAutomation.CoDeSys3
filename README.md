@@ -73,6 +73,12 @@ Control DALI drivers using the WAGO DALI modules (753-647).
 
 - [FB_OUTPUT_DIMMER_DALI_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_DALI_MQTT.md)
 
+## DMX
+Control DMX drivers.
+
+- [FB_OUTPUT_DIMMER_DMX_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_DMX_MQTT.md)
+
+
 # Additional functionality
 
 - [MQTT related settings](./docs/AdditionalFunctionality/MQTT_General.md)
