@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-16T10:26:46.7868036" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-16T10:25:57.236364">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-16T12:09:15.1939295" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-16T12:08:36.8319019">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -276,12 +276,36 @@
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> state open</xhtml>
               </documentation>
             </variable>
+            <variable name="stat_opening">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state opening</xhtml>
+              </documentation>
+            </variable>
             <variable name="stat_clsd">
               <type>
                 <derived name="JSONVAR" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> state closed	</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_closing">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state closing</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_stopped">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state stopped</xhtml>
               </documentation>
             </variable>
             <variable name="opt">
@@ -2370,6 +2394,9 @@ END_IF
                     <type>
                       <string />
                     </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
                   </variable>
                   <variable name="CommandTopic">
                     <type>
@@ -2404,7 +2431,22 @@ END_IF
                       <string />
                     </type>
                   </variable>
+                  <variable name="StateOpening">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
                   <variable name="StateClosed">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateClosing">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateStopped">
                     <type>
                       <string />
                     </type>
@@ -2457,7 +2499,10 @@ MqttDiscMsgCover.pl_cls.CharString := PayloadClose;
 MqttDiscMsgCover.pl_stop.CharString := PayloadStop;
 MqttDiscMsgCover.stat_t.CharString := StateTopic;
 MqttDiscMsgCover.stat_open.CharString := StateOpen;
+MqttDiscMsgCover.stat_opening.CharString := StateOpening;
 MqttDiscMsgCover.stat_clsd.CharString := StateClosed;
+MqttDiscMsgCover.stat_closing.CharString := StateClosing;
+MqttDiscMsgCover.stat_stopped.CharString := StateStopped;
 MqttDiscMsgCover.opt.Boolean := FALSE;
 MqttDiscMsgCover.dev_cla.CharString := Deviceclass;
 
@@ -6359,6 +6404,26 @@ END_IF		</xhtml>
                 <BOOL />
               </type>
             </variable>
+            <variable name="MU_RTrigger">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="MD_RTrigger">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="MU_FTrigger">
+              <type>
+                <derived name="Standard.F_TRIG" />
+              </type>
+            </variable>
+            <variable name="MD_FTrigger">
+              <type>
+                <derived name="Standard.F_TRIG" />
+              </type>
+            </variable>
           </localVars>
           <localVars persistent="true">
             <variable name="internalDir">
@@ -6389,8 +6454,40 @@ END_IF		</xhtml>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Run the timer to not power the motors for to long *)
 Cover_State_Timer(PT:=T_UD);
 Cover_State_Timer.IN:=FALSE;
+MU_RTrigger(CLK:=MU);
+MD_RTrigger(CLK:=MD);
+MU_FTrigger(CLK:=MU);
+MD_FTrigger(CLK:=MD);
 
-IF NOT(Cover_State_Timer.Q) AND internalUp THEN
+IF MU_RTrigger.Q AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'OPENING',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF
+
+IF MD_RTrigger.Q AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'CLOSING',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+
+IF (MD_FTrigger.Q OR MU_FTrigger.Q) AND Cover_State_Timer.Q AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'STOPPED',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+
+
+IF (NOT(Cover_State_Timer.Q) AND internalUp) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := 'OPEN',
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -6399,7 +6496,7 @@ IF NOT(Cover_State_Timer.Q) AND internalUp THEN
 	);
 END_IF
 
-IF NOT(Cover_State_Timer.Q) AND internalDown THEN
+IF (NOT(Cover_State_Timer.Q) AND internalDown) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := 'CLOSED',
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -6535,7 +6632,10 @@ MD := lock.Q2;</xhtml>
 		PayloadStop := 'STOP',
 		StateTopic := THIS^.MQTTPublishTopic,
 		StateOpen := 'OPEN',
+		StateOpening := 'OPENING',
 		StateClosed := 'CLOSED',
+		StateClosing := 'CLOSING',
+		StateStopped := 'STOPPED',
 		DeviceClass := DeviceClass
 	);
 

@@ -3055,7 +3055,7 @@
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638271220549486723</Single>
+        <Single Name="Timestamp" Type="long">638646772895366879</Single>
       </Single>
       <Single Name="Object" Type="{6f9dac99-8de1-4efc-8465-68ac443b7d08}" Method="IArchivable">
         <Single Name="SpecialFunc" Type="{0db3d7bb-cde0-4416-9a7b-ce49a0124323}">None</Single>
@@ -3063,372 +3063,532 @@
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">3</Single>
+                <Single Name="Id" Type="long">111</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">(* Run the timer to not power the motors for to long *)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">4</Single>
+                <Single Name="Id" Type="long">112</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">Cover_State_Timer(PT:=T_UD);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">5</Single>
+                <Single Name="Id" Type="long">113</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">Cover_State_Timer.IN:=FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">6</Single>
+                <Single Name="Id" Type="long">114</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">MU_RTrigger(CLK:=MU);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">115</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">MD_RTrigger(CLK:=MD);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">116</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">MU_FTrigger(CLK:=MU);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">117</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">MD_FTrigger(CLK:=MD);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">118</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">7</Single>
+                <Single Name="Id" Type="long">119</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF NOT(Cover_State_Timer.Q) AND internalUp THEN</Single>
+                <Single Name="Text" Type="string">IF MU_RTrigger.Q AND InitMqttDone THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">8</Single>
+                <Single Name="Id" Type="long">120</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">9</Single>
+                <Single Name="Id" Type="long">121</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Payload := 'OPENING',</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">122</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">123</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Qos := MQTT.QoS.ExactlyOnce,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">124</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">125</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">126</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">127</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">128</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF MD_RTrigger.Q AND InitMqttDone THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">129</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">130</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Payload := 'CLOSING',</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">131</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">132</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Qos := MQTT.QoS.ExactlyOnce,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">133</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">134</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">135</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF	</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">136</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">137</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF (MD_FTrigger.Q OR MU_FTrigger.Q) AND Cover_State_Timer.Q AND InitMqttDone THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">138</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">139</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Payload := 'STOPPED',</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">140</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">141</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		Qos := MQTT.QoS.ExactlyOnce,</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">142</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">143</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">144</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF	</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">145</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">146</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">147</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF (NOT(Cover_State_Timer.Q) AND internalUp) AND InitMqttDone THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">148</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">149</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Payload := 'OPEN',</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">10</Single>
+                <Single Name="Id" Type="long">150</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">11</Single>
+                <Single Name="Id" Type="long">151</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Qos := MQTT.QoS.ExactlyOnce,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">12</Single>
+                <Single Name="Id" Type="long">152</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">13</Single>
+                <Single Name="Id" Type="long">153</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">14</Single>
+                <Single Name="Id" Type="long">154</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">15</Single>
+                <Single Name="Id" Type="long">155</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">16</Single>
+                <Single Name="Id" Type="long">156</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">IF NOT(Cover_State_Timer.Q) AND internalDown THEN</Single>
+                <Single Name="Text" Type="string">IF (NOT(Cover_State_Timer.Q) AND internalDown) AND InitMqttDone THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">17</Single>
+                <Single Name="Id" Type="long">157</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">18</Single>
+                <Single Name="Id" Type="long">158</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Payload := 'CLOSED',</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">19</Single>
+                <Single Name="Id" Type="long">159</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">20</Single>
+                <Single Name="Id" Type="long">160</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Qos := MQTT.QoS.ExactlyOnce,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">21</Single>
+                <Single Name="Id" Type="long">161</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		MqttRetain := TRUE</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">22</Single>
+                <Single Name="Id" Type="long">162</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">23</Single>
+                <Single Name="Id" Type="long">163</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">24</Single>
+                <Single Name="Id" Type="long">164</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">25</Single>
+                <Single Name="Id" Type="long">165</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">26</Single>
+                <Single Name="Id" Type="long">166</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">(* Check what to do *)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">27</Single>
+                <Single Name="Id" Type="long">167</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">IF NOT(Cover_State_Timer.Q) AND internalUp THEN // don't run the motors for to long, assume we've reached end and toggle dir</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">28</Single>
+                <Single Name="Id" Type="long">168</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">29</Single>
+                <Single Name="Id" Type="long">169</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">30</Single>
+                <Single Name="Id" Type="long">170</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDir := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">31</Single>
+                <Single Name="Id" Type="long">171</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF NOT(Cover_State_Timer.Q) AND internalDown THEN // don't run the motors for to long, assume we've reached end and toggle dir</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">32</Single>
+                <Single Name="Id" Type="long">172</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">33</Single>
+                <Single Name="Id" Type="long">173</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">34</Single>
+                <Single Name="Id" Type="long">174</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDir := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">35</Single>
+                <Single Name="Id" Type="long">175</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF PRIO_LOCK THEN	</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">36</Single>
+                <Single Name="Id" Type="long">176</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">37</Single>
+                <Single Name="Id" Type="long">177</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">38</Single>
+                <Single Name="Id" Type="long">178</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF PRIO_UP THEN	</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">39</Single>
+                <Single Name="Id" Type="long">179</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">40</Single>
+                <Single Name="Id" Type="long">180</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">41</Single>
+                <Single Name="Id" Type="long">181</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Cover_State_Timer.IN:=TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">42</Single>
+                <Single Name="Id" Type="long">182</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF PRIO_DN THEN	</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">43</Single>
+                <Single Name="Id" Type="long">183</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">44</Single>
+                <Single Name="Id" Type="long">184</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">45</Single>
+                <Single Name="Id" Type="long">185</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Cover_State_Timer.IN:=TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">46</Single>
+                <Single Name="Id" Type="long">186</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF TOGGLE AND (internalUp OR internalDown) THEN	// stop and toggle dir</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">47</Single>
+                <Single Name="Id" Type="long">187</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">48</Single>
+                <Single Name="Id" Type="long">188</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">49</Single>
+                <Single Name="Id" Type="long">189</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDir := NOT(internalDir);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">50</Single>
+                <Single Name="Id" Type="long">190</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF TOGGLE AND NOT(internalDir) THEN //move down</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">51</Single>
+                <Single Name="Id" Type="long">191</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">52</Single>
+                <Single Name="Id" Type="long">192</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">53</Single>
+                <Single Name="Id" Type="long">193</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Cover_State_Timer.IN:=TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">54</Single>
+                <Single Name="Id" Type="long">194</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF TOGGLE AND internalDir THEN //move upwards</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">55</Single>
+                <Single Name="Id" Type="long">195</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">56</Single>
+                <Single Name="Id" Type="long">196</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := FALSE;	</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">57</Single>
+                <Single Name="Id" Type="long">197</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Cover_State_Timer.IN:=TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">58</Single>
+                <Single Name="Id" Type="long">198</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF MqttRequestStop THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">59</Single>
+                <Single Name="Id" Type="long">199</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">60</Single>
+                <Single Name="Id" Type="long">200</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">61</Single>
+                <Single Name="Id" Type="long">201</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttRequestStop := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">62</Single>
+                <Single Name="Id" Type="long">202</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF MqttRequestOpen THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">63</Single>
+                <Single Name="Id" Type="long">203</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">64</Single>
+                <Single Name="Id" Type="long">204</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">65</Single>
+                <Single Name="Id" Type="long">205</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttRequestOpen := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">66</Single>
+                <Single Name="Id" Type="long">206</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Cover_State_Timer.IN:=TRUE;;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">67</Single>
+                <Single Name="Id" Type="long">207</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF MqttRequestClose THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">68</Single>
+                <Single Name="Id" Type="long">208</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">69</Single>
+                <Single Name="Id" Type="long">209</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">70</Single>
+                <Single Name="Id" Type="long">210</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttRequestClose := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">71</Single>
+                <Single Name="Id" Type="long">211</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Cover_State_Timer.IN:=TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">72</Single>
+                <Single Name="Id" Type="long">212</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">73</Single>
+                <Single Name="Id" Type="long">213</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">74</Single>
+                <Single Name="Id" Type="long">214</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">(* make sure only one motor is active at a given time *)</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">75</Single>
+                <Single Name="Id" Type="long">215</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">lock(i1 := internalUp, I2 := InternalDown, TL := T_lockout);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">76</Single>
+                <Single Name="Id" Type="long">216</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MU := lock.Q1;</Single>
               </Single>
@@ -3444,167 +3604,187 @@
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">77</Single>
+                <Single Name="Id" Type="long">217</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">{attribute 'reflection' := ''}</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">78</Single>
+                <Single Name="Id" Type="long">218</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">FUNCTION_BLOCK FB_OUTPUT_COVER_MQTT EXTENDS FB_MQTT_BASE IMPLEMENTS MQTT.MQTT_SUBSCRIBE_CALLBACK</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">79</Single>
+                <Single Name="Id" Type="long">219</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">VAR_INPUT</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">80</Single>
+                <Single Name="Id" Type="long">220</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	TOGGLE: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">81</Single>
+                <Single Name="Id" Type="long">221</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	PRIO_LOCK: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">82</Single>
+                <Single Name="Id" Type="long">222</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	PRIO_UP: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">83</Single>
+                <Single Name="Id" Type="long">223</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	PRIO_DN: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">84</Single>
+                <Single Name="Id" Type="long">224</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	{attribute 'input_constant' := ''}</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">85</Single>
+                <Single Name="Id" Type="long">225</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	T_LOCKOUT: TIME := TIME#1s0ms;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">86</Single>
+                <Single Name="Id" Type="long">226</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	{attribute 'input_constant' := ''}</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">87</Single>
+                <Single Name="Id" Type="long">227</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	T_UD: TIME := TIME#10s0ms;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">88</Single>
+                <Single Name="Id" Type="long">228</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_VAR</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">89</Single>
+                <Single Name="Id" Type="long">229</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">VAR_OUTPUT</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">90</Single>
+                <Single Name="Id" Type="long">230</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MU: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">91</Single>
+                <Single Name="Id" Type="long">231</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MD: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">92</Single>
+                <Single Name="Id" Type="long">232</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_VAR</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">93</Single>
+                <Single Name="Id" Type="long">233</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">VAR</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">94</Single>
+                <Single Name="Id" Type="long">234</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// object's full instance name </Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">95</Single>
+                <Single Name="Id" Type="long">235</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	{attribute 'instance-path' := ''}</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">96</Single>
+                <Single Name="Id" Type="long">236</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	{attribute 'noinit'}</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">97</Single>
+                <Single Name="Id" Type="long">237</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	InstancePath: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">98</Single>
+                <Single Name="Id" Type="long">238</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	lock: OSCAT_BASIC.INTERLOCK;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">99</Single>
+                <Single Name="Id" Type="long">239</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Cover_State_Timer: TOF;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">100</Single>
+                <Single Name="Id" Type="long">240</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalUp: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">101</Single>
+                <Single Name="Id" Type="long">241</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDown: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">102</Single>
+                <Single Name="Id" Type="long">242</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttRequestStop: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">103</Single>
+                <Single Name="Id" Type="long">243</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttRequestOpen: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">104</Single>
+                <Single Name="Id" Type="long">244</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttRequestClose: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">106</Single>
+                <Single Name="Id" Type="long">245</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MU_RTrigger:Standard.R_TRIG;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">246</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MD_RTrigger:Standard.R_TRIG;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">247</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MU_FTrigger:Standard.F_TRIG;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">248</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	MD_FTrigger:Standard.F_TRIG;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">249</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_VAR</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">107</Single>
+                <Single Name="Id" Type="long">250</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">VAR PERSISTENT</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">108</Single>
+                <Single Name="Id" Type="long">251</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	///down = false, up = true</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">109</Single>
+                <Single Name="Id" Type="long">252</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	internalDir: BOOL;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">110</Single>
+                <Single Name="Id" Type="long">253</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_VAR</Single>
               </Single>
@@ -3616,7 +3796,7 @@
             </Array>
           </Single>
         </Single>
-        <Single Name="UniqueIdGenerator" Type="string">110</Single>
+        <Single Name="UniqueIdGenerator" Type="string">253</Single>
         <Single Name="POULevel" Type="{8e575c5b-1d37-49c6-941b-5c0ec7874787}">Standard</Single>
         <List Name="ChildObjectGuids" Type="System.Collections.ArrayList" />
         <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
@@ -15093,124 +15273,139 @@
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638115483685217844</Single>
+        <Single Name="Timestamp" Type="long">638646772445588685</Single>
       </Single>
       <Single Name="Object" Type="{f8a58466-d7f6-439f-bbb8-d4600e41d099}" Method="IArchivable">
         <Single Name="Implementation" Type="{3b83b776-fb25-43b8-99f2-3c507c9143fc}" Method="IArchivable">
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">3</Single>
+                <Single Name="Id" Type="long">37</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">4</Single>
+                <Single Name="Id" Type="long">38</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">5</Single>
+                <Single Name="Id" Type="long">39</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">6</Single>
+                <Single Name="Id" Type="long">40</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">7</Single>
+                <Single Name="Id" Type="long">41</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	ELSE</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">8</Single>
+                <Single Name="Id" Type="long">42</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		id := overruleId; // 'MY_PH_GND_HALL_01'</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">9</Single>
+                <Single Name="Id" Type="long">43</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">10</Single>
+                <Single Name="Id" Type="long">44</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">11</Single>
+                <Single Name="Id" Type="long">45</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Device^.CreateCoverEntity(</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">12</Single>
+                <Single Name="Id" Type="long">46</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Name := name,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">13</Single>
+                <Single Name="Id" Type="long">47</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Id := id,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">14</Single>
+                <Single Name="Id" Type="long">48</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Meta := meta,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">15</Single>
+                <Single Name="Id" Type="long">49</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		CommandTopic := THIS^.MQTTSubscribeTopic,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">16</Single>
+                <Single Name="Id" Type="long">50</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		PayloadOpen := 'OPEN',</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">17</Single>
+                <Single Name="Id" Type="long">51</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		PayloadClose := 'CLOSE',</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">18</Single>
+                <Single Name="Id" Type="long">52</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		PayloadStop := 'STOP',</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">19</Single>
+                <Single Name="Id" Type="long">53</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		StateTopic := THIS^.MQTTPublishTopic,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">20</Single>
+                <Single Name="Id" Type="long">54</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		StateOpen := 'OPEN',</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">21</Single>
+                <Single Name="Id" Type="long">55</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		StateOpening := 'OPENING',</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">56</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		StateClosed := 'CLOSED',</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">22</Single>
+                <Single Name="Id" Type="long">57</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		StateClosing := 'CLOSING',</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">58</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">		StateStopped := 'STOPPED',</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">59</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		DeviceClass := DeviceClass</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">23</Single>
+                <Single Name="Id" Type="long">60</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">24</Single>
+                <Single Name="Id" Type="long">61</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">25</Single>
+                <Single Name="Id" Type="long">62</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	initMqttDiscoveryDone := TRUE;</Single>
               </Single>
@@ -26472,119 +26667,149 @@
         <Array Name="EmbeddedTypeGuids" Type="System.Guid">
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638119892249377283</Single>
+        <Single Name="Timestamp" Type="long">638646771605761444</Single>
       </Single>
       <Single Name="Object" Type="{2db5746d-d284-4425-9f7f-2663a34b0ebc}" Method="IArchivable">
         <Single Name="Interface" Type="{a9ed5b7e-75c5-4651-af16-d2c27e98cb94}" Method="IArchivable">
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">2</Single>
+                <Single Name="Id" Type="long">24</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">TYPE MQTT_DISCOVERY_COVER EXTENDS MQTT_DISCOVERY_BASE :</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">3</Single>
+                <Single Name="Id" Type="long">25</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">STRUCT</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">4</Single>
+                <Single Name="Id" Type="long">26</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	///command_topic</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">5</Single>
+                <Single Name="Id" Type="long">27</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	cmd_t: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">6</Single>
+                <Single Name="Id" Type="long">28</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// payload open</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">7</Single>
+                <Single Name="Id" Type="long">29</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	pl_open: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">8</Single>
+                <Single Name="Id" Type="long">30</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// payload_close</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">9</Single>
+                <Single Name="Id" Type="long">31</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	pl_cls: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">10</Single>
+                <Single Name="Id" Type="long">32</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// payload_stop</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">11</Single>
+                <Single Name="Id" Type="long">33</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	pl_stop: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">12</Single>
+                <Single Name="Id" Type="long">34</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// state topic</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">13</Single>
+                <Single Name="Id" Type="long">35</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	stat_t: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">14</Single>
+                <Single Name="Id" Type="long">36</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// state open</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">15</Single>
+                <Single Name="Id" Type="long">37</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	stat_open: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">16</Single>
+                <Single Name="Id" Type="long">38</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	/// state opening</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">39</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	stat_opening: JSONVAR;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">40</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// state closed	</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">17</Single>
+                <Single Name="Id" Type="long">41</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	stat_clsd: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">18</Single>
+                <Single Name="Id" Type="long">42</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	/// state closing</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">43</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	stat_closing: JSONVAR;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">44</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	/// state stopped</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">45</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	stat_stopped: JSONVAR;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">46</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	///  optimistic</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">19</Single>
+                <Single Name="Id" Type="long">47</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	opt: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">20</Single>
+                <Single Name="Id" Type="long">48</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// device class</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">21</Single>
+                <Single Name="Id" Type="long">49</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	dev_cla: JSONVAR;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">22</Single>
+                <Single Name="Id" Type="long">50</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_STRUCT</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">23</Single>
+                <Single Name="Id" Type="long">51</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_TYPE</Single>
               </Single>
@@ -26596,7 +26821,7 @@
             </Array>
           </Single>
         </Single>
-        <Single Name="UniqueIdGenerator" Type="string">23</Single>
+        <Single Name="UniqueIdGenerator" Type="string">51</Single>
       </Single>
       <Single Name="ParentSVNodeGuid" Type="System.Guid">8a03c49a-4a2c-4182-a32d-4447ec4dd7c0</Single>
       <Array Name="Path" Type="string">
@@ -29030,314 +29255,329 @@
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638271218545266890</Single>
+        <Single Name="Timestamp" Type="long">638646772095156558</Single>
       </Single>
       <Single Name="Object" Type="{f8a58466-d7f6-439f-bbb8-d4600e41d099}" Method="IArchivable">
         <Single Name="Implementation" Type="{3b83b776-fb25-43b8-99f2-3c507c9143fc}" Method="IArchivable">
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">3</Single>
+                <Single Name="Id" Type="long">111</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">4</Single>
+                <Single Name="Id" Type="long">112</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">5</Single>
+                <Single Name="Id" Type="long">113</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">// 	Entity related: Basis</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">6</Single>
+                <Single Name="Id" Type="long">114</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.name.CharString :=  name; // friendly name</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">7</Single>
+                <Single Name="Id" Type="long">115</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.obj_id.CharString :=  Id; </Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">8</Single>
+                <Single Name="Id" Type="long">116</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.uniq_id.CharString :=  Id; </Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">9</Single>
+                <Single Name="Id" Type="long">117</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">10</Single>
+                <Single Name="Id" Type="long">118</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">// Entity related: Specific</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">11</Single>
+                <Single Name="Id" Type="long">119</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.cmd_t.CharString := CommandTopic;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">12</Single>
+                <Single Name="Id" Type="long">120</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.pl_open.CharString := PayloadOpen;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">13</Single>
+                <Single Name="Id" Type="long">121</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.pl_cls.CharString := PayloadClose;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">14</Single>
+                <Single Name="Id" Type="long">122</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.pl_stop.CharString := PayloadStop;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">15</Single>
+                <Single Name="Id" Type="long">123</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.stat_t.CharString := StateTopic;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">16</Single>
+                <Single Name="Id" Type="long">124</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.stat_open.CharString := StateOpen;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">17</Single>
+                <Single Name="Id" Type="long">125</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">MqttDiscMsgCover.stat_opening.CharString := StateOpening;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">126</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.stat_clsd.CharString := StateClosed;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">18</Single>
+                <Single Name="Id" Type="long">127</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">MqttDiscMsgCover.stat_closing.CharString := StateClosing;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">128</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">MqttDiscMsgCover.stat_stopped.CharString := StateStopped;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">129</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.opt.Boolean := FALSE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">19</Single>
+                <Single Name="Id" Type="long">130</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.dev_cla.CharString := Deviceclass;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">20</Single>
+                <Single Name="Id" Type="long">131</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">21</Single>
+                <Single Name="Id" Type="long">132</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">// Availabilty related</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">22</Single>
+                <Single Name="Id" Type="long">133</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.avty[1].topic.CharString := THIS^.availabilityTopic1;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">23</Single>
+                <Single Name="Id" Type="long">134</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.avty[2].topic.CharString := THIS^.availabilityTopic2;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">24</Single>
+                <Single Name="Id" Type="long">135</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.avty_mode.CharString := 'all';</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">25</Single>
+                <Single Name="Id" Type="long">136</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.pl_avail.CharString :=   THIS^.availabilityOnline;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">26</Single>
+                <Single Name="Id" Type="long">137</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.pl_not_avail.CharString :=  THIS^.availabilityOffline;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">27</Single>
+                <Single Name="Id" Type="long">138</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.qos.Integer := 2;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">28</Single>
+                <Single Name="Id" Type="long">139</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">29</Single>
+                <Single Name="Id" Type="long">140</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">// Device related</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">30</Single>
+                <Single Name="Id" Type="long">141</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.dev.cu.CharString := THIS^.cu;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">31</Single>
+                <Single Name="Id" Type="long">142</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.dev.name.CharString := THIS^.name;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">32</Single>
+                <Single Name="Id" Type="long">143</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.dev.hw.CharString := THIS^.hw;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">33</Single>
+                <Single Name="Id" Type="long">144</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.dev.ids.CharString := THIS^.ids;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">34</Single>
+                <Single Name="Id" Type="long">145</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.dev.sw.CharString := THIS^.sw;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">35</Single>
+                <Single Name="Id" Type="long">146</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.dev.mdl.CharString := THIS^.mdl;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">36</Single>
+                <Single Name="Id" Type="long">147</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">MqttDiscMsgCover.dev.mf.CharString := THIS^.mf;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">37</Single>
+                <Single Name="Id" Type="long">148</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">38</Single>
+                <Single Name="Id" Type="long">149</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">// Extra meta-data</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">39</Single>
+                <Single Name="Id" Type="long">150</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">40</Single>
+                <Single Name="Id" Type="long">151</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttDiscMsgCover.meta.CharString := meta;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">41</Single>
+                <Single Name="Id" Type="long">152</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_IF</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">42</Single>
+                <Single Name="Id" Type="long">153</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">43</Single>
+                <Single Name="Id" Type="long">154</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ComposeJSON(</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">44</Single>
+                <Single Name="Id" Type="long">155</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	JSONString:= ADR(MqttJSON), </Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">45</Single>
+                <Single Name="Id" Type="long">156</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	JSONStringSize:= SIZEOF(MqttJSON),</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">46</Single>
+                <Single Name="Id" Type="long">157</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	JSONVars:= ADR(MqttDiscMsgCover),</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">47</Single>
+                <Single Name="Id" Type="long">158</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	NumberOfVars:= SIZEOF(MqttDiscMsgCover) / SIZEOF(JSONVAR),</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">48</Single>
+                <Single Name="Id" Type="long">159</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MaxLevel := 1,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">49</Single>
+                <Single Name="Id" Type="long">160</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">50</Single>
+                <Single Name="Id" Type="long">161</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ComposeJSON.Execute := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">51</Single>
+                <Single Name="Id" Type="long">162</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ComposeJSON();</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">52</Single>
+                <Single Name="Id" Type="long">163</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string"></Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">53</Single>
+                <Single Name="Id" Type="long">164</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">IF MqttJSON = '' THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">54</Single>
+                <Single Name="Id" Type="long">165</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">55</Single>
+                <Single Name="Id" Type="long">166</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">ELSIF NOT (MqttJSON = '') THEN</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">56</Single>
+                <Single Name="Id" Type="long">167</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	pMqttPublishQueue^.AddMessage(</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">57</Single>
+                <Single Name="Id" Type="long">168</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Payload:= MqttJSON,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">58</Single>
+                <Single Name="Id" Type="long">169</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Topic := MqttTopic,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">59</Single>
+                <Single Name="Id" Type="long">170</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		Qos := MQTT.QoS.ExactlyOnce,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">60</Single>
+                <Single Name="Id" Type="long">171</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">		MqttRetain := TRUE,</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">61</Single>
+                <Single Name="Id" Type="long">172</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">62</Single>
+                <Single Name="Id" Type="long">173</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">63</Single>
+                <Single Name="Id" Type="long">174</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_IF</Single>
               </Single>
@@ -29353,112 +29593,127 @@
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">64</Single>
+                <Single Name="Id" Type="long">86</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">METHOD CreateCoverEntity</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">65</Single>
+                <Single Name="Id" Type="long">87</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">VAR_INPUT</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">66</Single>
+                <Single Name="Id" Type="long">88</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// default</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">67</Single>
+                <Single Name="Id" Type="long">89</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Name: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">68</Single>
+                <Single Name="Id" Type="long">90</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Id: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">69</Single>
+                <Single Name="Id" Type="long">91</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">	Meta: STRING;</Single>
+                <Single Name="Text" Type="string">	Meta: STRING := '';</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">70</Single>
+                <Single Name="Id" Type="long">92</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	/// entity specific</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">71</Single>
+                <Single Name="Id" Type="long">93</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	CommandTopic: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">72</Single>
+                <Single Name="Id" Type="long">94</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	PayloadOpen: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">73</Single>
+                <Single Name="Id" Type="long">95</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	PayloadClose: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">74</Single>
+                <Single Name="Id" Type="long">96</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	PayloadStop: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">75</Single>
+                <Single Name="Id" Type="long">97</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	StateTopic: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">76</Single>
+                <Single Name="Id" Type="long">98</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	StateOpen: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">77</Single>
+                <Single Name="Id" Type="long">99</Single>
                 <Null Name="Tag" />
-                <Single Name="Text" Type="string">	StateClosed: STRING;</Single>
+                <Single Name="Text" Type="string">	StateOpening: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">78</Single>
+                <Single Name="Id" Type="long">100</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	StateClosed: STRING;	</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">101</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	StateClosing: STRING;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">102</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	StateStopped: STRING;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">103</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	Deviceclass: STRING;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">79</Single>
+                <Single Name="Id" Type="long">104</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_VAR</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">80</Single>
+                <Single Name="Id" Type="long">105</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">VAR</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">81</Single>
+                <Single Name="Id" Type="long">106</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	EntityId: STRING(25) := 'cover';</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">82</Single>
+                <Single Name="Id" Type="long">107</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	ComposeJSON: STRUCT_TO_JSON;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">83</Single>
+                <Single Name="Id" Type="long">108</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttJSON: STRING(1500);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">84</Single>
+                <Single Name="Id" Type="long">109</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	MqttTopic: STRING(100);</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">85</Single>
+                <Single Name="Id" Type="long">110</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_VAR</Single>
               </Single>
