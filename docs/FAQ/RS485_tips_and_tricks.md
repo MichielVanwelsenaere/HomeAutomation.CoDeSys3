@@ -25,7 +25,7 @@ The led will light up everytime data passes over the bus providing more informat
 Consider [this article on electrical-engineering](https://electrical-engineering-portal.com/correct-cabling-modbus-rs485) a must read. 
 <!-- markdown-link-check-enable -->
 
-### **Using an external Wago module**
+### **Using a dedicated Wago RS485 module**
 Depending on requirements a dedicated RS485 module might be required instead of using the onboard serial port of the device (is available).
 
 Based on user experience in this field, pay attention to:
