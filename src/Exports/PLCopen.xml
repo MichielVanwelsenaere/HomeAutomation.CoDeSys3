@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-15T09:19:35.9591635" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-15T09:18:52.8677552">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-16T10:26:46.7868036" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-16T10:25:57.236364">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -793,6 +793,100 @@
           </data>
         </addData>
       </dataType>
+      <dataType name="MQTT_DISCOVERY_VALVE">
+        <baseType>
+          <struct>
+            <variable name="cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> command topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pl_open">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload open</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pl_cls">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload_close</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_VALVE_STATE</Extends>
+            </Inheritance>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_VALVE_STATE">
+        <baseType>
+          <struct>
+            <variable name="stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_clsd">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state clsoed</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_open">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state closing
+ stat_closing: JSONVAR;
+ state open</xhtml>
+              </documentation>
+            </variable>
+            <variable name="opt">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state opening
+ stat_opening: JSONVAR;
+  optimistic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="dev_cla">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> device class</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
+            </Inheritance>
+          </data>
+        </addData>
+      </dataType>
       <dataType name="MQTT_MESSAGE">
         <baseType>
           <struct>
@@ -1121,6 +1215,11 @@
             <variable name="MqttDiscMsgEvent">
               <type>
                 <derived name="MQTT_DISCOVERY_EVENT" />
+              </type>
+            </variable>
+            <variable name="MqttDiscMsgValve">
+              <type>
+                <derived name="MQTT_DISCOVERY_VALVE" />
               </type>
             </variable>
           </localVars>
@@ -2977,6 +3076,164 @@ ComposeJSON(
 	JSONStringSize:= SIZEOF(MqttJSON),
 	JSONVars:= ADR(MqttDiscMsgEvent),
 	NumberOfVars:= SIZEOF(MqttDiscMsgEvent) / SIZEOF(JSONVAR),
+	MaxLevel := 1,
+);
+ComposeJSON.Execute := TRUE;
+ComposeJSON();
+
+IF MqttJSON = '' THEN
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
+ELSIF NOT (MqttJSON = '') THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload:= MqttJSON,
+		Topic := MqttTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE,
+	);
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateValveEntity">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="CommandTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PayloadOpen">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="PayloadClosed">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateOpen">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateClosed">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Deviceclass">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'valve'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
+
+// 	Entity related: Basis
+MqttDiscMsgValve.name.CharString :=  name; // friendly name
+MqttDiscMsgValve.obj_id.CharString :=  Id; 
+MqttDiscMsgValve.uniq_id.CharString :=  Id; 
+
+// Entity related: Specific
+MqttDiscMsgValve.cmd_t.CharString := CommandTopic;
+MqttDiscMsgValve.pl_open.CharString := PayloadOpen;
+MqttDiscMsgValve.pl_cls.CharString := PayLoadClosed;
+MqttDiscMsgValve.stat_t.CharString := StateTopic;
+MqttDiscMsgValve.stat_open.CharString := StateOpen;
+MqttDiscMsgValve.stat_clsd.CharString := StateClosed;
+MqttDiscMsgValve.opt.Boolean := FALSE;
+MqttDiscMsgValve.dev_cla.CharString := Deviceclass;
+
+// Availabilty related
+MqttDiscMsgValve.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgValve.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgValve.avty_mode.CharString := 'all';
+MqttDiscMsgValve.pl_avail.CharString :=   THIS^.availabilityOnline;
+MqttDiscMsgValve.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgValve.qos.Integer := 2;
+
+// Device related
+MqttDiscMsgValve.dev.cu.CharString := THIS^.cu;
+MqttDiscMsgValve.dev.name.CharString := THIS^.name;
+MqttDiscMsgValve.dev.hw.CharString := THIS^.hw;
+MqttDiscMsgValve.dev.ids.CharString := THIS^.ids;
+MqttDiscMsgValve.dev.sw.CharString := THIS^.sw;
+MqttDiscMsgValve.dev.mdl.CharString := THIS^.mdl;
+MqttDiscMsgValve.dev.mf.CharString := THIS^.mf;
+	
+// Extra meta-data
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+	MqttDiscMsgValve.meta.CharString := meta;
+END_IF
+
+ComposeJSON(
+	JSONString:= ADR(MqttJSON), 
+	JSONStringSize:= SIZEOF(MqttJSON),
+	JSONVars:= ADR(MqttDiscMsgValve),
+	NumberOfVars:= SIZEOF(MqttDiscMsgValve) / SIZEOF(JSONVAR),
 	MaxLevel := 1,
 );
 ComposeJSON.Execute := TRUE;
@@ -5275,6 +5532,97 @@ SUPER^.InitBaseMqtt();
 pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
 
 </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscoveryAsValve">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'water'" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">water or gas</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Invert">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
+	END_IF
+	
+	Device^.CreateValveEntity(
+			Name := name,
+			Id := id,
+			Meta := meta,
+			CommandTopic := THIS^.MQTTSubscribeTopic,
+			PayloadOpen := BOOL_TO_STRING(NOT(Invert)),
+			PayloadClosed := BOOL_TO_STRING(Invert),
+			StateTopic := THIS^.MQTTPublishTopic,
+			StateOpen := BOOL_TO_STRING(Invert),
+			StateClosed := BOOL_TO_STRING(NOT(Invert)),
+			Deviceclass := DeviceClass);
+
+	initMqttDiscoveryDone := TRUE;
+END_IF		</xhtml>
                 </ST>
               </body>
               <addData />
