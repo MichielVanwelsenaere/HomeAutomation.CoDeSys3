@@ -108,7 +108,6 @@ FB_DO_SW_001.InitMqttDiscoveryAsLock(
 	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
 	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
 );
-```
 
 (* valve entity *)
 FB_DO_SW_001.InitMqttDiscoveryAsValve(
