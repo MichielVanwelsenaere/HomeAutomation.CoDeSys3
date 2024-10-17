@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-16T19:16:24.6920274" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-16T19:14:29.3641422">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-17T17:00:07.9148148" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-17T16:59:29.9903212">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -9328,6 +9328,14 @@ END_WHILE</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> To manage silence time and startup delay</xhtml>
               </documentation>
             </variable>
+            <variable name="failSafeTimer">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> in case the bus is occupied for an unusual long time, release it</xhtml>
+              </documentation>
+            </variable>
             <variable name="devices">
               <type>
                 <array>
@@ -9427,12 +9435,14 @@ END_WHILE</xhtml>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
 	tonDelay.PT := StartupDelay;
 	tonDelay.IN := TRUE;
+	failSafeTimer.PT := T#10S;
 	Startup := FALSE;
 END_IF
 
 QueryReady(CLK := BusTrigger^);
 BusOcupied := NOT(tonDelay.Q);
 tonDelay();
+failSafeTimer();
 
 // check if there's a device that requires bus time and if so, launch the query
 IF busOcupied = FALSE AND deviceActive = FALSE AND devicesCount &lt;&gt; 0 AND NOT QueryReady.Q THEN
@@ -9451,6 +9461,12 @@ END_IF
 IF QueryReady.Q THEN
 	devices[selectedDevice].ProcessDataArray(BusError, BusData);
 	THIS^.ReleaseBus();
+END_IF
+
+//if nothing is happening for to long, release the bus
+IF BusOcupied AND failSafeTimer.Q THEN
+	devices[selectedDevice].ProcessDataArray(ADR(failSafeTimer.Q), BusData);
+	THIS^.ReleaseBus();	
 END_IF
 
 
@@ -9542,6 +9558,7 @@ THIS^.BusError := BusError;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.tonDelay.IN := FALSE;
+THIS^.failSafeTimer.IN := TRUE;
 THIS^.deviceActive := TRUE;</xhtml>
                 </ST>
               </body>
@@ -9562,7 +9579,9 @@ THIS^.deviceActive := TRUE;</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">// Start a timer to release the bus
 THIS^.tonDelay.PT := THIS^.SilenceTime;
 THIS^.tonDelay.IN := TRUE;
-THIS^.deviceActive := FALSE;</xhtml>
+THIS^.failSafeTimer.IN := FALSE;
+THIS^.deviceActive := FALSE;
+</xhtml>
                 </ST>
               </body>
               <addData />

@@ -10980,7 +10980,7 @@
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638115485363855446</Single>
+        <Single Name="Timestamp" Type="long">638647811006771283</Single>
       </Single>
       <Single Name="Object" Type="{6f9dac99-8de1-4efc-8465-68ac443b7d08}" Method="IArchivable">
         <Single Name="SpecialFunc" Type="{0db3d7bb-cde0-4416-9a7b-ce49a0124323}">None</Single>
@@ -11001,6 +11001,11 @@
                 <Single Name="Id" Type="long">5</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	tonDelay.IN := TRUE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">67</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	failSafeTimer.PT := T#10S;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">6</Single>
@@ -11031,6 +11036,11 @@
                 <Single Name="Id" Type="long">11</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">tonDelay();</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">68</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">failSafeTimer();</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">12</Single>
@@ -11124,6 +11134,36 @@
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">30</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">END_IF</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">70</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">71</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">//if nothing is happening for to long, release the bus</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">72</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">IF BusOcupied AND failSafeTimer.Q THEN</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">73</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	devices[selectedDevice].ProcessDataArray(ADR(failSafeTimer.Q), BusData);</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">74</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	THIS^.ReleaseBus();	</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">69</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">END_IF</Single>
               </Single>
@@ -11229,9 +11269,19 @@
                 <Single Name="Text" Type="string">	/// To manage silence time and startup delay</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">49</Single>
+                <Single Name="Id" Type="long">65</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">	tonDelay: TON;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">66</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	/// in case the bus is occupied for an unusual long time, release it</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">49</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">	failSafeTimer: TON;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">50</Single>
@@ -11316,7 +11366,7 @@
             </Array>
           </Single>
         </Single>
-        <Single Name="UniqueIdGenerator" Type="string">64</Single>
+        <Single Name="UniqueIdGenerator" Type="string">74</Single>
         <Single Name="POULevel" Type="{8e575c5b-1d37-49c6-941b-5c0ec7874787}">Standard</Single>
         <List Name="ChildObjectGuids" Type="System.Collections.ArrayList" />
         <Single Name="AddAttributeSubsequent" Type="bool">False</Single>
@@ -37508,31 +37558,41 @@
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638115485363925025</Single>
+        <Single Name="Timestamp" Type="long">638647811426705746</Single>
       </Single>
       <Single Name="Object" Type="{f8a58466-d7f6-439f-bbb8-d4600e41d099}" Method="IArchivable">
         <Single Name="Implementation" Type="{3b83b776-fb25-43b8-99f2-3c507c9143fc}" Method="IArchivable">
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">3</Single>
+                <Single Name="Id" Type="long">7</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">// Start a timer to release the bus</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">4</Single>
+                <Single Name="Id" Type="long">8</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">THIS^.tonDelay.PT := THIS^.SilenceTime;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">5</Single>
+                <Single Name="Id" Type="long">9</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">THIS^.tonDelay.IN := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">2</Single>
+                <Single Name="Id" Type="long">10</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">THIS^.failSafeTimer.IN := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">11</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">THIS^.deviceActive := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">2</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string"></Single>
               </Single>
             </Array>
           </Single>
@@ -37590,16 +37650,21 @@
           <Single Type="System.Guid">a9ed5b7e-75c5-4651-af16-d2c27e98cb94</Single>
           <Single Type="System.Guid">3b83b776-fb25-43b8-99f2-3c507c9143fc</Single>
         </Array>
-        <Single Name="Timestamp" Type="long">638115485363965028</Single>
+        <Single Name="Timestamp" Type="long">638647811276812596</Single>
       </Single>
       <Single Name="Object" Type="{f8a58466-d7f6-439f-bbb8-d4600e41d099}" Method="IArchivable">
         <Single Name="Implementation" Type="{3b83b776-fb25-43b8-99f2-3c507c9143fc}" Method="IArchivable">
           <Single Name="TextDocument" Type="{f3878285-8e4f-490b-bb1b-9acbb7eb04db}" Method="IArchivable">
             <Array Name="TextLines" Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}">
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
-                <Single Name="Id" Type="long">3</Single>
+                <Single Name="Id" Type="long">5</Single>
                 <Null Name="Tag" />
                 <Single Name="Text" Type="string">THIS^.tonDelay.IN := FALSE;</Single>
+              </Single>
+              <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
+                <Single Name="Id" Type="long">6</Single>
+                <Null Name="Tag" />
+                <Single Name="Text" Type="string">THIS^.failSafeTimer.IN := TRUE;</Single>
               </Single>
               <Single Type="{a5de0b0b-1cb5-4913-ac21-9d70293ec00d}" Method="IArchivable">
                 <Single Name="Id" Type="long">2</Single>
