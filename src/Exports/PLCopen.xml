@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-10-17T17:00:07.9148148" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-10-17T16:59:29.9903212">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-12-02T11:01:23.5477957" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-12-02T10:59:29.8854767">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -6895,6 +6895,11 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                 <derived name="Util.BLINK" />
               </type>
             </variable>
+            <variable name="DaliConfigSyncSignalGenerator">
+              <type>
+                <derived name="Util.BLINK" />
+              </type>
+            </variable>
             <variable name="DimDirection">
               <type>
                 <INT />
@@ -6929,21 +6934,30 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">DaliSendFadeTime(
 	typBallast := BALLAST,
-	bFadeTime := 2); // 1 sec
+	bFadeTime := 2, // 1 sec
+	xUpdate := DaliConfigSyncSignalGenerator.OUT
+	);
 	
 DaliSendFadeRate(
 	typBallast := BALLAST,
-	bFadeRate := 2); // 1 sec
+	bFadeRate := 2, // 1 sec
+	xUpdate := DaliConfigSyncSignalGenerator.OUT
+	);
 
 DaliSendDimValue(
 	typBallast := BALLAST,
-	rDimValue := DimValue);
+	rDimValue := DimValue,
+	xUpdate := DaliSyncSignalGenerator.OUT OR MqttSendOffUpdate OR MqttSendOnUpdate);
 
 DaliSyncSignalGenerator(
 	ENABLE := TRUE,
 	TIMEHIGH := T#1S,
-	TIMELOW := T#1M,
-	OUT =&gt; DaliSendDimValue.xUpdate);
+	TIMELOW := T#1M);
+	
+DaliConfigSyncSignalGenerator(
+	ENABLE := TRUE,
+	TIMEHIGH := T#1S,
+	TIMELOW := T#24H);
 
 Toggle_RTrigger(CLK:=TOGGLE);
 
@@ -8503,157 +8517,41 @@ Startup:=FALSE;</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery">
+            <Method name="PublishReceived">
               <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
                 <inputVars>
-                  <variable name="Device">
+                  <variable name="Data">
                     <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="Name">
-                    <type>
-                      <string length="255" />
-                    </type>
-                  </variable>
-                  <variable name="overruleId">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="id">
-                    <type>
-                      <string length="255" />
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
-	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
-	
-	Device^.CreateLightDimmerEntity(
-		Name := name,
-		Id := Id,
-		Meta := meta,
-		CommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/Q'),
-		PayloadOn := 'TRUE',
-		PayloadOff := 'FALSE',
-		StateTopic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),
-		BrightnessCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/OUT'),
-		BrightnessStateTopic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),
-		BrightnessScale := 255);
-
-	initMqttDiscoveryDone := TRUE;
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="MQTTSubscribePrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttCallbackCollector">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="MQTT.CallbackCollector" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="OutputDimmer">
-                    <type>
-                      <BOOL />
+                      <derived name="MQTT.CALLBACK_DATA" />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Dimmer specific</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
                     </documentation>
-                  </variable>
-                  <variable name="Qos_Dimm">
-                    <type>
-                      <derived name="MQTT.QoS" />
-                    </type>
-                  </variable>
-                  <variable name="Delta_Dimm">
-                    <type>
-                      <INT />
-                    </type>
                   </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
-THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
-THIS^.pMqttPublishQueue:=pMqttPublishQueue;
-
-// Dimmer specific
-THIS^.OutputDimmer:=OutputDimmer;
-THIS^.Qos_Dimm:=Qos_Dimm;
-THIS^.Delta_Dimm:=Delta_Dimm;
-
-
-SUPER^.InitBaseMqtt();
-pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
-
-</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CONCAT(MQTTSubscribeTopic,'/Q') =  Data.TopicOut^ THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
+		MqttHighRequest := TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
+		MqttLowRequest := TRUE;
+	END_IF;
+	
+ELSIF CONCAT(MQTTSubscribeTopic,'/OUT') =  Data.TopicOut^ THEN
+	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
+		THIS^.OUT_Internal:=STRING_TO_BYTE(Data.PayloadString^);
+	END_IF
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -8775,40 +8673,156 @@ THIS^.OUT_LinearScaleMax:=OUT_LinearScaleMax;</xhtml>
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived">
+            <Method name="InitMqtt">
               <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
                 <inputVars>
-                  <variable name="Data">
+                  <variable name="MQTTPublishPrefix">
                     <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="OutputDimmer">
+                    <type>
+                      <BOOL />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Dimmer specific</xhtml>
                     </documentation>
+                  </variable>
+                  <variable name="Qos_Dimm">
+                    <type>
+                      <derived name="MQTT.QoS" />
+                    </type>
+                  </variable>
+                  <variable name="Delta_Dimm">
+                    <type>
+                      <INT />
+                    </type>
                   </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
-IF NOT(InitMqttDone) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
-//check if the packet is for this FB
-ELSIF CONCAT(MQTTSubscribeTopic,'/Q') =  Data.TopicOut^ THEN
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
-		MqttHighRequest := TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
-		MqttLowRequest := TRUE;
-	END_IF;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+// Dimmer specific
+THIS^.OutputDimmer:=OutputDimmer;
+THIS^.Qos_Dimm:=Qos_Dimm;
+THIS^.Delta_Dimm:=Delta_Dimm;
+
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
+
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-ELSIF CONCAT(MQTTSubscribeTopic,'/OUT') =  Data.TopicOut^ THEN
-	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
-		THIS^.OUT_Internal:=STRING_TO_BYTE(Data.PayloadString^);
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
 	END_IF
+	
+	Device^.CreateLightDimmerEntity(
+		Name := name,
+		Id := Id,
+		Meta := meta,
+		CommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/Q'),
+		PayloadOn := 'TRUE',
+		PayloadOff := 'FALSE',
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic,'/Q'),
+		BrightnessCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic,'/OUT'),
+		BrightnessStateTopic := CONCAT(THIS^.MQTTPublishTopic,'/OUT'),
+		BrightnessScale := 255);
+
+	initMqttDiscoveryDone := TRUE;
 END_IF</xhtml>
                 </ST>
               </body>
