@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2024-12-02T11:01:23.5477957" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2024-12-02T10:59:29.8854767">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2025-08-06T16:50:14.6275795" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2025-08-06T16:40:00.483293">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -640,6 +640,22 @@
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">expire after</xhtml>
               </documentation>
             </variable>
+            <variable name="dev_cla">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> device class, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="unit_of_meas">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> unit of measurement, can be null</xhtml>
+              </documentation>
+            </variable>
           </struct>
         </baseType>
         <addData>
@@ -650,9 +666,25 @@
           </data>
         </addData>
       </dataType>
-      <dataType name="MQTT_DISCOVERY_SENSOR_ENT_CAT">
+      <dataType name="MQTT_DISCOVERY_SENSOR_DIAGNOSTIC">
         <baseType>
           <struct>
+            <variable name="stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">state_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="exp_aft">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">expire after</xhtml>
+              </documentation>
+            </variable>
             <variable name="ent_cat">
               <type>
                 <derived name="JSONVAR" />
@@ -666,7 +698,7 @@
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
             <Inheritance>
-              <Extends>MQTT_DISCOVERY_SENSOR</Extends>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
             </Inheritance>
           </data>
         </addData>
@@ -1010,6 +1042,162 @@
       </dataType>
     </dataTypes>
     <pous>
+      <pou name="FB_1WIRE_MQTT_DISCOVERY_DEVICE" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="Manufacturer">
+              <type>
+                <string />
+              </type>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_BASE_MQTT_DISCOVERY_DEVICE</Extends>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="init1WireDevice">
+              <interface>
+                <inputVars>
+                  <variable name="name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="availabilityTopic1">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="availabilityTopic2">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="availabilityOnline">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="availabilityOffline">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="MqttDiscoveryPrefix">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="MqttDiagnosticTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF xInit THEN
+    xInit := FALSE;
+	
+	SUPER^.initBaseDevice(
+		Name := name,
+		Identifiers := id,
+		Manufacturer := Manufacturer,
+		availabilityTopic := availabilityTopic1,
+		availabilityTopic2 := availabilityTopic2,			
+		availabilityOnline := availabilityOnline,
+		availabilityOffline := availabilityOffline,
+		MqttDiscoveryPrefix := MqttDiscoveryPrefix,
+		MqttDiagnosticTopic := MqttDiagnosticTopic,
+		pMqttPublishQueue := pMqttPublishQueue);
+		
+END_IF
+
+
+
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the instance will be copied to the copy code afterward (online change)   </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Manufacturer">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_Init is always available implicitly and it is used primarily for initialization.
+The return value is not evaluated. For a specific influence, you can also declare the
+methods explicitly and provide additional code there with the standard initialization
+code. You can evaluate the return value.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.Manufacturer := Manufacturer;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
       <pou name="FB_BASE_MQTT_DISCOVERY_DEVICE" pouType="functionBlock">
         <interface>
           <localVars>
@@ -1221,9 +1409,9 @@
                 <derived name="MQTT_DISCOVERY_SENSOR" />
               </type>
             </variable>
-            <variable name="MqttDiscMsgSensorWCat">
+            <variable name="MqttDiscMsgSensorDiagnostic">
               <type>
-                <derived name="MQTT_DISCOVERY_SENSOR_ENT_CAT" />
+                <derived name="MQTT_DISCOVERY_SENSOR_DIAGNOSTIC" />
               </type>
             </variable>
             <variable name="MqttDiscMsgSiren">
@@ -1261,6 +1449,155 @@
           </ST>
         </body>
         <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateDiagnosticSensorEntity">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="StateValue">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ExpiryAfter">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="0" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'sensor'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
+
+// 	Entity related: Basis
+MqttDiscMsgSensorDiagnostic.name.CharString :=  name; // friendly name
+MqttDiscMsgSensorDiagnostic.obj_id.CharString :=  Id; 
+MqttDiscMsgSensorDiagnostic.uniq_id.CharString :=  Id; 
+
+// Entity related: Specific
+//MqttDiscoverySensorMessage.ic.CharString := Icon;
+MqttDiscMsgSensorDiagnostic.stat_t.CharString := StateTopic;
+MqttDiscMsgSensorDiagnostic.exp_aft.Integer := ExpiryAfter;
+MqttDiscMsgSensorDiagnostic.ent_cat.CharString := 'diagnostic';
+
+// Availabilty related
+MqttDiscMsgSensorDiagnostic.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgSensorDiagnostic.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgSensorDiagnostic.avty_mode.CharString := 'all';
+MqttDiscMsgSensorDiagnostic.pl_avail.CharString :=   THIS^.availabilityOnline;
+MqttDiscMsgSensorDiagnostic.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgSensorDiagnostic.qos.Integer := 2;
+
+// Device related
+MqttDiscMsgSensorDiagnostic.dev.cu.CharString := THIS^.cu;
+MqttDiscMsgSensorDiagnostic.dev.name.CharString := THIS^.name;
+MqttDiscMsgSensorDiagnostic.dev.hw.CharString := THIS^.hw;
+MqttDiscMsgSensorDiagnostic.dev.ids.CharString := THIS^.ids;
+MqttDiscMsgSensorDiagnostic.dev.sw.CharString := THIS^.sw;
+MqttDiscMsgSensorDiagnostic.dev.mdl.CharString := THIS^.mdl;
+MqttDiscMsgSensorDiagnostic.dev.mf.CharString := THIS^.mf;
+	
+// Extra meta-data
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+	MqttDiscMsgSensorDiagnostic.meta.CharString := meta;
+END_IF
+
+ComposeJSON(
+	JSONString:= ADR(MqttJSON), 
+	JSONStringSize:= SIZEOF(MqttJSON),
+	JSONVars:= ADR(MqttDiscMsgSensorDiagnostic),
+	NumberOfVars:= SIZEOF(MqttDiscMsgSensorDiagnostic) / SIZEOF(JSONVAR),
+	MaxLevel := 1,
+);
+ComposeJSON.Execute := TRUE;
+ComposeJSON();
+
+IF MqttJSON = '' THEN
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
+ELSIF NOT (MqttJSON = '') THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload:= MqttJSON,
+		Topic := MqttTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE,
+	);
+	IF NOT (StateValue = '') THEN		
+		pMqttPublishQueue^.AddMessage(
+			Payload:= StateValue,
+			Topic := StateTopic,
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE,
+		);
+	END_IF
+	
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="SendLogMessage">
               <interface>
@@ -1668,6 +2005,9 @@ END_IF
                     <type>
                       <string />
                     </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
                   </variable>
                   <variable name="StateTopic">
                     <type>
@@ -1683,6 +2023,22 @@ END_IF
                     </type>
                     <initialValue>
                       <simpleValue value="0" />
+                    </initialValue>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'None'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="UnitOfMeasurement">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
                     </initialValue>
                   </variable>
                 </inputVars>
@@ -1725,6 +2081,12 @@ MqttDiscMsgSensor.uniq_id.CharString :=  Id;
 //MqttDiscoverySensorMessage.ic.CharString := Icon;
 MqttDiscMsgSensor.stat_t.CharString := StateTopic;
 MqttDiscMsgSensor.exp_aft.Integer := ExpiryAfter;
+MqttDiscMsgSensor.dev_cla.CharString := DeviceClass;
+IF UnitOfMeasurement &lt;&gt; '' THEN
+	MqttDiscMsgSensor.unit_of_meas.CharString := UnitOfMeasurement;
+ELSE
+	MqttDiscMsgSensor.unit_of_meas.Null := 'null';
+END_IF
 
 // Availabilty related
 MqttDiscMsgSensor.avty[1].topic.CharString := THIS^.availabilityTopic1;
@@ -2224,6 +2586,9 @@ END_IF
                     <type>
                       <string />
                     </type>
+                    <initialValue>
+                      <simpleValue value="'https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3'" />
+                    </initialValue>
                   </variable>
                   <variable name="Identifiers">
                     <type>
@@ -2234,21 +2599,33 @@ END_IF
                     <type>
                       <string />
                     </type>
+                    <initialValue>
+                      <simpleValue value="'unknown'" />
+                    </initialValue>
                   </variable>
                   <variable name="Model">
                     <type>
                       <string />
                     </type>
+                    <initialValue>
+                      <simpleValue value="'unknown'" />
+                    </initialValue>
                   </variable>
                   <variable name="SoftwareVersion">
                     <type>
                       <string />
                     </type>
+                    <initialValue>
+                      <simpleValue value="'unknown'" />
+                    </initialValue>
                   </variable>
                   <variable name="HardwareVersion">
                     <type>
                       <string />
                     </type>
+                    <initialValue>
+                      <simpleValue value="'unknown'" />
+                    </initialValue>
                   </variable>
                   <variable name="IpAddress">
                     <type>
@@ -2339,7 +2716,7 @@ THIS^.mac := MacAddress;
 //Create a diagnostics availability binary sensor
 CreateBinarySensorEntityWithCategory(
 	Name := 'Availability',
-	Id := CONCAT(THIS^.Name,'_diag_availability'),
+	Id := CONCAT(Identifiers,'_diag_availability'),
 	Meta := '',
 	StateTopic := availabilityTopic,
 	PayloadOn := availabilityOnline,
@@ -2348,22 +2725,20 @@ CreateBinarySensorEntityWithCategory(
 	EntityCategory := 'diagnostic');
 	
 //Logger
-CreateSensorEntityWithCategory(
+CreateDiagnosticSensorEntity(
 		Name := 'Log',
-		Id := CONCAT(THIS^.Name,'_diag_log'),
+		Id := CONCAT(Identifiers,'_diag_log'),
 		Meta := '',
-		StateTopic := CONCAT(MqttDiagnosticTopic, '/Log'),
-		EntityCategory := 'diagnostic');
+		StateTopic := CONCAT(MqttDiagnosticTopic, '/Log'));
 	
 // MAC address
 IF NOT(MacAddress = '') THEN
-	CreateSensorEntityWithCategory(
+	CreateDiagnosticSensorEntity(
 		Name := 'MAC',
-		Id := CONCAT(THIS^.Name,'_diag_mac'),
+		Id := CONCAT(Identifiers,'_diag_mac'),
 		Meta := '',
 		StateTopic := CONCAT(MqttDiagnosticTopic, '/MAC'),
-		StateValue := MacAddress,
-		EntityCategory := 'diagnostic');	
+		StateValue := MacAddress);
 END_IF
 
 
@@ -2550,6 +2925,135 @@ ELSIF NOT (MqttJSON = '') THEN
 	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SendDeviceUpdate">
+              <interface>
+                <inputVars>
+                  <variable name="ConfigurationUrl">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Identifiers">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Manufacturer">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Model">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="SoftwareVersion">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="HardwareVersion">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="IpAddress">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="MacAddress">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="FoundUpdate">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF ConfigurationUrl &lt;&gt; '' AND ConfigurationUrl &lt;&gt; THIS^.cu THEN 
+	THIS^.cu:= ConfigurationUrl;
+	FoundUpdate := TRUE;
+END_IF
+IF Identifiers &lt;&gt; '' AND Identifiers &lt;&gt; THIS^.ids THEN 
+	THIS^.ids:= Identifiers;
+	FoundUpdate := TRUE;
+END_IF
+IF Manufacturer &lt;&gt; '' AND Manufacturer &lt;&gt; THIS^.mf THEN  
+	THIS^.mf:= Manufacturer;
+	FoundUpdate := TRUE;
+END_IF
+IF Model &lt;&gt; '' AND Model &lt;&gt; THIS^.mdl THEN  
+	THIS^.mdl:= Model;
+	FoundUpdate := TRUE;
+END_IF
+IF HardwareVersion &lt;&gt; '' AND HardwareVersion &lt;&gt; THIS^.hw THEN  
+	THIS^.hw:= HardwareVersion;
+	FoundUpdate := TRUE;
+END_IF
+IF SoftwareVersion &lt;&gt; '' AND SoftwareVersion &lt;&gt; THIS^.sw THEN  
+	THIS^.sw:= SoftwareVersion;
+	FoundUpdate := TRUE;
+END_IF
+IF IpAddress &lt;&gt; '' AND IpAddress &lt;&gt; THIS^.ip THEN  
+	THIS^.ip := IpAddress;
+	FoundUpdate := TRUE;
+END_IF
+IF MacAddress &lt;&gt; '' AND MacAddress &lt;&gt; THIS^.mac THEN  
+	THIS^.mac := MacAddress;
+	FoundUpdate := TRUE;
+END_IF
+
+IF FoundUpdate THEN
+	//Dummy publish just to update device description
+	CreateBinarySensorEntityWithCategory(
+		Name := 'Availability',
+		Id := CONCAT(ids,'_diag_availability'),
+		Meta := '',
+		StateTopic := availabilityTopic1,
+		PayloadOn := availabilityOnline,
+		PayloadOff := availabilityOffline,
+		DeviceClass := 'CONNECTIVITY',
+		EntityCategory := 'diagnostic');	
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -2844,160 +3348,6 @@ ELSIF NOT (MqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="CreateSensorEntityWithCategory">
-              <interface>
-                <inputVars>
-                  <variable name="Name">
-                    <type>
-                      <string />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="StateTopic">
-                    <type>
-                      <string />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="StateValue">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="EntityCategory">
-                    <type>
-                      <string />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> config or diagnostic</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="ExpiryAfter">
-                    <type>
-                      <INT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="0" />
-                    </initialValue>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="EntityId">
-                    <type>
-                      <string length="25" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="'sensor'" />
-                    </initialValue>
-                  </variable>
-                  <variable name="ComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="MqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="MqttTopic">
-                    <type>
-                      <string length="100" />
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgSensorWCat.name.CharString :=  name; // friendly name
-MqttDiscMsgSensorWCat.obj_id.CharString :=  Id; 
-MqttDiscMsgSensorWCat.uniq_id.CharString :=  Id; 
-
-// Entity related: Specific
-//MqttDiscoverySensorMessage.ic.CharString := Icon;
-MqttDiscMsgSensorWCat.stat_t.CharString := StateTopic;
-MqttDiscMsgSensorWCat.exp_aft.Integer := ExpiryAfter;
-MqttDiscMsgSensorWCat.ent_cat.CharString := EntityCategory;
-
-// Availabilty related
-MqttDiscMsgSensorWCat.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgSensorWCat.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgSensorWCat.avty_mode.CharString := 'all';
-MqttDiscMsgSensorWCat.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgSensorWCat.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgSensorWCat.qos.Integer := 2;
-
-// Device related
-MqttDiscMsgSensorWCat.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgSensorWCat.dev.name.CharString := THIS^.name;
-MqttDiscMsgSensorWCat.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgSensorWCat.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgSensorWCat.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgSensorWCat.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgSensorWCat.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgSensorWCat.meta.CharString := meta;
-END_IF
-
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgSensorWCat),
-	NumberOfVars:= SIZEOF(MqttDiscMsgSensorWCat) / SIZEOF(JSONVAR),
-	MaxLevel := 1,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	IF NOT (StateValue = '') THEN		
-		pMqttPublishQueue^.AddMessage(
-			Payload:= StateValue,
-			Topic := StateTopic,
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := TRUE,
-		);
-	END_IF
-	
 	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
@@ -9051,7 +9401,7 @@ END_IF</xhtml>
     xInit := FALSE;
 	
 	(* get the appname first *)
-	sAppName := PRO_JSON.GPL_JSON.ApplicationName;
+	sAppName := PRO_JSON.GPL_JSON.APPLICATION_NAME;
 	
 	(* IP address and MAC *)
 	sIpAddr := GetIpAddress();
@@ -9107,33 +9457,30 @@ END_IF</xhtml>
 		pMqttPublishQueue := pMqttPublishQueue);
 		
 	// Serial number diagnostic
-	CreateSensorEntityWithCategory(
+	CreateDiagnosticSensorEntity(
 		Name := 'Serial number',
 		Id := CONCAT(THIS^.Name,'_diag_sn'),
 		Meta := '',
 		StateTopic := CONCAT(MqttDiagnosticTopic, '/SN'),
-		StateValue := psSerialNumber^,
-		EntityCategory := 'diagnostic');
+		StateValue := psSerialNumber^,);
 		
 	// Serial number diagnostic
-	CreateSensorEntityWithCategory(
+	CreateDiagnosticSensorEntity(
 		Name := 'Serial number',
 		Id := CONCAT(THIS^.Name,'_diag_sn'),
 		Meta := '',
 		StateTopic := CONCAT(MqttDiagnosticTopic, '/SN'),
-		StateValue := psSerialNumber^,
-		EntityCategory := 'diagnostic');
+		StateValue := psSerialNumber^,);
 		
 	// IP address diagnostic, initial publish. done cyclic as well
 	THIS^.MqttDiagnosticTopicIP := CONCAT(MqttDiagnosticTopic, '/IP');	
 	MqttRefreshIP(ENQ:=TRUE, PTH:=T#0S, PTL:=T#1M);
-	CreateSensorEntityWithCategory(
+	CreateDiagnosticSensorEntity(
 		Name := 'IP',
 		Id := CONCAT(THIS^.Name,'_diag_ip'),
 		Meta := '',
 		StateTopic := THIS^.MqttDiagnosticTopicIP,
-		StateValue := sIpAddr,
-		EntityCategory := 'diagnostic');
+		StateValue := sIpAddr);
 		
 END_IF
 
@@ -11606,288 +11953,6 @@ END_IF</xhtml>
           </data>
         </addData>
       </pou>
-      <pou name="FB_RS485_ESERA_1WIRE_GATEWAY_MQTT" pouType="functionBlock">
-        <interface>
-          <localVars>
-            <variable name="InstanceName">
-              <type>
-                <string />
-              </type>
-              <addData>
-                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-                  <Attributes>
-                    <Attribute Name="instance-path" Value="" />
-                    <Attribute Name="noinit" />
-                  </Attributes>
-                </data>
-              </addData>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
-              </documentation>
-            </variable>
-            <variable name="InitRS485Done">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
-            </variable>
-            <variable name="DeviceAddress">
-              <type>
-                <BYTE />
-              </type>
-            </variable>
-            <variable name="OwdDevices">
-              <type>
-                <array>
-                  <dimension lower="1" upper="30" />
-                  <baseType>
-                    <derived name="FB_RS485_ESERA_OWD_MQTT" />
-                  </baseType>
-                </array>
-              </type>
-            </variable>
-            <variable name="ActiveDevice">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
-            </variable>
-            <variable name="ActiveOwd">
-              <type>
-                <UINT />
-              </type>
-              <initialValue>
-                <simpleValue value="0" />
-              </initialValue>
-            </variable>
-            <variable name="loopCounter">
-              <type>
-                <UINT />
-              </type>
-            </variable>
-            <variable name="timerData">
-              <type>
-                <derived name="TON" />
-              </type>
-            </variable>
-          </localVars>
-          <addData>
-            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
-              <Inheritance>
-                <Implements>RS485Device</Implements>
-              </Inheritance>
-            </data>
-            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-              <Attributes>
-                <Attribute Name="reflection" Value="" />
-              </Attributes>
-            </data>
-          </addData>
-        </interface>
-        <body>
-          <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">timerData();
-
-FOR loopCounter := 1 TO 30 DO
-	OwdDevices[loopCounter]();
-END_FOR</xhtml>
-          </ST>
-        </body>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="GetRtuQuery">
-              <interface>
-                <returnType>
-                  <derived name="RS485_RtuQuery" />
-                </returnType>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
-	THIS^.timerData.IN := FALSE;
-	GetRtuQuery := THIS^.OwdDevices[ActiveOwd].GetRtuQuery();	
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="ProcessDataArray">
-              <interface>
-                <inputVars>
-                  <variable name="Error">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <BOOL />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="Data">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <array>
-                            <dimension lower="0" upper="124" />
-                            <baseType>
-                              <WORD />
-                            </baseType>
-                          </array>
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OwdDevices[ActiveOwd].ProcessDataArray(
-	Data := Data,
-	Error := Error
-);
-THIS^.ActiveOwd := 0;
-THIS^.timerData.IN := TRUE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RequestBusTime">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT InitRS485Done OR NOT timerData.Q THEN	
-	RequestBusTime := FALSE;
-ELSE
-	FOR loopCounter := 1 TO 30 DO
-		IF OwdDevices[loopCounter].RequestBusTime() AND RequestBusTime = FALSE THEN
-			THIS^.ActiveOwd := loopCounter;
-			RequestBusTime := TRUE;			
-		END_IF
-	END_FOR
-END_IF</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitRS485">
-              <interface>
-                <inputVars>
-                  <variable name="DeviceAddress">
-                    <type>
-                      <BYTE />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DeviceAddress := DeviceAddress;
-THIS^.timerData.PT := T#250MS;
-THIS^.timerData.IN := TRUE;
-THIS^.InitRS485Done := TRUE;</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-
-FOR loopCounter := 1 TO 30 DO
-		OwdDevices[loopCounter].InitMqtt(
-			MQTTPublishPrefix := MQTTPublishPrefix,
-			MqttPublishTopicSuffix := InstanceNamePt^,
-			pMqttPublishQueue := pMqttPublishQueue
-		);
-END_FOR</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="EnableOwd">
-              <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
-                <inputVars>
-                  <variable name="OwdNumber">
-                    <type>
-                      <UINT />
-                    </type>
-                  </variable>
-                  <variable name="DataPollingInterval">
-                    <type>
-                      <TIME />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OwdDevices[OwdNumber].InitOwd(
-	DeviceAddress := THIS^.DeviceAddress,
-	OwdNumber := OwdNumber,
-	DataPollingInterval := DataPollingInterval
-);</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-        </addData>
-      </pou>
       <pou name="FB_RS485_ESERA_OWD_MQTT" pouType="functionBlock">
         <interface>
           <outputVars>
@@ -11957,46 +12022,26 @@ END_FOR</xhtml>
             </variable>
           </outputVars>
           <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
+              </documentation>
+            </variable>
             <variable name="OwdNumber">
               <type>
                 <UINT />
               </type>
-            </variable>
-            <variable name="InitMqttDone">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicPrefix">
-              <type>
-                <pointer>
-                  <baseType>
-                    <string />
-                  </baseType>
-                </pointer>
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicSuffix">
-              <type>
-                <string length="50" />
-              </type>
-            </variable>
-            <variable name="pMqttPublishQueue">
-              <type>
-                <pointer>
-                  <baseType>
-                    <derived name="FB_MqttPublishQueue" />
-                  </baseType>
-                </pointer>
-              </type>
-            </variable>
-            <variable name="InitOwdDone">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
             </variable>
             <variable name="timerData">
               <type>
@@ -12021,7 +12066,45 @@ END_FOR</xhtml>
                 </structValue>
               </initialValue>
             </variable>
+            <variable name="MqttDiscoveryDevice">
+              <type>
+                <pointer>
+                  <baseType>
+                    <derived name="FB_1WIRE_MQTT_DISCOVERY_DEVICE" />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="AllowedErrorCount">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="3" />
+              </initialValue>
+            </variable>
+            <variable name="CurrentErrorCount">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
           </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+                <Implements>RS485Device</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
         </interface>
         <body>
           <ST>
@@ -12032,36 +12115,169 @@ END_FOR</xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitOwd">
+            <Method name="InitMqttDiscovery">
               <interface>
                 <inputVars>
-                  <variable name="DeviceAddress">
+                  <variable name="Device">
                     <type>
-                      <BYTE />
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_1WIRE_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
                     </type>
                   </variable>
-                  <variable name="OwdNumber">
+                  <variable name="ParentDevice">
                     <type>
-                      <UINT />
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
                     </type>
                   </variable>
-                  <variable name="DataPollingInterval">
+                  <variable name="DeviceName">
                     <type>
-                      <TIME />
+                      <string length="50" />
                     </type>
+                  </variable>
+                  <variable name="SupportsTemperature">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="SupportsHumidity">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="SupportsCO2">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="SupportsDewPoint">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="SupportsBrightness">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                  <variable name="SupportsOwdVoltage">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
                   </variable>
                 </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="20" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.RtuQuery.DeviceId := DeviceAddress;
-THIS^.RtuQuery.ReadAddress := OwdNumber * 100;
-THIS^.timerData.PT := DataPollingInterval;
-THIS^.OwdNumber := OwdNumber;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	THIS^.MqttDiscoveryDevice := Device;
+	
+	id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^);
+	
+	Device^.init1WireDevice(
+		name := DeviceName,
+		id := id,
+		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic2 := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/availability'),
+		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
+		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
+		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
+		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
+		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+		
+	IF SupportsTemperature THEN
+		Device^.CreateSensorEntity(
+			Name := 'Temperature',
+			Id := CONCAT(id, '_TEMP'),
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/TEMP'),
+			DeviceClass := 'temperature',
+			UnitOfMeasurement := '\u00B0C');
+	END_IF;	
+	
+	IF SupportsHumidity THEN
+		Device^.CreateSensorEntity(
+			Name := 'Humidity',
+			Id := CONCAT(id, '_HUM'),
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/HUM'),
+			DeviceClass := 'humidity',
+			UnitOfMeasurement := '%');
+	END_IF;
+	
+	IF SupportsCO2 THEN
+		Device^.CreateSensorEntity(
+			Name := 'Carbon Dioxide',
+			Id := CONCAT(id, '_CO2'),
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/CO2'),
+			DeviceClass := 'carbon_dioxide',
+			UnitOfMeasurement := 'ppm');
+	END_IF;
+	
+	IF SupportsDewPoint THEN
+		Device^.CreateSensorEntity(
+			Name := 'Dew Point',
+			Id := CONCAT(id, '_DEWP'),
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/DEWP'),
+			DeviceClass := 'temperature',
+			UnitOfMeasurement := '\u00B0C');
+	END_IF;	
+	
+	IF SupportsBrightness THEN
+		Device^.CreateSensorEntity(
+			Name := 'Brightness',
+			Id := CONCAT(id, '_ILLUM'),
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/ILLUM'),
+			DeviceClass := 'illuminance');
+	END_IF;	
+	
+	IF SupportsOwdVoltage THEN
+		Device^.CreateDiagnosticSensorEntity(
+			Name := 'Operating Voltage',
+			Id := CONCAT(id, '_OWDV'),
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/OWDV'));
+	END_IF;
 
-THIS^.timerData.IN := TRUE;
-
-THIS^.InitOwdDone := TRUE;</xhtml>
+	initMqttDiscoveryDone := TRUE;
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -12080,11 +12296,6 @@ THIS^.InitOwdDone := TRUE;</xhtml>
                       </pointer>
                     </type>
                   </variable>
-                  <variable name="MqttPublishTopicSuffix">
-                    <type>
-                      <string length="255" />
-                    </type>
-                  </variable>
                   <variable name="pMqttPublishQueue">
                     <type>
                       <pointer>
@@ -12098,11 +12309,13 @@ THIS^.InitOwdDone := TRUE;</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-THIS^.MqttPublishTopicSuffix := MqttPublishTopicSuffix;
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
 
-THIS^.InitMqttDone := TRUE;</xhtml>
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -12129,7 +12342,7 @@ THIS^.InitMqttDone := TRUE;</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
 		pMqttPublishQueue^.AddMessage(
 			Payload := Data,
-			Topic := CONCAT(CONCAT(CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/OWD/'), UINT_TO_STRING(OwdNumber)), Suffix ),
+			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := FALSE
 		);
@@ -12172,7 +12385,7 @@ PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OWD_VOLTAGE := WORD_TO_REAL(Data) / 100;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.OWD_VOLTAGE := WORD_TO_REAL(Data);
 PubMqttMessage(Suffix := '/OWDV', Data := REAL_TO_STRING(OWD_VOLTAGE));</xhtml>
                 </ST>
               </body>
@@ -12233,7 +12446,7 @@ PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.AIR_QUALITY := WORD_TO_REAL(Data) / 100;
-PubMqttMessage(Suffix := '/AIRQ', Data := REAL_TO_STRING(AIR_QUALITY));</xhtml>
+PubMqttMessage(Suffix := '/CO2', Data := REAL_TO_STRING(AIR_QUALITY));</xhtml>
                 </ST>
               </body>
               <addData />
@@ -12292,11 +12505,20 @@ END_IF</xhtml>
 
 IF WORD_TO_INT(Data^[12]) &lt;&gt; 0 OR Error^ THEN
 	THIS^.Error := TRUE;
-	PubMqttMessage(Suffix := '/availability', Data := 'offline');
+	IF THIS^.CurrentErrorCount &gt;= THIS^.AllowedErrorCount THEN
+		PubMqttMessage(Suffix := '/availability', Data := 'offline');		
+	END_IF
+	THIS^.CurrentErrorCount := THIS^.CurrentErrorCount + 1;
 ELSE 	
 	THIS^.Error := FALSE;
 	THIS^.DataAvailable := TRUE;
-	PubMqttMessage(Suffix := '/availability', Data := 'online');
+	THIS^.CurrentErrorCount := 0;
+	PubMqttMessage(Suffix := '/availability', Data := 'online');	
+	
+	IF initMqttDiscoveryDone THEN
+		THIS^.MqttDiscoveryDevice^.SendDeviceUpdate(Model := WORD_TO_STRING(Data^[16]));
+	END_IF
+	
 END_IF
 
 // Data handling
@@ -12319,7 +12541,7 @@ IF NOT Error^ AND WORD_TO_INT(Data^[12]) = 0 THEN
 		ProcessDewPoint(Data^[6]);
 		ProcessBrigthness(Data^[8]);
 	ELSIF Data^[16] = 1820  THEN // Temperature DS18B20
-        ProcessTemperature(Data^[0]);
+		ProcessTemperature(Data^[0]);
 	END_IF		
 END_IF</xhtml>
                 </ST>
@@ -12336,9 +12558,7 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT InitOwdDone THEN	
-	RequestBusTime := FALSE;	
-ELSIF timerData.Q THEN
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
 	RequestBusTime := TRUE;
 ELSE
 	RequestBusTime := FALSE;	
@@ -12363,6 +12583,67 @@ END_IF</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.BRIGHTNESS := WORD_TO_REAL(Data) / 100;
 PubMqttMessage(Suffix := '/BNESS', Data := REAL_TO_STRING(BRIGHTNESS));</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the instance will be copied to the copy code afterward (online change) </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DeviceAddress">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="OwdNumber">
+                    <type>
+                      <UINT />
+                    </type>
+                  </variable>
+                  <variable name="DataPollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_Init is always available implicitly and it is used primarily for initialization.
+The return value is not evaluated. For a specific influence, you can also declare the
+methods explicitly and provide additional code there with the standard initialization
+code. You can evaluate the return value.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.RtuQuery.DeviceId := DeviceAddress;
+THIS^.RtuQuery.ReadAddress := OwdNumber * 100;
+THIS^.timerData.PT := DataPollingInterval;
+THIS^.OwdNumber := OwdNumber;
+
+THIS^.timerData.IN := TRUE;
+
+FB_Init:=TRUE;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14045,6 +14326,25 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               <xhtml xmlns="http://www.w3.org/1999/xhtml"> HOME ASSISTANT DISCOVERY VIA MQTT</xhtml>
             </documentation>
           </variable>
+          <variable name="OWD_MULTISENSOR_01">
+            <type>
+              <derived name="FB_1WIRE_MQTT_DISCOVERY_DEVICE" />
+            </type>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                <InputAssignments>
+                  <InputAssignment>
+                    <Value>'Esera'</Value>
+                  </InputAssignment>
+                </InputAssignments>
+              </data>
+              <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                <Attributes>
+                  <Attribute Name="old_input_assignments" Value="" />
+                </Attributes>
+              </data>
+            </addData>
+          </variable>
           <variable name="MqttMain">
             <type>
               <string length="16" />
@@ -14278,8 +14578,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
-                <Attribute Name="checksumnoinit_override" Value="909082025" />
-                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
@@ -14302,6 +14600,53 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <type>
               <derived name="oscat_network.NETWORK_BUFFER_SHORT" />
             </type>
+          </variable>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="qualified_only" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </globalVars>
+        <globalVars name="RS485Variables">
+          <variable name="FB_RS485_EASTRON_SDM220_1">
+            <type>
+              <derived name="FB_RS485_EASTRON_SDM220_MQTT" />
+            </type>
+            <documentation>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml"> RS485 </xhtml>
+            </documentation>
+          </variable>
+          <variable name="FB_RS485_DUCO_DUCOBOX_HOME">
+            <type>
+              <derived name="FB_RS485_DUCO_DUCOBOX_MQTT" />
+            </type>
+          </variable>
+          <variable name="FB_RS485_1WIRE_MULTISENSOR_01">
+            <type>
+              <derived name="FB_RS485_ESERA_OWD_MQTT" />
+            </type>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                <InputAssignments>
+                  <InputAssignment>
+                    <Value>2</Value>
+                  </InputAssignment>
+                  <InputAssignment>
+                    <Value>1</Value>
+                  </InputAssignment>
+                  <InputAssignment>
+                    <Value>TIME#30s0ms</Value>
+                  </InputAssignment>
+                </InputAssignments>
+              </data>
+              <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                <Attributes>
+                  <Attribute Name="old_input_assignments" Value="" />
+                </Attributes>
+              </data>
+            </addData>
           </variable>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -15501,24 +15846,6 @@ END_IF</xhtml>
                       <derived name="FB_RS485_BUSCONTROLLER" />
                     </type>
                   </variable>
-                  <variable name="FB_RS485_EASTRON_SDM220_1">
-                    <type>
-                      <derived name="FB_RS485_EASTRON_SDM220_MQTT" />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> RS485 </xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME">
-                    <type>
-                      <derived name="FB_RS485_ESERA_1WIRE_GATEWAY_MQTT" />
-                    </type>
-                  </variable>
-                  <variable name="FB_RS485_DUCO_DUCOBOX_HOME">
-                    <type>
-                      <derived name="FB_RS485_DUCO_DUCOBOX_MQTT" />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <actions>
@@ -15567,9 +15894,9 @@ ModbusMaster(
 RS485BusController();
 
 (* RS485 devices *)
-FB_RS485_EASTRON_SDM220_1();
-FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME();
-FB_RS485_DUCO_DUCOBOX_HOME();</xhtml>
+RS485Variables.FB_RS485_EASTRON_SDM220_1();
+RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME();
+RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();</xhtml>
                     </ST>
                   </body>
                   <addData />
@@ -15600,62 +15927,56 @@ RS485BusController.Init(
 	BusError := ADR(ModbusMaster.xError)(* Pointer to the bus error bool *)
 );
 
-RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM220_1);
-RS485BusController.RegisterDevice(device := FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME);
-RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_HOME);
+RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM220_1);
+RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME);
+RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01);
 
 (* INIT RS485 DEVICE STUFF *)
-FB_RS485_EASTRON_SDM220_1.InitRS485(
+RS485Variables.FB_RS485_EASTRON_SDM220_1.InitRS485(
 	Data1PollingInterval := T#10S,		(* Polling interval for data array 1 *)				
 	Data2PollingInterval := T#20S,		(* Polling interval for data array 2 *)			
 	Data3PollingInterval := T#30S,		(* Polling interval for data array 3 *)			
 	DeviceAddress := 1					(* Device address of the modbus device *)			
 );
 
-FB_RS485_EASTRON_SDM220_1.InitMqtt(
+RS485Variables.FB_RS485_EASTRON_SDM220_1.InitMqtt(
 	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubRS485Prefix),						(* pointer to string prefix for the mqtt publish topic *)
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)		(* pointer to MqttPublishQueue to send a new Mqtt event *)
 );
 
-FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.InitRS485(
-	DeviceAddress := 2
-);
-
-FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubRS485Prefix),	
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)
-);
-
-(* ENABLE OWD DEVICES ON ESARE GATEWAY *)
-FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.EnableOwd(
-	OwdNumber := 1,
-	DataPollingInterval := T#2M
-);
-
-FB_RS485_ESERA_1WIRE_GATEWAY_MQTT_HOME.EnableOwd(
-	OwdNumber := 2,
-	DataPollingInterval := T#2M
-);
-
-FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
+RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
 	DataPollingInterval := T#3S,		(* Polling interval for data array *)				
 	DeviceAddress := 3,					(* Device address of the modbus device *)
 );
 
 // Nodes: valves for example
-FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
+RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
 	DataPollingInterval := T#15S
 );
-FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
+RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
 	DataPollingInterval := T#15S
 );
 
-FB_RS485_DUCO_DUCOBOX_HOME.InitMqtt(
+RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.InitMqtt(
 	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubRS485Prefix),
 	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubRS485Prefix),
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),	
 	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_RS485_MQTT)
 );
+
+
+RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.InitMqtt(	
+	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubRS485Prefix),	
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)
+);
+RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.InitMqttDiscovery(
+	Device := ADR(MqttVariables.OWD_MULTISENSOR_01),
+	ParentDevice:= ADR(MqttVariables.PLC_Device),
+	DeviceName := '1-Wire sensorhub Garage',
+	SupportsTemperature := TRUE,
+	SupportsHumidity := TRUE,
+	SupportsDewPoint := TRUE,
+	SupportsOwdVoltage := TRUE);
 
 
 END_IF</xhtml>
@@ -16122,22 +16443,6 @@ END_IF</xhtml>
               <Library Name="SysTarget, 3.5.17.0 (System)" Namespace="SysTarget" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
               <Library Name="#SysSocket" Namespace="SysSocket" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="SysSocket, * (System)" />
               <Library Name="SM3_Shared, 4.9.0.0 (3S - Smart Software Solutions GmbH)" Namespace="SM0" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-              <Library Name="PRO JSON, 1.0.0.15 (Pro Electric)" Namespace="PRO_JSON" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false">
-                <Parameters>
-                  <Parameter Name="MAX_LEVELS" Value="10" />
-                  <Parameter Name="MAX_NAME_SIZE" Value="40" />
-                  <Parameter Name="MAX_VALUE_SIZE" Value="80" />
-                  <Parameter Name="MAX_VAR_NAME" Value="200" />
-                  <Parameter Name="MAX_VARS" Value="1500" />
-                  <Parameter Name="MAX_EXECUTION_TIME" Value="TIME#50ms" />
-                  <Parameter Name="MAX_JSON_STRING" Value="20000" />
-                  <Parameter Name="NEWLINE" Value="'$R$N'" />
-                  <Parameter Name="INDENT" Value="'$T'" />
-                  <Parameter Name="IGNORE_LEADING_CHAR" Value="'_'" />
-                  <Parameter Name="ALLWAYSRESETDONE" Value="FALSE" />
-                  <Parameter Name="APPLICATIONNAME" Value="'HomeAutomation'" />
-                </Parameters>
-              </Library>
               <Library Name="#WagoAppDALI" Namespace="WagoAppDALI" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="WagoAppDALI, * (WAGO)">
                 <Parameters>
                   <Parameter Name="MAX_RX_BUFFER" Value="300" />
@@ -16150,6 +16455,21 @@ END_IF</xhtml>
                 </Parameters>
               </Library>
               <Library Name="#WagoSysKbusServices" Namespace="WagoSysKbusServices" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoSysKbusServices, * (WAGO)" />
+              <Library Name="PRO JSON, 1.0.0.16 (Pro Electric)" Namespace="PRO_JSON" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false">
+                <Parameters>
+                  <Parameter Name="MAX_LEVELS" Value="10" />
+                  <Parameter Name="MAX_NAME_SIZE" Value="20" />
+                  <Parameter Name="MAX_VALUE_SIZE" Value="80" />
+                  <Parameter Name="MAX_VAR_NAME" Value="150" />
+                  <Parameter Name="MAX_VARS" Value="1500" />
+                  <Parameter Name="MAX_EXECUTION_TIME" Value="TIME#50ms" />
+                  <Parameter Name="MAX_JSON_STRING" Value="20000" />
+                  <Parameter Name="NEWLINE" Value="'$R$N'" />
+                  <Parameter Name="INDENT" Value="'$T'" />
+                  <Parameter Name="IGNORE_LEADING_CHAR" Value="'_'" />
+                  <Parameter Name="APPLICATION_NAME" Value="'HomeAutomation'" />
+                </Parameters>
+              </Library>
               <addData />
             </Libraries>
           </data>
