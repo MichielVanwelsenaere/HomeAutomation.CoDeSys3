@@ -16,14 +16,14 @@ OUTPUT(S)
 - OUT: datatype *INT*, output for the value that is received through the MQTT subscription. provision this output in other processing logic when using the virtual function block in input mode.
 
 METHOD(S)
-- ConfigureFunctionBlockAsVirtualInput: configures the behaviour of the function block as a virtual input using the parameters below:
+- ConfigureFunctionBlockAsVirtualInput: configures the behavior of the function block as a virtual input using the parameters below:
     - `DefaultValue`: datatype *INT*, value to set at startup if default value at startup behavior is configured.
     - `SetDefaultValueStartup`: datatype *BOOL*, set to TRUE to set the DefaultValue at PLC startup. 
     - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual input value at PLC startup.
     - `UsePersistentAtStartup`: datatype *BOOL*, set to TRUE to use persistence to maintain the virtual input value through power cycles. 
     - `ConfirmReceival`: datatype *BOOL*, set to TRUE to get an MQTT publish message when the value is updated. 
 
-- ConfigureFunctionBlockAsVirtualOutput: configures the behaviour of the function block as a virtual output using the parameters below:
+- ConfigureFunctionBlockAsVirtualOutput: configures the behavior of the function block as a virtual output using the parameters below:
     - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual output value at PLC startup.
 
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
