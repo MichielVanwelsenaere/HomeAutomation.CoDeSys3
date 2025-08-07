@@ -3,7 +3,7 @@
 
 ### **General**
 
-Designed to control the heat requirements in a room.
+Designed to control the heat requirements in a room. Creates a thermostat entity in Home-Assistant allowing controlling the desired temperature.
 
 ### **Block diagram**
 
