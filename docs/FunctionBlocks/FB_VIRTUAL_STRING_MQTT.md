@@ -21,7 +21,7 @@ OUTPUT(S)
 
 METHOD(S)
 
-- ConfigureFunctionBlockAsVirtualInput: configures the behaviour of the function block as a virtual input using the parameters below:
+- ConfigureFunctionBlockAsVirtualInput: configures the behavior of the function block as a virtual input using the parameters below:
 
   - `DefaultValue`: datatype _STRING_, value to set at startup if default value at startup behavior is configured.
   - `SetDefaultValueStartup`: datatype _BOOL_, set to TRUE to set the DefaultValue at PLC startup.
@@ -29,7 +29,7 @@ METHOD(S)
   - `UsePersistentAtStartup`: datatype _BOOL_, set to TRUE to use persistence to maintain the virtual input value through power cycles.
   - `ConfirmReceival`: datatype _BOOL_, set to TRUE to get an MQTT publish message when the value is updated.
 
-- ConfigureFunctionBlockAsVirtualOutput: configures the behaviour of the function block as a virtual output using the parameters below:
+- ConfigureFunctionBlockAsVirtualOutput: configures the behavior of the function block as a virtual output using the parameters below:
 
   - `PublishAtStartup`: datatype _BOOL_, set to TRUE to get an MQTT publish message of the virtual output value at PLC startup.
 

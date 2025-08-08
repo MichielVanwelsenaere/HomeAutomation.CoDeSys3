@@ -78,6 +78,13 @@ Control DMX drivers.
 
 - [FB_OUTPUT_DIMMER_DMX_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_DMX_MQTT.md)
 
+## HVAC
+Control your HVAC setup, more detail in the [HVAC getting started guide](./docs/FAQ/HVAC_getting_started_guide.md).
+
+- [FB_HVAC_THERMOSTAT_MQTT](./docs/FunctionBlocks/FB_HVAC_THERMOSTAT_MQTT.md)
+- [FB_HVAC_COLLECTOR_MQTT](./docs/FunctionBlocks/FB_HVAC_COLLECTOR_MQTT.md)
+- [FB_HVAC_PUMP_MQTT](./docs/FunctionBlocks/FB_HVAC_PUMP_MQTT.md)
+- [FB_HVAC_BURNER_MQTT](./docs/FunctionBlocks/FB_HVAC_BURNER_MQTT.md)
 
 # Additional functionality
 

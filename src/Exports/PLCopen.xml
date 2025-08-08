@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2025-08-06T16:50:14.6275795" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2025-08-06T16:40:00.483293">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2025-08-07T21:19:52.7847591" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2025-08-07T21:18:48.3073413">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -57,6 +57,26 @@
           </enum>
         </baseType>
         <addData />
+      </dataType>
+      <dataType name="HvacModes">
+        <baseType>
+          <enum>
+            <values>
+              <value name="off" value="0" />
+              <value name="auto" value="1" />
+              <value name="heat" value="2" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+              <Attribute Name="strict" Value="" />
+              <Attribute Name="to_string" Value="" />
+            </Attributes>
+          </data>
+        </addData>
       </dataType>
       <dataType name="MQTT_DISCOVERY_AVTY_T">
         <baseType>
@@ -221,6 +241,104 @@
           <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
             <Inheritance>
               <Extends>MQTT_DISCOVERY_BINARY_SENSOR</Extends>
+            </Inheritance>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_CLIMATE">
+        <baseType>
+          <struct>
+            <variable name="init">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> initial desired temperature</xhtml>
+              </documentation>
+            </variable>
+            <variable name="curr_temp_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> current temperature topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="curr_hum_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> current humidity topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="modes">
+              <type>
+                <array>
+                  <dimension lower="1" upper="3" />
+                  <baseType>
+                    <derived name="JSONVAR" />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> modes</xhtml>
+              </documentation>
+            </variable>
+            <variable name="mode_cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> mode command topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="mode_stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> mode state topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="temp_cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> temperature command topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="temp_stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> temperature state topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="temp_step">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> temperature step</xhtml>
+              </documentation>
+            </variable>
+            <variable name="opt">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">  optimistic</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
             </Inheritance>
           </data>
         </addData>
@@ -1424,9 +1542,19 @@ code. You can evaluate the return value.</xhtml>
                 <derived name="MQTT_DISCOVERY_SWITCH" />
               </type>
             </variable>
+            <variable name="MqttDiscMsgClimate">
+              <type>
+                <derived name="MQTT_DISCOVERY_CLIMATE" />
+              </type>
+            </variable>
             <variable name="MqttDiscMsgEvent">
               <type>
                 <derived name="MQTT_DISCOVERY_EVENT" />
+              </type>
+            </variable>
+            <variable name="MqttDiscMsgValveState">
+              <type>
+                <derived name="MQTT_DISCOVERY_VALVE_STATE" />
               </type>
             </variable>
             <variable name="MqttDiscMsgValve">
@@ -3646,6 +3774,2013 @@ ELSIF NOT (MqttJSON = '') THEN
 	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateClimateEntity">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="InitialDesiredTemperature">
+                    <type>
+                      <INT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="CurrentTemperatureTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="CurrentHumidityTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="ModeCommandTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="ModeStateTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="TemperatureCommandTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="TemperatureStateTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="TempStep">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'climate'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
+
+// 	Entity related: Basis
+MqttDiscMsgClimate.name.CharString :=  name; // friendly name
+MqttDiscMsgClimate.obj_id.CharString :=  Id; 
+MqttDiscMsgClimate.uniq_id.CharString :=  Id; 
+
+// Entity related: Specific
+MqttDiscMsgClimate.init.Integer := InitialDesiredTemperature;
+MqttDiscMsgClimate.curr_temp_t.CharString := CurrentTemperatureTopic;
+MqttDiscMsgClimate.curr_hum_t.CharString := CurrentHumidityTopic;
+MqttDiscMsgClimate.modes[1].CharString := 'auto';
+MqttDiscMsgClimate.modes[2].CharString := 'off';
+MqttDiscMsgClimate.modes[3].CharString := 'heat';
+MqttDiscMsgClimate.mode_cmd_t.CharString := ModeCommandTopic;
+MqttDiscMsgClimate.mode_stat_t.CharString := ModeStateTopic;
+MqttDiscMsgClimate.temp_cmd_t.CharString := TemperatureCommandTopic;
+MqttDiscMsgClimate.temp_stat_t.CharString := TemperatureStateTopic;
+MqttDiscMsgClimate.temp_step.Number := TempStep;
+MqttDiscMsgClimate.opt.Boolean := FALSE;
+
+// Availabilty related
+MqttDiscMsgClimate.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgClimate.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgClimate.avty_mode.CharString := 'all';
+MqttDiscMsgClimate.pl_avail.CharString :=   THIS^.availabilityOnline;
+MqttDiscMsgClimate.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgClimate.qos.Integer := 2;
+
+// Device related
+MqttDiscMsgClimate.dev.cu.CharString := THIS^.cu;
+MqttDiscMsgClimate.dev.name.CharString := THIS^.name;
+MqttDiscMsgClimate.dev.hw.CharString := THIS^.hw;
+MqttDiscMsgClimate.dev.ids.CharString := THIS^.ids;
+MqttDiscMsgClimate.dev.sw.CharString := THIS^.sw;
+MqttDiscMsgClimate.dev.mdl.CharString := THIS^.mdl;
+MqttDiscMsgClimate.dev.mf.CharString := THIS^.mf;
+	
+// Extra meta-data
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+	MqttDiscMsgClimate.meta.CharString := meta;
+END_IF
+
+ComposeJSON(
+	JSONString:= ADR(MqttJSON), 
+	JSONStringSize:= SIZEOF(MqttJSON),
+	JSONVars:= ADR(MqttDiscMsgClimate),
+	NumberOfVars:= SIZEOF(MqttDiscMsgClimate) / SIZEOF(JSONVAR),
+	MaxLevel := 1,
+);
+ComposeJSON.Execute := TRUE;
+ComposeJSON();
+
+IF MqttJSON = '' THEN
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
+ELSIF NOT (MqttJSON = '') THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload:= MqttJSON,
+		Topic := MqttTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE,
+	);
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateValveStateEntity">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="StateOpen">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateClosed">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Deviceclass">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'valve'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
+
+// 	Entity related: Basis
+MqttDiscMsgValveState.name.CharString :=  name; // friendly name
+MqttDiscMsgValveState.obj_id.CharString :=  Id; 
+MqttDiscMsgValveState.uniq_id.CharString :=  Id; 
+
+// Entity related: Specific
+MqttDiscMsgValveState.stat_t.CharString := StateTopic;
+MqttDiscMsgValveState.stat_open.CharString := StateOpen;
+MqttDiscMsgValveState.stat_clsd.CharString := StateClosed;
+MqttDiscMsgValveState.opt.Boolean := FALSE;
+MqttDiscMsgValveState.dev_cla.CharString := Deviceclass;
+
+// Availabilty related
+MqttDiscMsgValveState.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgValveState.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgValveState.avty_mode.CharString := 'all';
+MqttDiscMsgValveState.pl_avail.CharString :=   THIS^.availabilityOnline;
+MqttDiscMsgValveState.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgValveState.qos.Integer := 2;
+
+// Device related
+MqttDiscMsgValveState.dev.cu.CharString := THIS^.cu;
+MqttDiscMsgValveState.dev.name.CharString := THIS^.name;
+MqttDiscMsgValveState.dev.hw.CharString := THIS^.hw;
+MqttDiscMsgValveState.dev.ids.CharString := THIS^.ids;
+MqttDiscMsgValveState.dev.sw.CharString := THIS^.sw;
+MqttDiscMsgValveState.dev.mdl.CharString := THIS^.mdl;
+MqttDiscMsgValveState.dev.mf.CharString := THIS^.mf;
+	
+// Extra meta-data
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+	MqttDiscMsgValveState.meta.CharString := meta;
+END_IF
+
+ComposeJSON(
+	JSONString:= ADR(MqttJSON), 
+	JSONStringSize:= SIZEOF(MqttJSON),
+	JSONVars:= ADR(MqttDiscMsgValveState),
+	NumberOfVars:= SIZEOF(MqttDiscMsgValveState) / SIZEOF(JSONVAR),
+	MaxLevel := 1,
+);
+ComposeJSON.Execute := TRUE;
+ComposeJSON();
+
+IF MqttJSON = '' THEN
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
+ELSIF NOT (MqttJSON = '') THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload:= MqttJSON,
+		Topic := MqttTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE,
+	);
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_HVAC_BURNER_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="IN">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="OUT">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Refelection: object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="FB_ACTUATOR">
+              <type>
+                <derived name="OSCAT_BUILDING.ACTUATOR_PUMP" />
+              </type>
+            </variable>
+            <variable name="MIN_ONTIME">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="MIN_OFFTIME">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="RUNTIME">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+            <variable name="CYCLES">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+          </localVars>
+          <localVars persistent="true">
+            <variable name="PreviousState">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> To retain output state through powercycles</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_ACTUATOR(
+	IN := IN,
+	MANUAL := FALSE,
+	RST := FALSE,
+	MIN_ONTIME := MIN_ONTIME,
+	MIN_OFFTIME := MIN_OFFTIME,
+	RUN_EVERY := T#0S,
+	PUMP =&gt; OUT,
+	RUNTIME := RUNTIME,
+	CYCLES := CYCLES);
+	
+	
+IF ((PreviousState &lt;&gt; OUT) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(OUT),
+		Topic := MQTTPublishTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);	
+	Startup:=FALSE;
+END_IF	
+
+PreviousState := OUT;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'heat'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
+	END_IF
+	
+	Device^.CreateBinarySensorEntity(
+		Id := id,
+		Name := name,
+		Meta := meta,
+		StateTopic := THIS^.MQTTPublishTopic,
+		PayloadOn := 'TRUE',
+		PayloadOff := 'FALSE',
+		DeviceClass := DeviceClass);
+		
+	initMqttDiscoveryDone := TRUE;
+END_IF		</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the instance will be copied to the copy code afterward (online change)   </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MIN_ONTIME">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="MIN_OFFTIME">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_Init is always available implicitly and it is used primarily for initialization.
+The return value is not evaluated. For a specific influence, you can also declare the
+methods explicitly and provide additional code there with the standard initialization
+code. You can evaluate the return value.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.MIN_ONTIME := MIN_ONTIME;
+THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_HVAC_COLLECTOR_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="THERMOSTAT_1">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="THERMOSTAT_2">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="THERMOSTAT_3">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="THERMOSTAT_4">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="THERMOSTAT_5">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="THERMOSTAT_6">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="THERMOSTAT_7">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="THERMOSTAT_8">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="VALVE_1">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="VALVE_2">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="VALVE_3">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="VALVE_4">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="VALVE_5">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="VALVE_6">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="VALVE_7">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="VALVE_8">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="PUMP">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Refelection: object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="PumpDelay">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="HeatRequest">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="ValveCycleTime">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="R_Trig_Valve1">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="F_Trig_Valve1">
+              <type>
+                <derived name="F_TRIG" />
+              </type>
+            </variable>
+            <variable name="R_Trig_Valve2">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="F_Trig_Valve2">
+              <type>
+                <derived name="F_TRIG" />
+              </type>
+            </variable>
+            <variable name="R_Trig_Valve3">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="F_Trig_Valve3">
+              <type>
+                <derived name="F_TRIG" />
+              </type>
+            </variable>
+            <variable name="R_Trig_Valve4">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="F_Trig_Valve4">
+              <type>
+                <derived name="F_TRIG" />
+              </type>
+            </variable>
+            <variable name="R_Trig_Valve5">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="F_Trig_Valve5">
+              <type>
+                <derived name="F_TRIG" />
+              </type>
+            </variable>
+            <variable name="R_Trig_Valve6">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="F_Trig_Valve6">
+              <type>
+                <derived name="F_TRIG" />
+              </type>
+            </variable>
+            <variable name="R_Trig_Valve7">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="F_Trig_Valve7">
+              <type>
+                <derived name="F_TRIG" />
+              </type>
+            </variable>
+            <variable name="R_Trig_Valve8">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+            <variable name="F_Trig_Valve8">
+              <type>
+                <derived name="F_TRIG" />
+              </type>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// General heat request variable
+HeatRequest := THERMOSTAT_1 OR THERMOSTAT_2 OR THERMOSTAT_3 OR THERMOSTAT_4 
+				OR THERMOSTAT_5 OR THERMOSTAT_6 OR THERMOSTAT_7 OR THERMOSTAT_8;
+				
+// Valves are NC
+// Valve should be powered when there heat requested for that valve
+// Valve where there is no heat request should remain closed
+VALVE_1 := THERMOSTAT_1;
+VALVE_2 := THERMOSTAT_2;
+VALVE_3 := THERMOSTAT_3;
+VALVE_4 := THERMOSTAT_4;
+VALVE_5 := THERMOSTAT_5;
+VALVE_6 := THERMOSTAT_6;
+VALVE_7 := THERMOSTAT_7;
+VALVE_8 := THERMOSTAT_8;
+
+// Pump should only start when valves had time to switch to their correct position
+PumpDelay(IN := HeatRequest,
+	PT := ValveCycleTime);
+
+PUMP := (VALVE_1 OR VALVE_2 OR VALVE_3 OR VALVE_4 OR VALVE_5 OR VALVE_6 OR VALVE_7 OR VALVE_8) AND PumpDelay.Q;
+
+// Detect edges on valves for MQTT messaging
+R_Trig_Valve1(CLK := VALVE_1);
+F_Trig_Valve1(CLK := VALVE_1);
+R_Trig_Valve2(CLK := VALVE_2);
+F_Trig_Valve2(CLK := VALVE_2);
+R_Trig_Valve3(CLK := VALVE_3);
+F_Trig_Valve3(CLK := VALVE_3);
+R_Trig_Valve4(CLK := VALVE_4);
+F_Trig_Valve4(CLK := VALVE_4);
+R_Trig_Valve5(CLK := VALVE_5);
+F_Trig_Valve5(CLK := VALVE_5);
+R_Trig_Valve6(CLK := VALVE_6);
+F_Trig_Valve6(CLK := VALVE_6);
+R_Trig_Valve7(CLK := VALVE_7);
+F_Trig_Valve7(CLK := VALVE_7);
+R_Trig_Valve8(CLK := VALVE_8);
+F_Trig_Valve8(CLK := VALVE_8);
+
+// MQTT Messaging
+IF ((R_Trig_Valve1.Q OR F_Trig_Valve1.Q) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(VALVE_1),
+		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_1'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+IF ((R_Trig_Valve2.Q OR F_Trig_Valve2.Q) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(VALVE_2),
+		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_2'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+IF ((R_Trig_Valve3.Q OR F_Trig_Valve3.Q) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(VALVE_3),
+		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_3'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+IF ((R_Trig_Valve4.Q OR F_Trig_Valve4.Q) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(VALVE_4),
+		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_4'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+IF ((R_Trig_Valve5.Q OR F_Trig_Valve5.Q) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(VALVE_5),
+		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_5'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+IF ((R_Trig_Valve6.Q OR F_Trig_Valve6.Q) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(VALVE_6),
+		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_6'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+IF ((R_Trig_Valve7.Q OR F_Trig_Valve7.Q) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(VALVE_7),
+		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_7'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+IF ((R_Trig_Valve8.Q OR F_Trig_Valve8.Q) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(VALVE_8),
+		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_8'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF	
+
+Startup := FALSE;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="NameValve1">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="NameValve2">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="NameValve3">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="NameValve4">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="NameValve5">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="NameValve6">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="NameValve7">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="NameValve8">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'water'" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve1), str2:= ADR(''))) THEN
+		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_1');
+		
+		Device^.CreateValveStateEntity(
+			Id := id,
+			Name := NameValve1,
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_1'),
+			StateOpen := 'TRUE',
+			StateClosed := 'FALSE',
+			DeviceClass := DeviceClass);			
+	END_IF
+	
+	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve2), str2:= ADR(''))) THEN
+		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_2');
+		
+		Device^.CreateValveStateEntity(
+			Id := id,
+			Name := NameValve2,
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_2'),
+			StateOpen := 'TRUE',
+			StateClosed := 'FALSE',
+			DeviceClass := DeviceClass);			
+	END_IF
+	
+	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve3), str2:= ADR(''))) THEN
+		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_3');
+		
+		Device^.CreateValveStateEntity(
+			Id := id,
+			Name := NameValve3,
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_3'),
+			StateOpen := 'TRUE',
+			StateClosed := 'FALSE',
+			DeviceClass := DeviceClass);			
+	END_IF
+	
+	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve4), str2:= ADR(''))) THEN
+		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_4');
+		
+		Device^.CreateValveStateEntity(
+			Id := id,
+			Name := NameValve4,
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_4'),
+			StateOpen := 'TRUE',
+			StateClosed := 'FALSE',
+			DeviceClass := DeviceClass);			
+	END_IF
+	
+	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve5), str2:= ADR(''))) THEN
+		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_5');
+		
+		Device^.CreateValveStateEntity(
+			Id := id,
+			Name := NameValve5,
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_5'),
+			StateOpen := 'TRUE',
+			StateClosed := 'FALSE',
+			DeviceClass := DeviceClass);			
+	END_IF
+	
+	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve6), str2:= ADR(''))) THEN
+		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_6');
+		
+		Device^.CreateValveStateEntity(
+			Id := id,
+			Name := NameValve6,
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_6'),
+			StateOpen := 'TRUE',
+			StateClosed := 'FALSE',
+			DeviceClass := DeviceClass);			
+	END_IF
+	
+	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve7), str2:= ADR(''))) THEN
+		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_7');
+		
+		Device^.CreateValveStateEntity(
+			Id := id,
+			Name := NameValve7,
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_7'),
+			StateOpen := 'TRUE',
+			StateClosed := 'FALSE',
+			DeviceClass := DeviceClass);			
+	END_IF
+	
+	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve8), str2:= ADR(''))) THEN
+		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_8');
+		
+		Device^.CreateValveStateEntity(
+			Id := id,
+			Name := NameValve8,
+			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_8'),
+			StateOpen := 'TRUE',
+			StateClosed := 'FALSE',
+			DeviceClass := DeviceClass);			
+	END_IF
+		
+	initMqttDiscoveryDone := TRUE;
+END_IF		</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the instance will be copied to the copy code afterward (online change)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="ValveCycleTime">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_Init is always available implicitly and it is used primarily for initialization.
+The return value is not evaluated. For a specific influence, you can also declare the
+methods explicitly and provide additional code there with the standard initialization
+code. You can evaluate the return value.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.ValveCycleTime := ValveCycleTime;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_HVAC_PUMP_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="IN">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="PUMP">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="HEAT_REQUEST">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MIN_ONTIME_ACTIVE">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Refelection: object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="FB_ACTUATOR">
+              <type>
+                <derived name="OSCAT_BUILDING.ACTUATOR_PUMP" />
+              </type>
+            </variable>
+            <variable name="MIN_ONTIME">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="MIN_ONTIME_TIMER">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="MIN_OFFTIME">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="RUNTIME">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+            <variable name="CYCLES">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+          </localVars>
+          <localVars persistent="true">
+            <variable name="PreviousState">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> To retain output state through powercycles</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">MIN_ONTIME_TIMER(IN := IN, PT := MIN_ONTIME);
+MIN_ONTIME_ACTIVE := NOT(MIN_ONTIME_TIMER.Q) AND PUMP;
+
+FB_ACTUATOR(
+	IN := IN,
+	MANUAL := FALSE,
+	RST := FALSE,
+	MIN_ONTIME := MIN_ONTIME,
+	MIN_OFFTIME := MIN_OFFTIME,
+	RUN_EVERY := T#0S,
+	PUMP =&gt; PUMP,
+	RUNTIME := RUNTIME,
+	CYCLES := CYCLES);
+	
+//Timer to keep track of ontime
+
+HEAT_REQUEST := PUMP;	
+	
+IF ((PreviousState &lt;&gt; PUMP) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(PUMP),
+		Topic := MQTTPublishTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);	
+	Startup:=FALSE;
+END_IF	
+
+PreviousState := PUMP;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'heat'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
+	END_IF
+	
+	Device^.CreateBinarySensorEntity(
+		Id := id,
+		Name := name,
+		Meta := meta,
+		StateTopic := THIS^.MQTTPublishTopic,
+		PayloadOn := 'TRUE',
+		PayloadOff := 'FALSE',
+		DeviceClass := DeviceClass);
+		
+	initMqttDiscoveryDone := TRUE;
+END_IF		</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the instance will be copied to the copy code afterward (online change)   </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MIN_ONTIME">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                  <variable name="MIN_OFFTIME">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_Init is always available implicitly and it is used primarily for initialization.
+The return value is not evaluated. For a specific influence, you can also declare the
+methods explicitly and provide additional code there with the standard initialization
+code. You can evaluate the return value.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.MIN_ONTIME := MIN_ONTIME;
+THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_HVAC_THERMOSTAT_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="MEASURED_TEMP">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="MEASURED_HUM">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="ENABLED">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="OUT">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Refelection: object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="MinAllowedTemp">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="12" />
+              </initialValue>
+            </variable>
+            <variable name="MaxAllowedTemp">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="30" />
+              </initialValue>
+            </variable>
+            <variable name="Hysteresis">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="PreviousTemp">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="PreviousHum">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+          </localVars>
+          <localVars persistent="true">
+            <variable name="DESIRED_TEMP">
+              <type>
+                <REAL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> To retain output state through powercycles</xhtml>
+              </documentation>
+            </variable>
+            <variable name="PreviousState">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="HvacMode">
+              <type>
+                <derived name="HvacModes" />
+              </type>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+                <Implements>MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT ENABLED OR HvacMode = HvacModes.off THEN
+	OUT := FALSE;
+ELSIF MEASURED_TEMP &gt; MaxAllowedTemp THEN
+	OUT := FALSE;
+ELSIF ENABLED AND HvacMode = HvacModes.auto AND MEASURED_TEMP &lt; MinAllowedTemp THEN
+	OUT := TRUE;
+ELSIF ENABLED AND HvacMode = HvacModes.auto AND OUT AND MEASURED_TEMP &gt; (MinAllowedTemp + Hysteresis) THEN
+	OUT := FALSE;
+ELSIF ENABLED AND HvacMode = HvacModes.heat AND MEASURED_TEMP &lt; (DESIRED_TEMP - Hysteresis) THEN
+	OUT := TRUE;
+ELSIF ENABLED AND HvacMode = HvacModes.heat AND MEASURED_TEMP &gt; (DESIRED_TEMP + Hysteresis) THEN
+	OUT := FALSE;
+END_IF
+
+IF Startup AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := REAL_TO_STRING(MaxAllowedTemp),
+		Topic := CONCAT(MQTTPublishTopic, '/MAX_TEMP'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);	
+	pMqttPublishQueue^.AddMessage(
+		Payload := REAL_TO_STRING(MinAllowedTemp),
+		Topic := CONCAT(MQTTPublishTopic, '/MIN_TEMP'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+	pMqttPublishQueue^.AddMessage(
+		Payload := TO_STRING(HvacMode),
+		Topic := CONCAT(MQTTPublishTopic, '/MODE'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);	
+	pMqttPublishQueue^.AddMessage(
+		Payload := REAL_TO_STRING(DESIRED_TEMP),
+		Topic := CONCAT(MQTTPublishTopic, '/DESIRED_TEMP'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);	
+END_IF
+
+IF ((PreviousState &lt;&gt; OUT) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(OUT),
+		Topic := MQTTPublishTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);	
+END_IF	
+IF ((PreviousTemp &lt;&gt; MEASURED_TEMP) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := REAL_TO_STRING(MEASURED_TEMP),
+		Topic := CONCAT(MQTTPublishTopic, '/TEMP'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF
+
+IF ((PreviousHum &lt;&gt; MEASURED_HUM) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := REAL_TO_STRING(MEASURED_HUM),
+		Topic := CONCAT(MQTTPublishTopic, '/HUM'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);	
+END_IF	
+
+
+Startup:=FALSE;
+PreviousTemp := MEASURED_TEMP;
+PreviousHum := MEASURED_HUM;
+PreviousState := OUT;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
+
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="TempStep">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
+	END_IF
+	
+	Device^.CreateClimateEntity(		
+		Id := id,
+		Name := name,
+		Meta := meta,
+		InitialDesiredTemperature := REAL_TO_INT(DESIRED_TEMP),
+		CurrentTemperatureTopic :=  CONCAT(MQTTPublishTopic, '/TEMP'),
+		CurrentHumidityTopic := CONCAT(MQTTPublishTopic, '/HUM'),
+		ModeCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic, '/MODE'),
+		ModeStateTopic := CONCAT(THIS^.MQTTPublishTopic, '/MODE'),
+		TemperatureCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic, '/DESIRED_TEMP') ,
+		TemperatureStateTopic := CONCAT(THIS^.MQTTPublishTopic, '/DESIRED_TEMP'),
+		TempStep := TempStep);
+		
+	initMqttDiscoveryDone := TRUE;
+END_IF		</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CONCAT(MQTTSubscribeTopic,'/DESIRED_TEMP') =  Data.TopicOut^ THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//check if temp is numeric, then assign it;
+	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') THEN
+		 // temperature requested higher then max allowed temp; set to max allowed temp
+		 IF STRING_TO_REAL(Data.PayloadString^) &gt; THIS^.MaxAllowedTemp THEN
+			 THIS^.DESIRED_TEMP := THIS^.MaxAllowedTemp;		 
+			 THIS^.pMqttPublishQueue^.AddMessage(
+				Payload := REAL_TO_STRING(THIS^.MaxAllowedTemp),
+				Topic := CONCAT(MQTTPublishTopic, '/DESIRED_TEMP'),
+				Qos := MQTT.QoS.ExactlyOnce,
+				MqttRetain := TRUE
+			);
+		 // temperature requested lower then min allowed temp: set to min allowed temp
+		 ELSIF STRING_TO_REAL(Data.PayloadString^) &lt; THIS^.MinAllowedTemp THEN
+			 THIS^.DESIRED_TEMP := THIS^.MinAllowedTemp;			 
+			 THIS^.pMqttPublishQueue^.AddMessage(
+				Payload := REAL_TO_STRING(THIS^.MinAllowedTemp),
+				Topic := CONCAT(MQTTPublishTopic, '/DESIRED_TEMP'),
+				Qos := MQTT.QoS.ExactlyOnce,
+				MqttRetain := TRUE
+			);
+		 ELSE
+			 THIS^.DESIRED_TEMP := STRING_TO_REAL(Data.PayloadString^);			 
+			 THIS^.pMqttPublishQueue^.AddMessage(
+				Payload := Data.PayloadString^,
+				Topic := CONCAT(MQTTPublishTopic, '/DESIRED_TEMP'),
+				Qos := MQTT.QoS.ExactlyOnce,
+				MqttRetain := TRUE
+			);
+		 END_IF
+	END_IF
+	
+ELSIF CONCAT(MQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//check if the mode is known and if so set it
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('auto')) THEN
+		THIS^.HvacMode := HvacModes.auto;		
+	 	THIS^.pMqttPublishQueue^.AddMessage(
+			Payload := Data.PayloadString^,
+			Topic := CONCAT(MQTTPublishTopic, '/MODE'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE
+		);
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('off')) THEN
+		THIS^.HvacMode := HvacModes.off;		
+	 	THIS^.pMqttPublishQueue^.AddMessage(
+			Payload := Data.PayloadString^,
+			Topic := CONCAT(MQTTPublishTopic, '/MODE'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE
+		);
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('heat')) THEN
+		THIS^.HvacMode := HvacModes.heat;		
+	 	THIS^.pMqttPublishQueue^.AddMessage(
+			Payload := Data.PayloadString^,
+			Topic := CONCAT(MQTTPublishTopic, '/MODE'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE
+		);
+	END_IF;
+END_IF </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the instance will be copied to the copy code afterward (online change)   </xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MinAllowedTemp">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                  <variable name="MaxAllowedTemp">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                  <variable name="Hysteresis">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_Init is always available implicitly and it is used primarily for initialization.
+The return value is not evaluated. For a specific influence, you can also declare the
+methods explicitly and provide additional code there with the standard initialization
+code. You can evaluate the return value.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.MinAllowedTemp := MinAllowedTemp;
+THIS^.MaxAllowedTemp := MaxAllowedTemp;
+THIS^.Hysteresis := Hysteresis;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14244,6 +16379,20 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </data>
           </addData>
         </task>
+        <task name="HvacTask" interval="PT0.05S" priority="8">
+          <pouInstance name="PLC_PRG_HVAC" typeName="">
+            <documentation>
+              <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+            </documentation>
+          </pouInstance>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
+              <TaskSettings KindOfTask="Cyclic" Interval="t#50ms" IntervalUnit="ms" WithinSPSTimeSlicing="true">
+                <Watchdog Enabled="false" TimeUnit="ms" Sensitivity="1" />
+              </TaskSettings>
+            </data>
+          </addData>
+        </task>
         <globalVars name="MqttVariables">
           <variable name="clientID">
             <type>
@@ -14303,6 +16452,11 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </type>
           </variable>
           <variable name="collector_FB_RS485_MQTT">
+            <type>
+              <derived name="MQTT.CallbackCollector" />
+            </type>
+          </variable>
+          <variable name="collector_FB_HVAC_MQTT">
             <type>
               <derived name="MQTT.CallbackCollector" />
             </type>
@@ -14522,6 +16676,22 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               <simpleValue value="CONCAT(MqttBaseTopic, 'In/RS485/')" />
             </initialValue>
           </variable>
+          <variable name="MqttPubHVACPrefix">
+            <type>
+              <string length="100" />
+            </type>
+            <initialValue>
+              <simpleValue value="CONCAT(MqttBaseTopic, 'Out/HVAC/')" />
+            </initialValue>
+          </variable>
+          <variable name="MqttSubHVACPrefix">
+            <type>
+              <string length="100" />
+            </type>
+            <initialValue>
+              <simpleValue value="CONCAT(MqttBaseTopic, 'In/HVAC/')" />
+            </initialValue>
+          </variable>
           <variable name="MqttSubSwitchTopic">
             <type>
               <string length="100" />
@@ -14565,6 +16735,14 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               <simpleValue value="CONCAT(MqttSubRS485Prefix, '#')" />
             </initialValue>
           </variable>
+          <variable name="MqttSubHVACTopic">
+            <type>
+              <string length="100" />
+            </type>
+            <initialValue>
+              <simpleValue value="CONCAT(MqttSubHVACPrefix, '#')" />
+            </initialValue>
+          </variable>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
@@ -14578,6 +16756,8 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="qualified_only" Value="" />
+                <Attribute Name="checksumnoinit_override" Value="909082025" />
+                <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
               </Attributes>
             </data>
           </addData>
@@ -15367,6 +17547,11 @@ FB_DALI_1_ADR0(
                       <derived name="MQTT.MQTTSubscribe" />
                     </type>
                   </variable>
+                  <variable name="subscriber_FB_HVAC_MQTT">
+                    <type>
+                      <derived name="MQTT.MQTTSubscribe" />
+                    </type>
+                  </variable>
                 </localVars>
               </interface>
               <actions>
@@ -15411,6 +17596,7 @@ IF NOT initMqtt THEN
 	subscriber_FB_VIRTUAL_MQTT.SetMqttInOut(MQTT_IN_OUT:= MQTT_IN_OUT);	
 	subscriber_FB_DIMMER_MQTT.SetMqttInOut(MQTT_IN_OUT:= MQTT_IN_OUT);
 	subscriber_FB_RS485_MQTT.SetMqttInOut(MQTT_IN_OUT:= MQTT_IN_OUT);
+	subscriber_FB_HVAC_MQTT.SetMqttInOut(MQTT_IN_OUT:= MQTT_IN_OUT);
 END_IF
 
 </xhtml>
@@ -15540,6 +17726,13 @@ IF initMqtt THEN
 		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE,
 		ExpectingString:= TRUE, 
 		Callback:= MqttVariables.collector_FB_RS485_MQTT,
+	);
+	subscriber_FB_HVAC_MQTT(
+		Subscribe:= TRUE, 
+		Topic:= ADR(MqttVariables.MqttSubHVACTopic), 
+		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE,
+		ExpectingString:= TRUE, 
+		Callback:= MqttVariables.collector_FB_HVAC_MQTT,
 	);
 END_IF</xhtml>
                     </ST>
@@ -16391,6 +18584,471 @@ END_IF</xhtml>
                 </ST>
               </body>
               <addData />
+            </pou>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+            <pou name="PLC_PRG_HVAC" pouType="program">
+              <interface>
+                <localVars>
+                  <variable name="FB_THERMOSTAT_1">
+                    <type>
+                      <derived name="FB_HVAC_THERMOSTAT_MQTT" />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                        <InputAssignments>
+                          <InputAssignment>
+                            <Value>17</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>24</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>0.2</Value>
+                          </InputAssignment>
+                        </InputAssignments>
+                      </data>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="old_input_assignments" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Floorheating</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="FB_PUMP_1">
+                    <type>
+                      <derived name="FB_HVAC_PUMP_MQTT" />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                        <InputAssignments>
+                          <InputAssignment>
+                            <Value>TIME#2m0s0ms</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>TIME#1m0s0ms</Value>
+                          </InputAssignment>
+                        </InputAssignments>
+                      </data>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="old_input_assignments" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                  </variable>
+                  <variable name="FB_THERMOSTAT_2">
+                    <type>
+                      <derived name="FB_HVAC_THERMOSTAT_MQTT" />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                        <InputAssignments>
+                          <InputAssignment>
+                            <Value>17</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>24</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>0.2</Value>
+                          </InputAssignment>
+                        </InputAssignments>
+                      </data>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="old_input_assignments" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Radiators</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="FB_THERMOSTAT_3">
+                    <type>
+                      <derived name="FB_HVAC_THERMOSTAT_MQTT" />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                        <InputAssignments>
+                          <InputAssignment>
+                            <Value>17</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>24</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>0.2</Value>
+                          </InputAssignment>
+                        </InputAssignments>
+                      </data>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="old_input_assignments" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                  </variable>
+                  <variable name="FB_PUMP_2_COLLECTOR">
+                    <type>
+                      <derived name="FB_HVAC_COLLECTOR_MQTT" />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                        <InputAssignments>
+                          <InputAssignment>
+                            <Value>TIME#3m0s0ms</Value>
+                          </InputAssignment>
+                        </InputAssignments>
+                      </data>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="old_input_assignments" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                  </variable>
+                  <variable name="FB_PUMP_2">
+                    <type>
+                      <derived name="FB_HVAC_PUMP_MQTT" />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                        <InputAssignments>
+                          <InputAssignment>
+                            <Value>TIME#2m0s0ms</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>TIME#1m0s0ms</Value>
+                          </InputAssignment>
+                        </InputAssignments>
+                      </data>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="old_input_assignments" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                  </variable>
+                  <variable name="FB_BURNER_GAS">
+                    <type>
+                      <derived name="FB_HVAC_BURNER_MQTT" />
+                    </type>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                        <InputAssignments>
+                          <InputAssignment>
+                            <Value>TIME#2m0s0ms</Value>
+                          </InputAssignment>
+                          <InputAssignment>
+                            <Value>TIME#2m0s0ms</Value>
+                          </InputAssignment>
+                        </InputAssignments>
+                      </data>
+                      <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                        <Attributes>
+                          <Attribute Name="old_input_assignments" Value="" />
+                        </Attributes>
+                      </data>
+                    </addData>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Gas boiler</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="InitHvacDone">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                </localVars>
+              </interface>
+              <actions>
+                <action name="HVAC_RUN">
+                  <body>
+                    <ST>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">// HVAC flow 1
+// 1. A thermostat requests heat once:
+// 		1.1 The measured temperature is below the target temperature (hysteresis possible)
+//		1.2 The thermostat is in 'heat' mode (or auto mode)
+//		1.3 The temperature sensor used in the thermostat is not in error
+//		1.4 The measured temperature is not above the configured max temperature
+// 2. The Thermostat connects to a heating Valve turning it on/open when heat is required
+//		2.1 The heating valve takes X amount of time to switch fully open
+//		2.2 The heating valve can only turn on the pump once it's fully open
+// 		2.3 The heating valve can only start closing once the pump has completed its minimum cycle time
+// 3. The Heating valve is part of PUMP circuit together with other valves:
+//		3.1 The pump can only turn off if it has ran for its minimum cycle time
+//		3.2 Whenever the pump is running it should request heat from the heating system
+// 4. The heating system should provide heat from the moment one pump requires it
+//		4.1 A system might have multiple pumps
+//		4.2 The heating system might have a minimum cycle time 
+
+// 1. A thermostat requests heat once:
+// 		1.1 The measured temperature is below the target temperature (hysteresis possible)
+//		1.2 The thermostat is in 'heat' mode (or auto mode)
+//		1.3 The temperature sensor used in the thermostat is not in error
+//		1.4 The measured temperature is not above the configured max temperature
+// 2. The Thermostat connects to a pump turning it on when heat is required
+//		2.1 The pump can only turn off if it has ran for its minimum cycle time
+//		2.2 Whenever the pump is running it should request heat from the heating system
+// 3. The heating system should provide heat from the moment one pump requires it
+//		3.1 A system might have multiple pumps
+//		3.2 The heating system might have a minimum cycle time 
+
+
+// FLoorheating
+FB_THERMOSTAT_1(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY);
+FB_PUMP_1(
+	IN := FB_THERMOSTAT_1.OUT,
+	PUMP =&gt; DO_009
+);
+
+
+// Radiators
+FB_THERMOSTAT_2(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY);
+FB_THERMOSTAT_3(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY);
+
+FB_PUMP_2_COLLECTOR(
+	THERMOSTAT_1 := FB_THERMOSTAT_2.OUT, VALVE_1 =&gt; DO_010,
+	THERMOSTAT_2 := FB_THERMOSTAT_3.OUT, VALVE_2 =&gt; DO_011,
+	);
+
+FB_PUMP_2(
+	IN := FB_PUMP_2_COLLECTOR.PUMP,
+	PUMP =&gt; DO_012
+);
+
+// Heat source for both pumps
+FB_BURNER_GAS(
+	IN := FB_PUMP_2.HEAT_REQUEST OR FB_PUMP_1.HEAT_REQUEST,
+	OUT =&gt; DO_013
+);</xhtml>
+                    </ST>
+                  </body>
+                  <addData />
+                </action>
+                <action name="HVAC_INIT">
+                  <body>
+                    <ST>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT InitHvacDone THEN
+	InitHvacDone := TRUE;
+	
+	FB_THERMOSTAT_1.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.MqttSubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue), ADR(MqttVariables.collector_FB_HVAC_MQTT));
+	FB_THERMOSTAT_1.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'Floorheating', 0.5);
+	FB_THERMOSTAT_2.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.MqttSubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue), ADR(MqttVariables.collector_FB_HVAC_MQTT));
+	FB_THERMOSTAT_2.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'Radiator 1', 0.5);
+	FB_THERMOSTAT_3.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.MqttSubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue), ADR(MqttVariables.collector_FB_HVAC_MQTT));
+	FB_THERMOSTAT_3.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'Radiator 2', 0.5);
+
+	
+	FB_PUMP_1.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
+	FB_PUMP_1.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'pump floorheating');	
+	
+	FB_PUMP_2.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
+	FB_PUMP_2.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'pump collector');	
+	
+	
+	FB_PUMP_2_COLLECTOR.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));	
+	FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(MqttVariables.PLC_Device),
+		NameValve1 := 'Radiator 1',
+		NameValve2 := 'Radiator 2'
+	);
+	
+	FB_BURNER_GAS.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
+	FB_BURNER_GAS.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'gas boiler');	
+END_IF</xhtml>
+                    </ST>
+                  </body>
+                  <addData />
+                </action>
+              </actions>
+              <body>
+                <SFC>
+                  <step localId="0" initialStep="true" name="Init">
+                    <position x="0" y="0" />
+                    <connectionPointIn />
+                    <connectionPointOut formalParameter="sfc" />
+                    <connectionPointOutAction formalParameter="x" />
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">Init</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                          <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                          <attribute guid="6844a48e-46c2-4cc8-a185-a478f3b99cc0">TRUE</attribute>
+                          <attribute guid="62e1754b-7629-4e63-9cec-10ae0c536f1f">FALSE</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </step>
+                  <actionBlock localId="2">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="0" />
+                    </connectionPointIn>
+                    <action localId="1" qualifier="N" duration="" indicator="">
+                      <relPosition x="0" y="0" />
+                      <reference name="HVAC_INIT" />
+                      <connectionPointOut />
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                          <attributes xmlns="">
+                            <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">HVAC_INIT</attribute>
+                            <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                            <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                            <attribute guid="e174fc0d-80b0-4a9e-a530-ca239c249a50">N</attribute>
+                          </attributes>
+                        </data>
+                      </addData>
+                    </action>
+                  </actionBlock>
+                  <inVariable localId="3">
+                    <position x="0" y="0" />
+                    <connectionPointOut />
+                    <expression>TRUE</expression>
+                  </inVariable>
+                  <transition localId="4">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="0" formalParameter="sfc" />
+                    </connectionPointIn>
+                    <condition>
+                      <connectionPointIn>
+                        <connection refLocalId="3" />
+                      </connectionPointIn>
+                    </condition>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">TRUE</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                          <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                          <attribute guid="62e1754b-7629-4e63-9cec-10ae0c536f1f">FALSE</attribute>
+                          <attribute guid="8294df19-5962-4dee-a874-1051dabb0e3e">0</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </transition>
+                  <step localId="5" name="HVAC">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="4" />
+                    </connectionPointIn>
+                    <connectionPointOut formalParameter="sfc" />
+                    <connectionPointOutAction formalParameter="x" />
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">HVAC</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                          <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                          <attribute guid="6844a48e-46c2-4cc8-a185-a478f3b99cc0">FALSE</attribute>
+                          <attribute guid="62e1754b-7629-4e63-9cec-10ae0c536f1f">FALSE</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </step>
+                  <actionBlock localId="7">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="5" />
+                    </connectionPointIn>
+                    <action localId="6" qualifier="N" duration="" indicator="">
+                      <relPosition x="0" y="0" />
+                      <reference name="HVAC_RUN" />
+                      <connectionPointOut />
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                          <attributes xmlns="">
+                            <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">HVAC_RUN</attribute>
+                            <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                            <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                            <attribute guid="e174fc0d-80b0-4a9e-a530-ca239c249a50">N</attribute>
+                          </attributes>
+                        </data>
+                      </addData>
+                    </action>
+                  </actionBlock>
+                  <inVariable localId="8">
+                    <position x="0" y="0" />
+                    <connectionPointOut />
+                    <expression>TRUE</expression>
+                  </inVariable>
+                  <transition localId="9">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="5" formalParameter="sfc" />
+                    </connectionPointIn>
+                    <condition>
+                      <connectionPointIn>
+                        <connection refLocalId="8" />
+                      </connectionPointIn>
+                    </condition>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">TRUE</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                          <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
+                          <attribute guid="62e1754b-7629-4e63-9cec-10ae0c536f1f">FALSE</attribute>
+                          <attribute guid="8294df19-5962-4dee-a874-1051dabb0e3e">0</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </transition>
+                  <jumpStep localId="10" targetName="HVAC">
+                    <position x="0" y="0" />
+                    <connectionPointIn>
+                      <connection refLocalId="9" />
+                    </connectionPointIn>
+                    <addData>
+                      <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
+                        <attributes xmlns="">
+                          <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">HVAC</attribute>
+                          <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
+                        </attributes>
+                      </data>
+                    </addData>
+                  </jumpStep>
+                </SFC>
+              </body>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/sfcsettings" handleUnknown="implementation">
+                  <SFCSettings>
+                    <LibTitle>IecSfc</LibTitle>
+                    <LibCompany>System</LibCompany>
+                    <LibVersion>4.1.0.0</LibVersion>
+                    <LibNamespace>IecSfc</LibNamespace>
+                    <CalcActiveTransOnly>false</CalcActiveTransOnly>
+                    <UseDefaults>false</UseDefaults>
+                    <Flags>
+                      <EnableLimit Declare="true" Use="false" />
+                      <Init Declare="true" Use="false" />
+                      <Reset Declare="true" Use="false" />
+                      <QuitError Declare="true" Use="false" />
+                      <Pause Declare="true" Use="false" />
+                      <Error Declare="true" Use="false" />
+                      <Trans Declare="true" Use="false" />
+                      <ErrorStep Declare="true" Use="false" />
+                      <ErrorPOU Declare="true" Use="false" />
+                      <CurrentStep Declare="true" Use="false" />
+                      <Tip Declare="true" Use="false" />
+                      <TipMode Declare="true" Use="false" />
+                      <MaxFlags Declare="true" Use="false" />
+                      <SFCErrorAnalyzation Declare="true" Use="false" />
+                      <SFCErrorAnalyzationTable Declare="true" Use="false" />
+                      <CurrentSteps Declare="false" Use="false" />
+                    </Flags>
+                  </SFCSettings>
+                </data>
+              </addData>
             </pou>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
