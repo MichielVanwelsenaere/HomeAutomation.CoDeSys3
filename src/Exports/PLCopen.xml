@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2025-08-07T21:19:52.7847591" />
-  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2025-08-07T21:18:48.3073413">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2026-02-03T13:38:40.6404858" />
+  <contentHeader name="HomeAutomation.ecp" modificationDateTime="2026-02-03T13:38:16.7598415">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -98,12 +98,12 @@
                 <derived name="JSONVAR" />
               </type>
             </variable>
-            <variable name="obj_id">
+            <variable name="default_entity_id">
               <type>
                 <derived name="JSONVAR" />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object_id</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> default entity id</xhtml>
               </documentation>
             </variable>
             <variable name="uniq_id">
@@ -1659,7 +1659,7 @@ code. You can evaluate the return value.</xhtml>
 
 // 	Entity related: Basis
 MqttDiscMsgSensorDiagnostic.name.CharString :=  name; // friendly name
-MqttDiscMsgSensorDiagnostic.obj_id.CharString :=  Id; 
+MqttDiscMsgSensorDiagnostic.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgSensorDiagnostic.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -1854,7 +1854,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgSwitch.name.CharString :=  name; // friendly name
-MqttDiscMsgSwitch.obj_id.CharString :=  Id; 
+MqttDiscMsgSwitch.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgSwitch.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -2044,7 +2044,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgLightDim.name.CharString :=  name; // friendly name
-MqttDiscMsgLightDim.obj_id.CharString :=  Id; 
+MqttDiscMsgLightDim.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgLightDim.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -2202,7 +2202,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgSensor.name.CharString :=  name; // friendly name
-MqttDiscMsgSensor.obj_id.CharString :=  Id; 
+MqttDiscMsgSensor.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgSensor.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -2353,7 +2353,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgSiren.name.CharString :=  name; // friendly name
-MqttDiscMsgSiren.obj_id.CharString :=  Id; 
+MqttDiscMsgSiren.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgSiren.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -2503,7 +2503,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgLock.name.CharString :=  name; // friendly name
-MqttDiscMsgLock.obj_id.CharString :=  Id; 
+MqttDiscMsgLock.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgLock.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -2642,7 +2642,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgLight.name.CharString :=  name; // friendly name
-MqttDiscMsgLight.obj_id.CharString :=  Id; 
+MqttDiscMsgLight.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgLight.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -2992,7 +2992,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgCover.name.CharString :=  name; // friendly name
-MqttDiscMsgCover.obj_id.CharString :=  Id; 
+MqttDiscMsgCover.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgCover.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -3273,7 +3273,7 @@ END_IF</xhtml>
 
 // 	Entity related: Basis
 MqttDiscMsgBinSens.name.CharString :=  name; // friendly name
-MqttDiscMsgBinSens.obj_id.CharString :=  Id; 
+MqttDiscMsgBinSens.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgBinSens.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -3425,7 +3425,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgBinSensWCat.name.CharString :=  name; // friendly name
-MqttDiscMsgBinSensWCat.obj_id.CharString :=  Id; 
+MqttDiscMsgBinSensWCat.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgBinSensWCat.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -3562,7 +3562,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgEvent.name.CharString :=  name; // friendly name
-MqttDiscMsgEvent.obj_id.CharString :=  Id; 
+MqttDiscMsgEvent.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgEvent.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -3717,7 +3717,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgValve.name.CharString :=  name; // friendly name
-MqttDiscMsgValve.obj_id.CharString :=  Id; 
+MqttDiscMsgValve.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgValve.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -3880,7 +3880,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgClimate.name.CharString :=  name; // friendly name
-MqttDiscMsgClimate.obj_id.CharString :=  Id; 
+MqttDiscMsgClimate.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgClimate.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
@@ -4027,7 +4027,7 @@ END_IF
 
 // 	Entity related: Basis
 MqttDiscMsgValveState.name.CharString :=  name; // friendly name
-MqttDiscMsgValveState.obj_id.CharString :=  Id; 
+MqttDiscMsgValveState.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
 MqttDiscMsgValveState.uniq_id.CharString :=  Id; 
 
 // Entity related: Specific
