@@ -54,7 +54,6 @@ With many PLCs having an onboard RS485 serial port it is a popular protocol to c
 How to use Modbus RTU differs depending on the PLC/development environment used. The topics below address the usage of Modbus RTU in several development environments:
 
 - [Using Modbus RTU with the CODESYS 3S runtime](./docs/RS485/UsingModbusRTU_CODESYS3S.md)
-- [Using Modbus RTU with the é!COCKPIT runtime](./docs/RS485/UsingModbusRTU_éCOCKPIT.md)
 
 ### RS485 function blocks
 To translate the byte array received by the modbus device to their actual value and send their values through MQTT the function blocks below have been developed. Note that a specific function block is required for each type of Modbus RTU device.
