@@ -6,3 +6,4 @@
 **.drawio.bkp
 *.precompilecache
 **/HomeAutomation*.ecp
+.DS_Store
