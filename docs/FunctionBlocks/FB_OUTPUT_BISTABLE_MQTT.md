@@ -16,7 +16,7 @@ Designed to control bistable relays, can be switched using pulses that are high 
 
 INPUT(S)
 - FEEDBACK: feedback from the bistable input, should be high when the relay is turned on and low when turned off.
-- TOGGLE: when high the output `OUT` gets a pulse. input should one be high for one clockcycle.
+- TOGGLE: when high the output `OUT` gets a pulse. The input should only be high for one clock cycle.
 - PRIO_HIGH: when high and input `FEEDBACK` low, the output `OUT` gets a pulse. Has priority over the `TOGGLE` and `PRIO_LOW` input.
 - PRIO_LOW: when high and input `FEEDBACK` low, the output `OUT` gets a pulse. Has priority over the `TOGGLE` input.
 
@@ -30,10 +30,10 @@ METHOD(S)
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     - `pMqttCallbackCollector`: datatype *SD_MQTT.CallbackCollector*, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
     
-- PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 
-- ConfigureFunctionBlock: configures the behaviour of output `OUT` using the parameters below:
-    - `T_Hold`: duration of the pulse generated on output `OUT` to switch the bistable relais.
+- ConfigureFunctionBlock: configures the behavior of output `OUT` using the parameters below:
+    - `T_Hold`: duration of the pulse generated on output `OUT` to switch the bistable relay.
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -42,7 +42,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **Input changes: FEEDBACK**   | A change is detected on input `FEEDBACK`. | `TRUE/FALSE` | 2 | `TRUE` | yes
 
-MQTT publish topic is a concatination of the publish prefix and the function block name. 
+MQTT publish topic is a concatenation of the publish prefix and the function block name. 
 
 ### **MQTT subscribe behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -74,7 +74,6 @@ FB_DO_BISTABLE_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),       
 ```
 The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalOutputs/FB_DO_BISTABLE_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/DigitalOutputs/FB_DO_BISTABLE_001` (MQTTSubSwitchPrefix variable + function block name).
 
-
 - checking for events to switch the digital output (cyclic):
 ```
 FB_DO_BISTABLE_001(OUT=>  DO_001,           (* couple the function block to the physical output *)
@@ -98,35 +97,35 @@ FB_DO_BISTABLE_001(OUT=>  DO_001,           (* couple the function block to the 
 ```
 (* switch entity *)
 FB_DO_BISTABLE_001.InitMqttDiscoveryAsSwitch(
-	Name := 'switch 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'switch 001',			        (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 
 (* light entity *)
 FB_DO_BISTABLE_001.InitMqttDiscoveryAsLight(
-	Name := 'light 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'light 001',			        (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 
 (* siren entity *)
 FB_DO_BISTABLE_001.InitMqttDiscoveryAsSiren(
-	Name := 'siren 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'siren 001',			        (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 
 (* lock entity *)
 FB_DO_BISTABLE_001.InitMqttDiscoveryAsLock(
-	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'lock 001',			            (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 ```
 
-By default a 'NO' (Normally Open) contact is asumed for MQTT discovery yet this can be inverted to a 'NC' (Normally Closed) contact by leveraging the 'Invert' parameter:
+By default a 'NO' (Normally Open) contact is assumed for MQTT discovery yet this can be inverted to a 'NC' (Normally Closed) contact by leveraging the 'Invert' parameter:
 
 ```
 FB_DO_BISTABLE_001.InitMqttDiscoveryAsLock(
-	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'lock 001',			            (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
     Invert := TRUE                          (* FALSE by default = NO, TRUE = NC *)
 );
 ```

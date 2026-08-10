@@ -40,7 +40,7 @@ METHOD(S)
   - `pMqttCallbackCollector`: datatype _SD_MQTT.CallbackCollector_, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
   - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
   - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
-- PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 
 - SetValue: method to set the function block virtual value, only works if the function block is in output mode.
 
@@ -56,7 +56,7 @@ MQTT publish topic is a concatenation of the publish prefix and the function blo
 
 ### **MQTT subscribe behavior**
 
-Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable is the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
+Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
 | Command                           | Description                                          | expected payload | Additional notes |
@@ -146,7 +146,7 @@ input_text:
     initial: Hello PLC!
 ```
 
-Configure the automation below in your automations.yaml file to publish any changes on the Input Text entity on a MQTT topic:
+Configure the automation below in your automations.yaml file to publish any changes on the Input Text entity on an MQTT topic:
 
 ```YAML
 - id: fb_virtual_string_001-to-mqtt

@@ -34,7 +34,7 @@ METHOD(S)
     - `MqttQos`: datatype *SD_MQTT.QoS*, configures the MQTT Qos for the function block published messages.  
     - `MqttRetain`: datatype *BOOL*, configures the MQTT retain flag for the function block published messages.
     
-- PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 
 - SetValue: method to set the function block virtual value, only works if the function block is in output mode.
 
@@ -49,7 +49,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if 
 MQTT publish topic is a concatenation of the publish prefix and the function block name. 
 
 ### **MQTT subscribe behavior**
-Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable is the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
+Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if the function block is configured in input mode which will allow the input of a value to the PLC through MQTT which will be exposed on the function block `OUT` output.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
 | Command | Description | expected payload | Additional notes | 
@@ -134,7 +134,7 @@ input_number:
     icon: mdi:target
 ```
 
-Configure the automation below in your automations.yaml file to publish any changes on the Input Number slider on a MQTT topic:
+Configure the automation below in your automations.yaml file to publish any changes on the Input Number slider on an MQTT topic:
 
 ```YAML
 - id: fb_virtual_int_001-to-mqtt

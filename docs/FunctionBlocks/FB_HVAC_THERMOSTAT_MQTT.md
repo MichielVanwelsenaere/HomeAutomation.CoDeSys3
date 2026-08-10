@@ -3,7 +3,7 @@
 
 ### **General**
 
-Designed to control the heat requirements in a room. Creates a thermostat entity in Home-Assistant allowing controlling the desired temperature.
+Designed to control the heat requirements in a room. Creates a thermostat entity in Home Assistant that allows control of the desired temperature.
 
 ### **Block diagram**
 
@@ -33,20 +33,23 @@ METHOD(S)
   - `pMqttCallbackCollector`: datatype _SD_MQTT.CallbackCollector_, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
   - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
   - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
-- PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 
 
 ### **MQTT publish behavior**
 
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
-| Event                 | Description                         | MQTT payload | QoS                                  | Retain flag                          | Published on startup                 |
-| :-------------------- | :---------------------------------- | :----------- | :----------------------------------- | :----------------------------------- | :----------------------------------- |
-| **output changes: OUT** | A change is detected on output `OUT`. | `TRUE/FALSE` | 2 | `TRUE` | yes |
-| **input changes: MEASURED_TEMP** | A change is detected on input `MEASURED_TEMP`. | `TRUE/FALSE` | 2 | `TRUE` | yes |
-| **input changes: MEASURED_HUM** | A change is detected on output `MEASURED_HUM`. | `TRUE/FALSE` | 2 | `TRUE` | yes |
+| Event                 | Description                         | Topic suffix | MQTT payload | QoS | Retain flag | Published on startup |
+| :-------------------- | :---------------------------------- | :----------- | :----------- | :-- | :---------- | :------------------- |
+| **output changes: OUT** | A change is detected on output `OUT`. | _(none)_ | `TRUE/FALSE` | 2 | `TRUE` | yes |
+| **input changes: MEASURED_TEMP** | A change is detected on input `MEASURED_TEMP`. | `/TEMP` | real value | 2 | `TRUE` | yes |
+| **input changes: MEASURED_HUM** | A change is detected on input `MEASURED_HUM`. | `/HUM` | real value | 2 | `TRUE` | yes |
+| **target temperature changes** | The desired temperature is changed, either locally or through MQTT. | `/DESIRED_TEMP` | real value | 2 | `TRUE` | yes |
+| **thermostat mode changes** | The thermostat mode is changed. | `/MODE` | `auto`, `off` or `heat` | 2 | `TRUE` | yes |
+| **allowed range is published** | The configured `MinAllowedTemp` / `MaxAllowedTemp` bounds. | `/MIN_TEMP`, `/MAX_TEMP` | real value | 2 | `TRUE` | yes |
 
-MQTT publish topic is a concatenation of the publish prefix and the function block name.
+MQTT publish topic is a concatenation of the publish prefix and the function block name, followed by the topic suffix listed above where applicable.
 
 ### **MQTT subscribe behavior**
 
@@ -54,7 +57,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities. Commands are execut
 
 | Command                     | Description                                          | expected payload | Additional notes                                                 |
 | :-------------------------- | :--------------------------------------------------- | :--------------- | :--------------------------------------------------------------- |
-| **Set desired temperature**  | Request to set specific temperature value. value expected on `DESIRED_TEMP` subtopic.                   | any number          | Command executed when value is between `MinAllowedTemp` and `MaxAllowedTemp` . |
-| **Set desired thermostat mode**  | Request to set thermostat to a specific mode. value expected on `MODE` subtopic.                   | `auto`, `off` or `heat`  |  |
+| **Set desired temperature**  | Request to set a specific temperature value. Value expected on the `DESIRED_TEMP` subtopic.                   | any number          | Command executed when the value is between `MinAllowedTemp` and `MaxAllowedTemp`. |
+| **Set desired thermostat mode**  | Request to set the thermostat to a specific mode. Value expected on the `MODE` subtopic.                   | `auto`, `off` or `heat`  |  |
 
 MQTT subscription topic is a concatenation of the subscribe prefix variable and the function block name.

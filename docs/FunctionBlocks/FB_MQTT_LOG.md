@@ -14,9 +14,9 @@ METHOD(S)
   - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
   - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
   - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
-  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
+  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
 - send: allows logging to MQTT. The output string is formatted as follows: `instance | payload`
-  - `instance` String for your own choice.
+  - `instance`: datatype _STRING_, a label of your own choice.
   - `payload`: datatype _STRING_, the payload to be sent to MQTT. String(128)
 - InitMqttDiscovery:
   - See [MQTT Discovery](./../AdditionalFunctionality/MQTT_Discovery.md) for more info.
@@ -46,11 +46,11 @@ MqttVariables.MQTT_logger.send('Init finished');
 - MQTT discovery:
 ```
 MqttVariables.MQTT_logger.InitMqttDiscovery(
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 ```
 ### **Home Assistant YAML**
-If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the following to your `configuration.yaml`:
+If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can add the following to your `configuration.yaml`:
 
 ```yaml
 - name: "plc_log"

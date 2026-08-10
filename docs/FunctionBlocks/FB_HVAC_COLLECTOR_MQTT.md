@@ -3,7 +3,7 @@
 
 ### **General**
 
-Designed to control multiple valves that share the same pump. Valves can be controlled via the thermostats function blocks
+Designed to control multiple valves that share the same pump. Valves can be controlled via the thermostat function blocks.
 
 ### **Block diagram**
 
@@ -16,7 +16,8 @@ INPUT(S)
 OUTPUT(S)
 
 - VALVE_X: datatype _BOOL_, output for the valve that should be controlled by the matching thermostat.
-- PUMP: datatype _BOOL_, output that should be directed to a HVAC pump function block in order to turn a pump on or off.
+- PUMP: datatype _BOOL_, output that should be directed to an HVAC pump function block in order to turn a pump on or off.
+
 
 METHOD(S)
 
