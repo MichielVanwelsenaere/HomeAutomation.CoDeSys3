@@ -2,10 +2,10 @@
 
 The topics are predefined once in the `MqttVariables`.
 
-Mqtt works with subscriptions and publications. An example for a dimmer publication is 
+MQTT works with subscriptions and publications. An example for a dimmer publication is 
   `Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/OUT`
 
-If you change any of these topic. Keep an eye on the **length of the topic and or STRING() size**
+If you change any of these topics, keep an eye on the **length of the topic and/or STRING() size**.
 	
 ```ST
 	(* Broker setup *)
@@ -49,11 +49,11 @@ If you change any of these topic. Keep an eye on the **length of the topic and o
 
 ```
 
-## MQTT Birth and Last will message
+## MQTT Birth and Last Will message
 
 ### **General**
 
-The software supports so-called Birth and Last Will and Testament (LWT) messages. The former is used to send a message after the service has started, and the latter is used to notify other clients about an ungracefully disconnected client. In addtion to a Birth message on startup the Birth message is also published cyclic as a harbeat.
+The software supports so-called Birth and Last Will and Testament (LWT) messages. The former is used to send a message after the service has started, and the latter is used to notify other clients about an ungracefully disconnected client. In addition to a Birth message on startup, the Birth message is also published cyclically as a heartbeat.
 
 ### **Examples**
 
@@ -66,4 +66,4 @@ Payload: `online`
 Topic: `Devices/PLC/House/availability`</br>
 Payload: `offline`
 
-Note that the Topics and payloads can be changed in de code. The Birth message is by default published during startup and after that every 5 seconds (hartbeat). This can be changed as well in the code. 
+Note that the topics and payloads can be changed in the code. The Birth message is by default published during startup and after that every 5 seconds (heartbeat). This can be changed in the code as well.

@@ -3,11 +3,27 @@
 
 ### **General**
 
-Designed to control multiple valves that share the same pump. Valves can be controlled via the thermostats function blocks
+Designed to control multiple valves that share the same pump. Valves can be controlled via the thermostat function blocks.
 
 ### **Block diagram**
 
-<img src="../_img/FB_HVAC_COLLECTOR_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌────────────────────────┐
+       │ FB_HVAC_COLLECTOR_MQTT │
+       ├────────────────────────┤
+BOOL ──┤ THERMOSTAT_1   VALVE_1 ├── BOOL
+BOOL ──┤ THERMOSTAT_2   VALVE_2 ├── BOOL
+BOOL ──┤ THERMOSTAT_3   VALVE_3 ├── BOOL
+BOOL ──┤ THERMOSTAT_4   VALVE_4 ├── BOOL
+BOOL ──┤ THERMOSTAT_5   VALVE_5 ├── BOOL
+BOOL ──┤ THERMOSTAT_6   VALVE_6 ├── BOOL
+BOOL ──┤ THERMOSTAT_7   VALVE_7 ├── BOOL
+BOOL ──┤ THERMOSTAT_8   VALVE_8 ├── BOOL
+       │                   PUMP ├── BOOL
+       └────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 
@@ -16,7 +32,8 @@ INPUT(S)
 OUTPUT(S)
 
 - VALVE_X: datatype _BOOL_, output for the valve that should be controlled by the matching thermostat.
-- PUMP: datatype _BOOL_, output that should be directed to a HVAC pump function block in order to turn a pump on or off.
+- PUMP: datatype _BOOL_, output that should be directed to an HVAC pump function block in order to turn a pump on or off.
+
 
 METHOD(S)
 

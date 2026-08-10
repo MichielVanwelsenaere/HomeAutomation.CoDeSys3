@@ -6,7 +6,18 @@ Reads out a digital input and sets a single, double or long output high for one 
 
 ### **Block diagram**
 
-<img src="../_img/FB_INPUT_PUSHBUTTON_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌──────────────────────────┐
+       │ FB_INPUT_PUSHBUTTON_MQTT │
+       ├──────────────────────────┤
+BOOL ──┤ PB                SINGLE ├── BOOL
+       │                   DOUBLE ├── BOOL
+       │                     LONG ├── BOOL
+       │                   P_LONG ├── BOOL
+       └──────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 - PB: digital input linked to the signal wire of a pushbutton.
@@ -21,9 +32,9 @@ METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
-    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
+    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
 
-- ConfigureFunctionBlock: configures the time parameter specifing the decoding time for long key press. Defaults to 400ms.
+- ConfigureFunctionBlock: configures the time parameter specifying the decoding time for a long key press. Defaults to 400ms.
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -71,8 +82,8 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 - MQTT discovery:
 ```
 FB_DI_PB_001.InitMqttDiscovery(
-	Name := 'pushbutton 001',			    (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'pushbutton 001',			    (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 ```
 

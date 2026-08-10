@@ -1,7 +1,7 @@
 ## FB_RS485_EASTRON_SDM_POWER_MQTT
 
 ### **General**
-Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired.
+Used to process Modbus RTU data received over RS485 into human-understandable values and publish data updates through MQTT if desired.
 This function block aims to read power consumption from a range of Eastron SDM power meters. Currently the Eastron SDM120, SDM220 and SDM630 are supported.
 
 Eastron SDM120 datasheets:
@@ -17,19 +17,29 @@ Eastron SDM630 datasheet:
 
 ### **Block diagram**
 
-<img src="../_img/FB_RS485_EASTRON_SDM_POWER_MQTT.svg" width="500">
+<!-- fb-diagram:start -->
+```text
+   ┌─────────────────────────────────┐
+   │ FB_RS485_EASTRON_SDM_POWER_MQTT │
+   ├─────────────────────────────────┤
+   │                     ACTIVEPOWER ├── REAL
+   │                   DataAvailable ├── BOOL
+   │                           Error ├── BOOL
+   └─────────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 OUTPUT(S):
 - ACTIVEPOWER: datatype real.
-- DataAvailable: datatype bool, high when data is available read by modbus read commando. This means the output is only low on startup until modbus read commando has been executed successfully.
-- Error: datatype bool, high when an error occured while executing modbus read commando.
+- DataAvailable: datatype bool, high when data is available read by Modbus read command. This means the output is only low on startup until Modbus read command has been executed successfully.
+- Error: datatype bool, high when an error occurred while executing Modbus read command.
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.  
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.     
-    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
-- InitRS485: configures the Modbus RTU device address and the execution/polling interval for the modbus read command.
+    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
+- InitRS485: configures the Modbus RTU device address and the execution/polling interval for the Modbus read command.
 - RequestBusTime: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
@@ -41,8 +51,9 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
 | **output is updated**   | the output is updated. | real value | 2 | `FALSE` | no
 
-MQTT publish topic is a concatenation of the publish prefix and the function block name and a unique value: 
-| output       | MQTT topc suffic | Unit         | 
+MQTT publish topic is a concatenation of the publish prefix, the function block name and a unique value:
+
+| output       | MQTT topic suffix | Unit         |
 |:-------------|:------------------|:------------------|
 | ACTIVEPOWER |  `/ACTP` | Watts
 
@@ -73,7 +84,7 @@ FB_RS485_EASTRON_SDM_POWER_001.InitMqtt(
 ```
 The MQTT publish topic in this code example will be `Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001` (MQTTPubSwitchPrefix variable + function block name).
 
-- Registering device to a buscontroller (called once during startup):
+- Registering device to a bus controller (called once during startup):
 ```
 RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM_POWER_001);
 ```

@@ -1,5 +1,5 @@
 ## How-to: updating function blocks to the latest version
-This page describes the advised process to upgrade the function blocks in the project the latest version.
+This page describes the advised process to upgrade the function blocks in the project to the latest version.
 
 1. Navigate to the [src/PLCOpen](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/blob/master/src/Exports/PLCopen.xml) directory on GitHub.
 2. Download the xml file. This file contains an export of the entire project. 

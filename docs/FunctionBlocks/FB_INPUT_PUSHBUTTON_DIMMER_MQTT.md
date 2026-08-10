@@ -5,13 +5,27 @@ Big brother of input function block [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBU
 
 ### **Block diagram**
 
-<img src="../_img/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌─────────────────────────────────┐
+       │ FB_INPUT_PUSHBUTTON_DIMMER_MQTT │
+       ├─────────────────────────────────┤
+BOOL ──┤ PB                          DIM ├── BYTE
+BOOL ──┤ SET                         DBL ├── BOOL
+BYTE ──┤ VAL                           Q ├── BOOL
+BOOL ──┤ RST                      SINGLE ├── BOOL
+       │                          DOUBLE ├── BOOL
+       │                            LONG ├── BOOL
+       │                          P_LONG ├── BOOL
+       └─────────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 - PB: digital input linked to the signal wire of a pushbutton.
 - VAL: byte value for SET operation.
-- SET: input for switching output DIM to input VAL value.
-- RST: input to switch of the output.
+- SET: input for switching output DIM to the input VAL value.
+- RST: input to switch off the output.
 
 OUTPUT(S)
 - SINGLE: output high for one clock cycle when a single push is detected on input `PB`.
@@ -29,23 +43,23 @@ METHOD(S)
     - `OutputDimmer`: datatype *BOOL*, specify whether the DIM values (0-255) should be outputted as MQTT events.
     - `Qos_Dimm`: datatype *SD_MQTT.QoS*, MQTT QoS of the DIM MQTT events.
     - `Delta_Dimm`: datatype *INT*, resolution of the MQTT DIM events. For example: specifying value *5* will configure the FB to only emit an MQTT event when the DIM output differs *5* or more than its previous value. Note that the last value of output DIM (when input `PB` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last DIM value published through MQTT is always synchronized with the DIM output of the FB.
-    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
+    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
 
-- ConfigureFunctionBlock: configures the dimmer with your prefered configurations, an overview of the parameters and their default values:
+- ConfigureFunctionBlock: configures the dimmer with your preferred settings, an overview of the parameters and their default values:
     - `T_Debounce`: debounce time for input PB, defaults to 10ms.
     - `T_Reconfig`:  reconfiguration time, defaults to 10S.
     - `T_On_Max`: start limitation, defaults to 0ms.
     - `T_Dimm_Start`: reaction time to dim, defaults to 400ms.
-    - `T_Dimm`: time for a dimming ramps, defaults to 3s.
+    - `T_Dimm`: time for a dimming ramp, defaults to 3s.
     - `Min_On`: minimum value of output DIM at startup, defaults to 50.
     - `Max_On`: maximum value of output DIM at startup, defaults to 255.
     - `Soft_Dimm`: if TRUE dimming begins after ON and at 0. 
     - `Dbl_Toggle`: if TRUE the output DBL is inverted at each double-click, defaults to FALSE.
-    - `Rst_Out`: if input Rst is TRUE, ouput DIM is set to 0, defaults to FALSE.
-    - `T_Long`: configures the time parameter specifying the decoding time for long key press. Defaults to 400mS. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`.
+    - `Rst_Out`: if input Rst is TRUE, output DIM is set to 0, defaults to FALSE.
+    - `T_Long`: configures the time parameter specifying the decoding time for a long key press. Defaults to 400ms. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`.
 
-### **Function Block Behaviour**
-This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events for single, double, long and dimmer events. To fully understand it's logic it's advised to give the documentation present in [the OSCAT building library docs](../_img/oscat_building100_en.pdf) a good read (page 52).
+### **Function Block Behavior**
+This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events for single, double, long and dimmer events. To fully understand its logic it's advised to give the documentation present in [the OSCAT building library docs](../_img/oscat_building100_en.pdf) a good read (page 52).
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -81,7 +95,7 @@ FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* point
     5                                                                   (* specify the resolution for the dimmer mqtt events *)    
 );
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name). Note that for the outputs `Q`, `DBL` and `DIM` the MQTT publish topic has an additional concatination being the name of the output. For example: `Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM`.
+The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name). Note that for the outputs `Q`, `DBL` and `DIM` the MQTT publish topic has an additional concatenation being the name of the output. For example: `Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM`.
 
 - reading digital input for events (cyclic):
 ```

@@ -3,13 +3,31 @@
 
 ### **General**
 
-Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through powercycles. Sets the driver fade time and fade rate setting. Allows dimming via a long persistent push on a pushbutton. Performs periodic writes to the DALI address to avoid state issues. 
+Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through power cycles. Sets the driver fade time and fade rate setting. Allows dimming via a long persistent push on a pushbutton. Performs periodic writes to the DALI address to avoid state issues. 
 
 DALI configuration via the Wago DALI tool and creation of the `typBallast` is explained pretty well in [this video](https://www.youtube.com/watch?v=FaoOY2-VFVk).
 
+----------------------------
+
+:rotating_light: **Untested on hardware since the CODESYS conversion.** This function block needs the WAGO DALI module and the WAGO DALI libraries, which are only available on **G2** PFC devices (see [Choosing and preparing your WAGO PFC device](../WagoPfcPrep.md)). The conversion was done on G1 hardware, so nobody has yet run this block on a G2 device. Treat it as unverified, and please report back if you do get it working.
+
+----------------------------
+
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_DIMMER_DALI_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+             ┌────────────────────────────┐
+             │ FB_OUTPUT_DIMMER_DALI_MQTT │
+             ├────────────────────────────┤
+TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
+      BOOL ──┤ TOGGLE                     │
+      BOOL ──┤ P_LONG                     │
+      BOOL ──┤ PRIO_HIGH                  │
+      BOOL ──┤ PRIO_LOW                   │
+             └────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 
@@ -30,13 +48,12 @@ METHOD(S)
   - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.
   - `MQTTSubscribePrefix`: datatype _POINTER TO STRING_, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name.
   - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
+  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
 
-- ConfigureFunctionBlock: configures the dimmer with your preferred configurations, an overview of the parameters and their default values.
+- ConfigureFunctionBlock: configures the dimmer with your preferred settings, an overview of the parameters and their default values.
   - `FadeTime`: _BYTE_ value setting the fade time.
   - `FadeRate`: _BYTE_ value setting the fade rate.
-- PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 
 ### Fade Time and Fade Rate 
 
@@ -70,7 +87,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | Event                   | Description                                | MQTT payload | QoS                                  | Retain flag | Published on startup |
 | :---------------------- | :----------------------------------------- | :----------- | :----------------------------------- | :---------- | :------------------- |
 | **Light intensity value changes**   | Light intensity value changes | `0-100` | 2                                    | `TRUE`      | yes                   |
-| **light intensity values changes to 0 or 100** | Light intensity value changes to minimum or maximum value, published on `BRIGHTNESS` subtopic. | `ON/OFF`      | 2` | `TRUE`      | yes, if light intensity value > 0                   |
+| **Light intensity value changes to 0 or 100** | Light intensity value changes to minimum or maximum value, published on `BRIGHTNESS` subtopic. | `ON/OFF`      | 2 | `TRUE`      | yes, if light intensity value > 0                   |
 
 (\*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output.
 
@@ -138,8 +155,8 @@ The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_
 - MQTT discovery:
 ```
 FB_DALI_1_ADR0.InitMqttDiscovery(
-    name := '001. Office strip cold',				(* The name show in Home Assistant frond-end*)
-    Device := ADR(PLC_Device),							(* The device show in Home Assistant *)
+    name := '001. Office strip cold',				(* The name shown in the Home Assistant front-end *)
+    Device := ADR(PLC_Device),							(* The device shown in Home Assistant *)
 );
 ```
 

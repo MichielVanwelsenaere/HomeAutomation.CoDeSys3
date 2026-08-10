@@ -7,17 +7,27 @@ Designed to control a pump with a simple on/off signal and request heat from the
 
 ### **Block diagram**
 
-<img src="../_img/FB_HVAC_PUMP_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌────────────────────────┐
+       │   FB_HVAC_PUMP_MQTT    │
+       ├────────────────────────┤
+BOOL ──┤ IN                PUMP ├── BOOL
+       │           HEAT_REQUEST ├── BOOL
+       │      MIN_ONTIME_ACTIVE ├── BOOL
+       └────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 
-- IN: datatype _STRING_, should be made high if pump flow is required.
+- IN: datatype _BOOL_, should be made high if pump flow is required.
 
 OUTPUT(S)
 
-- PUMP: datatype _BOOL_, output for switching the pump on and off. Respects a minimum on and off runtime value to prevent damaging the pump
-- HEAT_REQUEST: datatype _BOOL_, output for requesting heat from the burner. Follows the input `IN` more closely then output `PUMP` since the minimum runtime for the burner is controlled in the burner function block. 
-- MIN_ONTIME_ACTIVE: datatype _BOOL_, output indicating when the pump is in it's minimum runtime time cycle.
+- PUMP: datatype _BOOL_, output for switching the pump on and off. Respects a minimum on and off runtime value to prevent damaging the pump.
+- HEAT_REQUEST: datatype _BOOL_, output for requesting heat from the burner. Follows the input `IN` more closely than output `PUMP` since the minimum runtime for the burner is controlled in the burner function block.
+- MIN_ONTIME_ACTIVE: datatype _BOOL_, output indicating when the pump is in its minimum runtime cycle.
 
 METHOD(S)
 
@@ -36,7 +46,7 @@ METHOD(S)
 
 ### **MQTT publish behavior**
 
-Requires method call `InitMQTT` to enable MQTT capabilities. O
+Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event                 | Description                         | MQTT payload | QoS                                  | Retain flag                          | Published on startup                 |
 | :-------------------- | :---------------------------------- | :----------- | :----------------------------------- | :----------------------------------- | :----------------------------------- |

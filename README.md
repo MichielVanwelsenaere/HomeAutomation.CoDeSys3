@@ -1,18 +1,18 @@
-# MQTT enabled CoDeSys 3 Home Automation
+# MQTT enabled CODESYS 3 Home Automation
 <a href="https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/releases" rel="nofollow"><img src="https://img.shields.io/github/release/MichielVanwelsenaere/HomeAutomation.CoDeSys3.svg" alt="Releases"></a>
 <a href="./LICENSE" rel="nofollow"><img src="https://img.shields.io/github/license/MichielVanwelsenaere/HomeAutomation.CoDeSys3.svg" alt="License"></a>
 
-This CoDeSys 3.5 project is built for home automation purposes. The goal of the approach is to perform any critical operations like reading inputs, switching lights, controlling sunscreens, etc. inside the PLC itself and make use of MQTT to send events to an MQTT broker. Using MQTT subscriptions it's possible to send commands to the PLC to control -for example- outputs. 
+This CODESYS 3.5 project is built for home automation purposes. The goal of the approach is to perform any critical operations like reading inputs, switching lights, controlling sun blinds, etc. inside the PLC itself and make use of MQTT to send events to an MQTT broker. Using MQTT subscriptions it's possible to send commands to the PLC to control -for example- outputs. 
 
 The purpose? Redundancy on a software level but also on a hardware level!
 - PLCs are very (very) robust controllers: no PC, SoC, etc. is more robust and failure resistant. 
 - Hardware continuity: Home automation providers often renew their modules every X years, modules aren't sold anymore or a full upgrade is required when something breaks. PLC models and their modules are sold decades after their initial release date. For an example, check out the Wago 750 series controllers and modules. 
 - Avoid performing critical operations that should work 24/7 inside a less redundant controller (it will fail sooner or later).
-- Keep your wife/girlfriend happy when you're not at home and your Rpi, Odroid, Banana Pi, PC crashes (running your MQTT broker, OpenHab, Home Assistant, etc.).
+- Keep your wife/girlfriend happy when you're not at home and your RPi, Odroid, Banana Pi, PC crashes (running your MQTT broker, openHAB, Home Assistant, etc.).
 
 # Supported Devices & Getting started
-The project is developed using the IEC 61131-3 standard in [CoDeSys](https://www.codesys.com/), though CoDeSys supports a large quantity of different device types this project is specifcally tested/developped on the WAGO PFC100/200 device series.
-There's multiple generations of the WAGO PFC100/200 series, the documentation below aims to get you acquinted with the differences between generations and their implications:
+The project is developed using the IEC 61131-3 standard in [CODESYS](https://www.codesys.com/). Although CODESYS supports a large number of different device types, this project is specifically tested and developed on the WAGO PFC100/200 device series.
+There are multiple generations of the WAGO PFC100/200 series, the documentation below aims to get you acquainted with the differences between generations and their implications:
 
 - [Choosing and preparing your WAGO PFC device](./docs/WagoPfcPrep.md)
 - [Getting started guide](./docs/FAQ/Getting_started_guide_CODESYS_3S.md)
@@ -56,14 +56,14 @@ How to use Modbus RTU differs depending on the PLC/development environment used.
 - [Using Modbus RTU with the CODESYS 3S runtime](./docs/RS485/UsingModbusRTU_CODESYS3S.md)
 
 ### RS485 function blocks
-To translate the byte array received by the modbus device to their actual value and send their values through MQTT the function blocks below have been developed. Note that a specific function block is required for each type of Modbus RTU device.
+To translate the byte array received by the Modbus device to their actual value and send their values through MQTT the function blocks below have been developed. Note that a specific function block is required for each type of Modbus RTU device.
 
 - [FB_RS485_EASTRON_SDM220_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM220_MQTT.md)
 - [FB_RS485_EASTRON_SDM_POWER_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM_POWER_MQTT.md)
 - [FB_RS485_DUCO_DUCOBOX_MQTT](./docs/FunctionBlocks/FB_RS485_DUCO_DUCOBOX_MQTT.md)
 - [FB_RS485_ESERA_OWD_MQTT](./docs/FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)
 
-In addition to the above a buscontroller function block ([FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md))
+In addition to the above a bus controller function block ([FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md))
 is used to control access to the RS485 bus between multiple RS485 device function blocks.
 
 ## DALI
@@ -88,7 +88,7 @@ Control your HVAC setup, more detail in the [HVAC getting started guide](./docs/
 
 - [MQTT related settings](./docs/AdditionalFunctionality/MQTT_General.md)
 - [MQTT Discovery](./docs/AdditionalFunctionality/MQTT_Discovery.md)
-- [Controlling Wago PFC user leds](./docs/AdditionalFunctionality/User_leds_Codesys3S_runtime.md)
+- [Controlling Wago PFC user LEDs](./docs/AdditionalFunctionality/User_leds_CODESYS3S_runtime.md)
 
 # FAQ
 
@@ -107,9 +107,9 @@ The following libraries are used in this PLC project and can be found under `src
     - PRO_JSON ([stefandreyer/JSON-Library](https://github.com/stefandreyer/JSON-Library))
     - OSCAT_NETWORK_TYPES ([stefandreyer/OSCAT-NETWORK](https://github.com/stefandreyer/OSCAT-NETWORK))
     - BASIC_Extension ([stefandreyer/OSCAT-BASIC](https://github.com/stefandreyer/OSCAT-BASIC))
-- OSCAT NETWORK ([link](https://store.codesys.com/oscat-building.html))
+- OSCAT NETWORK ([link](https://store.codesys.com/oscat-network.html))
 - OSCAT BASIC ([link](https://store.codesys.com/oscat-basic.html))
-- OSCAT BUILDING ([link](https://store.codesys.com/oscat-network.html))
+- OSCAT BUILDING ([link](https://store.codesys.com/oscat-building.html))
 
-Special thanks to Stefan Dreyer for his assistance in some of the MQTT aspects of this project and his great work on his open-source CoDeSys MQTT library.
+Special thanks to Stefan Dreyer for his assistance in some of the MQTT aspects of this project and his great work on his open-source CODESYS MQTT library.
 

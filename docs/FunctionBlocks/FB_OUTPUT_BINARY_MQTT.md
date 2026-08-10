@@ -2,14 +2,24 @@
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
-Can be switched using pulses that are high for one clock cycle (for example from `FB_INPUT_PUSHBUTTON_MQTT`), maintains output state through powercycles.
+Can be switched using pulses that are high for one clock cycle (for example from `FB_INPUT_PUSHBUTTON_MQTT`), and maintains output state through power cycles.
 
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_BINARY_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌───────────────────────┐
+       │ FB_OUTPUT_BINARY_MQTT │
+       ├───────────────────────┤
+BOOL ──┤ PRIO_HIGH         OUT ├── BOOL
+BOOL ──┤ PRIO_LOW              │
+BOOL ──┤ TOGGLE                │
+       └───────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
-- TOGGLE: when high the output `OUT` gets toggled. input should one be high for one clockcycle.
+- TOGGLE: when high the output `OUT` gets toggled. The input should only be high for one clock cycle.
 - PRIO_HIGH: when high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input.
 - PRIO_LOW: when high the output `OUT` is set to low, has priority over the `TOGGLE` input.
 
@@ -23,7 +33,7 @@ METHOD(S)
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
     - `pMqttCallbackCollector`: datatype *SD_MQTT.CallbackCollector*, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
     
-- PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -87,32 +97,32 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 ```
 (* switch entity *)
 FB_DO_SW_001.InitMqttDiscoveryAsSwitch(
-	Name := 'switch 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'switch 001',			        (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 
 (* light entity *)
 FB_DO_SW_001.InitMqttDiscoveryAsLight(
-	Name := 'light 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'light 001',			        (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 
 (* siren entity *)
 FB_DO_SW_001.InitMqttDiscoveryAsSiren(
-	Name := 'siren 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'siren 001',			        (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 
 (* lock entity *)
 FB_DO_SW_001.InitMqttDiscoveryAsLock(
-	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'lock 001',			            (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 
 (* valve entity *)
 FB_DO_SW_001.InitMqttDiscoveryAsValve(
-	Name := 'valve 001',			        (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'valve 001',			        (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 ```
 
@@ -120,8 +130,8 @@ By default a 'NO' (Normally Open) contact is assumed for MQTT discovery yet this
 
 ```
 FB_DO_SW_001.InitMqttDiscoveryAsLock(
-	Name := 'lock 001',			            (* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'lock 001',			            (* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
     Invert := TRUE                          (* FALSE by default = NO, TRUE = NC *)
 );
 ```

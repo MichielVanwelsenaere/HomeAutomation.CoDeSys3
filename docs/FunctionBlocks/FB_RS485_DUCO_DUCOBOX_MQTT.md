@@ -1,11 +1,11 @@
 ## FB_RS485_DUCO_DUCOBOX_MQTT
 
 ### **General**
-Used to process Modbus RTU data through RS485 to human understandable values and publish data updates through MQTT if desired. Allows finegrained local control on your DucoBox.
+Used to process Modbus RTU data received over RS485 into human-understandable values and publish data updates through MQTT if desired. Allows fine-grained local control of your DucoBox.
 
 ----------------------------
 
-:rotating_light: In order to leverage this modbus integration a communication print (partnumber 0000-4251) is required on the DucoBox.
+:rotating_light: In order to leverage this Modbus integration a communication board (part number 0000-4251) is required on the DucoBox.
 
 ----------------------------
 
@@ -15,14 +15,24 @@ DUCO DUCOBOX Focus data:
 
 ### **Block diagram**
 
-<img src="../_img/FB_RS485_DUCO_DUCOBOX_MQTT.svg" width="500">
+<!-- fb-diagram:start -->
+```text
+   ┌────────────────────────────┐
+   │ FB_RS485_DUCO_DUCOBOX_MQTT │
+   ├────────────────────────────┤
+   │                ACTIVEPOWER ├── REAL
+   │              DataAvailable ├── BOOL
+   │                      Error ├── BOOL
+   └────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.  
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.    
-    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
-- InitRS485: configures the Modbus RTU device address and the execution/polling interval for the multiple modbus read commands.
+    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
+- InitRS485: configures the Modbus RTU device address and the execution/polling interval for the multiple Modbus read commands.
 - RequestBusTime: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
 - ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
@@ -32,9 +42,9 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **register is polled**   | a modbus register is polled | int value | 2 | `FALSE` | no
+| **register is polled**   | a Modbus register is polled | int value | 2 | `FALSE` | no
 
-MQTT publish topic is a concatenation of the publish prefix and the function block name, the node numer and a register number. For example:
+MQTT publish topic is a concatenation of the publish prefix, the function block name, the node number and a register number. For example:
 
 `Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/read/0`
 
@@ -48,7 +58,7 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 |:-------------|:------------------|:------------------|:------------------|
 | **write holding** | Writes an integer value to a specific write register. | `INT` | Only integer values are processed further.
 
-MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/write/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents the entire system). Go through the DUCO modbus register documentation linked above for a deeper understanding.
+MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/House/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/write/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents the entire system). Go through the DUCO Modbus register documentation linked above for a deeper understanding.
 
 Upon a successful write operation the received payload will be published on the 'Out' topic. Continuing with the example above this will result in a payload `30` to be published on topic `Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/write/0`.
 
@@ -78,7 +88,7 @@ FB_RS485_DUCO_DUCOBOX_MQTT_001.InitMqtt(
 ```
 The MQTT publish topic in this code example will be `Devices/PLC/House/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001` (MQTTPubSwitchPrefix variable + function block name).
 
-- Registering device to a buscontroller (called once during startup):
+- Registering device to a bus controller (called once during startup):
 ```
 RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_MQTT_001);
 ```

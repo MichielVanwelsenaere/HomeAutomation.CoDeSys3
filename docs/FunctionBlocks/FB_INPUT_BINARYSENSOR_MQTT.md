@@ -2,11 +2,22 @@
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 
 ### **General**
-Binary sensors gather information about the state of devices which have a "digital" return value (either 1 or 0). These can be switches, contacts, pins, etc. These sensors only have two states: *0/off/low/closed/false* and *1/on/high/open/true*
+Binary sensors gather information about the state of devices which have a "digital" return value (either 1 or 0). These can be switches, contacts, pins, etc. These sensors only have two states: *0/off/low/closed/false* and *1/on/high/open/true*.
 
 ### **Block diagram**
 
-<img src="../_img/FB_INPUT_BINARYSENSOR_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌────────────────────────────┐
+       │ FB_INPUT_BINARYSENSOR_MQTT │
+       ├────────────────────────────┤
+BOOL ──┤ BS                       Q ├── BOOL
+       │                      EVENT ├── BOOL
+       │                    EVENT_R ├── BOOL
+       │                    EVENT_F ├── BOOL
+       └────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 - BS: digital input linked to the signal wire of the binary sensor.
@@ -21,10 +32,10 @@ METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:
     - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
     - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
-    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
+    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
 
-- ConfigureFunctionBlock: configures the behaviour of output `Q` using the parameters below:
-    - `T_TurnOffDelay`: duration of the turn off delay added on output `Q` to prevent rapid ON/OFF behaviour on the output caused by a fast switching sensor on the digital input. Defaults to 0 seconds, can be extremely usefull when connecting a motion sensor the the PLC. 
+- ConfigureFunctionBlock: configures the behavior of output `Q` using the parameters below:
+    - `T_TurnOffDelay`: duration of the turn off delay added on output `Q` to prevent rapid ON/OFF behavior on the output caused by a fast switching sensor on the digital input. Defaults to 0 seconds, can be extremely useful when connecting a motion sensor to the PLC.
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -73,8 +84,8 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 - MQTT discovery:
 ```
 FB_DI_BS_001.InitMqttDiscovery(
-	Name := 'Binary sensor 001',			(* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'Binary sensor 001',			(* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
 ```
 

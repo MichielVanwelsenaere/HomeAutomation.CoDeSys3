@@ -16,7 +16,7 @@ collector_FB_OUTPUT_SWITCH_MQTT		:SD_MQTT.CallbackCollector;
 collector_FB_OUTPUT_COVER_MQTT		:SD_MQTT.CallbackCollector;	
 collector_FB_VIRTUAL_MQTT			:SD_MQTT.CallbackCollector;
 ```
-These function blocks are created in a global variable list so they are accessible from all PRGs. This is necessary because function blocks require access to the callbackcollector for being able to register itself to a MQTT subscription.
+These function blocks are created in a global variable list so they are accessible from all PRGs. This is necessary because function blocks require access to the callback collector in order to register themselves for an MQTT subscription.
 
 3. Initialize the subscriber function block in the *MQTT_INIT* action in the *PLC_PRG_MQTT* program. Example below:
 ```
@@ -50,7 +50,7 @@ subscriber_FB_OUTPUT_COVER_MQTT(
 ```
 pMqttCallbackCollector^.put(instance:= THIS^);
 ```
-A more in depth implementation can be found in the *InitMqtt* method of every MQTT function block in the reference project.
+A more in-depth implementation can be found in the *InitMqtt* method of every MQTT function block in the reference project.
 
 6. Implement the callback method triggered by the callback function block. More details below:
     - Add the *IMPLEMENTS* statement:
@@ -65,6 +65,6 @@ A more in depth implementation can be found in the *InitMqtt* method of every MQ
 	        Data	: SD_MQTT.CALLBACK_DATA;
         END_VAR
         ```
-    - Add logic to process the received MQTT message: in this reference project a check is executed if the subscription that triggered the callback method matches the subscription configured in the *MqttInit* method. In that method the subscription topic is automatically concatenated with the function block name. For more in depth details study the *PublishReceived* and *MqttInit* methods of every MQTT function block in the reference project.
+    - Add logic to process the received MQTT message: in this reference project a check is executed to see whether the subscription that triggered the callback method matches the subscription configured in the *MqttInit* method. In that method the subscription topic is automatically concatenated with the function block name. For more in-depth details, study the *PublishReceived* and *MqttInit* methods of every MQTT function block in the reference project.
 
 

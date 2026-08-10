@@ -7,7 +7,15 @@ Designed to control a heat source with a simple on/off signal. Respects any mini
 
 ### **Block diagram**
 
-<img src="../_img/FB_HVAC_BURNER_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌─────────────────────┐
+       │ FB_HVAC_BURNER_MQTT │
+       ├─────────────────────┤
+BOOL ──┤ IN              OUT ├── BOOL
+       └─────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 
@@ -15,7 +23,7 @@ INPUT(S)
 
 OUTPUT(S)
 
-- OUT: datatype _BOOL_, follows input `IN` while respecting minimum and maximum allowed runtime configuration. 
+- OUT: datatype _BOOL_, follows input `IN` while respecting minimum and maximum allowed runtime configuration.
 
 METHOD(S)
 
@@ -37,6 +45,6 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event                 | Description                         | MQTT payload | QoS                                  | Retain flag                          | Published on startup                 |
 | :-------------------- | :---------------------------------- | :----------- | :----------------------------------- | :----------------------------------- | :----------------------------------- |
-| **input changes: OUT** | A change is detected on output `OUT`. | `TRUE/FALSE` | 2 | `TRUE` | yes |
+| **output changes: OUT** | A change is detected on output `OUT`. | `TRUE/FALSE` | 2 | `TRUE` | yes |
 
 MQTT publish topic is a concatenation of the publish prefix and the function block name.
