@@ -64,3 +64,18 @@ An export contains `.export` and `.xml` for people to update. The `.project` is 
 
     - Add 1 example of the new function block/methods to the POU
     - Document the new function block/methods in the POU!
+
+## **Function block diagrams**
+
+The block diagrams in `docs/FunctionBlocks/*.md` are **generated** from
+`src/Exports/PLCopen.xml` — don't draw them by hand and don't edit between the
+`<!-- fb-diagram:start -->` / `<!-- fb-diagram:end -->` markers.
+
+After re-exporting the PLCopen XML, regenerate them from the repo root:
+
+```
+python3 .claude/skills/update-fb-diagrams/scripts/gen_fb_diagrams.py
+```
+
+Add `--check` to verify the docs still match the export without writing
+anything. Wiring diagrams are still hand-drawn and live in `docs/_drawio/`.

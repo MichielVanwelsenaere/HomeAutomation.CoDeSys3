@@ -7,7 +7,22 @@ Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBU
 
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_DIMMER_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌───────────────────────┐
+       │ FB_OUTPUT_DIMMER_MQTT │
+       ├───────────────────────┤
+BOOL ──┤ SINGLE              Q ├── BOOL
+BOOL ──┤ LONG            Q_OUT ├── WORD
+BOOL ──┤ P_LONG            OUT ├── WORD
+BOOL ──┤ PRIO_HIGH             │
+BOOL ──┤ PRIO_LOW              │
+BOOL ──┤ SET                   │
+BYTE ──┤ VAL                   │
+BOOL ──┤ RST                   │
+       └───────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 

@@ -7,7 +7,15 @@ Designed to control a heat source with a simple on/off signal. Respects any mini
 
 ### **Block diagram**
 
-<img src="../_img/FB_HVAC_BURNER_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌─────────────────────┐
+       │ FB_HVAC_BURNER_MQTT │
+       ├─────────────────────┤
+BOOL ──┤ IN              OUT ├── BOOL
+       └─────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 

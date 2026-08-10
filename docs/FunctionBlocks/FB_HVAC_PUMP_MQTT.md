@@ -7,7 +7,17 @@ Designed to control a pump with a simple on/off signal and request heat from the
 
 ### **Block diagram**
 
-<img src="../_img/FB_HVAC_PUMP_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌────────────────────────┐
+       │   FB_HVAC_PUMP_MQTT    │
+       ├────────────────────────┤
+BOOL ──┤ IN                PUMP ├── BOOL
+       │           HEAT_REQUEST ├── BOOL
+       │      MIN_ONTIME_ACTIVE ├── BOOL
+       └────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 

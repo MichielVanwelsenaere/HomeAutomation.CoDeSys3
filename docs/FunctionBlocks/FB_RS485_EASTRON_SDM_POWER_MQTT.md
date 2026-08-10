@@ -17,7 +17,17 @@ Eastron SDM630 datasheet:
 
 ### **Block diagram**
 
-<img src="../_img/FB_RS485_EASTRON_SDM_POWER_MQTT.svg" width="500">
+<!-- fb-diagram:start -->
+```text
+   ┌─────────────────────────────────┐
+   │ FB_RS485_EASTRON_SDM_POWER_MQTT │
+   ├─────────────────────────────────┤
+   │                     ACTIVEPOWER ├── REAL
+   │                   DataAvailable ├── BOOL
+   │                           Error ├── BOOL
+   └─────────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 OUTPUT(S):
 - ACTIVEPOWER: datatype real.

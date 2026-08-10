@@ -9,7 +9,19 @@ DALI configuration via the Wago DALI tool and creation of the `typBallast` is ex
 
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_DIMMER_DALI_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+             ┌────────────────────────────┐
+             │ FB_OUTPUT_DIMMER_DALI_MQTT │
+             ├────────────────────────────┤
+TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
+      BOOL ──┤ TOGGLE                     │
+      BOOL ──┤ P_LONG                     │
+      BOOL ──┤ PRIO_HIGH                  │
+      BOOL ──┤ PRIO_LOW                   │
+             └────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 

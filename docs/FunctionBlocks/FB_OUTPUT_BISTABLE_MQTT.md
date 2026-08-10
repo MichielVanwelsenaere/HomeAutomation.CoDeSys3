@@ -12,7 +12,18 @@ Designed to control bistable relays, can be switched using pulses that are high 
 
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_BISTABLE_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌─────────────────────────┐
+       │ FB_OUTPUT_BISTABLE_MQTT │
+       ├─────────────────────────┤
+BOOL ──┤ PRIO_HIGH           OUT ├── BOOL
+BOOL ──┤ PRIO_LOW                │
+BOOL ──┤ TOGGLE                  │
+BOOL ──┤ FEEDBACK                │
+       └─────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 - FEEDBACK: feedback from the bistable input, should be high when the relay is turned on and low when turned off.

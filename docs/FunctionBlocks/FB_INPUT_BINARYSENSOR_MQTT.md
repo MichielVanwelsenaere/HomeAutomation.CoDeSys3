@@ -6,7 +6,18 @@ Binary sensors gather information about the state of devices which have a "digit
 
 ### **Block diagram**
 
-<img src="../_img/FB_INPUT_BINARYSENSOR_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌────────────────────────────┐
+       │ FB_INPUT_BINARYSENSOR_MQTT │
+       ├────────────────────────────┤
+BOOL ──┤ BS                       Q ├── BOOL
+       │                      EVENT ├── BOOL
+       │                    EVENT_R ├── BOOL
+       │                    EVENT_F ├── BOOL
+       └────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 - BS: digital input linked to the signal wire of the binary sensor.

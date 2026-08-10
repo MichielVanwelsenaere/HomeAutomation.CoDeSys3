@@ -7,7 +7,17 @@ Designed to control the heat requirements in a room. Creates a thermostat entity
 
 ### **Block diagram**
 
-<img src="../_img/FB_HVAC_THERMOSTAT_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌─────────────────────────┐
+       │ FB_HVAC_THERMOSTAT_MQTT │
+       ├─────────────────────────┤
+REAL ──┤ MEASURED_TEMP       OUT ├── BOOL
+REAL ──┤ MEASURED_HUM            │
+BOOL ──┤ ENABLED                 │
+       └─────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 

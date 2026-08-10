@@ -7,7 +7,23 @@ Designed to control multiple valves that share the same pump. Valves can be cont
 
 ### **Block diagram**
 
-<img src="../_img/FB_HVAC_COLLECTOR_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌────────────────────────┐
+       │ FB_HVAC_COLLECTOR_MQTT │
+       ├────────────────────────┤
+BOOL ──┤ THERMOSTAT_1   VALVE_1 ├── BOOL
+BOOL ──┤ THERMOSTAT_2   VALVE_2 ├── BOOL
+BOOL ──┤ THERMOSTAT_3   VALVE_3 ├── BOOL
+BOOL ──┤ THERMOSTAT_4   VALVE_4 ├── BOOL
+BOOL ──┤ THERMOSTAT_5   VALVE_5 ├── BOOL
+BOOL ──┤ THERMOSTAT_6   VALVE_6 ├── BOOL
+BOOL ──┤ THERMOSTAT_7   VALVE_7 ├── BOOL
+BOOL ──┤ THERMOSTAT_8   VALVE_8 ├── BOOL
+       │                   PUMP ├── BOOL
+       └────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 

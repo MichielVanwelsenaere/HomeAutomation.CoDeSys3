@@ -16,7 +16,34 @@ Eastron SDM220 datasheets:
 
 ### **Block diagram**
 
-<img src="../_img/FB_RS485_EASTRON_SDM220_MQTT.svg" width="500">
+<!-- fb-diagram:start -->
+```text
+   ┌──────────────────────────────┐
+   │ FB_RS485_EASTRON_SDM220_MQTT │
+   ├──────────────────────────────┤
+   │                      VOLTAGE ├── REAL
+   │                      CURRENT ├── REAL
+   │                  ACTIVEPOWER ├── REAL
+   │               APPARENT_POWER ├── REAL
+   │               REACTIVE_POWER ├── REAL
+   │                 POWER_FACTOR ├── REAL
+   │                  PHASE_ANGLE ├── REAL
+   │               DataAvailable1 ├── BOOL
+   │                       Error1 ├── BOOL
+   │                    FREQUENCY ├── REAL
+   │         IMPORT_ACTIVE_ENERGY ├── REAL
+   │         EXPORT_ACTIVE_ENERGY ├── REAL
+   │       IMPORT_REACTIVE_ENERGY ├── REAL
+   │       EXPORT_REACTIVE_ENERGY ├── REAL
+   │               DataAvailable2 ├── BOOL
+   │                       Error2 ├── BOOL
+   │          TOTAL_ACTIVE_ENERGY ├── REAL
+   │        TOTAL_REACTIVE_ENERGY ├── REAL
+   │               DataAvailable3 ├── BOOL
+   │                       Error3 ├── BOOL
+   └──────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 OUTPUT(S):
 - VOLTAGE: datatype real, part of Modbus read command 1.

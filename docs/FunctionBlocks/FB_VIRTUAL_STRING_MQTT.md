@@ -9,7 +9,15 @@ A virtual function block can be used in one of two modes:
 
 ### **Block diagram**
 
-<img src="../_img/FB_VIRTUAL_STRING_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+         ┌────────────────────────┐
+         │ FB_VIRTUAL_STRING_MQTT │
+         ├────────────────────────┤
+STRING ──┤ IN                 OUT ├── STRING
+         └────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 

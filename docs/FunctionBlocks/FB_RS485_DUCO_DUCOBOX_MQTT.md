@@ -15,7 +15,17 @@ DUCO DUCOBOX Focus data:
 
 ### **Block diagram**
 
-<img src="../_img/FB_RS485_DUCO_DUCOBOX_MQTT.svg" width="500">
+<!-- fb-diagram:start -->
+```text
+   ┌────────────────────────────┐
+   │ FB_RS485_DUCO_DUCOBOX_MQTT │
+   ├────────────────────────────┤
+   │                ACTIVEPOWER ├── REAL
+   │              DataAvailable ├── BOOL
+   │                      Error ├── BOOL
+   └────────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 METHOD(S)
 - InitMQTT: enables MQTT events on the FB, an overview of the parameters:

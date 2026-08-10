@@ -5,7 +5,15 @@ Used to control the RS485 bus in order to allow only one device with one Modbus 
 
 ### **Block diagram**
 
-<img src="../_img/FB_RS485_BUSCONTROLLER.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+   ┌────────────────────────┐
+   │ FB_RS485_BUSCONTROLLER │
+   ├────────────────────────┤
+   │             BusOcupied ├── BOOL
+   └────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 OUTPUT(S):
 - BusOcupied: datatype bool, indicates whether the RS485 bus is occupied or not.

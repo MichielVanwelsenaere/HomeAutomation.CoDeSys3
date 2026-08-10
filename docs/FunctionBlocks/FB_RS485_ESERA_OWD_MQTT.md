@@ -39,7 +39,22 @@ Nevertheless, adding a new device is a simple task, feel free to reach out.
 
 ### **Block diagram**
 
-<img src="../_img/FB_RS485_ESERA_OWD_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+   ┌─────────────────────────┐
+   │ FB_RS485_ESERA_OWD_MQTT │
+   ├─────────────────────────┤
+   │             OWD_VOLTAGE ├── REAL
+   │             TEMPERATURE ├── REAL
+   │                HUMIDITY ├── REAL
+   │               DEW_POINT ├── REAL
+   │             AIR_QUALITY ├── REAL
+   │              BRIGHTNESS ├── REAL
+   │           DataAvailable ├── BOOL
+   │                   Error ├── BOOL
+   └─────────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.

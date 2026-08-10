@@ -6,7 +6,17 @@ Can be switched using pulses that are high for one clock cycle (for example from
 
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_BINARY_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌───────────────────────┐
+       │ FB_OUTPUT_BINARY_MQTT │
+       ├───────────────────────┤
+BOOL ──┤ PRIO_HIGH         OUT ├── BOOL
+BOOL ──┤ PRIO_LOW              │
+BOOL ──┤ TOGGLE                │
+       └───────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 - TOGGLE: when high the output `OUT` gets toggled. The input should only be high for one clock cycle.

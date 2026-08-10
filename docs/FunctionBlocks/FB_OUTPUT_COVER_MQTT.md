@@ -13,7 +13,20 @@ The cover function block allows you to control covers such as a roller shutter o
 
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_COVER_MQTT.svg" width="350">
+<!-- fb-diagram:start -->
+```text
+       ┌──────────────────────┐
+       │ FB_OUTPUT_COVER_MQTT │
+       ├──────────────────────┤
+BOOL ──┤ TOGGLE            MU ├── BOOL
+BOOL ──┤ PRIO_LOCK         MD ├── BOOL
+BOOL ──┤ PRIO_UP              │
+BOOL ──┤ PRIO_DN              │
+TIME ──┤ T_LOCKOUT            │
+TIME ──┤ T_UD                 │
+       └──────────────────────┘
+```
+<!-- fb-diagram:end -->
 
 INPUT(S)
 
