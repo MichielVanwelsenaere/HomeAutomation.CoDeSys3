@@ -7,6 +7,12 @@ Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBU
 
 DALI configuration via the Wago DALI tool and creation of the `typBallast` is explained pretty well in [this video](https://www.youtube.com/watch?v=FaoOY2-VFVk).
 
+----------------------------
+
+:rotating_light: **Untested on hardware since the CODESYS conversion.** This function block needs the WAGO DALI module and the WAGO DALI libraries, which are only available on **G2** PFC devices (see [Choosing and preparing your WAGO PFC device](../WagoPfcPrep.md)). The conversion was done on G1 hardware, so nobody has yet run this block on a G2 device. Treat it as unverified, and please report back if you do get it working.
+
+----------------------------
+
 ### **Block diagram**
 
 <!-- fb-diagram:start -->
