@@ -10,6 +10,7 @@
   - [G2](#g2)
   - [Flashing via SD card](#flashing-via-sd-card)
   - [Install CODESYS Control SL (G1 only)](#install-codesys-control-sl-g1-only)
+  - [Activating the license (G1 only)](#activating-the-license-g1-only)
 
 ## Generations
 
@@ -31,7 +32,7 @@ As a general rule: lower-numbered variants within a series are G1, while higher-
 | WAGO official support | No (end-of-life) | Yes |
 | CODESYS support | Yes | Yes |
 | CODESYS license required | Yes | No (included with device) |
-| CODESYS license cost | ~89 EUR ([CODESYS Store](https://store.codesys.com/en/codesys-control-basic-l-bundle.html)) | Free |
+| CODESYS license cost | Depends on the license tier you pick ([CODESYS Store](https://store.codesys.com/)) | Free |
 | Docker containers | No | Yes |
 | WAGO libraries (e.g. DALI) | No | Yes |
 
@@ -52,6 +53,7 @@ Update the device to firmware version 22, which is the latest supported firmware
 3. Open WAGO Upload, enter the device IP address, and browse to the downloaded firmware file.
 4. Start the upload and wait for the device to reboot.
 5. [Install CODESYS Control SL](#install-codesys-control-sl-g1-only)
+6. [Activate the license](#activating-the-license-g1-only)
 
 ### G2
 
@@ -80,7 +82,9 @@ If the current firmware version is below 12, use an SD card to flash the firmwar
 
 ### Install CODESYS Control SL (G1 only)
 
-G1 devices do **not** ship with a built-in CODESYS runtime license. To run CODESYS programs, you must separately purchase and install the **CODESYS Control for WAGO Touch Panel SL** runtime package, available from the [CODESYS Store](https://store.codesys.com/en/codesys-control-basic-l-bundle.html). Without this license, the device will not execute any CODESYS application.
+G1 devices do **not** ship with a built-in CODESYS runtime license. To run CODESYS programs you must separately purchase a CODESYS Control runtime license for the device and install the matching Control SL runtime package. Without a license the runtime still starts, but it stops after 2 hours (see the [getting started guide](./FAQ/Getting_started_guide_CODESYS_3S.md)).
+
+Licenses are sold per device from the [CODESYS Store](https://store.codesys.com/). There is no single correct product: which tier you need depends on how much of this project you actually use. A setup that only reads inputs and switches outputs needs less than one that also drives Modbus RTU over RS485, DALI or DMX. Compare the tiers against the function blocks you intend to run and pick the cheapest one that covers them, then install the Control SL package that matches the license you bought.
 
 The installation is done via the WAGO Web-Based Management (WBM) interface. The following YouTube video walks through the full installation process:
 
@@ -96,3 +100,39 @@ The **installation tool** can be found under 'Tools / Deploy Control SL'. This h
 | Password | `wago` |
 
 Note that the regular 'admin' user does not have sufficient rights.
+
+### Activating the license (G1 only)
+
+Installing the Control SL package puts the runtime on the device; it does **not** license it. Until the license is activated the runtime still stops after 2 hours.
+
+CODESYS licensing is handled by WIBU Systems CodeMeter. A license always lives in a *container*, and there are two kinds:
+
+| | Soft container | Dongle |
+|---|---|---|
+| What it is | A software container stored on the controller | A physical WIBU CodeMeter USB stick or SD variant |
+| Bound to | That specific device | The dongle itself |
+| Extra hardware cost | None | The dongle, on top of the license |
+| Moving to other hardware | Deactivate on the old device first, then activate on the new one | Move the dongle |
+
+For a PFC100/200 sitting permanently in a cabinet the **soft container** is the normal choice: no extra hardware, and the Control SL runtime supports it directly. A dongle is worth considering only if you expect to move the license between controllers.
+
+**Activating a soft container (device with internet access):**
+
+1. Buy the license from the [CODESYS Store](https://store.codesys.com/). You receive a **ticket ID** by email.
+2. Open the project in CODESYS and connect to the PLC.
+3. Open the License Manager (under *Tools*) and select your device.
+4. Choose to activate a license and paste the ticket ID.
+5. CODESYS contacts the licensing server and writes the license into a soft container on the device.
+6. Restart the runtime and confirm the application no longer stops after 2 hours.
+
+**Activating without internet access on the device:**
+
+If the PLC or the engineering PC cannot reach the licensing server, the same License Manager offers a file-based exchange: export a license request file from the device, upload it from a machine that does have internet, then import the resulting response file back onto the device.
+
+---
+
+:rotating_light: A soft container is tied to the device it was activated on. **Deactivate the license before you replace, re-flash or decommission a controller** — deactivating returns it to the ticket so it can be activated again elsewhere. Reinstalling firmware without doing this first can strand the license. This matters here because the firmware steps earlier on this page are usually run *before* licensing.
+
+---
+
+Note that menu paths differ slightly between CODESYS versions, so treat the steps above as the general flow rather than exact clicks.
