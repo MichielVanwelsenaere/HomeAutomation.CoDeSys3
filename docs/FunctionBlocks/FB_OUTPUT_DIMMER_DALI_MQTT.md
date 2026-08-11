@@ -9,13 +9,24 @@ DALI configuration via the Wago DALI tool and creation of the `typBallast` is ex
 
 ----------------------------
 
-:rotating_light: **Untested on hardware since the CODESYS conversion.** This function block needs the WAGO DALI module and the WAGO DALI libraries, which are only available on **G2** PFC devices (see [Choosing and preparing your WAGO PFC device](../WagoPfcPrep.md)). The conversion was done on G1 hardware, so nobody has yet run this block on a G2 device. Treat it as unverified, and please report back if you do get it working.
+:rotating_light: **Not part of the reference project.** This function block needs the WAGO DALI module and the WAGO DALI libraries, which are only available on **G2** PFC devices (see [Choosing and preparing your WAGO PFC device](../WagoPfcPrep.md)). The CODESYS conversion was done on G1 hardware, so the block could not be built or tested and has been removed from `HomeAutomation.project`; the call sites in `PLC_PRG_MAIN` are commented out.
+
+It is kept as a standalone PLCopen export so it can be imported into a G2 project: **[src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml](../../src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml)**. See [Restoring it into a project](#restoring-it-into-a-project) below. It is unverified on CODESYS — please report back if you get it running.
 
 ----------------------------
 
+### **Restoring it into a project**
+
+1. In CODESYS, select the POUs top level item and choose *Project* &rarr; *Import PLCopenXML*.
+2. Browse to [src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml](../../src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml) and import it.
+3. Resolve the dependencies it expects:
+   - `FB_MQTT_BASE` and `FB_MqttPublishQueue` — already in the reference project.
+   - `MQTT.MQTT_SUBSCRIBE_CALLBACK`, `MQTT.CallbackCollector`, `MQTT.CALLBACK_DATA` — the CODESYS MQTT library.
+   - `typBallast`, `FbDaliSendDimValue`, `FbDaliSendFadeRate`, `FbDaliSendFadeTime` — the WAGO DALI library, **G2 only**.
+4. Uncomment the DALI blocks in the `MAIN_INIT` and `DALI` actions of `PLC_PRG_MAIN`.
+
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
              ┌────────────────────────────┐
              │ FB_OUTPUT_DIMMER_DALI_MQTT │
@@ -27,7 +38,8 @@ TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
       BOOL ──┤ PRIO_LOW                   │
              └────────────────────────────┘
 ```
-<!-- fb-diagram:end -->
+
+> This diagram is a frozen snapshot of the archived export, not generated from `PLCopen.xml` like the other function blocks — the block is no longer in the project to generate it from.
 
 INPUT(S)
 

@@ -67,9 +67,9 @@ In addition to the above a bus controller function block ([FB_RS485_BUSCONTROLLE
 is used to control access to the RS485 bus between multiple RS485 device function blocks.
 
 ## DALI
-Control DALI drivers using the WAGO DALI modules (753-647).
+Control DALI drivers using the WAGO DALI modules (753-647). Requires a G2 PFC device, and is therefore not part of the reference project — it is kept as a standalone export that can be imported into a G2 project.
 
-- [FB_OUTPUT_DIMMER_DALI_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_DALI_MQTT.md)
+- [FB_OUTPUT_DIMMER_DALI_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_DALI_MQTT.md) (archived)
 
 ## DMX
 Control DMX drivers.
