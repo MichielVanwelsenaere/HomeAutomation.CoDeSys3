@@ -5,30 +5,46 @@ INPUT(S)
 OUTPUT(S)
 
 METHOD(S)
-- initPlcDevice: collects all device info once, an overview of the parameters:
-	- `url`: datatype _STRING_, the URL of your PLC. Used as the configuration URL of the device in Home Assistant.
-	- `availabilityTopic`: datatype _STRING_, topic to publish availability on.
-	- `availabilityOnline`: datatype _STRING_, the word to publish when the PLC is online.
-	- `availabilityOffline`: datatype _STRING_, the word to publish when the PLC is offline.
-	- `MqttDiscoveryPrefix`: datatype _STRING_, the discovery prefix the home automation system listens on (`homeassistant/` by default).
-	- `MqttDiagnosticTopic`: datatype _STRING_, topic used to publish diagnostic entities for the device.
-	- `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
+
+This function block is configured through `FB_init`, the CODESYS constructor, so there is no init method to call. The parameters are supplied **in the declaration** of the instance and applied once at startup:
+
+- `friendlyName`: datatype _STRING_, the device name shown in Home Assistant.
+- `id`: datatype _STRING_, the unique identifier of the device.
+- `manufacturer`: datatype _STRING_, the manufacturer shown in Home Assistant.
+- `availabilityTopic`: datatype _STRING_, topic to publish availability on.
+- `availabilityOnline`: datatype _STRING_, the word to publish when the PLC is online.
+- `availabilityOffline`: datatype _STRING_, the word to publish when the PLC is offline.
+- `MqttDiscoveryPrefix`: datatype _STRING_, the discovery prefix the home automation system listens on (`homeassistant/` by default).
+- `MqttDiagnosticTopic`: datatype _STRING_, topic used to publish diagnostic entities for the device.
+- `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
+
+Internally `FB_init` forwards these to `initBaseDevice` on `FB_BASE_MQTT_DISCOVERY_DEVICE`, the base function block that also provides the `Create...Entity` methods used by the individual MQTT function blocks.
 
 ### **Code example**
-- variables initiation:
+
+- variables initiation, in the `MqttVariables` global variable list:
 ```
-	PLC_device					:FB_PLC_MQTT_DISCOVERY_DEVICE;
+PLC_Device : FB_PLC_MQTT_DISCOVERY_DEVICE(
+	friendlyName		:= 'PLC Lab',
+	id					:= 'plc-lab',
+	manufacturer		:= 'WAGO',
+	availabilityTopic	:= MqttAvailabilityTopic,
+	availabilityOnline	:= MqttAvailabilityOnlinePayload,
+	availabilityOffline	:= MqttAvailabilityOfflinePayload,
+	MqttDiscoveryPrefix	:= MqttHADiscoveryPrefix,
+	MqttDiagnosticTopic	:= MqttDiagnosticTopic,
+	pMqttPublishQueue	:= ADR(fbMqttPublishQueue)
+);
 ```
 
-- Init MQTT method call (called once during startup):
+Because the block is declared inside `MqttVariables`, the other variables in that list are referenced unqualified. Declared elsewhere, qualify them as `MqttVariables.MqttAvailabilityTopic` and so on.
+
+No further call is needed at startup. Pass the instance to the function blocks that publish discovery config, for example:
+
 ```
-PLC_Device.initPlcDevice(
-	url := 'http://192.168.1.10',
-	availabilityTopic := MqttVariables.MqttAvailabilityTopic,
-	availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
-	availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
-	MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)
+FB_DO_SW_001.InitMqttDiscoveryAsLight(
+	Device	:= ADR(MqttVariables.PLC_Device),
+	Name	:= 'light 001'
 );
 ```
 
