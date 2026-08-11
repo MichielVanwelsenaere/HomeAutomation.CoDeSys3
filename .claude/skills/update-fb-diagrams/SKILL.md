@@ -51,6 +51,16 @@ docs still match the code?" without touching the working tree.
    pin that appeared, vanished, or was renamed, and flag it: either the code
    changed and the docs lagged, or the diagram was wrong to begin with.
 
+   An **ORPHANED** entry means a doc page carries a generated diagram for a
+   function block that is no longer in the export. Both `--check` and a normal
+   run report it and `--check` exits non-zero, but neither deletes anything —
+   that is a judgement call. Establish which happened before advising:
+   deliberate removal from the project, or an export taken without the block.
+   Check whether the calling code still references it (a still-declared
+   instance points at an incomplete export; commented-out call sites point at
+   a real removal). If it was removed, the doc page, its README entry and any
+   cross-links need to go too.
+
 4. **Verify.** Re-run with `--check`; it should pass. Confirm no file outside
    the markers changed: `git diff -- docs/FunctionBlocks/`.
 

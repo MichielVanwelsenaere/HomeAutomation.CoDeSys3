@@ -130,14 +130,21 @@ def main() -> int:
             print(render(name, ifc), end="\n\n")
         return 0
 
-    stale, wrote, skipped = [], [], []
+    stale, wrote, skipped, orphaned = [], [], [], []
     for doc in sorted(DOCS.glob("FB_*.md")):
         name = doc.stem
+        text = doc.read_text(encoding="utf-8")
         ifc = interface(xml, name)
-        if ifc is None or not any(ifc.values()):
+        if ifc is None:
+            # The doc names a function block that is no longer in the export.
+            # If it still carries a generated diagram, that diagram is orphaned
+            # and now describes something that does not exist — silently
+            # skipping would leave it in place and report a false pass.
+            (orphaned if START in text else skipped).append(name)
+            continue
+        if not any(ifc.values()):
             skipped.append(name)          # no pins: nothing to draw
             continue
-        text = doc.read_text(encoding="utf-8")
         updated = splice(text, block(name, ifc))
         if updated is None:
             skipped.append(f"{name} (no diagram anchor)")
@@ -150,12 +157,22 @@ def main() -> int:
             doc.write_text(updated, encoding="utf-8")
             wrote.append(name)
 
+    if orphaned:
+        print("ORPHANED - documented but no longer in "
+              + str(EXPORT.relative_to(REPO)) + ":")
+        for o in orphaned:
+            print("  -", o)
+        print("  The function block was removed from the project, or the export\n"
+              "  was taken without it. Decide whether to delete the doc page (and\n"
+              "  its links) or restore the block, then re-run.\n")
+
     if args.check:
         if stale:
             print("Out of date with " + str(EXPORT.relative_to(REPO)) + ":")
             for s in stale:
                 print("  -", s)
             print("\nRun: python3 " + str(pathlib.Path(__file__).relative_to(REPO)))
+        if stale or orphaned:
             return 1
         print("All function block diagrams match the export.")
         return 0
