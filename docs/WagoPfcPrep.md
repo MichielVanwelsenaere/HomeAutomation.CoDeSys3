@@ -32,7 +32,7 @@ As a general rule: lower-numbered variants within a series are G1, while higher-
 | WAGO official support | No (end-of-life) | Yes |
 | CODESYS support | Yes | Yes |
 | CODESYS license required | Yes | No (included with device) |
-| CODESYS license cost | Depends on the license tier you pick ([CODESYS Store](https://store.codesys.com/)) | Free |
+| CODESYS license cost | Depends on the license tier, which is driven by your I/O count (see [Install CODESYS Control SL](#install-codesys-control-sl-g1-only)) | Free |
 | Docker containers | No | Yes |
 | WAGO libraries (e.g. DALI) | No | Yes |
 
@@ -82,9 +82,32 @@ If the current firmware version is below 12, use an SD card to flash the firmwar
 
 ### Install CODESYS Control SL (G1 only)
 
-G1 devices do **not** ship with a built-in CODESYS runtime license. To run CODESYS programs you must separately purchase a CODESYS Control runtime license for the device and install the matching Control SL runtime package. Without a license the runtime still starts, but it stops after 2 hours (see the [getting started guide](./FAQ/Getting_started_guide_CODESYS_3S.md)).
+G1 devices do **not** ship with a built-in CODESYS runtime license. Without a license the runtime still starts, but it stops after 2 hours (see the [getting started guide](./FAQ/Getting_started_guide_CODESYS_3S.md)).
 
-Licenses are sold per device from the [CODESYS Store](https://store.codesys.com/). There is no single correct product: which tier you need depends on how much of this project you actually use. A setup that only reads inputs and switches outputs needs less than one that also drives Modbus RTU over RS485, DALI or DMX. Compare the tiers against the function blocks you intend to run and pick the cheapest one that covers them, then install the Control SL package that matches the license you bought.
+Two separate things are involved:
+
+1. **The runtime package** — [CODESYS Control for PFC100 SL](https://store.codesys.com/en/codesys-control-for-pfc100-sl-1.html) or [CODESYS Control for PFC200 SL](https://store.codesys.com/en/codesys-control-for-pfc200-sl-1.html), matching your device. These are the same target packages installed in the getting started guide. The runtime itself is not licensed.
+2. **An application license** on top of it, bought per device from the [CODESYS Store](https://store.codesys.com/).
+
+#### Choosing a license tier
+
+The tier is decided by **how many I/O channels you have**, not by which function blocks you use. The commonly used tiers differ only in that number:
+
+| | Control Basic M | Control Basic L |
+|---|---|---|
+| I/O channels | 128 | 256 |
+| Standard fieldbus instances (CANopen / Modbus / J1939) | 2 | 2 |
+| Complex fieldbus instances | 1 | 1 |
+| Visualization / Communication | S / S | S / S |
+| Price (excl. VAT, at time of writing) | from 69 EUR | from 89 EUR |
+
+Count the digital inputs and outputs across your modules. With 8-channel cards such as the 750-430 (8 DI) and 750-530 (8 DO), 128 channels is 16 modules and 256 is 32. For a whole house 128 is tight, since pushbuttons alone often run to 50-80.
+
+Modbus RTU over RS485 does **not** push you to a higher tier: one RS485 master is a single standard fieldbus instance and both tiers allow two. MQTT and Art-Net/DMX use raw TCP/UDP sockets rather than fieldbus instances, so they do not count either.
+
+Verify the current limits and prices in the store before buying — the figures above are a snapshot.
+
+#### Installing the runtime package
 
 The installation is done via the WAGO Web-Based Management (WBM) interface. The following YouTube video walks through the full installation process:
 
