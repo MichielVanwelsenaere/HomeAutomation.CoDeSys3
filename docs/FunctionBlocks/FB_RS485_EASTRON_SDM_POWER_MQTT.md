@@ -17,6 +17,12 @@ Eastron SDM220 datasheets:
 Eastron SDM630 datasheet:
 - [Manual and Modbus registers](../RS485/datasheets/SDM630-Modbus-V2.pdf)
 
+----------------------------
+
+:rotating_light: **Untested since the CODESYS conversion.** The RS485 chain has not yet been run against real hardware on a CODESYS runtime — see [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
+
+----------------------------
+
 <!-- fb-interface:start -->
 ### **Block diagram**
 

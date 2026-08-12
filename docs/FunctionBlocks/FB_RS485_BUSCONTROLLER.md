@@ -5,6 +5,12 @@
 ### **General**
 Used to control the RS485 bus in order to allow only one device with one Modbus RTU query at a time. In addition it manages the silence time on the bus between two requests and is capable of introducing a startup delay to allow devices on the bus to start up on power cycles.
 
+----------------------------
+
+:rotating_light: **Untested since the CODESYS conversion.** The RS485 chain has not yet been run against real hardware on a CODESYS runtime — see [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
+
+----------------------------
+
 <!-- fb-interface:start -->
 ### **Block diagram**
 

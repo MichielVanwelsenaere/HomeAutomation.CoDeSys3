@@ -8,6 +8,10 @@ Due to the large number of Modbus registers exposed and the Eastron SDM220 limit
 
 ----------------------------
 
+:rotating_light: **Untested since the CODESYS conversion.** The RS485 chain has not yet been run against real hardware on a CODESYS runtime — see [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
+
+----------------------------
+
 :rotating_light: Several users have reported that the 'kWh' measurement readings of the Eastron SDM meters are unreliable. Specifically, there are huge spikes containing faulty values in the data retrieved.
 
 ----------------------------

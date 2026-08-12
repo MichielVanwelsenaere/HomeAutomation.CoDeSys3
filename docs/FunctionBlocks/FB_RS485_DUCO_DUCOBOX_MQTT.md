@@ -7,6 +7,10 @@ Used to process Modbus RTU data received over RS485 into human-understandable va
 
 ----------------------------
 
+:rotating_light: **Untested since the CODESYS conversion.** The RS485 chain has not yet been run against real hardware on a CODESYS runtime — see [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
+
+----------------------------
+
 :rotating_light: In order to leverage this Modbus integration a communication board (part number 0000-4251) is required on the DucoBox.
 
 ----------------------------

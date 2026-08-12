@@ -1,5 +1,11 @@
 ## Using Modbus RTU with the CODESYS 3S runtime
 
+----------------------------
+
+:rotating_light: **Untested since the CODESYS conversion.** The RS485 / Modbus RTU implementation was carried over from e!COCKPIT and has not yet been run against real hardware on a CODESYS runtime. The code is in the project and the e!COCKPIT-specific parts are commented out, but treat the whole chain — serial port configuration, [FB_RS485_BUSCONTROLLER](../FunctionBlocks/FB_RS485_BUSCONTROLLER.md) and every RS485 device function block — as unverified until someone reports otherwise. Please open an issue either way; a confirmation that it works is as useful as a bug report.
+
+----------------------------
+
 ### **Content**
 This page describes adding a Modbus RTU device using the CODESYS 3S runtime.
 In case a function block for your specific device is not present in this project yet, please consider reading the [RS485 tips and tricks](../FAQ/RS485_tips_and_tricks.md) page if this is your first time connecting an RS485 device.

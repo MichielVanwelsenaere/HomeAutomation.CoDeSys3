@@ -38,6 +38,12 @@ The following 1-Wire devices are currently supported:
 Note that Esera documents the full list of supported devices here: [link](https://esera.de/en/Produkte/11324/1-Wire-Gateway-10-Modbus-RTU). Yet only the devices above are supported in the software, due to a lack of actual testing devices.
 Nevertheless, adding a new device is a simple task, feel free to reach out.
 
+----------------------------
+
+:rotating_light: **Untested since the CODESYS conversion.** The RS485 chain has not yet been run against real hardware on a CODESYS runtime — see [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
+
+----------------------------
+
 <!-- fb-interface:start -->
 ### **Block diagram**
 
