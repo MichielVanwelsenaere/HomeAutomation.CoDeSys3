@@ -73,7 +73,7 @@ function Get-BodyText {
 
 if ($List) {
     foreach ($p in $xml.SelectNodes('//p:pou', $nsm)) {
-        $kids = @($p.SelectNodes('.//*[local-name()="Method" or local-name()="Action"]'))
+        $kids = @($p.SelectNodes('.//*[local-name()="Method" or local-name()="action"]'))
         Write-Host ("{0,-40} {1,-15} {2} member(s)" -f $p.name, $p.pouType, $kids.Count)
     }
     foreach ($d in $xml.SelectNodes('//p:dataType', $nsm)) {
@@ -113,7 +113,7 @@ if (-not $Outline) {
 
 # Not $members: PowerShell variable names are case-insensitive, so that would
 # overwrite the -Members parameter and filter every member out.
-$memberNodes = $pou.SelectNodes('.//*[local-name()="Method" or local-name()="Action"]')
+$memberNodes = $pou.SelectNodes('.//*[local-name()="Method" or local-name()="action"]')
 foreach ($m in $memberNodes) {
     if ($Members -and ($Members -notcontains $m.name)) { continue }
     Write-Host ''

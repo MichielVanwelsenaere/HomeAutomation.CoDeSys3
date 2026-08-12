@@ -71,6 +71,9 @@ Each task boots CODESYS, so budget **40–90 seconds**. A `--noUI` process has n
 usable stdout: results go to `.ai/reports/<task>.json`, with a progress log at
 `<task>.json.log` that survives a crash. `.ai/` is gitignored.
 
+**`.ai/work` is wiped at the start of every `verify` and `simulate`** — it is the
+sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
+
 | Command | Effect |
 |:--|:--|
 | `./tools/ai/codesys.ps1 doctor` | Toolchain check. No CODESYS launch. |
@@ -127,8 +130,23 @@ unless the user has already said to land the change.
 
 Established by compile probe, not by reading documentation:
 
-- **Write POU declarations as plaintext ST**, not structured XML. Put them in an
-  `<addData>` block on the `<pou>`:
+- **Plaintext declarations work for a NEW POU, but do not reliably override an
+  existing one.** Authoring a brand-new block with a plaintext declaration and an
+  empty `<interface />` works (proven). But taking an existing POU out of the
+  export, appending a `VAR_INPUT` block to its plaintext declaration and
+  re-importing it does **not** apply the new members: the block keeps exactly its
+  old declaration, the import still reports `replaced 1`, and the only symptom is
+  `Identifier 'X' not defined` in whatever referenced the new member. Emptying the
+  structured `<interface>` did not change this. **Unresolved** — the next attempt
+  should isolate it by (a) removing the `<interface>` element entirely rather than
+  emptying it, (b) trying a plain `INT` member to rule out the enum type, and
+  (c) comparing against editing the structured `<interface>` instead, which is
+  the safer default until this is understood. Prefer the ScriptEngine textual API
+  (`textual_declaration.append`) for editing an existing POU's declaration; that
+  path is already proven by the verify harness, which injects into a real program
+  this way on every run.
+- For a NEW POU, put the plaintext declaration in an `<addData>` block on the
+  `<pou>`:
 
       <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
         <InterfaceAsPlainText>
