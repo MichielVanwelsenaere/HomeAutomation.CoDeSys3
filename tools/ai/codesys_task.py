@@ -451,12 +451,35 @@ def harness_host(proj):
     return None
 
 
-def add_verify_harness(proj, result, files):
-    """Declare an instance of each candidate function block in a compiled program.
+def read_manual_harness(folder):
+    """Author-supplied harness text from .ai/candidates/_harness.{decl,impl}.
 
-    Declaration is enough: CODESYS generates code for an instantiated function
-    block, so the body gets fully checked. Instances are never called, which
-    keeps VAR_IN_OUT and required inputs out of the picture.
+    Auto-instantiation cannot declare a block whose FB_init takes parameters,
+    because it has no way to invent the arguments. These two optional files let
+    the author take over: `_harness.decl` is appended to the host program's
+    declaration (a complete VAR ... END_VAR block), `_harness.impl` to its body.
+    """
+    manual = {"decl": u"", "impl": u""}
+    if not folder or not os.path.isdir(folder):
+        return manual
+    for key in ("decl", "impl"):
+        path = os.path.join(folder, "_harness." + key)
+        if os.path.isfile(path):
+            try:
+                manual[key] = read_text(path)
+                log("harness: using manual %s (%d chars)" % (key, len(manual[key])))
+            except Exception:
+                log("harness: could not read %s:\n%s" % (path, traceback.format_exc()))
+    return manual
+
+
+def add_verify_harness(proj, result, files, candidates_folder=None):
+    """Make candidate blocks reachable from the task configuration.
+
+    Declaring an instance is enough: CODESYS generates code for an instantiated
+    function block, so the body gets fully checked. Instances are not called by
+    the auto-generated part, which keeps VAR_IN_OUT and required inputs out of
+    the picture; a manual harness may call them explicitly.
     """
     instantiable = []
     skipped = []
@@ -465,9 +488,30 @@ def add_verify_harness(proj, result, files):
         instantiable.extend(good)
         skipped.extend([{"name": n, "reason": r} for n, r in bad])
 
-    harness = {"instantiated": instantiable, "not_instantiated": skipped, "host": None}
+    manual = read_manual_harness(candidates_folder)
+    # A block named in the manual harness is covered after all, so move it out
+    # of the not-instantiated list rather than warning about it misleadingly.
+    if manual["decl"] or manual["impl"]:
+        manual_text = manual["decl"] + u"\n" + manual["impl"]
+        still_skipped = []
+        for entry in skipped:
+            if entry["name"] in manual_text:
+                instantiable.append(entry["name"])
+                log("harness: %s covered by the manual harness" % entry["name"])
+            else:
+                still_skipped.append(entry)
+        skipped = still_skipped
+
+    harness = {
+        "instantiated": sorted(set(instantiable)),
+        "not_instantiated": skipped,
+        "host": None,
+        "manual": bool(manual["decl"] or manual["impl"]),
+    }
     result["harness"] = harness
-    if not instantiable:
+
+    auto = [n for n in instantiable if n not in (manual["decl"] + manual["impl"])]
+    if not instantiable and not manual["decl"] and not manual["impl"]:
         log("harness: nothing to instantiate")
         return
 
@@ -480,16 +524,38 @@ def add_verify_harness(proj, result, files):
         return
 
     harness["host"] = object_path(host)
-    lines = [u"", u"// injected by tools/ai/codesys_task.py - sandbox only", u"VAR"]
-    for index, name in enumerate(instantiable):
-        lines.append(u"\tai_verify_%d : %s;" % (index, name))
-    lines.append(u"END_VAR")
-    block = u"\n".join(lines) + u"\n"
     try:
-        # A second VAR block after the existing one is valid IEC, so this needs
-        # no parsing of the host's declaration.
-        host.textual_declaration.append(block)
-        log("harness: declared %d instance(s) in %s" % (len(instantiable), harness["host"]))
+        if auto:
+            lines = [u"", u"// injected by tools/ai/codesys_task.py - sandbox only", u"VAR"]
+            for index, name in enumerate(auto):
+                lines.append(u"\tai_verify_%d : %s;" % (index, name))
+            lines.append(u"END_VAR")
+            # A second VAR block after the existing one is valid IEC, so this
+            # needs no parsing of the host's declaration.
+            host.textual_declaration.append(u"\n".join(lines) + u"\n")
+            log("harness: auto-declared %d instance(s) in %s" % (len(auto), harness["host"]))
+        if manual["decl"]:
+            host.textual_declaration.append(u"\n" + manual["decl"] + u"\n")
+            log("harness: appended manual declaration")
+        if manual["impl"]:
+            # Programs in this project keep their logic in actions, so the
+            # program body itself is often empty and exposes no implementation.
+            # Fall back to an action that does have one.
+            target = host if safe(lambda: host.has_textual_implementation, False) else None
+            if target is None:
+                for child in list(safe(lambda: host.get_children(False), []) or []):
+                    if safe(lambda: child.has_textual_implementation, False):
+                        target = child
+                        break
+            if target is None:
+                result["errors"].append(
+                    "manual harness implementation could not be injected: neither %s nor any "
+                    "of its actions exposes a textual implementation" % harness["host"]
+                )
+            else:
+                target.textual_implementation.append(u"\n" + manual["impl"] + u"\n")
+                harness["impl_host"] = u(object_path(target))
+                log("harness: appended manual implementation to %s" % harness["impl_host"])
     except Exception:
         trace = traceback.format_exc()
         log("harness injection failed:\n%s" % trace)
@@ -530,9 +596,13 @@ def do_export(cfg, result):
         # Positional, reporter first: the shipped .pyi stub has the argument
         # order wrong (see `probe`). export_folder_structure matches the
         # committed export, which the docs generator reads; declarations stay
-        # in XML form for the same reason.
+        # in XML form there for the same reason. `plaintext` additionally emits
+        # the lossless ST declaration text, which is far easier to read and
+        # review - use it for a scratch copy, never for the committed export.
+        plaintext = bool(cfg.get("plaintext"))
+        log("exporting %d root(s) plaintext=%s" % (len(roots), plaintext))
         #               reporter, objects,      path,   recursive, folders, plaintext
-        proj.export_xml(reporter, tuple(roots), target, True,      True,    False)
+        proj.export_xml(reporter, tuple(roots), target, True,      True,    plaintext)
         result["export"] = reporter.as_dict()
         result["output"] = target
         result["errors"].extend(reporter.errors)
@@ -588,7 +658,7 @@ def do_verify(cfg, result):
     proj = projects.open(cfg["project"])  # noqa: F821 - sandbox copy, opened primary
     try:
         files = import_candidates(proj, cfg, result)
-        add_verify_harness(proj, result, files)
+        add_verify_harness(proj, result, files, cfg.get("candidates"))
         build_and_collect(proj, result)
     finally:
         safe(lambda: proj.close())
@@ -717,7 +787,7 @@ def do_simulate(cfg, result):
     online_app = None
     try:
         files = import_candidates(proj, cfg, result)
-        add_verify_harness(proj, result, files)
+        add_verify_harness(proj, result, files, cfg.get("candidates"))
 
         devices = top_level_devices(proj)
         if not devices:

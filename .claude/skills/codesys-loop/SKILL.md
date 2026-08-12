@@ -123,6 +123,64 @@ usable stdout: results go to `.ai/reports/<task>.json`, with a progress log at
 Steps 6 onwards change tracked files, including a binary. Ask before running them
 unless the user has already said to land the change.
 
+## Authoring candidates: what the importer actually accepts
+
+Established by compile probe, not by reading documentation:
+
+- **Write POU declarations as plaintext ST**, not structured XML. Put them in an
+  `<addData>` block on the `<pou>`:
+
+      <data name="http://www.3s-software.com/plcopenxml/interfaceasplaintext" handleUnknown="implementation">
+        <InterfaceAsPlainText>
+          <xhtml xmlns="http://www.w3.org/1999/xhtml">FUNCTION_BLOCK FB_X EXTENDS FB_MQTT_BASE
+      VAR
+      	x : INT;
+      END_VAR</xhtml>
+        </InterfaceAsPlainText>
+      </data>
+
+  The importer prefers it over the structured `<interface>`, it is lossless, and
+  `EXTENDS` works. Get a template by running `export -Plaintext`, which writes
+  `.ai/reports/PLCopen.plaintext.xml` with every POU in this form.
+- **A METHOD's interface must be structured XML.** A nested
+  `InterfaceAsPlainText` inside a `<Method>` is silently ignored, so the method
+  is built from the structured `<interface>` instead — which produced a
+  malformed `FB_init` that failed in four different ways at once. For `FB_init`
+  that means `<returnType><BOOL /></returnType>` plus `bInitRetains`,
+  `bInCopyCode` and your own parameters as `<inputVars>`.
+- **`qualified_only` is set on every GVL here** (`MqttVariables`,
+  `DALIVariables`, `PersistentVars`, `DMXVariables`, `RS485Variables`), so a POU
+  body must write `MqttVariables.fbMqttPublishQueue`, never the bare name.
+
+### FB_init and inheritance, as this compiler actually behaves
+
+- A **derived** FB that declares no `FB_init` of its own still accepts the
+  **base's** `FB_init` parameters at the declaration site:
+  `inst : FB_DERIVED(sFriendlyName := 'Kitchen');`. Declare `FB_init` once on the
+  base and the whole hierarchy inherits the parameter.
+- `FB_init` may read a GVL value and may take `ADR()` of a GVL member. It
+  compiles — but *runtime* initialisation order between a GVL and an instance in
+  another POU is not something the compiler checks. Prefer storing only literals
+  passed into `FB_init` and doing GVL-dependent wiring lazily on the first cycle,
+  which is order-proof.
+- Precedent worth copying: `MqttVariables.PLC_Device` is declared inside the GVL
+  with a full `FB_init` argument list including `pMqttPublishQueue := ADR(fbMqttPublishQueue)`.
+
+## Instantiating a block the harness cannot
+
+Auto-instantiation cannot declare a block whose `FB_init` takes parameters. Two
+optional files let you take over:
+
+| File | Effect |
+|:--|:--|
+| `.ai/candidates/_harness.decl` | Appended verbatim to the host program's declaration. Give a complete `VAR ... END_VAR` block. |
+| `.ai/candidates/_harness.impl` | Appended verbatim to a body, so you can actually call the block. |
+
+Any candidate block named in these files is counted as covered and drops out of
+`not_instantiated`. Note the programs here keep their logic in **actions**, so a
+program's own body is often empty and exposes no implementation; the harness
+falls back to the first action that has one and reports it as `impl_host`.
+
 ## A clean build does not always mean checked
 
 **An unreferenced POU is never compiled.** A block imported into the

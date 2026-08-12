@@ -46,6 +46,10 @@ param(
     # simulate/download: milliseconds to let the PLC run before reading state.
     [int]$SettleMs = 1000,
 
+    # export only: write a scratch export with lossless ST declaration text to
+    # .ai/reports/PLCopen.plaintext.xml instead of updating the committed export.
+    [switch]$Plaintext,
+
     # download only: leave the application loaded but stopped.
     [switch]$NoStart,
 
@@ -205,7 +209,16 @@ $cfg = [ordered]@{
 
 switch ($Task) {
     'export' {
-        $cfg.output = Join-Path $repo 'src\Exports\PLCopen.xml'
+        if ($Plaintext) {
+            # Scratch copy with lossless ST declarations: much easier to read
+            # than the XML-encoded form, but not the committed artefact - the
+            # docs generator parses the structured declarations.
+            $cfg.output = Join-Path $reports 'PLCopen.plaintext.xml'
+            $cfg.plaintext = $true
+        }
+        else {
+            $cfg.output = Join-Path $repo 'src\Exports\PLCopen.xml'
+        }
     }
     'verify' {
         $cfg.project = New-Sandbox
