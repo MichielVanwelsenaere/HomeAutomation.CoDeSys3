@@ -159,9 +159,18 @@ compatibility libraries that the MQTT library needs are 32-bit only:
 
     The Library 'syssocket23, 3.5.13.0 (system)' is only supported in 32 bit applications
 
-There is no 32-bit IDE in this install and no alternative device target
-installed, so there is nothing to host a 32-bit simulation. The task is kept for
-the diagnosis and in case the library situation changes.
+There is no 32-bit IDE in this install, and the one Windows runtime present is
+the **x64** `CODESYS Control Win V3` service, so nothing here can host a 32-bit
+application. The task is kept for the diagnosis and in case the library
+situation changes.
+
+`scan` relies on a gateway broadcast and is not reliable — it listed three PLCs
+once and nothing at all twenty minutes later, on a machine with two NICs on the
+same subnet. When it comes up empty, find the PLC out-of-band instead: `arp -a`
+filtered on WAGO's `00-30-de` MAC prefix maps IPs to the device names the CODESYS
+scan reports, and `Test-NetConnection <ip> -Port 11740` confirms the runtime is
+listening. Then use `download -Ip <ip>`, which resolves the node through the
+gateway directly and needs no broadcast.
 
 The spec format, for when it is usable — or as the model for a device-side test:
 

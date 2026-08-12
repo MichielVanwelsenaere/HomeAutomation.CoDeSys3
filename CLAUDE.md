@@ -82,10 +82,11 @@ For the record, so this is not relitigated:
 
       The Library 'syssocket23, 3.5.13.0 (system)' is only supported in 32 bit applications
 
-  There is no 32-bit IDE in this install (`Common32` holds only proxy helpers)
-  and no alternative device such as CODESYS Control Win V3, so there is nothing
-  to host a 32-bit simulation. The `simulate` task is kept because it is what
-  diagnosed this and would work if the library situation ever changed.
+  There is no 32-bit IDE in this install (`Common32` holds only proxy helpers),
+  and the one Windows runtime present is the **x64** `CODESYS Control Win V3`
+  service, so there is nothing here that could host a 32-bit application either.
+  The `simulate` task is kept because it is what diagnosed this and would work if
+  the library situation ever changed.
 
 **Consequence: runtime behaviour can only be tested on real PFC hardware.**
 Compile-checking via `verify` is the automated gate; anything behavioural needs a
