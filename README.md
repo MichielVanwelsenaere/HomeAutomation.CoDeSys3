@@ -11,7 +11,10 @@ The purpose? Redundancy on a software level but also on a hardware level!
 - Keep your wife/girlfriend happy when you're not at home and your RPi, Odroid, Banana Pi, PC crashes (running your MQTT broker, openHAB, Home Assistant, etc.).
 
 # Supported Devices & Getting started
-The project is developed using the IEC 61131-3 standard in [CODESYS](https://www.codesys.com/). Although CODESYS supports a large number of different device types, this project is specifically tested and developed on the WAGO PFC100/200 device series.
+<!-- markdown-link-check-disable -->
+The project is developed using the IEC 61131-3 standard in [CODESYS](https://www.codesys.com/).
+<!-- markdown-link-check-enable -->
+Although CODESYS supports a large number of different device types, this project is specifically tested and developed on the WAGO PFC100/200 device series.
 There are multiple generations of the WAGO PFC100/200 series, the documentation below aims to get you acquainted with the differences between generations and their implications:
 
 - [Choosing and preparing your WAGO PFC device](./docs/WagoPfcPrep.md)
