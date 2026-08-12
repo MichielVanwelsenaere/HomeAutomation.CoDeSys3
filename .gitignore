@@ -11,3 +11,8 @@
 # Python bytecode from the docs generator
 __pycache__/
 *.pyc
+
+# AI-assisted development scratch area: generated candidate function blocks,
+# the throwaway project copy they are verified against, and compiler reports.
+# Nothing in here is a source of truth - see CLAUDE.md.
+.ai/
