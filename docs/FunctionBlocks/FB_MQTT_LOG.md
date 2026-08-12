@@ -1,69 +1,56 @@
 ## FB_MQTT_LOG
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ![](../_img/mqtt_log_in_ha.png)
 
-INPUT(S)
+<!-- fb-interface:start -->
+### **Methods**
 
-OUTPUT(S)
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
 
-METHOD(S)
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `MqttQos` | MQTT.QoS | `MQTT.QoS.ExactlyOnce` | MQTT QoS used for messages published by this block. |
+| `MqttRetain` | BOOL | `FALSE` | MQTT retain flag used for messages published by this block. |
 
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-  - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
-  - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
-  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
-- send: allows logging to MQTT. The output string is formatted as follows: `instance | payload`
-  - `instance` String for your own choice.
-  - `payload`: datatype _STRING_, the payload to be sent to MQTT. String(128)
-- InitMqttDiscovery:
-  - See [MQTT Discovery](./../AdditionalFunctionality/MQTT_Discovery.md) for more info.
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) | `'plc_log'` | Name shown in the Home Assistant front-end. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+
+**`send`** — Allows logging to MQTT. The output string is formatted as follows: `instance \| payload`
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `str` | STRING(128) |  | Message to log. Published as `instance \| payload`. |
+| `instance` | STRING | `''` | A label of your own choice. |
+<!-- fb-interface:end -->
 
 ### **Code example**
 
-- variables initiation: (inside MqttVariables)
-```
-	MQTT_logger							:FB_MQTT_LOG;
-```
+You normally do not instantiate this block yourself. The discovery device owns
+an instance (`logger`, inside `FB_BASE_MQTT_DISCOVERY_DEVICE`) and wires it up
+as part of its own initialisation, so logging is available as soon as
+`MqttVariables.PLC_Device` is declared — see
+[FB_PLC_MQTT_DISCOVERY_DEVICE](./FB_PLC_MQTT_DISCOVERY_DEVICE.md).
 
-- Init MQTT method call (called once during startup):
+- To send a log message:
 ```
-MqttVariables.MQTT_logger.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttPubLogPrefix),
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-	MqttQos:=MQTT.QoS.ExactlyOnce,
-	MqttRetain:=FALSE
+MqttVariables.PLC_Device.SendLogMessage(
+	str      := 'Init finished',
+	instance := 'PLC_PRG_MAIN'
 );
 ```
 
-- To send a message to MQTT:
-```
-MqttVariables.MQTT_logger.send('Init finished');
-```
-
-- MQTT discovery:
-```
-MqttVariables.MQTT_logger.InitMqttDiscovery(
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
-);
-```
-### **Home Assistant YAML**
-If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the following to your `configuration.yaml`:
-
-```yaml
-- name: "plc_log"
-  object_id: "plc_log"
-  unique_id: "plc_log"
-  state_topic: "Devices/PLC/House/debug"
-  qos: 2  
-  availability_topic: "Devices/PLC/House/availability"
-  payload_available: "online"
-  payload_not_available: "offline"
-
-```
-
+The published string is formatted as `instance | str`.
 ### **Home Assistant dashboard**
 
 You can use the following card:

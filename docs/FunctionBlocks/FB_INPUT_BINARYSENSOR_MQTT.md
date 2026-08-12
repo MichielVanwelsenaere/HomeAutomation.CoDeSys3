@@ -1,30 +1,67 @@
 ## FB_INPUT_BINARYSENSOR_MQTT
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ### **General**
-Binary sensors gather information about the state of devices which have a "digital" return value (either 1 or 0). These can be switches, contacts, pins, etc. These sensors only have two states: *0/off/low/closed/false* and *1/on/high/open/true*
+Binary sensors gather information about the state of devices which have a "digital" return value (either 1 or 0). These can be switches, contacts, pins, etc. These sensors only have two states: *0/off/low/closed/false* and *1/on/high/open/true*.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<img src="../_img/FB_INPUT_BINARYSENSOR_MQTT.svg" width="350">
+```text
+       ┌────────────────────────────┐
+       │ FB_INPUT_BINARYSENSOR_MQTT │
+       ├────────────────────────────┤
+BOOL ──┤ BS                       Q ├── BOOL
+       │                      EVENT ├── BOOL
+       │                    EVENT_R ├── BOOL
+       │                    EVENT_F ├── BOOL
+       └────────────────────────────┘
+```
 
-INPUT(S)
-- BS: digital input linked to the signal wire of the binary sensor.
+### **Interface**
 
-OUTPUT(S)
-- Q: follows the input `BS` but debounced.
-- EVENT: output high for one clock cycle when any event occurs on debounced input `BS`.
-- EVENT_R: output high for one clock cycle when a rising edge is detected on debounced input `BS`.
-- EVENT_F: output high for one clock cycle when a falling edge is detected on debounced input `BS`.
+**Inputs**
 
-METHOD(S)
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
-    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
-    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
+| Pin | Type | Description |
+|:--|:--|:--|
+| `BS` | BOOL | Digital input linked to the signal wire of the binary sensor. |
 
-- ConfigureFunctionBlock: configures the behaviour of output `Q` using the parameters below:
-    - `T_TurnOffDelay`: duration of the turn off delay added on output `Q` to prevent rapid ON/OFF behaviour on the output caused by a fast switching sensor on the digital input. Defaults to 0 seconds, can be extremely usefull when connecting a motion sensor the the PLC. 
+**Outputs**
+
+| Pin | Type | Description |
+|:--|:--|:--|
+| `Q` | BOOL | Follows the input `BS` but debounced. |
+| `EVENT` | BOOL | Output high for one clock cycle when any event occurs on debounced input `BS`. |
+| `EVENT_R` | BOOL | Output high for one clock cycle when a rising edge is detected on debounced input `BS`. |
+| `EVENT_F` | BOOL | Output high for one clock cycle when a falling edge is detected on debounced input `BS`. |
+
+### **Methods**
+
+**`ConfigureFunctionBlock`** — Configures the behavior of output `Q` using the parameters below:
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `T_TurnOffDelay` | TIME |  | Duration of the turn off delay added on output `Q` to prevent rapid ON/OFF behavior on the output caused by a fast switching sensor on the digital input. Defaults to 0 seconds, can be extremely useful when connecting a motion sensor to the PLC. |
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `DeviceClass` | STRING(100) | `'smoke'` | Home Assistant device class for the entity. Leave empty for the default. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+<!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -39,7 +76,7 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 - variables initiation:
 ```
-MQTTBinarySensorPrefix  :STRING(100) := 'Devices/PLC/House/Out/DigitalInputs/BinarySensors/';
+MQTTBinarySensorPrefix  :STRING(100) := 'Devices/PLC/Lab/Out/DigitalInputs/BinarySensors/';
 FB_DI_BS_001            :FB_INPUT_BINARYSENSOR_MQTT;
 ```
 
@@ -49,7 +86,7 @@ FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTBinarySensorPref
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)                          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalInputs/BinarySensors/FB_DI_BS_001` (MQTTBinarySensorPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/DigitalInputs/BinarySensors/FB_DI_BS_001` (MQTTBinarySensorPrefix variable + function block name).
 
 - Configuration of the function block with a 5 second turn off delay on the output (called once during startup):
 ```
@@ -73,23 +110,7 @@ FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the 
 - MQTT discovery:
 ```
 FB_DI_BS_001.InitMqttDiscovery(
-	Name := 'Binary sensor 001',			(* The name show in Home Assistant frond-end*)
-	Device := ADR(PLC_DEVICE),				(* The device show in Home Assistant *)
+	Name := 'Binary sensor 001',			(* The name shown in the Home Assistant front-end *)
+	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
-```
-
-### **Home Assistant YAML**
-If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT binary sensor](https://www.home-assistant.io/components/binary_sensor.mqtt/) config:
-
-```YAML
-mqtt:
-  binary_sensor:
-  - name: "FB_DI_BS_001"
-    state_topic: "Devices/PLC/House/Out/DigitalInputs/BinarySensors/FB_DI_BS_001"
-    qos: 2  
-    payload_on: "ON"
-    payload_off: "OFF"
-    availability_topic: "Devices/PLC/House/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
 ```

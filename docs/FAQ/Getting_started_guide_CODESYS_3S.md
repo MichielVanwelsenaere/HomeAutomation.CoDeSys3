@@ -1,21 +1,21 @@
 ## Getting started guide (CODESYS 3S runtime)
 
-### **Getting to know CoDeSys3**
-If you have experience with programming in CodeSys3 you can skip this part. Otherwise, it's advised to gain some experience by checking the sources below:
+### **Getting to know CODESYS 3**
+If you have experience with programming in CODESYS 3 you can skip this part. Otherwise, it's advised to gain some experience by checking the sources below:
 
 - Setup environment and creation first project: [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s)
-- CoDeSys start guide (uses CoDeSys 2.3 but principles still applicable): [YouTube playlist](https://www.youtube.com/watch?v=WP9pUfBi6Pw&list=PL08CDB741463CA7B4&index=1)
-- CoDeSys Sequential Function Charts Explained: [YouTube video](https://www.youtube.com/watch?v=eP42t9O5drk)
+- CODESYS start guide (uses CODESYS 2.3 but principles still applicable): [YouTube playlist](https://www.youtube.com/watch?v=WP9pUfBi6Pw&list=PL08CDB741463CA7B4&index=1)
+- CODESYS Sequential Function Charts Explained: [YouTube video](https://www.youtube.com/watch?v=eP42t9O5drk)
 - Getting to know the IEC 61131-3 standard: [iec 61131-3 reference](https://bitbucket.org/ntphx/iec-61131)
 
-### **Setup CoDeSys 3S**
+### **Setup CODESYS 3S**
 
-1. Download CoDeSys3 from the [CoDeSys store](https://store.codesys.com/). Note that you need to create an account to be able to download the installer.
+1. Download CODESYS 3 from the [CODESYS store](https://store.codesys.com/). Note that you need to create an account to be able to download the installer.
 2. Install your device target package. Steps explained in this [YouTube video](https://www.youtube.com/watch?v=hI8t9UHPV8s), steps might differ slightly depending on your device target.
     - Common device target package: [WAGO-PFC100](https://store.codesys.com/en/codesys-control-for-pfc100-sl-1.html)
     - Common device target package: [WAGO-PFC200](https://store.codesys.com/en/codesys-control-for-pfc200-sl-1.html)
 
-Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. Using the free version the PLC is able to run the CodeSys runtime for 2 hours after which the program stops running. A license is required to remove this limitation.
+Both the WAGO-PFC100 and WAGO-PFC200 target packages can be downloaded for free. Using the free version, the PLC is able to run the CODESYS runtime for 2 hours, after which the program stops running. A license is required to remove this limitation.
 
 ### **Creating a project**
 
@@ -25,9 +25,9 @@ Both the WAGO-PFC100 and WAGO-PFC200 target package can be downloaded for free. 
 This will restore the basic POUs (building blocks) of the project, note that you can reuse this step to update or import new POUs in the future.
 1. Go to the POUs section of the project and select the top level item:
 
-<img src="../_img/GettingStartedGuide/RestorePOUsNavigation.png" alt="Restore POUs navigiation" width="300"/>
+<img src="../_img/GettingStartedGuide/RestorePOUsNavigation.png" alt="Restore POUs navigation" width="300"/>
 
-2. Select *Project* &rarr; *Import* and browse to the Exports folder and open the *.export* file:
+2. Select *Project* &rarr; *Import PLCopenXML...* and open [src/Exports/PLCopen.xml](../../src/Exports/PLCopen.xml):
 
 <img src="../_img/GettingStartedGuide/RestorePOUsToplevel.png" alt="Restore POUs top level" width="300"/>
 
@@ -36,7 +36,7 @@ This will restore the basic POUs (building blocks) of the project, note that you
 <img src="../_img/GettingStartedGuide/RestorePOUsImportAll.png" alt="Restore POUs import all" width="350"/>
 
 ### **Adding a device**
-This will add a device to the project, in this example a PFC200 is used. Adopt to your needs if necessary. 
+This will add a device to the project, in this example a PFC200 is used. Adapt to your needs if necessary.
 
 1. Return to the 'Devices' tab of the project, right click on the root item and 'Add Device':
 
@@ -52,7 +52,7 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 ### **Restoring the PLC logic**
 
-1. select the *PlcLogic* item and go to *Project* &rarr; *Import* and browse to the Exports folder and open the *.export* file:
+1. Select the *PlcLogic* item and go to *Project* &rarr; *Import PLCopenXML...*, then open [src/Exports/PLCopen.xml](../../src/Exports/PLCopen.xml):
 
 <img src="../_img/GettingStartedGuide/RestorePLCLogic.png" alt="Restore PLC logic" width="350"/>
 
@@ -72,29 +72,28 @@ This will add a device to the project, in this example a PFC200 is used. Adopt t
 
 <img src="../_img/GettingStartedGuide/InstallLibraries.png" alt="drawing"/>
 
-4. In case the `IoDrvPfc200` library gives issues. Remove it and reinstall it from the Library Repository:
+4. In case the `IoDrvPfc200` library gives issues, remove it and reinstall it from the Library Repository:
     - Remove the existing Library</br>
     <img src="../_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step1.png" alt="drawing" width="750"/>
 
     - Select *Add library* and then *Advanced...*</br>
     <img src="../_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step2.png" alt="drawing" width="750"/>
 
-    - Seach for the *IoDrvPfc200* and add it (step might vary depending on your Device target)</br>
+    - Search for the *IoDrvPfc200* and add it (step might vary depending on your Device target)</br>
     <img src="../_img/GettingStartedGuide/LibraryRepositoryIoDrvPfc_step3.png" alt="drawing" width="750"/>
 
-5. In case some libraries references are not resolved because they are pointing to and older/newer version that is not installed on the system, update the placeholder:
+5. In case some library references are not resolved because they point to an older/newer version that is not installed on the system, update the placeholder:
 
 <img src="../_img/GettingStartedGuide/UpdateLibraryPlaceholder.png" alt="drawing"/>
 
-6. If there is still an *Download missing libraries* button in the Library manager. This should fix the last missing libraries.
+6. If there is still a *Download missing libraries* button in the Library Manager, press it. This should fix the last missing libraries.
 
 Although all libraries are restored now, it's still not possible to build the project. Reason for this is that the IO configured in the project doesn't exist yet in the device in the project tree.
-
 
 ### **Updating the configured devices to your PLC device configuration**
 As the IO modules installed on your PLC will most likely differ from the ones configured in the project an update is required.
 
-1. Turn on your PLC with a network cable plugged in. Make sure that the device you are using to follow this steps is on the same network.
+1. Turn on your PLC with a network cable plugged in. Make sure that the device you are using to follow these steps is on the same network.
 
 2. From the *Device* section in the project select *Scan network..* and Select your PLC:</br>
 <img src="../_img/GettingStartedGuide/ScanningAndConnectingToPLC.png" alt="Scan network and connect to PLC" width="750"/>
@@ -105,10 +104,10 @@ As the IO modules installed on your PLC will most likely differ from the ones co
 4. Set the *Show Differences to Project* checkbox.</br>
 <img src="../_img/GettingStartedGuide/ScanningToUpdateModulesShowDifferences.png" alt="Scan to update modules show differences" width="750"/>
 
-5. Using to the tools in the middle of the screen, update the project *Configured Devices* to the *Scanned Devices*.</br>
+5. Using the tools in the middle of the screen, update the project *Configured Devices* to the *Scanned Devices*.</br>
 <img src="../_img/GettingStartedGuide/ScanningToUpdateModulesPerformUpdate.png" alt="Scan to update modules perform update" width="750"/>
 
-Executing the steps above will most likely introduce build errors, this is normal! The current program uses every input and output of the configured device modules. By adjusting/removing them this naturally causes build issues. These build issues will be fixed in the next topic where the program logic is adjusted to your PLC configuration.
+Executing the steps above will most likely introduce build errors. This is normal! The current program uses every input and output of the configured device modules, so adjusting or removing them naturally causes build issues. These build issues will be fixed in the next topic where the program logic is adjusted to your PLC configuration.
 
 Make sure to update the PLC device configuration to your exact PLC device setup in order to avoid issues. 
 
@@ -120,7 +119,7 @@ Update the configured MQTT broker IP and port to connect to your broker:
 
 #### Naming modules
 
-Select you input and output modules and create a variable for each input and output. Adviced approach *DO_{Digital Outputnumer}* and *DI_{Digital Inputnumber}*:
+Select your input and output modules and create a variable for each input and output. Advised approach: *DO_{Digital Output number}* and *DI_{Digital Input number}*:
 
 <img src="../_img/GettingStartedGuide/ModuleVariableConfig.png" alt="Update MQTT config" width="750"/>
 
@@ -139,7 +138,7 @@ For more information on the *FB_INPUT_PUSHBUTTON_MQTT* function block, check the
 
 #### Output Switch Logic
 
-For each input linked to a pushbutton a function block needs to be created:
+For each output linked to a switch or relay a function block needs to be created:
 <img src="../_img/GettingStartedGuide/OutputSwitchLogic.png" alt="Output switch logic" width="750"/>
 
 To get started:
@@ -147,11 +146,11 @@ To get started:
 1. In the *MAIN_INIT* action remove all references to *FB_DO_SW_XXX* function blocks except the first one.
 1. In the *WRITE_SWITCHES* action remove all references to *FB_DO_SW_XXX* function blocks except the first one.
 1. In the *WRITE_SWITCHES* action update *FB_DO_SW_001* to write the physical output variable created in the previous step *"Naming modules"*.
-1. Link the input pushbutton from previous step to switch the *FB_DO_SW_001* output to toggle the output when the pushbutton receives a single press: `TOGGLE	:=FB_DI_PB_001.SINGLE`
+1. Link the input pushbutton from the previous step to switch the *FB_DO_SW_001* output to toggle the output when the pushbutton receives a single press: `TOGGLE	:=FB_DI_PB_001.SINGLE`
 
 For more information on the *FB_OUTPUT_BINARY_MQTT* function block, check the [dedicated docs](../FunctionBlocks/FB_OUTPUT_BINARY_MQTT.md).
 
-#### Persistant Variables
+#### Persistent Variables
 
 In order to be able to maintain the state of the outputs through power cycles *Persistent Variables* are used.
 To update the *Persistent Variables* if you created or removed Function Blocks perform the following steps:
@@ -161,7 +160,7 @@ To update the *Persistent Variables* if you created or removed Function Blocks p
 1. Go to *Declarations* and select *Add all instance paths*
 <img src="../_img/GettingStartedGuide/PersistentVars_AddAllInstancePaths.png" alt="Output switch logic" width="750"/>
 
-This will add all *PERSIST* variables form the project. Note that the project needs to be built before being able to perform this step.
+This will add all *PERSIST* variables from the project. Note that the project needs to be built before being able to perform this step.
 
 ### **Building the project**
 Once all IO references in the project actually exist on the device as well you should be able to build the project:

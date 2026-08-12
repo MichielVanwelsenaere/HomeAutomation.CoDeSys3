@@ -1,24 +1,57 @@
 ## FB_RS485_BUSCONTROLLER
+<!-- fb-badge:start -->
+<!-- fb-badge:end -->
 
 ### **General**
-Used to control the RS485 bus in order to allow only one device with one Modbus RTU query at the time. In addition it manages the silence time on the bus between two requests and is capable of introducing a startup delay to allow devices on the bus to start up on power cycles.
+Used to control the RS485 bus in order to allow only one device with one Modbus RTU query at a time. In addition it manages the silence time on the bus between two requests and is capable of introducing a startup delay to allow devices on the bus to start up on power cycles.
 
+----------------------------
+
+:rotating_light: **Untested since the CODESYS conversion.** The RS485 chain has not yet been run against real hardware on a CODESYS runtime — see [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
+
+----------------------------
+
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<img src="../_img/FB_RS485_BUSCONTROLLER.svg" width="350">
+```text
+   ┌────────────────────────┐
+   │ FB_RS485_BUSCONTROLLER │
+   ├────────────────────────┤
+   │             BusOcupied ├── BOOL
+   └────────────────────────┘
+```
 
-OUTPUT(S):
-- BusOcupied: datatype bool, indicates whether the RS485 bus is occupied or not.
+### **Interface**
 
-METHOD(S)
-- Init: configures the buscontroller, an overview of the parameters: 
-    - `StartupDelay`: datatype *TIME*, amount of time that should be waited on PLC startup before using the RS485 bus, can prevent errors due to RS485 devices not booted up yet.
-    - `SilenceTime`: datatype *TIME*,  the silence time between two requests. Typically 10-20ms.
-	- `BusTrigger`: datatype *POINTER TO BOOL*,  boolean controlling bus actions.
-	- `BusData`: datatype *POINTER TO ARRAY [0..124] OF WORD*,  array containing bus read data.
-	- `BusError`: datatype *POINTER TO BOOL*,  boolean indicating bus error.
-- SetBusOccupied: used internally to set the RS485 bus as occupied.
-- ReleaseBus: used internally to release the RS485 bus.
+**Outputs**
+
+| Pin | Type | Description |
+|:--|:--|:--|
+| `BusOcupied` | BOOL | Datatype bool, indicates whether the RS485 bus is occupied or not. |
+
+### **Methods**
+
+**`Init`** — Configures the bus controller, an overview of the parameters:
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `StartupDelay` | TIME |  | Amount of time that should be waited on PLC startup before using the RS485 bus, can prevent errors due to RS485 devices not having booted up yet. |
+| `SilenceTime` | TIME |  | The silence time between two requests. Typically 10-20ms. |
+| `BusTrigger` | POINTER TO BOOL |  | Boolean controlling bus actions. |
+| `BusData` | POINTER TO ARRAY [0..124] OF WORD |  | Array containing bus read data. |
+| `BusError` | POINTER TO BOOL |  | Boolean indicating bus error. |
+
+**`RegisterDevice`** — Registers an RS485 device function block with the bus controller. Call once at startup for each device on the bus.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `device` | RS485Device |  | The RS485 device function block to register. |
+
+**`ReleaseBus`** — Used internally to release the RS485 bus.
+
+**`SetBusOccupied`** — Used internally to set the RS485 bus as occupied.
+<!-- fb-interface:end -->
 
 ### **Code example**
 
@@ -27,7 +60,7 @@ METHOD(S)
 RS485BusController 	: FB_RS485_BUSCONTROLLER;
 ```
 
-- Init  method call -é!COCKPIT version- (called once during startup):
+- Init method call -e!COCKPIT version- (called once during startup):
 ```
 RS485BusController.Init(
 	StartupDelay := T#5S,				(* Time to wait after startup to start using the bus, prevents boot delay issues when RS485 are not ready yet on startup *)		
@@ -38,7 +71,7 @@ RS485BusController.Init(
 );
 ```
 
-- Init  method call -Codesys 3S version- (called once during startup):
+- Init method call -CODESYS 3S version- (called once during startup):
 ```
 RS485BusController.Init(
 	StartupDelay := T#5S,				(* Time to wait after startup to start using the bus, prevents boot delay issues when RS485 are not ready yet on startup *)		

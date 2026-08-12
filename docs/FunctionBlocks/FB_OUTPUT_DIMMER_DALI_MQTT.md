@@ -3,40 +3,81 @@
 
 ### **General**
 
-Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through powercycles. Sets the driver fade time and fade rate setting. Allows dimming via a long persistent push on a pushbutton. Performs periodic writes to the DALI address to avoid state issues. 
+Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through power cycles. Sets the driver fade time and fade rate setting. Allows dimming via a long persistent push on a pushbutton. Performs periodic writes to the DALI address to avoid state issues. 
 
 DALI configuration via the Wago DALI tool and creation of the `typBallast` is explained pretty well in [this video](https://www.youtube.com/watch?v=FaoOY2-VFVk).
 
+----------------------------
+
+:rotating_light: **Not part of the reference project.** This function block needs the WAGO DALI module and the WAGO DALI libraries, which are only available on **G2** PFC devices (see [Choosing and preparing your WAGO PFC device](../WagoPfcPrep.md)). The CODESYS conversion was done on G1 hardware, so the block could not be built or tested and has been removed from `HomeAutomation.project`; the call sites in `PLC_PRG_MAIN` are commented out.
+
+It is kept as a standalone PLCopen export so it can be imported into a G2 project: **[src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml](../../src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml)**. See [Restoring it into a project](#restoring-it-into-a-project) below. It is unverified on CODESYS — please report back if you get it running.
+
+----------------------------
+
+### **Restoring it into a project**
+
+1. In CODESYS, select the POUs top level item and choose *Project* &rarr; *Import PLCopenXML*.
+2. Browse to [src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml](../../src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml) and import it.
+3. Resolve the dependencies it expects:
+   - `FB_MQTT_BASE` and `FB_MqttPublishQueue` — already in the reference project.
+   - `MQTT.MQTT_SUBSCRIBE_CALLBACK`, `MQTT.CallbackCollector`, `MQTT.CALLBACK_DATA` — the CODESYS MQTT library.
+   - `typBallast`, `FbDaliSendDimValue`, `FbDaliSendFadeRate`, `FbDaliSendFadeTime` — the WAGO DALI library, **G2 only**.
+4. Uncomment the DALI blocks in the `MAIN_INIT` and `DALI` actions of `PLC_PRG_MAIN`.
+
 ### **Block diagram**
 
-<img src="../_img/FB_OUTPUT_DIMMER_DALI_MQTT.svg" width="350">
+```text
+             ┌────────────────────────────┐
+             │ FB_OUTPUT_DIMMER_DALI_MQTT │
+             ├────────────────────────────┤
+TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
+      BOOL ──┤ TOGGLE                     │
+      BOOL ──┤ P_LONG                     │
+      BOOL ──┤ PRIO_HIGH                  │
+      BOOL ──┤ PRIO_LOW                   │
+             └────────────────────────────┘
+```
 
-INPUT(S)
+> This diagram is a frozen snapshot of the archived export, not generated from `PLCopen.xml` like the other function blocks — the block is no longer in the project to generate it from.
 
-- BALLAST: input to configure the `typBallast` that should be linked to this function block.
-- TOGGLE: input to connect to one or multiple `SINGLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- P_LONG: input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- PRIO_HIGH: when high the output `Q` is set to high with a maximum brightness, has priority over the other inputs.
-- PRIO_LOW: when high the output `Q` is set to low, has priority over the other inputs.
+### **Interface**
 
+**Inputs**
 
-OUTPUT(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `BALLAST` | typBallast | The `typBallast` this function block drives. |
+| `TOGGLE` | BOOL | Connect to one or more `SINGLE` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `P_LONG` | BOOL | Connect to one or more `P_LONG` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `PRIO_HIGH` | BOOL | When high the light is set to maximum brightness, overriding the other inputs. |
+| `PRIO_LOW` | BOOL | When high the light is switched off, overriding the other inputs. |
 
-- STATUS_LED: high when light intensity > 0, off otherwise.
+**Outputs**
 
-METHOD(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `STATUS_LED` | BOOL | High when the light intensity is greater than 0, low otherwise. |
 
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-  - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.
-  - `MQTTSubscribePrefix`: datatype _POINTER TO STRING_, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector, pointer to the MQTT callback collector to receive subscribe messages.
+### **Methods**
 
-- ConfigureFunctionBlock: configures the dimmer with your preferred configurations, an overview of the parameters and their default values.
-  - `FadeTime`: _BYTE_ value setting the fade time.
-  - `FadeRate`: _BYTE_ value setting the fade rate.
-- PublishReceived: callback method called by the callbackcollector when a message is received on the subscribed topic by the callbackcollector.
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
+
+**`ConfigureFunctionBlock`** — Overrides the default behaviour characteristics. Only needed when the defaults do not suit.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `FadeTime` | BYTE |  | Driver fade time, see the table below. |
+| `FadeRate` | BYTE |  | Driver fade rate, see the table below. |
+
+**`PublishReceived`** — Callback invoked by the callback collector when a message arrives on the subscribed topic. Not called directly.
 
 ### Fade Time and Fade Rate 
 
@@ -70,7 +111,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | Event                   | Description                                | MQTT payload | QoS                                  | Retain flag | Published on startup |
 | :---------------------- | :----------------------------------------- | :----------- | :----------------------------------- | :---------- | :------------------- |
 | **Light intensity value changes**   | Light intensity value changes | `0-100` | 2                                    | `TRUE`      | yes                   |
-| **light intensity values changes to 0 or 100** | Light intensity value changes to minimum or maximum value, published on `BRIGHTNESS` subtopic. | `ON/OFF`      | 2` | `TRUE`      | yes, if light intensity value > 0                   |
+| **Light intensity value changes to 0 or 100** | Light intensity value changes to minimum or maximum value, published on `BRIGHTNESS` subtopic. | `ON/OFF`      | 2 | `TRUE`      | yes, if light intensity value > 0                   |
 
 (\*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output.
 
@@ -99,8 +140,8 @@ END_VAR
 
 - variables initiation:
 ```
-MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/Out/Dimmers/';
-MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/In/Dimmers/';
+MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/Lab/Out/Dimmers/';
+MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/Lab/In/Dimmers/';
 M1_DALIMASTER				    :FbDaliMaster;
 FB_DALI_1_ADR0				  :FB_OUTPUT_DIMMER_DALI_MQTT;
 ```
@@ -114,8 +155,7 @@ FB_DALI_1_ADR0.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPrefi
 );
 ```
 
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/Dimmers/FB_DALI_1_ADR0` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/Dimmers/FB_DALI_1_ADR0` (MQTTSubSwitchPrefix variable + function block name).
-
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/Dimmers/FB_DALI_1_ADR0` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/Lab/In/Dimmers/FB_DALI_1_ADR0` (MQTTSubSwitchPrefix variable + function block name).
 
 - checking for events to switch the DALI output (cyclic):
 ```
@@ -134,12 +174,11 @@ FB_DALI_1_ADR0(
 
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 
-
 - MQTT discovery:
 ```
 FB_DALI_1_ADR0.InitMqttDiscovery(
-    name := '001. Office strip cold',				(* The name show in Home Assistant frond-end*)
-    Device := ADR(PLC_Device),							(* The device show in Home Assistant *)
+    name := '001. Office strip cold',				(* The name shown in the Home Assistant front-end *)
+    Device := ADR(PLC_Device),							(* The device shown in Home Assistant *)
 );
 ```
 
@@ -150,17 +189,17 @@ If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working
 mqtt:
   light:
   - name: "Kitchen"
-    state_topic: "Devices/PLC/House/Out/Dimmers/FB_DALI_1_ADR0"
-    command_topic: "Devices/PLC/House/In/Dimmers/FB_DALI_1_ADR0"
-    brightness_command_topic: "Devices/PLC/House/In/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
-    brightness_state_topic: "Devices/PLC/House/Out/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
+    state_topic: "Devices/PLC/Lab/Out/Dimmers/FB_DALI_1_ADR0"
+    command_topic: "Devices/PLC/Lab/In/Dimmers/FB_DALI_1_ADR0"
+    brightness_command_topic: "Devices/PLC/Lab/In/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
+    brightness_state_topic: "Devices/PLC/Lab/Out/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
     on_command_type: "brightness"
     payload_on: "ON"
     payload_off: "OFF"
     optimistic: false
     brightness_scale: 100
     qos: 2
-    availability: "Devices/PLC/House/availability"
+    availability: "Devices/PLC/Lab/availability"
     payload_not_available: "offline"
     payload_available: "online"
 ```

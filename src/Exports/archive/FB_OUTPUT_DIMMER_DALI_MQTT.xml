@@ -1,0 +1,490 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="WAGO" productName="e!COCKPIT" productVersion="e!COCKPIT" creationDateTime="2026-02-03T13:38:40.6404858" />
+  <contentHeader name="FB_OUTPUT_DIMMER_DALI_MQTT" modificationDateTime="2026-02-03T13:38:16.7598415">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="FB_OUTPUT_DIMMER_DALI_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="BALLAST">
+              <type>
+                <derived name="typBallast" />
+              </type>
+            </variable>
+            <variable name="TOGGLE">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="P_LONG">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="PRIO_HIGH">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="PRIO_LOW">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="STATUS_LED">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="instance-path" Value="" />
+                    <Attribute Name="noinit" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Refelection: object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="DaliSendDimValue">
+              <type>
+                <derived name="FbDaliSendDimValue" />
+              </type>
+            </variable>
+            <variable name="DaliSendFadeTime">
+              <type>
+                <derived name="FbDaliSendFadeTime" />
+              </type>
+            </variable>
+            <variable name="DaliSendFadeRate">
+              <type>
+                <derived name="FbDaliSendFadeRate" />
+              </type>
+            </variable>
+            <variable name="MqttSendBrightnessUpdate">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MqttSendOnUpdate">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MqttSendOffUpdate">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="Toggle_RTrigger">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="DaliSyncSignalGenerator">
+              <type>
+                <derived name="Util.BLINK" />
+              </type>
+            </variable>
+            <variable name="DaliConfigSyncSignalGenerator">
+              <type>
+                <derived name="Util.BLINK" />
+              </type>
+            </variable>
+            <variable name="DimDirection">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+          </localVars>
+          <localVars persistent="true">
+            <variable name="DimValue">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+                <Implements>MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">DaliSendFadeTime(
+	typBallast := BALLAST,
+	bFadeTime := 2, // 1 sec
+	xUpdate := DaliConfigSyncSignalGenerator.OUT
+	);
+	
+DaliSendFadeRate(
+	typBallast := BALLAST,
+	bFadeRate := 2, // 1 sec
+	xUpdate := DaliConfigSyncSignalGenerator.OUT
+	);
+
+DaliSendDimValue(
+	typBallast := BALLAST,
+	rDimValue := DimValue,
+	xUpdate := DaliSyncSignalGenerator.OUT OR MqttSendOffUpdate OR MqttSendOnUpdate);
+
+DaliSyncSignalGenerator(
+	ENABLE := TRUE,
+	TIMEHIGH := T#1S,
+	TIMELOW := T#1M);
+	
+DaliConfigSyncSignalGenerator(
+	ENABLE := TRUE,
+	TIMEHIGH := T#1S,
+	TIMELOW := T#24H);
+
+Toggle_RTrigger(CLK:=TOGGLE);
+
+// Regular push
+IF(Toggle_RTrigger.Q AND DimValue = 0) THEN
+	SetDimValue(100);
+ELSIF(Toggle_RTrigger.Q AND DimValue &gt; 0) THEN
+	SetDimValue(0);
+END_IF
+
+// Long push
+IF P_LONG THEN
+	SetDimValue(DimValue + DimDirection);
+END_IF
+
+IF MqttSendBrightnessUpdate OR Startup AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(		
+		Payload := REAL_TO_STRING(DimValue),
+		Topic := CONCAT(THIS^.MQTTPublishTopic, '/BRIGHTNESS'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+	MqttSendBrightnessUpdate := FALSE;
+END_IF
+
+IF MqttSendOnUpdate OR (Startup AND DimValue &gt; 0) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(		
+		Payload := 'ON',
+		Topic := THIS^.MQTTPublishTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+	MqttSendOnUpdate := FALSE;
+END_IF
+
+IF MqttSendOffUpdate OR (Startup AND DimValue = 0) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'OFF',
+		Topic := THIS^.MQTTPublishTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+	MqttSendOffUpdate := FALSE;
+END_IF
+
+Startup:=FALSE;
+STATUS_LED := REAL_TO_BOOL(DimValue);</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
+	END_IF
+	
+	Device^.CreateLightDimmerEntity(
+		Name := name,
+		Id := Id,
+		Meta := meta,
+		CommandTopic := THIS^.MQTTSubscribeTopic,
+		PayloadOn := 'ON',
+		PayloadOff := 'OFF',
+		StateTopic := THIS^.MQTTPublishTopic,
+		BrightnessCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic, '/BRIGHTNESS'),
+		BrightnessStateTopic := CONCAT(THIS^.MQTTPublishTopic, '/BRIGHTNESS'),
+		BrightnessScale := 100,
+		OnCommandType := 'brightness');
+
+	initMqttDiscoveryDone := TRUE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
+
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	
+ELSIF MQTTSubscribeTopic =  Data.TopicOut^ THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('ON')) THEN
+		SetDimValue(100);
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OFF')) THEN
+		SetDimValue(0);
+	END_IF
+	
+ELSIF CONCAT(MQTTSubscribeTopic, '/BRIGHTNESS') =  Data.TopicOut^ THEN
+	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
+		SetDimValue(STRING_TO_REAL(Data.PayloadString^));
+	END_IF
+END_IF </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetDimValue">
+              <interface>
+                <inputVars>
+                  <variable name="Value">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.MqttSendBrightnessUpdate := TRUE;
+
+IF THIS^.DimValue = 0 AND Value &gt; 0 THEN
+	THIS^.MqttSendOnUpdate := TRUE;
+END_IF
+
+IF THIS^.DimValue &gt; 0 AND Value = 0 THEN
+	THIS^.MqttSendOffUpdate := TRUE;
+END_IF
+
+IF Value = 0 THEN
+	DimDirection := 1;
+ELSIF Value = 100 THEN
+	DimDirection := -1;
+END_IF
+
+THIS^.DimValue := Value;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="FadeTime">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="FadeRate">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">DaliSendFadeTime.bFadeTime := FadeTime;
+DaliSendFadeRate.bFadeRate := FadeRate;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+</project>

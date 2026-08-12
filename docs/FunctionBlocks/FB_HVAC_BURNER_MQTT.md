@@ -1,35 +1,63 @@
 ## FB_HVAC_BURNER_MQTT
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ### **General**
 
 Designed to control a heat source with a simple on/off signal. Respects any minimum runtime requirements.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<img src="../_img/FB_HVAC_BURNER_MQTT.svg" width="350">
+```text
+       ┌─────────────────────┐
+       │ FB_HVAC_BURNER_MQTT │
+       ├─────────────────────┤
+BOOL ──┤ IN              OUT ├── BOOL
+       └─────────────────────┘
+```
 
-INPUT(S)
+### **Interface**
 
-- IN: datatype _BOOL_, when high heat production is required for the pump(s).
+**Inputs**
 
-OUTPUT(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `IN` | BOOL | When high heat production is required for the pump(s). |
 
-- OUT: datatype _BOOL_, follows input `IN` while respecting minimum and maximum allowed runtime configuration. 
+**Outputs**
 
-METHOD(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `OUT` | BOOL | Follows input `IN` while respecting minimum and maximum allowed runtime configuration. |
 
-- FB_init: constructor, overview of the parameters:
-  - `MIN_ONTIME`: datatype _TIME_, minimum on time for the burner in order to prevent damage.
-  - `MIN_OFFTIME`: datatype _TIME_, minimum off time for the burner in order to prevent damage.
+### **Methods**
 
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-  - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.
-  - `MQTTSubscribePrefix`: datatype _POINTER TO STRING_, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `pMqttCallbackCollector`: datatype _SD_MQTT.CallbackCollector_, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
-  - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
-  - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
+**`FB_init`** — Constructor, overview of the parameters:
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MIN_ONTIME` | TIME |  | Minimum on time for the burner in order to prevent damage. |
+| `MIN_OFFTIME` | TIME |  | Minimum off time for the burner in order to prevent damage. |
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `DeviceClass` | STRING(100) | `'heat'` | Home Assistant device class for the entity. Leave empty for the default. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+<!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
 
@@ -37,6 +65,6 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 | Event                 | Description                         | MQTT payload | QoS                                  | Retain flag                          | Published on startup                 |
 | :-------------------- | :---------------------------------- | :----------- | :----------------------------------- | :----------------------------------- | :----------------------------------- |
-| **input changes: OUT** | A change is detected on output `OUT`. | `TRUE/FALSE` | 2 | `TRUE` | yes |
+| **output changes: OUT** | A change is detected on output `OUT`. | `TRUE/FALSE` | 2 | `TRUE` | yes |
 
 MQTT publish topic is a concatenation of the publish prefix and the function block name.
