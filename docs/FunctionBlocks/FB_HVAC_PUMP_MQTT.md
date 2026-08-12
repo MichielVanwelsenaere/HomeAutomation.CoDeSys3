@@ -1,13 +1,15 @@
 ## FB_HVAC_PUMP_MQTT
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ### **General**
 
 Designed to control a pump with a simple on/off signal and request heat from the burner function block when it is required. Respects any minimum runtime requirements.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
        ┌────────────────────────┐
        │   FB_HVAC_PUMP_MQTT    │
@@ -17,32 +19,49 @@ BOOL ──┤ IN                PUMP ├── BOOL
        │      MIN_ONTIME_ACTIVE ├── BOOL
        └────────────────────────┘
 ```
-<!-- fb-diagram:end -->
 
-INPUT(S)
+### **Interface**
 
-- IN: datatype _BOOL_, should be made high if pump flow is required.
+**Inputs**
 
-OUTPUT(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `IN` | BOOL | Should be made high if pump flow is required. |
 
-- PUMP: datatype _BOOL_, output for switching the pump on and off. Respects a minimum on and off runtime value to prevent damaging the pump.
-- HEAT_REQUEST: datatype _BOOL_, output for requesting heat from the burner. Follows the input `IN` more closely than output `PUMP` since the minimum runtime for the burner is controlled in the burner function block.
-- MIN_ONTIME_ACTIVE: datatype _BOOL_, output indicating when the pump is in its minimum runtime cycle.
+**Outputs**
 
-METHOD(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `PUMP` | BOOL | Output for switching the pump on and off. Respects a minimum on and off runtime value to prevent damaging the pump. |
+| `HEAT_REQUEST` | BOOL | Output for requesting heat from the burner. Follows the input `IN` more closely than output `PUMP` since the minimum runtime for the burner is controlled in the burner function block. |
+| `MIN_ONTIME_ACTIVE` | BOOL | Output indicating when the pump is in its minimum runtime cycle. |
 
-- FB_init: constructor, overview of the parameters:
-  - `MIN_ONTIME`: datatype _TIME_, time that the pump should be on at a minimum before turning it off again.
-  - `MIN_OFFTIME`: datatype _TIME_, time that the pump should be off at a minimum before turning it on again.
+### **Methods**
 
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-  - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.
-  - `MQTTSubscribePrefix`: datatype _POINTER TO STRING_, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `pMqttCallbackCollector`: datatype _SD_MQTT.CallbackCollector_, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
-  - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
-  - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
+**`FB_init`** — Constructor, overview of the parameters:
 
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MIN_ONTIME` | TIME |  | Time that the pump should be on at a minimum before turning it off again. |
+| `MIN_OFFTIME` | TIME |  | Time that the pump should be off at a minimum before turning it on again. |
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `DeviceClass` | STRING(100) | `'heat'` | Home Assistant device class for the entity. Leave empty for the default. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+<!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
 

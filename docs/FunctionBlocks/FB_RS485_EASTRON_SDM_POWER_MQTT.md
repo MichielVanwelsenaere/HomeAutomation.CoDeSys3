@@ -1,4 +1,6 @@
 ## FB_RS485_EASTRON_SDM_POWER_MQTT
+<!-- fb-badge:start -->
+<!-- fb-badge:end -->
 
 ### **General**
 Used to process Modbus RTU data received over RS485 into human-understandable values and publish data updates through MQTT if desired.
@@ -15,9 +17,9 @@ Eastron SDM220 datasheets:
 Eastron SDM630 datasheet:
 - [Manual and Modbus registers](../RS485/datasheets/SDM630-Modbus-V2.pdf)
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
    ┌─────────────────────────────────┐
    │ FB_RS485_EASTRON_SDM_POWER_MQTT │
@@ -27,22 +29,45 @@ Eastron SDM630 datasheet:
    │                           Error ├── BOOL
    └─────────────────────────────────┘
 ```
-<!-- fb-diagram:end -->
 
-OUTPUT(S):
-- ACTIVEPOWER: datatype real.
-- DataAvailable: datatype bool, high when data is available read by Modbus read command. This means the output is only low on startup until Modbus read command has been executed successfully.
-- Error: datatype bool, high when an error occurred while executing Modbus read command.
+### **Interface**
 
-METHOD(S)
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.  
-    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.     
-    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
-- InitRS485: configures the Modbus RTU device address and the execution/polling interval for the Modbus read command.
-- RequestBusTime: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
-- GetRtuQuery: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
-- ProcessDataArray: method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+**Outputs**
+
+| Pin | Type | Description |
+|:--|:--|:--|
+| `ACTIVEPOWER` | REAL | Datatype real. |
+| `DataAvailable` | BOOL | Datatype bool, high when data is available read by Modbus read command. This means the output is only low on startup until Modbus read command has been executed successfully. |
+| `Error` | BOOL | Datatype bool, high when an error occurred while executing Modbus read command. |
+
+### **Methods**
+
+**`GetRtuQuery`** — Method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+
+**`InitRS485`** — Configures the Modbus RTU device address and the execution/polling interval for the Modbus read command.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `DataPollingInterval` | TIME |  | How often this block polls the device. |
+| `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
+| `DeviceType` | RS485_EASTRON_SDM_Devices |  | Which Eastron SDM model is connected, from `RS485_EASTRON_SDM_Devices`. |
+
+**`ProcessDataArray`** — Method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Error` | POINTER TO BOOL |  | Datatype bool, high when an error occurred while executing Modbus read command. |
+| `Data` | POINTER TO ARRAY [0..124] OF WORD |  | Pointer to the response data returned by the RTU query. |
+
+**`RequestBusTime`** — Method implemented by each RS485 device function block. More information in the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+<!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -61,7 +86,7 @@ MQTT publish topic is a concatenation of the publish prefix, the function block 
 
 - variables initiation:
 ```
-MQTTPubRS485Prefix                :STRING(100) := 'Devices/PLC/House/Out/RS485/';
+MQTTPubRS485Prefix                :STRING(100) := 'Devices/PLC/Lab/Out/RS485/';
 FB_RS485_EASTRON_SDM_POWER_001    :FB_RS485_EASTRON_SDM_POWER_MQTT;
 ```
 
@@ -82,7 +107,7 @@ FB_RS485_EASTRON_SDM_POWER_001.InitMqtt(
 );
 
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001` (MQTTPubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001` (MQTTPubSwitchPrefix variable + function block name).
 
 - Registering device to a bus controller (called once during startup):
 ```
@@ -97,14 +122,14 @@ mqtt:
   sensor:
   - name: "car charger power"
     object_id: "car_charger_power"
-    state_topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/ACTP"
+    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/ACTP"
     unit_of_measurement: "W"
     device_class: "power"
     state_class: "measurement"
     qos: 2
     availability:
-      - topic: "Devices/PLC/House/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
-      - topic: "Devices/PLC/House/availability"
+      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
+      - topic: "Devices/PLC/Lab/availability"
     availability_mode : "all"
     payload_available: "online"
     payload_not_available: "offline"

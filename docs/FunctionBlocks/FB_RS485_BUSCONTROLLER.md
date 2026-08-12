@@ -1,11 +1,13 @@
 ## FB_RS485_BUSCONTROLLER
+<!-- fb-badge:start -->
+<!-- fb-badge:end -->
 
 ### **General**
 Used to control the RS485 bus in order to allow only one device with one Modbus RTU query at a time. In addition it manages the silence time on the bus between two requests and is capable of introducing a startup delay to allow devices on the bus to start up on power cycles.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
    ┌────────────────────────┐
    │ FB_RS485_BUSCONTROLLER │
@@ -13,20 +15,37 @@ Used to control the RS485 bus in order to allow only one device with one Modbus 
    │             BusOcupied ├── BOOL
    └────────────────────────┘
 ```
-<!-- fb-diagram:end -->
 
-OUTPUT(S):
-- BusOcupied: datatype bool, indicates whether the RS485 bus is occupied or not.
+### **Interface**
 
-METHOD(S)
-- Init: configures the bus controller, an overview of the parameters:
-    - `StartupDelay`: datatype *TIME*, amount of time that should be waited on PLC startup before using the RS485 bus, can prevent errors due to RS485 devices not having booted up yet.
-    - `SilenceTime`: datatype *TIME*,  the silence time between two requests. Typically 10-20ms.
-	- `BusTrigger`: datatype *POINTER TO BOOL*,  boolean controlling bus actions.
-	- `BusData`: datatype *POINTER TO ARRAY [0..124] OF WORD*,  array containing bus read data.
-	- `BusError`: datatype *POINTER TO BOOL*,  boolean indicating bus error.
-- SetBusOccupied: used internally to set the RS485 bus as occupied.
-- ReleaseBus: used internally to release the RS485 bus.
+**Outputs**
+
+| Pin | Type | Description |
+|:--|:--|:--|
+| `BusOcupied` | BOOL | Datatype bool, indicates whether the RS485 bus is occupied or not. |
+
+### **Methods**
+
+**`Init`** — Configures the bus controller, an overview of the parameters:
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `StartupDelay` | TIME |  | Amount of time that should be waited on PLC startup before using the RS485 bus, can prevent errors due to RS485 devices not having booted up yet. |
+| `SilenceTime` | TIME |  | The silence time between two requests. Typically 10-20ms. |
+| `BusTrigger` | POINTER TO BOOL |  | Boolean controlling bus actions. |
+| `BusData` | POINTER TO ARRAY [0..124] OF WORD |  | Array containing bus read data. |
+| `BusError` | POINTER TO BOOL |  | Boolean indicating bus error. |
+
+**`RegisterDevice`** — Registers an RS485 device function block with the bus controller. Call once at startup for each device on the bus.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `device` | RS485Device |  | The RS485 device function block to register. |
+
+**`ReleaseBus`** — Used internally to release the RS485 bus.
+
+**`SetBusOccupied`** — Used internally to set the RS485 bus as occupied.
+<!-- fb-interface:end -->
 
 ### **Code example**
 

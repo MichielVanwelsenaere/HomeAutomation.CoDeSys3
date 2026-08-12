@@ -41,31 +41,43 @@ TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
 
 > This diagram is a frozen snapshot of the archived export, not generated from `PLCopen.xml` like the other function blocks — the block is no longer in the project to generate it from.
 
-INPUT(S)
+### **Interface**
 
-- BALLAST: input to configure the `typBallast` that should be linked to this function block.
-- TOGGLE: input to connect to one or multiple `SINGLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- P_LONG: input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- PRIO_HIGH: when high the output `Q` is set to high with a maximum brightness, has priority over the other inputs.
-- PRIO_LOW: when high the output `Q` is set to low, has priority over the other inputs.
+**Inputs**
 
+| Pin | Type | Description |
+|:--|:--|:--|
+| `BALLAST` | typBallast | The `typBallast` this function block drives. |
+| `TOGGLE` | BOOL | Connect to one or more `SINGLE` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `P_LONG` | BOOL | Connect to one or more `P_LONG` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `PRIO_HIGH` | BOOL | When high the light is set to maximum brightness, overriding the other inputs. |
+| `PRIO_LOW` | BOOL | When high the light is switched off, overriding the other inputs. |
 
-OUTPUT(S)
+**Outputs**
 
-- STATUS_LED: high when light intensity > 0, off otherwise.
+| Pin | Type | Description |
+|:--|:--|:--|
+| `STATUS_LED` | BOOL | High when the light intensity is greater than 0, low otherwise. |
 
-METHOD(S)
+### **Methods**
 
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-  - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.
-  - `MQTTSubscribePrefix`: datatype _POINTER TO STRING_, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
 
-- ConfigureFunctionBlock: configures the dimmer with your preferred settings, an overview of the parameters and their default values.
-  - `FadeTime`: _BYTE_ value setting the fade time.
-  - `FadeRate`: _BYTE_ value setting the fade rate.
-- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
+
+**`ConfigureFunctionBlock`** — Overrides the default behaviour characteristics. Only needed when the defaults do not suit.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `FadeTime` | BYTE |  | Driver fade time, see the table below. |
+| `FadeRate` | BYTE |  | Driver fade rate, see the table below. |
+
+**`PublishReceived`** — Callback invoked by the callback collector when a message arrives on the subscribed topic. Not called directly.
 
 ### Fade Time and Fade Rate 
 
@@ -128,8 +140,8 @@ END_VAR
 
 - variables initiation:
 ```
-MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/Out/Dimmers/';
-MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/In/Dimmers/';
+MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/Lab/Out/Dimmers/';
+MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/Lab/In/Dimmers/';
 M1_DALIMASTER				    :FbDaliMaster;
 FB_DALI_1_ADR0				  :FB_OUTPUT_DIMMER_DALI_MQTT;
 ```
@@ -143,8 +155,7 @@ FB_DALI_1_ADR0.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPrefi
 );
 ```
 
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/Dimmers/FB_DALI_1_ADR0` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/Dimmers/FB_DALI_1_ADR0` (MQTTSubSwitchPrefix variable + function block name).
-
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/Dimmers/FB_DALI_1_ADR0` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/Lab/In/Dimmers/FB_DALI_1_ADR0` (MQTTSubSwitchPrefix variable + function block name).
 
 - checking for events to switch the DALI output (cyclic):
 ```
@@ -163,7 +174,6 @@ FB_DALI_1_ADR0(
 
 The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
 
-
 - MQTT discovery:
 ```
 FB_DALI_1_ADR0.InitMqttDiscovery(
@@ -179,17 +189,17 @@ If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working
 mqtt:
   light:
   - name: "Kitchen"
-    state_topic: "Devices/PLC/House/Out/Dimmers/FB_DALI_1_ADR0"
-    command_topic: "Devices/PLC/House/In/Dimmers/FB_DALI_1_ADR0"
-    brightness_command_topic: "Devices/PLC/House/In/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
-    brightness_state_topic: "Devices/PLC/House/Out/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
+    state_topic: "Devices/PLC/Lab/Out/Dimmers/FB_DALI_1_ADR0"
+    command_topic: "Devices/PLC/Lab/In/Dimmers/FB_DALI_1_ADR0"
+    brightness_command_topic: "Devices/PLC/Lab/In/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
+    brightness_state_topic: "Devices/PLC/Lab/Out/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
     on_command_type: "brightness"
     payload_on: "ON"
     payload_off: "OFF"
     optimistic: false
     brightness_scale: 100
     qos: 2
-    availability: "Devices/PLC/House/availability"
+    availability: "Devices/PLC/Lab/availability"
     payload_not_available: "offline"
     payload_available: "online"
 ```

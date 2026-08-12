@@ -1,13 +1,15 @@
 ## FB_HVAC_THERMOSTAT_MQTT
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ### **General**
 
 Designed to control the heat requirements in a room. Creates a thermostat entity in Home Assistant that allows control of the desired temperature.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
        ┌─────────────────────────┐
        │ FB_HVAC_THERMOSTAT_MQTT │
@@ -17,34 +19,58 @@ REAL ──┤ MEASURED_HUM            │
 BOOL ──┤ ENABLED                 │
        └─────────────────────────┘
 ```
-<!-- fb-diagram:end -->
 
-INPUT(S)
+### **Interface**
 
-- MEASURED_TEMP: datatype _REAL_, measured temperature in the room.
-- MEASURED_HUM: datatype _REAL_, measured humidity in the room.
-- ENABLED: datatype _BOOL_, enables or disables the thermostat.
+**Inputs**
 
-OUTPUT(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `MEASURED_TEMP` | REAL | Measured temperature in the room. |
+| `MEASURED_HUM` | REAL | Measured humidity in the room. |
+| `ENABLED` | BOOL | Enables or disables the thermostat. |
 
-- OUT: datatype _BOOL_, when high the room requires heating.
+**Outputs**
 
-METHOD(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `OUT` | BOOL | When high the room requires heating. |
 
-- FB_init: constructor, overview of the parameters:
-  - `MinAllowedTemp`: datatype _REAL_, minimum allowed temperature in the room. If the thermostat is on 'auto' mode the thermostat will heat up the room when the temperature drops below this value. Not possible to set the thermostat to a lower temperature value.
-  - `MaxAllowedTemp`: datatype _REAL_, maximum allowed temperature in the room. Not possible to set the thermostat to a higher temperature value.
-  - `Hysteresis`: datatype _REAL_, allowed temperature delta from the target temperature. If the measured temperature drops below the target temperature minus the hysteresis value the heating will be turned on.
+### **Methods**
 
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-  - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.
-  - `MQTTSubscribePrefix`: datatype _POINTER TO STRING_, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `pMqttCallbackCollector`: datatype _SD_MQTT.CallbackCollector_, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
-  - `MqttQos`: datatype _SD_MQTT.QoS_, configures the MQTT Qos for the function block published messages.
-  - `MqttRetain`: datatype _BOOL_, configures the MQTT retain flag for the function block published messages.
-- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+**`FB_init`** — Constructor, overview of the parameters:
 
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MinAllowedTemp` | REAL |  | Minimum allowed temperature in the room. If the thermostat is on 'auto' mode the thermostat will heat up the room when the temperature drops below this value. Not possible to set the thermostat to a lower temperature value. |
+| `MaxAllowedTemp` | REAL |  | Maximum allowed temperature in the room. Not possible to set the thermostat to a higher temperature value. |
+| `Hysteresis` | REAL |  | Allowed temperature delta from the target temperature. If the measured temperature drops below the target temperature minus the hysteresis value the heating will be turned on. |
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
+
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `TempStep` | REAL |  | Step size for the target temperature in the Home Assistant thermostat card. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+
+**`PublishReceived`** — Callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Data` | MQTT.CALLBACK_DATA |  | Received message, supplied by the callback collector. |
+<!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
 

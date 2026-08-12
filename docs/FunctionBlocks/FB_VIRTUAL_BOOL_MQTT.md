@@ -1,13 +1,15 @@
 ## FB_VIRTUAL_BOOL_MQTT
+<!-- fb-badge:start -->
+<!-- fb-badge:end -->
 
 ### **General**
 A virtual function block can be used in one of two modes:
 - input: inputs a value in the PLC processing logic through MQTT.
 - output: outputs a value from the PLC processing logic through MQTT.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
        ┌──────────────────────┐
        │ FB_VIRTUAL_BOOL_MQTT │
@@ -15,37 +17,62 @@ A virtual function block can be used in one of two modes:
 BOOL ──┤ IN               OUT ├── BOOL
        └──────────────────────┘
 ```
-<!-- fb-diagram:end -->
 
-INPUT(S)
-- IN: datatype *BOOL*, input for the value that should be published through MQTT, provision this input when using the virtual function block in output mode.
+### **Interface**
 
-OUTPUT(S)
-- OUT: datatype *BOOL*, output for the value that is received through the MQTT subscription. provision this output in other processing logic when using the virtual function block in input mode.
+**Inputs**
 
-METHOD(S)
-- ConfigureFunctionBlockAsVirtualInput: configures the behavior of the function block as a virtual input using the parameters below:
-    - `DefaultValue`: datatype *BOOL*, value to set at startup if default value at startup behavior is configured.
-    - `SetDefaultValueStartup`: datatype *BOOL*, set to TRUE to set the DefaultValue at PLC startup. 
-    - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual input value at PLC startup.
-    - `UsePersistentAtStartup`: datatype *BOOL*, set to TRUE to use persistence to maintain the virtual input value through power cycles. 
-    - `ConfirmReceival`: datatype *BOOL*, set to TRUE to get an MQTT publish message when the value is updated. 
+| Pin | Type | Description |
+|:--|:--|:--|
+| `IN` | BOOL | Input for the value that should be published through MQTT, provision this input when using the virtual function block in output mode. |
 
-- ConfigureFunctionBlockAsVirtualOutput: configures the behavior of the function block as a virtual output using the parameters below:
-    - `PublishAtStartup`: datatype *BOOL*, set to TRUE to get an MQTT publish message of the virtual output value at PLC startup.
+**Outputs**
 
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
-    - `MQTTSubscribePrefix`: datatype *POINTER TO STRING*, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name. 
-    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
-    - `pMqttCallbackCollector`: datatype *SD_MQTT.CallbackCollector*, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
-    - `MqttQos`: datatype *SD_MQTT.QoS*, configures the MQTT Qos for the function block published messages.  
-    - `MqttRetain`: datatype *BOOL*, configures the MQTT retain flag for the function block published messages.
-    
-- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+| Pin | Type | Description |
+|:--|:--|:--|
+| `OUT` | BOOL | Output for the value that is received through the MQTT subscription. provision this output in other processing logic when using the virtual function block in input mode. |
 
-- SetValue: method to set the function block virtual value, only works if the function block is in output mode.
+### **Methods**
 
+**`ConfigureFunctionBlockAsVirtualInput`** — Configures the behavior of the function block as a virtual input using the parameters below:
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `DefaultValue` | BOOL |  | Value to set at startup if default value at startup behavior is configured. |
+| `SetDefaultValueStartup` | BOOL |  | Set to TRUE to set the DefaultValue at PLC startup. |
+| `PublishAtStartup` | BOOL |  | Set to TRUE to get an MQTT publish message of the virtual input value at PLC startup. |
+| `UsePersistentAtStartup` | BOOL |  | Set to TRUE to use persistence to maintain the virtual input value through power cycles. |
+| `ConfirmReceival` | BOOL |  | Set to TRUE to get an MQTT publish message when the value is updated. |
+
+**`ConfigureFunctionBlockAsVirtualOutput`** — Configures the behavior of the function block as a virtual output using the parameters below:
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `PublishAtStartup` | BOOL |  | Set to TRUE to get an MQTT publish message of the virtual output value at PLC startup. |
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
+| `MqttQos` | MQTT.QoS |  | MQTT QoS used for messages published by this block. |
+| `MqttRetain` | BOOL |  | MQTT retain flag used for messages published by this block. |
+
+**`PublishReceived`** — Callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Data` | MQTT.CALLBACK_DATA |  | Received message, supplied by the callback collector. |
+
+**`SetValue`** — Method to set the function block virtual value, only works if the function block is in output mode.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Value` | BOOL |  | Value to publish. Only effective in output mode. |
+<!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities. Only applicable if the function block is configured in output mode, outputting the value on input `IN` or set using the SetValue method through MQTT.  
@@ -71,8 +98,8 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 
 - variables initiation:
 ```
-MqttPubVirtualPrefix            :STRING(100) := 'Devices/PLC/House/Out/Virtuals/';
-MqttSubVirtualPrefix            :STRING(100) := 'Devices/PLC/House/In/Virtuals/';
+MqttPubVirtualPrefix            :STRING(100) := 'Devices/PLC/Lab/Out/Virtuals/';
+MqttSubVirtualPrefix            :STRING(100) := 'Devices/PLC/Lab/In/Virtuals/';
 FB_VIRTUAL_BOOL_001             :FB_VIRTUAL_BOOL_MQTT;
 ```
 
@@ -86,8 +113,7 @@ FB_VIRTUAL_BOOL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubVirtualPrefix),
 	MqttRetain:=FALSE											
 );
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTSubSwitchPrefix variable + function block name).
-
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/Lab/In/Virtuals/FB_VIRTUAL_BOOL_001` (MQTTSubSwitchPrefix variable + function block name).
 
 - Configuring the function block as a virtual input (called once during startup):
 ```
@@ -123,9 +149,9 @@ When using the function block as a virtual output use the YAML code below in you
 ```YAML
 - platform: mqtt
   name: "FB_VIRTUAL_BOOL_001"
-  state_topic: "Devices/PLC/House/Out/Virtuals/FB_VIRTUAL_BOOL_001"
+  state_topic: "Devices/PLC/Lab/Out/Virtuals/FB_VIRTUAL_BOOL_001"
   qos: 2  
-  availability_topic: "Devices/PLC/House/availability"
+  availability_topic: "Devices/PLC/Lab/availability"
   payload_available: "online"
   payload_not_available: "offline"
 ```
@@ -136,12 +162,12 @@ When using the function block as a virtual input use the YAML code below in your
 mqtt:
   switch:
   - name: "FB_VIRTUAL_BOOL_001"
-    command_topic: "Devices/PLC/House/In/Virtuals/FB_VIRTUAL_BOOL_001"
+    command_topic: "Devices/PLC/Lab/In/Virtuals/FB_VIRTUAL_BOOL_001"
     payload_on: "TRUE"
     payload_off: "FALSE"
     qos: 2
     optimistic: true
-    availability_topic: "Devices/PLC/House/availability"
+    availability_topic: "Devices/PLC/Lab/availability"
     payload_available: "online"
     payload_not_available: "offline"
 ```

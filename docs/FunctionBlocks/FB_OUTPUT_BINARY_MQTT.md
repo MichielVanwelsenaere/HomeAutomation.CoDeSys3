@@ -1,12 +1,14 @@
 ## FB_OUTPUT_BINARY_MQTT
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ### **General**
 Can be switched using pulses that are high for one clock cycle (for example from `FB_INPUT_PUSHBUTTON_MQTT`), and maintains output state through power cycles.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
        ┌───────────────────────┐
        │ FB_OUTPUT_BINARY_MQTT │
@@ -16,24 +18,92 @@ BOOL ──┤ PRIO_LOW              │
 BOOL ──┤ TOGGLE                │
        └───────────────────────┘
 ```
-<!-- fb-diagram:end -->
 
-INPUT(S)
-- TOGGLE: when high the output `OUT` gets toggled. The input should only be high for one clock cycle.
-- PRIO_HIGH: when high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input.
-- PRIO_LOW: when high the output `OUT` is set to low, has priority over the `TOGGLE` input.
+### **Interface**
 
-OUTPUT(S)
-- OUT: output to switch digital output on and off. Can be connected to a relay for example. 
+**Inputs**
 
-METHOD(S)
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
-    - `MQTTSubscribePrefix`: datatype *POINTER TO STRING*, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name. 
-    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
-    - `pMqttCallbackCollector`: datatype *SD_MQTT.CallbackCollector*, pointer to the MQTT callback collector, required to register FB for subscriptions on a certain topic.
-    
-- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+| Pin | Type | Description |
+|:--|:--|:--|
+| `PRIO_HIGH` | BOOL | When high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input. |
+| `PRIO_LOW` | BOOL | When high the output `OUT` is set to low, has priority over the `TOGGLE` input. |
+| `TOGGLE` | BOOL | When high the output `OUT` gets toggled. The input should only be high for one clock cycle. |
+
+**Outputs**
+
+| Pin | Type | Description |
+|:--|:--|:--|
+| `OUT` | BOOL | Output to switch digital output on and off. Can be connected to a relay for example. |
+
+### **Methods**
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
+
+**`InitMqttDiscoveryAsLight`** — Publishes a Home Assistant MQTT discovery config for this block as a **light** entity. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+| `Invert` | BOOL | `FALSE` | Set TRUE for a normally-closed (NC) contact. FALSE, the default, assumes normally-open (NO). |
+
+**`InitMqttDiscoveryAsLock`** — Publishes a Home Assistant MQTT discovery config for this block as a **lock** entity. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+| `Invert` | BOOL | `FALSE` | Set TRUE for a normally-closed (NC) contact. FALSE, the default, assumes normally-open (NO). |
+
+**`InitMqttDiscoveryAsSiren`** — Publishes a Home Assistant MQTT discovery config for this block as a **siren** entity. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+| `Invert` | BOOL | `FALSE` | Set TRUE for a normally-closed (NC) contact. FALSE, the default, assumes normally-open (NO). |
+
+**`InitMqttDiscoveryAsSwitch`** — Publishes a Home Assistant MQTT discovery config for this block as a **switch** entity. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `DeviceClass` | STRING(100) | `'outlet'` | Home Assistant device class for the entity. Leave empty for the default. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+| `Invert` | BOOL | `FALSE` | Set TRUE for a normally-closed (NC) contact. FALSE, the default, assumes normally-open (NO). |
+
+**`InitMqttDiscoveryAsValve`** — Publishes a Home Assistant MQTT discovery config for this block as a **valve** entity. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `DeviceClass` | STRING(100) | `'water'` | Home Assistant device class for the entity. Leave empty for the default. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+| `Invert` | BOOL | `FALSE` | Set TRUE for a normally-closed (NC) contact. FALSE, the default, assumes normally-open (NO). |
+
+**`PublishReceived`** — Callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Data` | MQTT.CALLBACK_DATA |  | Received message, supplied by the callback collector. |
+<!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -59,8 +129,8 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 
 - variables initiation:
 ```
-MQTTPubSwitchPrefix     :STRING(100) := 'Devices/PLC/House/Out/DigitalOutputs/';
-MQTTSubSwitchPrefix     :STRING(100) := 'Devices/PLC/House/In/DigitalOutputs/';
+MQTTPubSwitchPrefix     :STRING(100) := 'Devices/PLC/Lab/Out/DigitalOutputs/';
+MQTTSubSwitchPrefix     :STRING(100) := 'Devices/PLC/Lab/In/DigitalOutputs/';
 FB_DO_SW_001            :FB_OUTPUT_BINARY_MQTT;
 ```
 
@@ -72,8 +142,7 @@ FB_DO_SW_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPubSwitchPrefix),             
     pMQTTCallbackCollector := ADR(MQTTVariables.collector_FB_OUTPUT_BINARY_MQTT)    (* pointer to CallbackCollector to receive MQTT subscription events *)
 );
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalOutputs/FB_DO_SW_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/DigitalOutputs/FB_DO_SW_001` (MQTTSubSwitchPrefix variable + function block name).
-
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/DigitalOutputs/FB_DO_SW_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/Lab/In/DigitalOutputs/FB_DO_SW_001` (MQTTSubSwitchPrefix variable + function block name).
 
 - checking for events to switch the digital output (cyclic):
 ```
@@ -134,22 +203,4 @@ FB_DO_SW_001.InitMqttDiscoveryAsLock(
 	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
     Invert := TRUE                          (* FALSE by default = NO, TRUE = NC *)
 );
-```
-
-### **Home Assistant YAML**
-If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
-
-```YAML
-mqtt:
-  light:
-  - name: "FB_DO_SW_001"
-    state_topic: "Devices/PLC/House/Out/DigitalOutputs/FB_DO_SW_001"
-    command_topic: "Devices/PLC/House/In/DigitalOutputs/FB_DO_SW_001"
-    payload_on: "TRUE"
-    payload_off: "FALSE"
-    qos: 2
-    optimistic: false
-    availability_topic: "Devices/PLC/House/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
 ```

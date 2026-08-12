@@ -1,12 +1,14 @@
 ## FB_INPUT_PUSHBUTTON_MQTT
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ### **General**
 Reads out a digital input and sets a single, double or long output high for one cycle when one of those events has been detected on the configured input.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
        ┌──────────────────────────┐
        │ FB_INPUT_PUSHBUTTON_MQTT │
@@ -17,24 +19,48 @@ BOOL ──┤ PB                SINGLE ├── BOOL
        │                   P_LONG ├── BOOL
        └──────────────────────────┘
 ```
-<!-- fb-diagram:end -->
 
-INPUT(S)
-- PB: digital input linked to the signal wire of a pushbutton.
+### **Interface**
 
-OUTPUT(S)
-- SINGLE: output high for one clock cycle when a single push is detected on input `PB`.
-- DOUBLE: output high for one clock cycle when a double push is detected on input `PB`.
-- LONG: output high for one clock cycle when a long push is detected on input `PB`.
-- P_LONG: output becomes high when a long push is detected on input `PB`, remains high as long as `PB` remains high.
+**Inputs**
 
-METHOD(S)
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
-    - `MQTTPublishPrefix`: datatype *POINTER TO STRING*, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name. 
-    - `pMqttPublishQueue`: datatype *POINTER TO FB_MqttPublishQueue*, pointer to the MQTT queue to publish messages.
-    - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
+| Pin | Type | Description |
+|:--|:--|:--|
+| `PB` | BOOL | Digital input linked to the signal wire of a pushbutton. |
 
-- ConfigureFunctionBlock: configures the time parameter specifying the decoding time for a long key press. Defaults to 400ms.
+**Outputs**
+
+| Pin | Type | Description |
+|:--|:--|:--|
+| `SINGLE` | BOOL | Output high for one clock cycle when a single push is detected on input `PB`. |
+| `DOUBLE` | BOOL | Output high for one clock cycle when a double push is detected on input `PB`. |
+| `LONG` | BOOL | Output high for one clock cycle when a long push is detected on input `PB`. |
+| `P_LONG` | BOOL | Output becomes high when a long push is detected on input `PB`, remains high as long as `PB` remains high. |
+
+### **Methods**
+
+**`ConfigureFunctionBlock`** — Configures the time parameter specifying the decoding time for a long key press. Defaults to 400ms.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `T_Long` | TIME |  | How long the pushbutton must be held before a long press is detected. Defaults to 400ms. |
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+<!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -53,7 +79,7 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 - variables initiation:
 ```
-MQTTPushbuttonPrefix    :STRING(100) := 'Devices/PLC/House/Out/DigitalInputs/Pushbuttons/';
+MQTTPushbuttonPrefix    :STRING(100) := 'Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/';
 FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_MQTT;
 ```
 
@@ -63,7 +89,7 @@ FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* point
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)          (* pointer to MQTTPublishQueue to send a new MQTT event *)
 );
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name).
 
 - reading digital input for events (cyclic):
 ```
@@ -85,24 +111,4 @@ FB_DI_PB_001.InitMqttDiscovery(
 	Name := 'pushbutton 001',			    (* The name shown in the Home Assistant front-end *)
 	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
 );
-```
-
-### **Home Assistant YAML**
-If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT events](https://www.home-assistant.io/integrations/event.mqtt/) config:
-
-```YAML
-mqtt:
-  event:
-  # To receive single/double/long events
-  - name: "FB_DI_PB_001"
-    state_topic: "Devices/PLC/House/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
-    event_types:
-      - "SINGLE"
-      - "DOUBLE"
-      - "LONG"
-    qos: 2    
-    device_class: "button"
-    availability_topic: "Devices/PLC/House/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
 ```

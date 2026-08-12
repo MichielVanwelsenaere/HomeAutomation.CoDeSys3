@@ -1,13 +1,15 @@
 ## FB_OUTPUT_DIMMER_MQTT
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ### **General**
 
 Can be controlled using pulses from [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md), maintains output state through power cycles. Takes a 0-255 byte value as input -as FB input or MQTT value-. Byte input value is linearly scaled to a word datatype value with a range from 0-32767. Output linear scaled range can be configured to be different from 0-32767 if desired.
 
+<!-- fb-interface:start -->
 ### **Block diagram**
 
-<!-- fb-diagram:start -->
 ```text
        ┌───────────────────────┐
        │ FB_OUTPUT_DIMMER_MQTT │
@@ -22,50 +24,75 @@ BYTE ──┤ VAL                   │
 BOOL ──┤ RST                   │
        └───────────────────────┘
 ```
-<!-- fb-diagram:end -->
 
-INPUT(S)
+### **Interface**
 
-- SINGLE: input to connect to one or multiple `SINGLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- LONG: input to connect to one or multiple `LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- P_LONG: input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md).
-- PRIO_HIGH: when high the output `Q` is set to high with a maximum brightness, has priority over the other inputs.
-- PRIO_LOW: when high the output `Q` is set to low, has priority over the other inputs.
-- VAL: byte value for SET operation.
-- SET: input for switching output DIM to the input VAL value.
-- RST: input to switch off the output.
+**Inputs**
 
-OUTPUT(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `SINGLE` | BOOL | Input to connect to one or multiple `SINGLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `LONG` | BOOL | Input to connect to one or multiple `LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `P_LONG` | BOOL | Input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `PRIO_HIGH` | BOOL | When high the output `Q` is set to high with a maximum brightness, has priority over the other inputs. |
+| `PRIO_LOW` | BOOL | When high the output `Q` is set to low, has priority over the other inputs. |
+| `SET` | BOOL | Input for switching output DIM to the input VAL value. |
+| `VAL` | BYTE | Byte value for SET operation. |
+| `RST` | BOOL | Input to switch off the output. |
 
-- Q: output, bool datatype.
-- OUT: dimmer value, word datatype.
-- Q_OUT: follows 'OUT' when Q is high. Equal to 0 when Q is low.
+**Outputs**
 
-METHOD(S)
+| Pin | Type | Description |
+|:--|:--|:--|
+| `Q` | BOOL | Output, bool datatype. |
+| `Q_OUT` | WORD | Follows 'OUT' when Q is high. Equal to 0 when Q is low. |
+| `OUT` | WORD | Dimmer value, word datatype. |
 
-- InitMQTT: enables MQTT events on the FB, an overview of the parameters:
+### **Methods**
 
-  - `MQTTPublishPrefix`: datatype _POINTER TO STRING_, pointer to the MQTT publish prefix that should be used for publishing any messages/events for this FB. Suffix is automatically set to FB name.
-  - `MQTTSubscribePrefix`: datatype _POINTER TO STRING_, pointer to the MQTT subscribe prefix that should be used for publishing any messages/events to this FB. Suffix is automatically set to FB name.
-  - `pMqttPublishQueue`: datatype _POINTER TO FB_MqttPublishQueue_, pointer to the MQTT queue to publish messages.
-  - `OutputDimmer`: datatype _BOOL_, specify whether the DIM values (0-255) should be outputted as MQTT events.
-  - `Qos_Dimm`: datatype _SD_MQTT.QoS_, MQTT QoS of the DIM MQTT events.
-  - `Delta_Dimm`: datatype _INT_, resolution of the MQTT OUT events. For example: specifying value _5_ will configure the FB to only emit an MQTT event when the OUT output differs _5_ or more than its previous value. Note that the last value of output OUT (when input `P_LONG` becomes low again) is always published. Even if the resolution delta hasn't been reached yet. This way the last OUT value published through MQTT is always synchronized with the OUT output of the FB.
-  - `pMqttCallbackCollector`: datatype _POINTER TO MQTT.CallbackCollector_, pointer to the MQTT callback collector to receive subscribe messages.
+**`ConfigureFunctionBlock`** — Configures the dimmer with your preferred settings, an overview of the parameters and their default values.
 
-- ConfigureFunctionBlock: configures the dimmer with your preferred settings, an overview of the parameters and their default values.
-  - `T_Debounce`: debounce time for input PB, defaults to 10ms.
-  - `T_Reconfig`: reconfiguration time, defaults to 10S.
-  - `T_On_Max`: start limitation, defaults to 0ms.
-  - `T_Dimm_Start`: reaction time to dim, defaults to 400ms.
-  - `T_Dimm`: time for a dimming ramp, defaults to 3s.
-  - `Min_On`: minimum value of output OUT at startup, defaults to 50.
-  - `Max_On`: maximum value of output OUT at startup, defaults to 255.
-  - `Soft_Dimm`: if TRUE dimming begins after ON and at 0, defaults to TRUE.
-  - `Rst_Out`: if input Rst is TRUE, output OUT is set to 0, defaults to FALSE.
-  - `OUT_LinearScaleMin`: Lower bound value used for linearly scaling output OUT from datatype byte to word. Defaults to 0.
-  - `OUT_LinearScaleMax`: Upper bound value used for linearly scaling output OUT from datatype byte to word. Defaults to 32767.
-- PublishReceived: callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `T_Debounce` | TIME | `TIME#10ms` | Debounce time for input PB, defaults to 10ms. |
+| `T_Reconfig` | TIME | `TIME#10s0ms` | Reconfiguration time, defaults to 10S. |
+| `T_On_Max` | TIME | `TIME#0ms` | Start limitation, defaults to 0ms. |
+| `T_Dimm_Start` | TIME | `TIME#400ms` | Reaction time to dim, defaults to 400ms. |
+| `T_Dimm` | TIME | `TIME#3s0ms` | Time for a dimming ramp, defaults to 3s. |
+| `Min_On` | BYTE | `50` | Minimum value of output OUT at startup, defaults to 50. |
+| `Max_On` | BYTE | `255` | Maximum value of output OUT at startup, defaults to 255. |
+| `Soft_Dimm` | BOOL | `TRUE` | If TRUE dimming begins after ON and at 0, defaults to TRUE. |
+| `Rst_Out` | BOOL | `FALSE` | If input Rst is TRUE, output OUT is set to 0, defaults to FALSE. |
+| `OUT_LinearScaleMin` | INT | `0` | Lower bound value used for linearly scaling output OUT from datatype byte to word. Defaults to 0. |
+| `OUT_LinearScaleMax` | INT | `32767` | Upper bound value used for linearly scaling output OUT from datatype byte to word. Defaults to 32767. |
+
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
+| `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
+| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
+| `OutputDimmer` | BOOL |  | Set TRUE to publish the dimmer value as MQTT events. |
+| `Qos_Dimm` | MQTT.QoS |  | MQTT QoS used for the dimmer value events. |
+| `Delta_Dimm` | INT |  | Resolution of the dimmer events: only publish once the value has moved by at least this much. The final value is always published, so MQTT and the output never drift apart. |
+
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
+
+**`PublishReceived`** — Callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Data` | MQTT.CALLBACK_DATA |  | Received message, supplied by the callback collector. |
+<!-- fb-interface:end -->
 
 ### **Function Block Behavior**
 
@@ -111,8 +138,8 @@ Note that the function block also accepts float values for setting the dimmer ou
 
 - variables initiation:
 ```
-MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/Out/Dimmers/';
-MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/House/In/Dimmers/';
+MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/Lab/Out/Dimmers/';
+MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/Lab/In/Dimmers/';
 FB_AO_DIMMER_001			:FB_OUTPUT_DIMMER_MQTT;
 ```
 
@@ -128,7 +155,7 @@ FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPre
 );
 ```
 
-The MQTT publish topic in this code example will be `Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001` (MQTTSubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/Dimmers/FB_AO_DIMMER_001` (MQTTPubSwitchPrefix variable + function block name). The subscription topic will be `Devices/PLC/Lab/In/Dimmers/FB_AO_DIMMER_001` (MQTTSubSwitchPrefix variable + function block name).
 
 - ConfigureFunctionBlock (called once during startup):
 ```
@@ -182,26 +209,4 @@ FB_AO_DIMMER_001.InitMqttDiscovery(
 	name := '001. Office strip cold',				(* The name shown in the Home Assistant front-end *)
 	Device := ADR(PLC_Device),							(* The device shown in Home Assistant *)
 );
-```
-
-### **Home Assistant YAML**
-If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
-
-```YAML
-mqtt:
-  light:
-  - name: "FB_AO_DIM_001"
-    state_topic: "Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/Q"
-    command_topic: "Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001"
-    brightness_command_topic: "Devices/PLC/House/In/Dimmers/FB_AO_DIMMER_001"
-    brightness_scale: 255
-    brightness_state_topic: "Devices/PLC/House/Out/Dimmers/FB_AO_DIMMER_001/OUT"
-    on_command_type: "last"
-    payload_on: "TRUE"
-    payload_off: "FALSE"
-    qos: 2
-    optimistic: false
-    availability_topic: "Devices/PLC/House/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
 ```
