@@ -41,7 +41,7 @@ In case your specific project differs too much from the reference project in thi
 
 ## **Prepare for export**
 
-An export contains `.export` and `.xml` for people to update. The `.project` is upgraded with the new changes, so it stays a basic version for newcomers.
+The export is a PLCopen XML file that others import to pick up your changes. The `.project` is upgraded with the new changes too, so it stays a basic version for newcomers.
 
 1. Save the `.project` file
 
@@ -56,8 +56,7 @@ An export contains `.export` and `.xml` for people to update. The `.project` is 
 
      So no `*variables`, `PRGs` and `PersistenceVars`
    - You can export Variables/Library if you see fit
-     - PLCopen XML >>> [Exports\PLCopen.xml](../src/Exports/PLCopen.xml)
-     - CODESYS v3 >>> [Exports\CodesysV3.export](../src/Exports/CodesysV3.export)
+   - Export as PLCopen XML to [Exports\PLCopen.xml](../src/Exports/PLCopen.xml)
 
 3. Open the original `.project`. Keep your config out.
     - Follow [this guide](FAQ/Howto_updating_function_blocks.md) to update your blocks

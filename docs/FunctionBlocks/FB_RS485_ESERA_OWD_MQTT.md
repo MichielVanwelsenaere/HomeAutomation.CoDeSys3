@@ -24,6 +24,7 @@ Programmatically each OWD is represented by an [FB_RS485_ESERA_OWD_MQTT](FB_RS48
 
 The following 1-Wire devices are currently supported:
 
+<!-- markdown-link-check-disable -->
 | Device | Devicecode | exports | link |
 |:-------------|:------------------|:------------------|:------------------|
 | Maxim integrated DS1820 & DS18B20  | 1820 | temperature | [link](https://www.analog.com/media/en/technical-documentation/data-sheets/ds18b20.pdf)
@@ -34,6 +35,7 @@ The following 1-Wire devices are currently supported:
 | Esera multisensor Pro temperature, humidity living room flush-mounted for Berker, Jung, Merten | 11160 | humidity, temperature | [link](https://esera.de/en/Produkte/11160.3/1-Wire-Multisensor-Pro-temperature-humidity-living-room-flush-mounted-for-Berker-Jung-Merten)
 | Esera MS105 multisensor temperature, humidity living room flush-mounted for Berker, Jung, Merten | 11132 | humidity, temperature, brightness | [link](https://esera.de/en/Produkte/11132.3/MS105-1-Wire-Multisensor-temperature-humidity-living-room-flush-mounted-for-Berker-Jung-Merten-Kopie)
 | Esera multisensor for temperature, humidity, brightness, indoor, surface  | 11134 | humidity, temperature, brightness | [link](https://esera.de/en/Produkte/11134/1-Wire-multi-sensor-for-temperature-humidity-brightness-indoor-surface)
+<!-- markdown-link-check-enable -->
 
 Note that Esera documents the full list of supported devices here: [link](https://esera.de/en/Produkte/11324/1-Wire-Gateway-10-Modbus-RTU). Yet only the devices above are supported in the software, due to a lack of actual testing devices.
 Nevertheless, adding a new device is a simple task, feel free to reach out.

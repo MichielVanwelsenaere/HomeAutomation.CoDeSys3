@@ -109,7 +109,7 @@ FB_VIRTUAL_BOOL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubVirtualPrefix),
 	MQTTSubscribePrefix:= ADR(MqttSubVirtualPrefix),									
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
 	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
-	MqttQos:=SD_MQTT.QoS.ExactlyOnce, 
+	MqttQos:=MQTT.QoS.ExactlyOnce, 
 	MqttRetain:=FALSE											
 );
 ```

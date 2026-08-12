@@ -38,7 +38,7 @@ As a general rule: lower-numbered variants within a series are G1, while higher-
 
 ## Device preparation
 
-Firmware updates for both G1 and G2 devices can be performed using the [WAGO Upload tool](https://github.com/WAGO/wago-firmware-tools), **provided the device is already running firmware version 12 or above**.
+Firmware updates for both G1 and G2 devices can be performed using the [WAGO Upload tool](https://downloadcenter.wago.com/wago/software), **provided the device is already running firmware version 12 or above**.
 
 If the device is running a firmware version below 12, the WAGO Upload tool cannot be used and the firmware must be flashed via SD card (see [Flashing via SD card](#flashing-via-sd-card) below).
 
@@ -48,8 +48,8 @@ Update the device to firmware version 22, which is the latest supported firmware
 
 **Using WAGO Upload (firmware >= 12):**
 
-1. Download and install the [WAGO Upload tool](https://github.com/WAGO/wago-firmware-tools).
-2. Download the G1 firmware version 22 image from the [WAGO firmware page](https://www.wago.com/global/automation-technology/discover-controller/software/firmware).
+1. Download and install the [WAGO Upload tool](https://downloadcenter.wago.com/wago/software).
+2. Download the G1 firmware version 22 image from the [WAGO firmware releases](https://github.com/WAGO/pfc-firmware/releases).
 3. Open WAGO Upload, enter the device IP address, and browse to the downloaded firmware file.
 4. Start the upload and wait for the device to reboot.
 5. [Install CODESYS Control SL](#install-codesys-control-sl-g1-only)
@@ -61,8 +61,8 @@ Update the device to the latest available firmware.
 
 **Using WAGO Upload (firmware >= 12):**
 
-1. Download and install the [WAGO Upload tool](https://github.com/WAGO/wago-firmware-tools).
-2. Download the latest G2 firmware image from the [WAGO firmware page](https://www.wago.com/global/automation-technology/discover-controller/software/firmware).
+1. Download and install the [WAGO Upload tool](https://downloadcenter.wago.com/wago/software).
+2. Download the latest G2 firmware image from the [WAGO firmware releases](https://github.com/WAGO/pfc-firmware/releases).
 3. Open WAGO Upload, enter the device IP address, and browse to the downloaded firmware file.
 4. Start the upload and wait for the device to reboot.
 
@@ -70,7 +70,7 @@ Update the device to the latest available firmware.
 
 If the current firmware version is below 12, use an SD card to flash the firmware:
 
-1. Download the firmware image (`.zip` or `.img`) for your device from the [WAGO firmware page](https://www.wago.com/global/automation-technology/discover-controller/software/firmware).
+1. Download the firmware image (`.zip` or `.img`) for your device from the [WAGO firmware releases](https://github.com/WAGO/pfc-firmware/releases).
 1. Format an SD card as FAT32.
 1. Extract and copy the firmware files to the root of the SD card.
 1. Power off the PFC device.

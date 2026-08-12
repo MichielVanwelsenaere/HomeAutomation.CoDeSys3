@@ -27,7 +27,7 @@ This will restore the basic POUs (building blocks) of the project, note that you
 
 <img src="../_img/GettingStartedGuide/RestorePOUsNavigation.png" alt="Restore POUs navigation" width="300"/>
 
-2. Select *Project* &rarr; *Import* and browse to the Exports folder and open the *.export* file:
+2. Select *Project* &rarr; *Import PLCopenXML...* and open [src/Exports/PLCopen.xml](../../src/Exports/PLCopen.xml):
 
 <img src="../_img/GettingStartedGuide/RestorePOUsToplevel.png" alt="Restore POUs top level" width="300"/>
 
@@ -52,7 +52,7 @@ This will add a device to the project, in this example a PFC200 is used. Adapt t
 
 ### **Restoring the PLC logic**
 
-1. Select the *PlcLogic* item and go to *Project* &rarr; *Import*, browse to the Exports folder and open the *.export* file:
+1. Select the *PlcLogic* item and go to *Project* &rarr; *Import PLCopenXML...*, then open [src/Exports/PLCopen.xml](../../src/Exports/PLCopen.xml):
 
 <img src="../_img/GettingStartedGuide/RestorePLCLogic.png" alt="Restore PLC logic" width="350"/>
 

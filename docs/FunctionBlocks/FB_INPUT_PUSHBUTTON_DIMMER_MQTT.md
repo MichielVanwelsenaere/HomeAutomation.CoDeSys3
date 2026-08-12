@@ -107,7 +107,7 @@ FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_DIMMER_MQTT;
 FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* pointer to string prefix for the MQTT publish topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),         (* pointer to MQTTPublishQueue to send a new MQTT event *)
     TRUE,                                                               (* specify whether dimmer value should be outputted on MQTT topic *)
-    SD_MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
+    MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
     5                                                                   (* specify the resolution for the dimmer mqtt events *)    
 );
 ```
