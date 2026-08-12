@@ -65,16 +65,22 @@ An export contains `.export` and `.xml` for people to update. The `.project` is 
     - Add 1 example of the new function block/methods to the POU
     - Document the new function block/methods in the POU!
 
-## **Function block diagrams**
+## **Function block documentation**
 
-The block diagrams in `docs/FunctionBlocks/*.md` are **generated** from
-`src/Exports/PLCopen.xml` — don't draw them by hand and don't edit between the
-`<!-- fb-diagram:start -->` / `<!-- fb-diagram:end -->` markers.
+The block diagrams, interface tables and method tables in
+`docs/FunctionBlocks/*.md` are **generated** from `src/Exports/PLCopen.xml`, as
+is the `MqttVariables` listing in `MQTT_General.md`. Don't write them by hand and
+don't edit between the `<!-- fb-badge -->`, `<!-- fb-interface -->` or
+`<!-- gvl -->` markers — descriptions inside those regions are preserved across
+regenerations, everything else is rebuilt from the export.
+
+Adding a function block? Scaffold its page with `--new FB_NAME` rather than
+copying an existing one.
 
 After re-exporting the PLCopen XML, regenerate them from the repo root:
 
 ```
-python3 .claude/skills/update-fb-diagrams/scripts/gen_fb_diagrams.py
+python3 .claude/skills/update-fb-docs/scripts/gen_fb_docs.py
 ```
 
 Add `--check` to verify the docs still match the export without writing
