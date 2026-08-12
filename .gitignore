@@ -7,3 +7,7 @@
 *.precompilecache
 **/HomeAutomation*.ecp
 .DS_Store
+
+# Python bytecode from the docs generator
+__pycache__/
+*.pyc
