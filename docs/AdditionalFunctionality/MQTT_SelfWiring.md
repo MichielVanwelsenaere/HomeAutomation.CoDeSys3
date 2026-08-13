@@ -84,11 +84,38 @@ Leave `FriendlyName` empty when you do, so the block does not also wire itself.
 And keep the order: `InitMqtt` first, then `InitMqttDiscovery*` — the discovery
 methods do nothing until `InitMqtt` has run.
 
-## Blocks not yet migrated
+## Which blocks self-wire
 
-These still need their explicit `InitMqtt` call:
+**Self-wiring**, driven by `FriendlyName`: the pushbutton and binary sensor
+inputs, the binary, bistable, cover and dimmer outputs, all four virtual blocks,
+the HVAC thermostat, pump and burner, and the DMX dimmer.
 
-- `FB_INPUT_PUSHBUTTON_DIMMER_MQTT` — does not extend `FB_MQTT_BASE`; it
-  hand-rolls its own MQTT plumbing and has no discovery method.
-- The HVAC, RS485, DMX and log blocks — the same prologue applies to them, it has
-  simply not been added yet. Their call sites are untouched and keep working.
+**Still explicit, and deliberately so.** Two blocks have a discovery config that a
+single name cannot describe, so they keep both of their calls:
+
+| Block | Why |
+|:--|:--|
+| `FB_HVAC_COLLECTOR_MQTT` | its discovery carries **eight separate valve names** |
+| `FB_RS485_ESERA_OWD_MQTT` | its discovery takes its own HA device, a parent device and six capability flags |
+
+For these, the wiring has to stay next to the discovery call. `InitMqttDiscovery*`
+does nothing until `InitMqttDone` is TRUE, and an init action runs a cycle *before*
+a block's first body call — so self-wiring them while leaving discovery in the init
+action would make that discovery call fire too early and silently announce
+nothing.
+
+**Cannot self-wire yet.** These do not extend `FB_MQTT_BASE` — they hand-roll their
+own MQTT plumbing, so there is no `FriendlyName` on them at all:
+
+- `FB_INPUT_PUSHBUTTON_DIMMER_MQTT`
+- `FB_RS485_EASTRON_SDM220_MQTT`
+- `FB_RS485_EASTRON_SDM_POWER_MQTT`
+- `FB_RS485_DUCO_DUCOBOX_MQTT`
+
+Making them extend the base is a worthwhile follow-up — it would also give them
+Home Assistant discovery, which they currently lack entirely. Until then their call
+sites are untouched and keep working exactly as before.
+
+`FB_MQTT_LOG` extends the base and could self-wire, but it has no call site
+anywhere in the reference project and there is no log topic prefix in
+`MqttVariables`, so there was no existing behaviour to preserve. It was left alone.

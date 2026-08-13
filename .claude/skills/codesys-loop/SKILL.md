@@ -126,6 +126,47 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 Steps 6 onwards change tracked files, including a binary. Ask before running them
 unless the user has already said to land the change.
 
+## Changing an existing POU: use edits, not candidates
+
+**A candidate XML import REPLACES the whole object**, so it is right for a *new*
+block and wrong for changing an existing one — a partial file silently drops
+every method it omits, and appending to an existing POU's plaintext declaration is
+ignored outright. For existing code use `.ai/edits/edits.json`, which drives the
+ScriptEngine's textual API and is applied by both `verify` and `apply`:
+
+```json
+{ "edits": [
+    { "pou": "FB_MQTT_BASE",  "decl_append_file": "base.decl",
+      "skip_if_contains": "FriendlyName" },
+    { "pou": "FB_OUTPUT_BINARY_MQTT", "body_prepend_file": "prologue.st",
+      "skip_if_contains": "self-wiring prologue" },
+    { "pou": "PLC_PRG_MAIN",  "decl_replace_file": "main.decl" },
+    { "pou": "PLC_PRG_MAIN",  "member": "MAIN_INIT", "body_replace_file": "main_init.st" }
+] }
+```
+
+| Key | Effect |
+|:--|:--|
+| `pou` | POU, program **or GVL** name. Must resolve to exactly one object that owns text. |
+| `member` | Target a method or action instead of the POU itself. |
+| `decl_append` / `decl_replace` | Declaration, inline text or `*_file`. |
+| `body_prepend` / `body_append` / `body_replace` | Implementation, same. |
+| `skip_if_contains` | **Idempotence sentinel.** If the target text already contains it, that append/prepend is skipped. |
+
+Notes that cost real time to rediscover:
+
+- **Always set `skip_if_contains` on an append or prepend.** An edit spec gets
+  re-run constantly during a refactor, and without the sentinel a second run
+  duplicates the text. `*_replace` needs no guard.
+- `*_file` paths resolve relative to the spec file, then to the repo root. Keep
+  fragments in `.ai/edits/` — **never `.ai/work`, which `verify` deletes.**
+- `insert()` takes the **offset first**, the reverse of the shipped stub. Same trap
+  as `export_xml`.
+- `-Edits none` skips the spec, which is how you build the committed project
+  standalone as a control. A `verify -Baseline` never applies edits.
+- Generating the fragments from a script (see `.ai/edits/gen.ps1` in history) beats
+  hand-writing 14 near-identical prologues.
+
 ## Authoring candidates: what the importer actually accepts
 
 Established by compile probe, not by reading documentation:

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T08:12:07.8993136" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T08:10:58.0895251">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T09:03:45.8342443" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T09:02:47.0594078">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -5467,7 +5467,49 @@ END_IF</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubDimmerPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubDimmerPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT),
+			OutputDimmer := TRUE,
+			Qos_Dimm := MQTT.QoS.ExactlyOnce,
+			Delta_Dimm := 5);
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(MqttVariables.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+IF Startup THEN
 	OUT := PreviousOUT;
 	Q := PreviousQ;
 END_IF
@@ -6076,7 +6118,44 @@ END_IF </xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_ACTUATOR(
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubHVACPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(MqttVariables.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+FB_ACTUATOR(
 	IN := IN,
 	MANUAL := FALSE,
 	RST := FALSE,
@@ -7004,7 +7083,44 @@ code. You can evaluate the return value.</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">MIN_ONTIME_TIMER(IN := IN, PT := MIN_ONTIME);
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubHVACPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(MqttVariables.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+MIN_ONTIME_TIMER(IN := IN, PT := MIN_ONTIME);
 MIN_ONTIME_ACTIVE := NOT(MIN_ONTIME_TIMER.Q) AND PUMP;
 
 FB_ACTUATOR(
@@ -7328,7 +7444,47 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT ENABLED OR HvacMode = HvacModes.off THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubHVACPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubHVACPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_HVAC_MQTT));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(MqttVariables.PLC_Device),
+			Name := FriendlyName,
+			TempStep := 0.5);
+	END_IF
+
+END_IF
+
+IF NOT ENABLED OR HvacMode = HvacModes.off THEN
 	OUT := FALSE;
 ELSIF MEASURED_TEMP &gt; MaxAllowedTemp THEN
 	OUT := FALSE;
@@ -18296,6 +18452,13 @@ END_IF</xhtml>
                       <type>
                         <derived name="FB_HVAC_THERMOSTAT_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Floorheating'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <addData>
                         <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
                           <InputAssignments>
@@ -18312,13 +18475,27 @@ END_IF</xhtml>
                         </data>
                       </addData>
                       <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Floorheating</xhtml>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> The thermostats, pumps and the burner wire themselves from MqttVariables on
+	   their first cyclic call, driven by FriendlyName. The positional arguments are
+	   each block's own FB_init (setpoint limits, run-on times) and are unchanged.
+
+	   FB_PUMP_2_COLLECTOR is the exception: its discovery config carries eight
+	   separate valve names, which a single FriendlyName cannot express, so it keeps
+	   both of its explicit calls in HVAC_INIT. 
+ Floorheating</xhtml>
                       </documentation>
                     </variable>
                     <variable name="FB_PUMP_1">
                       <type>
                         <derived name="FB_HVAC_PUMP_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'pump floorheating'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <addData>
                         <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
                           <InputAssignments>
@@ -18336,6 +18513,13 @@ END_IF</xhtml>
                       <type>
                         <derived name="FB_HVAC_THERMOSTAT_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Radiator 1'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <addData>
                         <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
                           <InputAssignments>
@@ -18359,6 +18543,13 @@ END_IF</xhtml>
                       <type>
                         <derived name="FB_HVAC_THERMOSTAT_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Radiator 2'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <addData>
                         <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
                           <InputAssignments>
@@ -18393,6 +18584,13 @@ END_IF</xhtml>
                       <type>
                         <derived name="FB_HVAC_PUMP_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'pump collector'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <addData>
                         <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
                           <InputAssignments>
@@ -18410,6 +18608,13 @@ END_IF</xhtml>
                       <type>
                         <derived name="FB_HVAC_BURNER_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'gas boiler'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <addData>
                         <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
                           <InputAssignments>
@@ -18447,33 +18652,26 @@ END_IF</xhtml>
                   <action name="HVAC_INIT">
                     <body>
                       <ST>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT InitHvacDone THEN
-	InitHvacDone := TRUE;
-	
-	FB_THERMOSTAT_1.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.MqttSubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue), ADR(MqttVariables.collector_FB_HVAC_MQTT));
-	FB_THERMOSTAT_1.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'Floorheating', 0.5);
-	FB_THERMOSTAT_2.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.MqttSubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue), ADR(MqttVariables.collector_FB_HVAC_MQTT));
-	FB_THERMOSTAT_2.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'Radiator 1', 0.5);
-	FB_THERMOSTAT_3.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.MqttSubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue), ADR(MqttVariables.collector_FB_HVAC_MQTT));
-	FB_THERMOSTAT_3.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'Radiator 2', 0.5);
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The thermostats, the pumps and the burner now wire and announce themselves from
+   their FriendlyName, set where they are declared. What is left here is the one
+   block a name cannot describe.
 
-	
-	FB_PUMP_1.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
-	FB_PUMP_1.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'pump floorheating');	
-	
-	FB_PUMP_2.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
-	FB_PUMP_2.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'pump collector');	
-	
-	
-	FB_PUMP_2_COLLECTOR.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));	
+   FB_PUMP_2_COLLECTOR keeps BOTH of its calls, and they belong together: its
+   discovery config carries eight separate valve names, so it cannot be driven from
+   a single FriendlyName - and because InitMqttDiscovery does nothing until
+   InitMqttDone is TRUE, moving only its wiring into the block would leave this
+   discovery call running a cycle too early, silently announcing nothing. *)
+
+IF NOT InitHvacDone THEN
+	InitHvacDone := TRUE;
+
+	FB_PUMP_2_COLLECTOR.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
 	FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(MqttVariables.PLC_Device),
 		NameValve1 := 'Radiator 1',
 		NameValve2 := 'Radiator 2'
 	);
-	
-	FB_BURNER_GAS.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
-	FB_BURNER_GAS.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'gas boiler');	
-END_IF</xhtml>
+END_IF
+</xhtml>
                       </ST>
                     </body>
                     <addData>

@@ -686,6 +686,23 @@ def edit_text(obj, spec, result):
     body_append = text_of("body_append")
     body_replace = text_of("body_replace")
 
+    # Idempotence. An edit spec gets re-run constantly during a refactor - after a
+    # partial apply, after adding one more block - and an append or prepend that
+    # has already landed would silently duplicate itself. `skip_if_contains` is a
+    # sentinel: if it is already in the target's text, that edit is a no-op.
+    # Replacements need no guard, being idempotent by definition.
+    sentinel = spec.get("skip_if_contains")
+    if sentinel:
+        current_decl = safe(lambda: obj.textual_declaration.text, u"") or u""
+        current_impl = safe(lambda: obj.textual_implementation.text, u"") or u""
+        if sentinel in current_decl:
+            decl_append = None
+            done.append("decl_append already present")
+        if sentinel in current_impl:
+            body_prepend = None
+            body_append = None
+            done.append("body already present")
+
     if decl_replace is not None:
         obj.textual_declaration.replace(decl_replace)
         done.append("decl_replace")
