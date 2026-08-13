@@ -40,6 +40,15 @@ Two consequences worth knowing:
   they already are. Moving one into a cyclic action would publish a discovery
   config built from zeros, with no error anywhere.
 
+  The way to sidestep that ordering trap entirely is to take the value at the
+  declaration instead, via `FB_init` — it has run before the first cycle by
+  construction, so no ordering rule is left for anyone to break.
+  `FB_OUTPUT_COVER_MQTT` does this with its `T_LOCKOUT` and `T_UD` and has no
+  `ConfigureFunctionBlock` at all. It suits values that describe the hardware and
+  never change while the PLC runs. Note CODESYS requires every `FB_init` argument
+  at every declaration site, so adding one is a breaking change for existing
+  projects — unlike a `VAR_INPUT` default.
+
 ## `EntityType`
 
 Most blocks announce themselves as exactly one kind of Home Assistant entity and

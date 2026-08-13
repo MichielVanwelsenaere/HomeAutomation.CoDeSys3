@@ -831,6 +831,30 @@ def apply_edits(proj, cfg, result):
                 except Exception:
                     problem = traceback.format_exc()
                     target = None
+        # delete_member removes a method/action/property from the POU. Needed when a
+        # refactor makes one redundant - a Configure* setter replaced by FB_init, say.
+        # Leaving a dead setter behind is worse than removing it: it still compiles
+        # and still looks like the supported way to configure the block.
+        wanted = spec.get("delete_member")
+        if target is not None and wanted:
+            victim = None
+            for child in list(safe(lambda: target.get_children(False), []) or []):
+                if safe(lambda: child.get_name(), "") == wanted:
+                    victim = child
+                    break
+            if victim is None:
+                # Idempotent: already gone is the desired end state, not an error.
+                entry["applied"].append("member %s already absent" % wanted)
+                log("edit %s: member %s already absent" % (label, wanted))
+            else:
+                try:
+                    victim.remove()
+                    entry["applied"].append("deleted member %s" % wanted)
+                    log("edit %s: deleted member %s" % (label, wanted))
+                except Exception:
+                    problem = traceback.format_exc()
+                    target = None
+
         if target is None:
             entry["error"] = u(problem)
             result["errors"].append("edit %s: %s" % (label, problem))
@@ -838,7 +862,9 @@ def apply_edits(proj, cfg, result):
         else:
             entry["path"] = u(object_path(target))
             try:
-                entry["applied"] = edit_text(target, spec, result)
+                # extend, not assign: create_method and delete_member have already
+                # recorded what they did, and assigning would drop it from the report.
+                entry["applied"].extend(edit_text(target, spec, result))
                 log("edit %s: %s" % (label, ", ".join(entry["applied"]) or "nothing"))
             except Exception:
                 trace = traceback.format_exc()

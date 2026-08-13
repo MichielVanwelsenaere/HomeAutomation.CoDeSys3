@@ -5,7 +5,7 @@
 
 ### **General**
 
-The cover function block allows you to control covers such as a roller shutter or a garage door. A time variable (`T_UD`) is required that specifies the time to close/open a cover completely. The cover can be controlled via MQTT using 'OPEN/STOP/CLOSE' commands or via a digital 'TOGGLE' input that will switch between 'OPEN/STOP/CLOSE' states.
+The cover function block allows you to control covers such as a roller shutter or a garage door. A time variable (`T_UD`) is required that specifies the time to close/open a cover completely; it is passed to `FB_init` where the instance is declared. The cover can be controlled via MQTT using 'OPEN/STOP/CLOSE' commands or via a digital 'TOGGLE' input that will switch between 'OPEN/STOP/CLOSE' states.
 
 ---
 
@@ -24,8 +24,6 @@ BOOL ──┤ TOGGLE            MU ├── BOOL
 BOOL ──┤ PRIO_LOCK         MD ├── BOOL
 BOOL ──┤ PRIO_UP              │
 BOOL ──┤ PRIO_DN              │
-TIME ──┤ T_LOCKOUT            │
-TIME ──┤ T_UD                 │
        └──────────────────────┘
 ```
 
@@ -39,8 +37,6 @@ TIME ──┤ T_UD                 │
 | `PRIO_LOCK` | BOOL | Bool input, when high the cover will be locked in its current position ignoring all other inputs. (\*) |
 | `PRIO_UP` | BOOL | Bool input, when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. (\*) |
 | `PRIO_DN` | BOOL | Bool input, when high the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (\*) |
-| `T_LOCKOUT` | TIME | Delay enforced between a change of direction. |
-| `T_UD` | TIME | Run time needed to move the cover completely up or down. |
 
 **Outputs**
 
@@ -51,7 +47,10 @@ TIME ──┤ T_UD                 │
 
 ### **Methods**
 
-**`ConfigureFunctionBlock`** — Configures the behavior of the cover using the parameters below:
+**`FB_init`** — Sets the cover timings. These describe the motor and the shutter, so
+they are fixed for the life of the instance and are passed where the instance is
+declared rather than through a method call. CODESYS requires every `FB_init`
+argument at the declaration site, so both are mandatory:
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
@@ -93,6 +92,13 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 | **Cover reaches position** | Cover reaches an open or closed position | `OPEN` or `CLOSED` | 2 | `TRUE`      | no                  |
 | **Cover moves** | Cover moves | `OPENING` or `CLOSING` | 2 | `TRUE`      | no                  |
 | **Cover stops** | Cover stopped moving without reaching fully open or closed position | `STOPPED` | 2 | `TRUE`      | no                  |
+| **Boot** | Published once on the first cycle, so the entity has a value before the cover is ever moved | `STOPPED` | 2 | `TRUE`      | yes                 |
+
+The boot message is deliberately `STOPPED` rather than a restored `OPEN`/`CLOSED`.
+The last direction *is* retained (`internalDir` is PERSISTENT), but nothing records
+the actual position, so `STOPPED` — "position unknown" — is the honest value. A
+confidently wrong `OPEN` or `CLOSED` would mislead automations more than no
+position does.
 
 MQTT publish topic is a concatenation of the publish prefix and the function block name.
 
@@ -115,7 +121,9 @@ MQTT subscription topic is a concatenation of the subscribe prefix variable and 
 ```
 MqttPubCoverPrefix			:STRING(100) := 'Devices/PLC/Lab/Out/Covers/';
 MqttSubCoverPrefix			:STRING(100) := 'Devices/PLC/Lab/In/Covers/';
-FB_DO_COVER_001				:FB_OUTPUT_COVER_MQTT;
+(* FB_init arguments are (T_LOCKOUT, T_UD): 1s between direction changes, 20s to
+   travel fully up or down. Both are required. *)
+FB_DO_COVER_001				:FB_OUTPUT_COVER_MQTT(T#1S, T#20S);
 ```
 
 - Init MQTT method call (called once during startup):
@@ -127,12 +135,10 @@ FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttPubCoverPrefix),           
 );
 ```
 
-- Init configuration method call (called once during startup):
-```
-FB_DO_COVER_001.ConfigureFunctionBlock(T_LOCKOUT:=T#1S,                             (* delay between change of direction *)
-    T_UD:=T#20S                                                                     (* run time to move the cover completely up/down *)
-);
-```
+The timings need no init call: they are `FB_init` arguments on the declaration
+above. There is no `ConfigureFunctionBlock` on this block — a cover's lockout
+delay and full-travel time are properties of the hardware, not values to drive at
+runtime.
 
 - checking for events to move the cover (cyclic):
 ```
