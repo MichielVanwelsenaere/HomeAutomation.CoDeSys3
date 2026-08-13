@@ -104,8 +104,8 @@ methods do nothing until `InitMqtt` has run.
 ## Which blocks self-wire
 
 **Self-wiring**, driven by `FriendlyName`: the pushbutton and binary sensor
-inputs, the binary, bistable, cover and dimmer outputs, all four virtual blocks,
-the HVAC thermostat, pump and burner, and the DMX dimmer.
+inputs, the binary, bistable, cover and dimmer outputs, the HVAC thermostat, pump
+and burner, and the DMX dimmer.
 
 **Still explicit, and deliberately so.** Two blocks have a discovery config that a
 single name cannot describe, so they keep both of their calls:

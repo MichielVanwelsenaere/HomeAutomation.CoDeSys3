@@ -696,6 +696,41 @@ def find_editable(proj, name, member=None):
     return None, "%s has no method or action named %s that owns text" % (name, member)
 
 
+def find_deletable(proj, name):
+    """Locate one object to remove: a POU, a DUT, an enum, or a folder.
+
+    Deliberately looser than `find_editable`, which requires the object to own
+    editable text - a folder owns none, and folders need deleting too once the
+    last block inside one goes. The looseness is why the ambiguity check below is
+    strict: `proj.find` also returns the task configuration's POU-call node for
+    any program, so a bare "pick the first hit" would sometimes unhook a program
+    from its task instead of deleting it. Text-owning objects therefore win, and
+    a nameless tie is refused rather than guessed - a wrong delete is the one
+    edit this harness cannot undo.
+    """
+    def owns_text(obj):
+        return bool(safe(lambda: obj.has_textual_declaration, False)) or bool(
+            safe(lambda: obj.has_textual_implementation, False)
+        )
+
+    hits = list(safe(lambda: proj.find(name, True), []) or [])
+    if not hits:
+        return None, "no object named %s" % name
+    textual = [h for h in hits if owns_text(h)]
+    if len(textual) == 1:
+        return textual[0], None
+    if len(textual) > 1:
+        return None, "%s is ambiguous: %s" % (
+            name, ", ".join([object_path(h) for h in textual])
+        )
+    # No text anywhere: a folder, which is only safe if it is the sole match.
+    if len(hits) == 1:
+        return hits[0], None
+    return None, "%s is ambiguous: %s" % (
+        name, ", ".join([object_path(h) for h in hits])
+    )
+
+
 def edit_text(obj, spec, result):
     """Apply one edit spec to one object's declaration and/or implementation.
 
@@ -815,6 +850,36 @@ def apply_edits(proj, cfg, result):
         member = spec.get("member")
         label = name if not member else "%s.%s" % (name, member)
         entry = {"target": u(label), "applied": [], "error": None}
+        # delete_pou removes a whole top-level object: a POU, a DUT, or a folder.
+        # Deleting a block is the only honest way to retire one - an unreferenced
+        # POU still compiles, still exports, and still reads as supported API, so
+        # leaving it behind is indistinguishable from keeping it. Nothing else in
+        # the spec applies once the object is gone, hence the `continue`.
+        if spec.get("delete_pou"):
+            victim, problem = find_deletable(proj, name)
+            if victim is None:
+                # Idempotent, but only for "not there": an ambiguous name is a
+                # real error, because removing the wrong object is unrecoverable.
+                if problem and problem.startswith("no object named"):
+                    entry["applied"].append("%s already absent" % name)
+                    log("edit %s: already absent" % label)
+                else:
+                    entry["error"] = u(problem)
+                    result["errors"].append("delete %s: %s" % (label, problem))
+                    log("delete %s FAILED: %s" % (label, problem))
+            else:
+                entry["path"] = u(object_path(victim))
+                try:
+                    victim.remove()
+                    entry["applied"].append("deleted %s" % name)
+                    log("edit %s: deleted (%s)" % (label, entry["path"]))
+                except Exception:
+                    trace = traceback.format_exc()
+                    entry["error"] = u(trace)
+                    result["errors"].append("delete %s raised: %s" % (label, trace))
+                    log("delete %s RAISED:\n%s" % (label, trace))
+            result["edits"].append(entry)
+            continue
         target, problem = find_editable(proj, name, member)
         # create_method/create_action name a member to add to the POU if missing;
         # the decl/body keys of this same edit then apply to that member.
@@ -874,11 +939,60 @@ def apply_edits(proj, cfg, result):
         result["edits"].append(entry)
 
 
+def conflict_resolve(name):
+    """Translate a spec string into the ScriptEngine's ConflictResolve enum.
+
+    Only needed for the replace-an-existing-object case; see import_candidates.
+    The enum is not one of the globals the ScriptEngine injects, so it has to be
+    imported, and the numeric fallback exists because the values are stable
+    (Replace=0, Copy=1, Skip=2) and .NET overload resolution accepts the int.
+    """
+    wanted = {"replace": 0, "copy": 1, "skip": 2}.get(name)
+    if wanted is None:
+        raise ValueError(
+            "import_conflict must be replace, copy or skip - got %r" % name
+        )
+    try:
+        from scriptengine import ConflictResolve  # noqa: F401 - IronPython/.NET
+        return [ConflictResolve.Replace, ConflictResolve.Copy, ConflictResolve.Skip][wanted]
+    except Exception:
+        return wanted
+
+
 def import_candidates(proj, cfg, result):
     files = candidate_files(cfg.get("candidates"))
     result["candidates"] = files
     log("candidates: %d file(s)" % len(files))
+    # By default an import runs through a Reporter, which is what gives the useful
+    # "+6 replaced 0 skipped 0" line - but that overload has no say in what happens
+    # when the imported object already exists, and the answer turns out to be "add
+    # a second one". A candidate that rewrites an existing POU therefore needs
+    # import_conflict: "replace" in the spec, and gives up the reporter to get it.
+    #
+    # Worth knowing why a POU would ever be re-imported rather than edited: an SFC
+    # body is not text, so an action association in a chart cannot be reached by
+    # replace_in_body. Everything textual should still go through edits.
+    mode = (cfg.get("import_conflict") or "").strip().lower()
+    resolve = conflict_resolve(mode) if mode else None
+    if resolve is not None:
+        log("import conflict policy: %s (no reporter on this overload)" % mode)
     for path in files:
+        if resolve is not None:
+            entry = {"file": path, "conflict": mode, "errors": [], "warnings": [],
+                     "added": None, "replaced": None, "skipped": None}
+            try:
+                # import_folder_structure=False: a candidate holds a bare <pous>
+                # list with no folders, and asking CODESYS to honour that
+                # structure is what files the object at the project root.
+                proj.import_xml(resolve, path, False)
+                log("imported %s with conflict=%s" % (os.path.basename(path), mode))
+            except Exception:
+                trace = traceback.format_exc()
+                entry["errors"].append(trace)
+                log("import failed for %s:\n%s" % (path, trace))
+                result["errors"].append("import failed for %s: %s" % (path, trace))
+            result["imports"].append(entry)
+            continue
         reporter = Reporter()
         try:
             # Positional, reporter first (see the `probe` task).

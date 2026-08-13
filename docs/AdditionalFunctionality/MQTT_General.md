@@ -11,13 +11,17 @@ The topic root is built from `MqttMain` + `MqttType` + `MqttDevice`, so the refe
 
 <!-- gvl:start -->
 ```ST
+VAR_GLOBAL CONSTANT
+    MQTT_TOPIC_LEN : INT := 160;
+    MQTT_SUFFIX_LEN : INT := 64;
+END_VAR
+
 VAR_GLOBAL
     clientID : STRING := 'PLC-Lab';
     broker : STRING := '10.101.1.11:1883';
     fbMqttPublishQueue : FB_MqttPublishQueue;
     collector_FB_OUTPUT_SWITCH_MQTT : MQTT.CallbackCollector;
     collector_FB_OUTPUT_COVER_MQTT : MQTT.CallbackCollector;
-    collector_FB_VIRTUAL_MQTT : MQTT.CallbackCollector;
     collector_FB_DIMMER_MQTT : MQTT.CallbackCollector;
     collector_FB_MQTT_LOG : MQTT.CallbackCollector;
     collector_FB_RS485_MQTT : MQTT.CallbackCollector;
@@ -42,15 +46,12 @@ VAR_GLOBAL
     MqttSubCoverPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'In/Covers/');
     MqttPubDimmerPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'Out/Dimmers/');
     MqttSubDimmerPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'In/Dimmers/');
-    MqttPubVirtualPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'Out/Virtuals/');
-    MqttSubVirtualPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'In/Virtuals/');
     MqttPubRS485Prefix : STRING(100) := CONCAT(MqttBaseTopic, 'Out/RS485/');
     MqttSubRS485Prefix : STRING(100) := CONCAT(MqttBaseTopic, 'In/RS485/');
     MqttPubHVACPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'Out/HVAC/');
     MqttSubHVACPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'In/HVAC/');
     MqttSubSwitchTopic : STRING(100) := CONCAT(MqttSubSwitchPrefix, '+');
     MqttSubCoverTopic : STRING(100) := CONCAT(MqttSubCoverPrefix, '+');
-    MqttSubVirtualTopic : STRING(100) := CONCAT(MqttSubVirtualPrefix, '+');
     MqttSubDimmerTopic : STRING(100) := CONCAT(MqttSubDimmerPrefix, '#');
     MqttSubRS485Topic : STRING(100) := CONCAT(MqttSubRS485Prefix, '#');
     MqttSubHVACTopic : STRING(100) := CONCAT(MqttSubHVACPrefix, '#');

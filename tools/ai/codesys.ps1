@@ -213,6 +213,12 @@ function Resolve-Edits {
     }
     if (-not (Test-Path $path)) { throw "Edit spec not found: $path" }
     $spec = Get-Content $path -Raw | ConvertFrom-Json
+    # Not an edit, but it travels in the same spec file because it belongs to the
+    # same operation: what the driver should do when a candidate XML names an
+    # object that already exists. Without it the import quietly adds a duplicate.
+    if ($spec.PSObject.Properties.Name -contains 'import_conflict') {
+        $script:importConflict = $spec.import_conflict
+    }
     $list = @($spec.edits)
     $base = Split-Path (Resolve-Path $path) -Parent
     $out = @()
@@ -281,7 +287,10 @@ switch ($Task) {
         $cfg.project = New-Sandbox
         $cfg.candidates = if ($Baseline) { '' } else { $candidates }
         # A baseline must be the untouched project, so it takes no edits.
-        if (-not $Baseline) { $cfg.edits = Resolve-Edits }
+        if (-not $Baseline) {
+            $cfg.edits = Resolve-Edits
+            if ($script:importConflict) { $cfg.import_conflict = $script:importConflict }
+        }
     }
     'simulate' {
         # Always a sandbox: `simulate` switches the device into simulation mode,
@@ -349,6 +358,7 @@ running application and re-initialises non-persistent variables. Re-run with
         }
         $cfg.candidates = $candidates
         $cfg.edits = Resolve-Edits
+        if ($script:importConflict) { $cfg.import_conflict = $script:importConflict }
     }
 }
 

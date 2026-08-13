@@ -42,14 +42,6 @@ Basic function blocks for basic IO events and operations.
 - [FB_OUTPUT_COVER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_MQTT.md)
 - [FB_OUTPUT_BISTABLE_MQTT](./docs/FunctionBlocks/FB_OUTPUT_BISTABLE_MQTT.md)
 
-## Virtual function blocks
-Function blocks developed to easily set and get values from the processing logic through MQTT.
-
-- [FB_VIRTUAL_BOOL_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_BOOL_MQTT.md)
-- [FB_VIRTUAL_INT_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_INT_MQTT.md)
-- [FB_VIRTUAL_STRING_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_STRING_MQTT.md)
-- [FB_VIRTUAL_REAL_MQTT](./docs/FunctionBlocks/FB_VIRTUAL_REAL_MQTT.md)
-
 ## Modbus RTU over RS485
 With many PLCs having an onboard RS485 serial port it is a popular protocol to create a robust Modbus RTU sensor network.
 

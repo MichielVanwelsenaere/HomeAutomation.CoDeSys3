@@ -70,6 +70,23 @@ For the record, so this is not relitigated:
   reviewable as files and survive a failed run, so they are the default. The
   verify harness does use the textual API.
 
+- **Editing an SFC chart from a script, by any route.** `PLC_PRG_MAIN` is SFC and
+  its chart cannot be touched: the object has a `textual_declaration` but **no
+  `textual_implementation` at all** (`AttributeError` on access), so
+  `replace_in_body` is out. Re-importing the POU as XML does not work either — a
+  candidate file carries no folder structure, so the import files a *second*
+  `PLC_PRG_MAIN` at the project root and leaves the real one in `PRG's/` alone.
+  `import_conflict: "replace"` does not save it, because at the root there is
+  nothing to conflict with; and the root copy is never compiled, since a program
+  is only compiled where a task calls it. So the build stays green while the
+  refactor has done nothing.
+
+  Consequence: an action can be emptied from a script but **not removed**, because
+  the step's action association is compiled and the name has to keep resolving —
+  deleting the action alone fails with `Identifier 'X' not defined <... Action
+  association X / Main (Impl)>`. Leave the action as a stub with a comment saying
+  what to delete by hand. `PLC_PRG_MAIN.PROCESS_VIRTUAL` is one such stub.
+
 - **Behavioural tests in CODESYS simulation.** Built as the `simulate` task, then
   found to be a dead end for *this* project, so do not spend time on it again.
   Enabling simulation retargets the application from the PFC200's 32-bit ARM
