@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T15:37:50.6883764" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T15:36:08.2198979">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T20:54:10.046158" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T20:49:26.0092982">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -8299,19 +8299,6 @@ END_IF		</xhtml>
       <pou name="FB_MqttPublishQueue" pouType="functionBlock">
         <interface>
           <outputVars>
-            <variable name="EMPTY">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="TRUE" />
-              </initialValue>
-            </variable>
-            <variable name="FULL">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
             <variable name="DroppedCount">
               <type>
                 <UDINT />
@@ -8337,11 +8324,17 @@ END_IF		</xhtml>
               <type>
                 <INT />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Read index. Advanced ONLY by GetMessage, and only ever read by AddMessage.</xhtml>
+              </documentation>
             </variable>
             <variable name="pw">
               <type>
                 <INT />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Write index. Advanced ONLY by AddMessage, and only ever read by GetMessage.</xhtml>
+              </documentation>
             </variable>
           </localVars>
           <localVars constant="true">
@@ -8353,10 +8346,34 @@ END_IF		</xhtml>
                 <simpleValue value="1024" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> changing this value will chage the number of stored elements in the fifo </xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> changing this value will chage the number of stored elements in the fifo</xhtml>
               </documentation>
             </variable>
           </localVars>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> A single-producer / single-consumer ring buffer.
+
+   EMPTY and FULL used to be stored BOOL outputs, written by both sides, and that
+   was the whole problem. With pw = pr the ring is either completely empty or
+   completely full, and only those two flags told the cases apart - so a task that
+   lost a race on them could leave a non-empty queue looking empty (the workers
+   stop draining, and a retained state change sits unsent until the next publish),
+   or clear FULL while the ring really was full (a writer then overruns entries the
+   reader has not taken yet).
+
+   They are derived now. HasMessage() is pr &lt;&gt; pw; IsFull() is INC1(pw,n) = pr.
+   Nothing shared is mutable any more: pw is written only by AddMessage, pr only by
+   GetMessage, and each side merely reads the other's index - a single aligned INT
+   load on this 32-bit target, which cannot tear. No semaphore, so no priority
+   inversion on MainTask or HvacTask.
+
+   The cost is exactly one slot. Reporting full one slot early is what buys pw = pr
+   its unambiguous "empty" meaning, so capacity is n rather than n+1.
+
+   What this does NOT fix: two tasks inside AddMessage at the same time can still
+   read the same pw, leave one hybrid message in that slot and the next slot never
+   written at all. Only one queue per producer fixes that. </xhtml>
+          </documentation>
         </interface>
         <body>
           <ST>
@@ -8373,12 +8390,13 @@ END_IF		</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT EMPTY THEN
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Copy the slot out before releasing it: advancing pr is what tells a producer the
+   slot may be overwritten, so it has to be the last thing that happens. *)
+IF THIS^.HasMessage() THEN
 	GetMessage := fifo[pr];
 	pr := OSCAT_BASIC.INC1(pr,n);
-	EMPTY := pr = pw;
-	FULL := FALSE;
-END_IF;</xhtml>
+END_IF;
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -8413,38 +8431,54 @@ END_IF;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Written straight into the slot: the old code staged every message through a
-   single FB member, which four tasks shared as scratch space. pw is advanced
-   only once all four fields are in place, and GetMessage never reads a slot
-   while pr = pw, so the reader cannot observe a half-written entry.
+   single FB member, which four tasks shared as scratch space. pw is advanced only
+   once all four fields are in place, and GetMessage never reads a slot while
+   pr = pw, so the reader cannot observe a half-written entry.
 
-   NOTE: the pw/pr read-modify-write and the EMPTY/FULL updates are still not
-   atomic across tasks. Closing that needs a real critical section around
-   AddMessage/GetMessage/Reset; this change removes the payload-corruption
-   window, not the index race. *)
-IF NOT FULL THEN
+   NOTE: that reasoning holds against the READER, not against a second WRITER. Two
+   tasks in AddMessage at once still read the same pw and collide. See the block
+   comment on the function block. *)
+IF NOT THIS^.IsFull() THEN
 	fifo[pw].Payload := Payload;
 	fifo[pw].Topic := Topic;
 	fifo[pw].Qos := Qos;
 	fifo[pw].MqttRetain := MqttRetain;
+	(* Last: advancing pw is what publishes the slot to the reader. *)
 	pw := OSCAT_BASIC.INC1(pw,n);
-	FULL := pw = pr;
-	EMPTY := FALSE;
 ELSE
 	DroppedCount := DroppedCount + 1;
-END_IF;</xhtml>
+END_IF;
+</xhtml>
                 </ST>
               </body>
               <addData />
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="Reset" ObjectId="31df69d4-d7f2-4cbb-bb14-e3bf60031741">
-              <interface />
+            <Method name="HasMessage" ObjectId="b909c7eb-3848-4d7f-834f-7f9a453932a8">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+              </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">pw := pr;
-FULL := FALSE;
-EMPTY := TRUE;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">HasMessage := pr &lt;&gt; pw;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="IsFull" ObjectId="2b910003-eb68-43e3-a4d2-a01423cd741f">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IsFull := OSCAT_BASIC.INC1(pw,n) = pr;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -16666,14 +16700,14 @@ END_IF
 
 
 (* Check if Mqtt is initialized AND if there are elements on the queue to process AND if a MQTTbirthmessage has been published successfully *)
-IF initMqtt AND NOT(MqttVariables.fbMqttPublishQueue.EMPTY) AND MQTTPublishBirth = FALSE AND MQTTBirthPublisher.SendDone THEN	
+IF initMqtt AND MqttVariables.fbMqttPublishQueue.HasMessage() AND MQTTPublishBirth = FALSE AND MQTTBirthPublisher.SendDone THEN	
 	(* Loop through all free publishers untill there are no more elements in the queue or no more free publishers *)
 	FOR i:=0 TO (ipublishers-1) DO			
 		(* use the publishers that are free  *)
-		IF publishers[i].SendDone AND NOT(MqttVariables.fbMqttPublishQueue.EMPTY) THEN	
+		IF publishers[i].SendDone AND MqttVariables.fbMqttPublishQueue.HasMessage() THEN	
 			(* Pass message from the queue to a publisher *)
 			publishers[i].PublishMessage(MqttMessage:= MqttVariables.fbMqttPublishQueue.GetMessage());
-		ELSIF MqttVariables.fbMqttPublishQueue.EMPTY THEN
+		ELSIF NOT MqttVariables.fbMqttPublishQueue.HasMessage() THEN
 			(* Queue is empty, jump out of the for loop	*)
 			EXIT;	
 		END_IF
@@ -18837,7 +18871,8 @@ PreviousReachable := DMXnodeReachable;</xhtml>
           <Object Name="FB_MqttPublishQueue" ObjectId="90b69ae3-a8a9-4f75-8166-d1d53b3342c5">
             <Object Name="GetMessage" ObjectId="1e1db97d-88e1-4c9c-9f86-4328b3d5480c" />
             <Object Name="AddMessage" ObjectId="4d8543b2-a77d-46bd-823d-ede80d21882c" />
-            <Object Name="Reset" ObjectId="31df69d4-d7f2-4cbb-bb14-e3bf60031741" />
+            <Object Name="HasMessage" ObjectId="b909c7eb-3848-4d7f-834f-7f9a453932a8" />
+            <Object Name="IsFull" ObjectId="2b910003-eb68-43e3-a4d2-a01423cd741f" />
           </Object>
           <Object Name="FB_MqttPublishWorker" ObjectId="0204b2b3-9509-47d9-86ef-0cc71876ab14">
             <Object Name="Init" ObjectId="8770d8a6-0590-4d4b-a5b2-e147e5cb77e7" />
