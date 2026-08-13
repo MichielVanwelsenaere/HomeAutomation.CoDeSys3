@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T09:49:15.4714258" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T09:47:59.3670871">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T12:36:14.34754" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T12:35:00.0095406">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -1675,11 +1675,7 @@ END_IF</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateBinarySensorEntity(
 		Id := id,
@@ -1780,7 +1776,7 @@ SUPER^.InitBaseMqtt();
             </variable>
           </outputVars>
           <localVars>
-            <variable name="InstanceName">
+            <variable name="InstancePath">
               <type>
                 <string />
               </type>
@@ -1795,34 +1791,6 @@ SUPER^.InitBaseMqtt();
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
               </documentation>
-            </variable>
-            <variable name="InitMqttDone">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicPrefix">
-              <type>
-                <pointer>
-                  <baseType>
-                    <string />
-                  </baseType>
-                </pointer>
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicSuffix">
-              <type>
-                <string length="50" />
-              </type>
-            </variable>
-            <variable name="pMqttPublishQueue">
-              <type>
-                <pointer>
-                  <baseType>
-                    <derived name="FB_MqttPublishQueue" />
-                  </baseType>
-                </pointer>
-              </type>
             </variable>
             <variable name="FB_DIMMER">
               <type>
@@ -1995,6 +1963,11 @@ SUPER^.InitBaseMqtt();
             </variable>
           </inputVars>
           <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+              </Inheritance>
+            </data>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
               <Attributes>
                 <Attribute Name="reflection" Value="" />
@@ -2177,6 +2150,9 @@ THIS^.T_Dimm_Start:=T_Dimm_Start;
 THIS^.T_Dimm:=T_Dimm;
 THIS^.Min_On:=Min_On;
 THIS^.Max_On:=Max_On;
+THIS^.Soft_Dimm:=Soft_Dimm;
+THIS^.Dbl_Toggle:=Dbl_Toggle;
+THIS^.Rst_Out:=Rst_Out;
 
 THIS^.T_Long:=T_Long;</xhtml>
                 </ST>
@@ -2222,31 +2198,19 @@ THIS^.T_Long:=T_Long;</xhtml>
                     </type>
                   </variable>
                 </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
 
-InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
 
 THIS^.OutputDimmer:=OutputDimmer;
 THIS^.Qos_Dimm:=Qos_Dimm;
-THIS^.Delta_Dimm:=Delta_Dimm;
-
-InitMqttDone := TRUE;</xhtml>
+THIS^.Delta_Dimm:=Delta_Dimm;</xhtml>
                 </ST>
               </body>
               <addData />
@@ -2554,11 +2518,7 @@ SUPER^.InitBaseMqtt();
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateEventEntity(
 		Name := name,
@@ -2818,11 +2778,7 @@ PreviousState := OUT;</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateSirenEntity(
 			Name := name,
@@ -2899,11 +2855,7 @@ END_IF		</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateLockEntity(
 		Name := name,
@@ -2978,11 +2930,7 @@ END_IF		</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateLightEntity(
 			Name := name,
@@ -3063,11 +3011,7 @@ END_IF		</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateSwitchEntity(
 			Name := name,
@@ -3259,11 +3203,7 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateValveEntity(
 			Name := name,
@@ -3339,11 +3279,7 @@ END_IF		</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^);
-	ELSE
-		id := overruleId;
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 
 	(* An on/off fan: no percentage or oscillation topics, because a binary output
 	   has no speed to report. A dimmer-backed fan would pass those. *)
@@ -3638,11 +3574,7 @@ PulseTrigger:=FALSE;</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateLightEntity(
 			Name := name,
@@ -3715,11 +3647,7 @@ END_IF		</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateLockEntity(
 		Name := name,
@@ -3794,11 +3722,7 @@ END_IF		</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateSirenEntity(
 			Name := name,
@@ -4011,11 +3935,7 @@ END_IF </xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateSwitchEntity(
 			Name := name,
@@ -4091,11 +4011,7 @@ END_IF		</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^);
-	ELSE
-		id := overruleId;
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 
 	(* An on/off fan: no percentage or oscillation topics, because a binary output
 	   has no speed to report. A dimmer-backed fan would pass those. *)
@@ -4207,6 +4123,17 @@ END_IF
                 <derived name="Standard.F_TRIG" />
               </type>
             </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Drives a single state publish at boot, matching every sibling block.</xhtml>
+              </documentation>
+            </variable>
           </localVars>
           <localVars persistent="true">
             <variable name="internalDir">
@@ -4246,13 +4173,13 @@ END_IF
               <initialValue>
                 <simpleValue value="TIME#1s0ms" />
               </initialValue>
-              <addData>
-                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-                  <Attributes>
-                    <Attribute Name="input_constant" Value="" />
-                  </Attributes>
-                </data>
-              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Deliberately not input_constant. ConfigureFunctionBlock assigns both at
+	   runtime and PLC_PRG_MAIN calls it with T#1S/T#20S; input_constant tells the
+	   compiler these are fixed at the declaration and may be constant-folded, so
+	   the attribute and the setter contradicted each other and which one won was
+	   a compiler detail. </xhtml>
+              </documentation>
             </variable>
             <variable name="T_UD">
               <type>
@@ -4261,13 +4188,6 @@ END_IF
               <initialValue>
                 <simpleValue value="TIME#10s0ms" />
               </initialValue>
-              <addData>
-                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-                  <Attributes>
-                    <Attribute Name="input_constant" Value="" />
-                  </Attributes>
-                </data>
-              </addData>
             </variable>
           </inputVars>
           <addData>
@@ -4332,6 +4252,23 @@ MU_RTrigger(CLK:=MU);
 MD_RTrigger(CLK:=MD);
 MU_FTrigger(CLK:=MU);
 MD_FTrigger(CLK:=MD);
+
+(* Publish once at boot so the entity has a value before the first movement.
+   Deliberately 'STOPPED' rather than a derived OPEN/CLOSED: internalDir is
+   PERSISTENT and does carry the last direction, but its meaning is ambiguous -
+   the declaration comment says "down = false, up = true" while the logic below
+   sets internalDir := FALSE after a completed upward move. 'STOPPED' is an
+   honest "position unknown", and a confidently wrong OPEN or CLOSED would
+   mislead automations more than no position does. *)
+IF Startup AND InitMqttDone THEN
+	Startup := FALSE;
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'STOPPED',
+		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF
 
 IF MU_RTrigger.Q AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
@@ -4490,11 +4427,7 @@ MD := lock.Q2;</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateCoverEntity(
 		Name := name,
@@ -4631,17 +4564,6 @@ END_IF</xhtml>
                     </type>
                   </variable>
                 </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
               </interface>
               <body>
                 <ST>
@@ -4651,7 +4573,6 @@ END_IF</xhtml>
 THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
 THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
-THIS^.pMqttPublishQueue:=pMqttPublishQueue;
 
 SUPER^.InitBaseMqtt();
 pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received</xhtml>
@@ -4972,7 +4893,7 @@ IF FriendlyName &lt;&gt; '' THEN
 END_IF
 
 IF Startup THEN
-	OUT := PreviousOUT;
+	OUT_Internal := PreviousOUT;
 	Q := PreviousQ;
 END_IF
 
@@ -5053,7 +4974,7 @@ ELSE
 	Q_OUT:= 0;
 END_IF
 
-IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
+IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm AND OUT_Internal &lt;&gt; PreviousOUT) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
 	PreviousOUT:=OUT_Internal;
 	pMqttPublishQueue^.AddMessage(		
 		Payload := BYTE_TO_STRING(OUT_Internal),
@@ -5102,6 +5023,8 @@ IF NOT(InitMqttDone) THEN
 	PublishReceived := TRUE;
 //check if the packet is for this FB
 ELSIF CONCAT(MQTTSubscribeTopic,'/Q') =  Data.TopicOut^ THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
 	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('TRUE')) THEN
 		MqttHighRequest := TRUE;
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
@@ -5109,6 +5032,8 @@ ELSIF CONCAT(MQTTSubscribeTopic,'/Q') =  Data.TopicOut^ THEN
 	END_IF;
 	
 ELSIF CONCAT(MQTTSubscribeTopic,'/OUT') =  Data.TopicOut^ THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
 	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
 		THIS^.OUT_Internal:=STRING_TO_BYTE(Data.PayloadString^);
 	END_IF
@@ -5365,11 +5290,7 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateLightDimmerEntity(
 		Name := name,
@@ -5829,7 +5750,7 @@ IF FriendlyName &lt;&gt; '' THEN
 END_IF
 
 IF Startup THEN
-	OUT := PreviousOUT;
+	OUT_Internal := PreviousOUT;
 	Q := PreviousQ;
 END_IF
 
@@ -5910,7 +5831,7 @@ ELSE
 	Q_OUT:= 0;
 END_IF
 
-IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
+IF ((ABS(BYTE_TO_INT(PreviousOUT) - BYTE_TO_INT(OUT_Internal)) &gt;= Delta_Dimm AND OUT_Internal &lt;&gt; PreviousOUT) OR Startup AND OUT_Internal &lt;&gt; PreviousOUT OR Startup AND OutputDimmer) AND InitMqttDone THEN
 	PreviousOUT:=OUT_Internal;
 	pMqttPublishQueue^.AddMessage(		
 		Payload := BYTE_TO_STRING(OUT_Internal),
@@ -5951,8 +5872,7 @@ IF SoftDimToValue AND OUT_Internal = OUT_Target THEN // If the same, softdim to 
 		OUT_Internal := OUT_Internal_tmp;
 		PreviousOUT:=OUT_Internal;
 	END_IF
-END_IF
-Startup:=FALSE;</xhtml>
+END_IF</xhtml>
           </ST>
         </body>
         <addData>
@@ -6003,11 +5923,7 @@ Startup:=FALSE;</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateLightDimmerEntity(
 		Name := name,
@@ -6075,8 +5991,6 @@ IF NOT THIS^.InitDmxDone THEN
 	THIS^.pDmxValues := pDmxValues;
 	THIS^.DmxWidth := DmxWidth;
 	THIS^.DmxUniverse := DmxUniverse;
-	THIS^.InitDmxDone := TRUE;
-	
 	THIS^.InitDmxDone := TRUE;
 END_IF</xhtml>
                 </ST>
@@ -6594,11 +6508,7 @@ SUPER^.InitBaseMqtt();
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateBinarySensorEntity(
 		Id := id,
@@ -7565,11 +7475,7 @@ SUPER^.InitBaseMqtt();
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateBinarySensorEntity(
 		Id := id,
@@ -7992,11 +7898,7 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateClimateEntity(		
 		Id := id,
@@ -8340,37 +8242,7 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitBaseMqtt" ObjectId="696a1eee-8df4-4314-bb24-f14ad040c6a2">
-              <interface>
-                <localVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="MQTTSubscribePrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
+              <interface />
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">
@@ -8380,18 +8252,59 @@ InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(_InstancePath)) + 1;
 DeviceName := LEFT(_InstancePath,find(_InstancePath, '.' )-1  ) ;
 
 // Publish (Out);
-IF	NOT CommonTypesAndFunctions.StrEquals(ADR(MqttPublishTopicPrefix),ADR('')) THEN
+IF	MqttPublishTopicPrefix &lt;&gt; 0 THEN
 	THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
 	THIS^.MQTTPublishTopic := CONCAT(MqttPublishTopicPrefix^, THIS^.MqttPublishTopicSuffix);
 END_IF
 
 // Subscribe (In)
-IF	NOT CommonTypesAndFunctions.StrEquals(ADR(MqttSubscribeTopicPrefix),ADR('')) THEN
+IF	MqttSubscribeTopicPrefix &lt;&gt; 0 THEN
 	THIS^.MQTTSubscribeTopicSuffix := InstanceNamePt^;
 	THIS^.MQTTSubscribeTopic := CONCAT(MqttSubscribeTopicPrefix^ ,THIS^.MQTTSubscribeTopicSuffix);
 END_IF
 
 InitMqttDone := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ResolveEntityId" ObjectId="83e9d81c-86b1-43ed-be1d-ca62a398dde6">
+              <interface>
+                <returnType>
+                  <string length="255" />
+                </returnType>
+                <inputVars>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Pass an externally chosen id to override the derived one; empty means derive.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The Home Assistant entity id. This rule used to be copy-pasted into every
+   InitMqttDiscovery* method, so changing it - lower-casing it, stripping a
+   prefix - meant 21 consistent edits, and one missed edit silently orphans
+   entities in Home Assistant. *)
+IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+	ResolveEntityId := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+ELSE
+	ResolveEntityId := overruleId; // 'MY_PH_GND_HALL_01'
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -8573,11 +8486,7 @@ END_IF		</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	
-	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
-		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
-	ELSE
-		id := overruleId; // 'MY_PH_GND_HALL_01'
-	END_IF	
+	id := SUPER^.ResolveEntityId(overruleId);
 	
 	Device^.CreateSensorEntity(
 		Name := name,
@@ -8613,13 +8522,17 @@ END_IF		</xhtml>
                 <BOOL />
               </type>
             </variable>
+            <variable name="DroppedCount">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Messages discarded because the FIFO was full. Without this, overflow
+ is completely silent - and the DMX log flood made overflow easy to provoke.</xhtml>
+              </documentation>
+            </variable>
           </outputVars>
           <localVars>
-            <variable name="localMessage">
-              <type>
-                <derived name="MQTT_MESSAGE" />
-              </type>
-            </variable>
             <variable name="fifo">
               <type>
                 <array>
@@ -8709,15 +8622,25 @@ END_IF;</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT FULL THEN
-	localMessage.Payload := Payload;
-	localMessage.Topic := Topic;
-	localMessage.Qos := Qos;
-	localMessage.MqttRetain := MqttRetain;
-	fifo[pw] := localMessage;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Written straight into the slot: the old code staged every message through a
+   single FB member, which four tasks shared as scratch space. pw is advanced
+   only once all four fields are in place, and GetMessage never reads a slot
+   while pr = pw, so the reader cannot observe a half-written entry.
+
+   NOTE: the pw/pr read-modify-write and the EMPTY/FULL updates are still not
+   atomic across tasks. Closing that needs a real critical section around
+   AddMessage/GetMessage/Reset; this change removes the payload-corruption
+   window, not the index race. *)
+IF NOT FULL THEN
+	fifo[pw].Payload := Payload;
+	fifo[pw].Topic := Topic;
+	fifo[pw].Qos := Qos;
+	fifo[pw].MqttRetain := MqttRetain;
 	pw := OSCAT_BASIC.INC1(pw,n);
 	FULL := pw = pr;
 	EMPTY := FALSE;
+ELSE
+	DroppedCount := DroppedCount + 1;
 END_IF;</xhtml>
                 </ST>
               </body>
@@ -8750,6 +8673,15 @@ EMPTY := TRUE;</xhtml>
                 <BOOL />
               </type>
             </variable>
+            <variable name="SendErrorCount">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Publishes abandoned on timeout. Each one used to retire this worker
+ permanently; now it is released and this counts how often that happened.</xhtml>
+              </documentation>
+            </variable>
           </outputVars>
           <localVars>
             <variable name="LocalMqttMessage">
@@ -8777,6 +8709,14 @@ EMPTY := TRUE;</xhtml>
                 <derived name="MQTT.MQTTPublish" />
               </type>
             </variable>
+            <variable name="SendTimeout">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Bounds how long a single publish may hold this worker.</xhtml>
+              </documentation>
+            </variable>
           </localVars>
         </interface>
         <body>
@@ -8797,10 +8737,22 @@ IF RequestToSend THEN
 	SendDone := FALSE;
 END_IF
 
+SendTimeout(IN := Send, PT := T#10S);
+
 IF publish.done THEN
 	 SendDone := TRUE;
 	 RequestToSend:=FALSE;
 	 Send:=FALSE;
+	 SendTimeout(IN := FALSE);
+ELSIF SendTimeout.Q THEN
+	(* Give the worker back to the pool rather than losing it for good. A publish
+	   that never completes - a broker dropping the connection mid-QoS-2
+	   handshake, say - used to strand this instance forever. *)
+	 SendErrorCount := SendErrorCount + 1;
+	 SendDone := TRUE;
+	 RequestToSend:=FALSE;
+	 Send:=FALSE;
+	 SendTimeout(IN := FALSE);
 END_IF</xhtml>
           </ST>
         </body>
@@ -12744,7 +12696,7 @@ END_IF</xhtml>
       <pou name="FB_RS485_DUCO_DUCOBOX_MQTT" pouType="functionBlock">
         <interface>
           <localVars>
-            <variable name="InstanceName">
+            <variable name="InstancePath">
               <type>
                 <string />
               </type>
@@ -12767,39 +12719,6 @@ END_IF</xhtml>
               <initialValue>
                 <simpleValue value="TRUE" />
               </initialValue>
-            </variable>
-            <variable name="InitMqttDone">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicPrefix">
-              <type>
-                <pointer>
-                  <baseType>
-                    <string />
-                  </baseType>
-                </pointer>
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicSuffix">
-              <type>
-                <string length="50" />
-              </type>
-            </variable>
-            <variable name="MQTTSubscribeTopic">
-              <type>
-                <string length="50" />
-              </type>
-            </variable>
-            <variable name="pMqttPublishQueue">
-              <type>
-                <pointer>
-                  <baseType>
-                    <derived name="FB_MqttPublishQueue" />
-                  </baseType>
-                </pointer>
-              </type>
             </variable>
             <variable name="InitRS485Done">
               <type>
@@ -12942,6 +12861,7 @@ END_IF</xhtml>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
                 <Implements>RS485Device</Implements>
                 <Implements>MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
               </Inheritance>
@@ -13104,26 +13024,16 @@ THIS^.InitRS485Done := TRUE;</xhtml>
                     </type>
                   </variable>
                 </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
 
-InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
-THIS^.MQTTSubscribeTopic := CONCAT(MQTTSubscribePrefix^ ,THIS^.MqttPublishTopicSuffix);
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+THIS^.MqttSubscribeTopicPrefix := MQTTSubscribePrefix;
+SUPER^.InitBaseMqtt();
 
 // register the FB agains the collector so mqtt events can be received
 pMqttCallbackCollector^.put(instance:= THIS^);
@@ -13132,12 +13042,10 @@ pMqttCallbackCollector^.put(instance:= THIS^);
 FOR loopCounter := 2 TO 30 DO
 		Nodes[loopCounter].InitMqtt(
 			MQTTPublishPrefix := MQTTPublishPrefix,
-			MqttPublishTopicSuffix := InstanceNamePt^,
+			MqttPublishTopicSuffix := THIS^.MqttPublishTopicSuffix,
 			pMqttPublishQueue := pMqttPublishQueue
 		);
-END_FOR
-
-InitMqttDone := TRUE;</xhtml>
+END_FOR</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13221,7 +13129,7 @@ END_IF</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
 		pMqttPublishQueue^.AddMessage(
 			Payload := Data,
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix ),
+			Topic := CONCAT(THIS^.MQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := FALSE
 		);
@@ -13263,6 +13171,14 @@ END_IF</xhtml>
                       <string />
                     </type>
                   </variable>
+                  <variable name="writePos">
+                    <type>
+                      <INT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> 1-based position of '/write/' within SubTopic; 0 when it is absent.</xhtml>
+                    </documentation>
+                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -13276,14 +13192,29 @@ ELSIF MQTTSubscribeTopic = LEFT(Data.TopicOut^, LEN(MQTTSubscribeTopic)) THEN
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 	// process the data
-	SubTopic := RIGHT(Data.TopicOut^, 9); // 2/write/9 -&gt; 10 chars
-	NodeNumber := LEFT(SubTopic, 1);
-	NodeRegister := RIGHT(SubTopic, 1);
-	
-	IF FIND(SubTopic, 'write') &gt; 0 AND
+	(* Parse by delimiter rather than by fixed width. The old code took the last
+	   nine characters and then one character each for the node and the register,
+	   so a command on '.../12/write/3' parsed as node 2 - a write silently aimed
+	   at a different physical device. This block supports nodes 2..30. *)
+	SubTopic := RIGHT(Data.TopicOut^, LEN(Data.TopicOut^) - LEN(MQTTSubscribeTopic));
+	writePos := FIND(SubTopic, '/write/');
+
+	IF writePos &gt;= 3 THEN
+		// SubTopic is '/&lt;node&gt;/write/&lt;register&gt;', so the node digits occupy
+		// positions 2..writePos-1 and the register is everything past '/write/'.
+		NodeNumber := MID(SubTopic, writePos - 2, 2);
+		NodeRegister := RIGHT(SubTopic, LEN(SubTopic) - (writePos + 6));
+	ELSE
+		NodeNumber := '';
+		NodeRegister := '';
+	END_IF
+
+	IF writePos &gt;= 3 AND
 		OSCAT_BASIC.IS_NUM(NodeNumber) AND
 		OSCAT_BASIC.IS_NUM(NodeRegister) AND
-		OSCAT_BASIC.IS_NUM(Data.PayloadString^) THEN
+		OSCAT_BASIC.IS_NUM(Data.PayloadString^) AND
+		STRING_TO_UINT(NodeNumber) &gt;= 2 AND
+		STRING_TO_UINT(NodeNumber) &lt; THIS^.NodePointer THEN
 			WriteQuery.WriteAddress := (STRING_TO_UINT(NodeNumber) * 10) + STRING_TO_UINT(NodeRegister);
 			WriteQuery.WriteData[0] := STRING_TO_WORD(Data.PayloadString^);
 			WriteQuerySuffix := SubTopic;
@@ -13312,13 +13243,20 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.Nodes[NodePointer].InitNode(
-	DeviceAddress := THIS^.ReadMasterUnitQuery.DeviceId,
-	NodeNumber := NodePointer -1,
-	DataPollingInterval := DataPollingInterval
-);
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Nodes is ARRAY[2..30]. Without this bound the 30th call wrote past the end of
+   it, and the unassigned return value left the caller unable to notice. *)
+IF NodePointer &lt;= 30 THEN
+	THIS^.Nodes[NodePointer].InitNode(
+		DeviceAddress := THIS^.ReadMasterUnitQuery.DeviceId,
+		NodeNumber := NodePointer -1,
+		DataPollingInterval := DataPollingInterval
+	);
 
-NodePointer := NodePointer + 1;</xhtml>
+	NodePointer := NodePointer + 1;
+	AddNode := TRUE;
+ELSE
+	AddNode := FALSE;
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13608,7 +13546,7 @@ END_IF</xhtml>
       <pou name="FB_RS485_EASTRON_SDM_POWER_MQTT" pouType="functionBlock">
         <interface>
           <localVars>
-            <variable name="InstanceName">
+            <variable name="InstancePath">
               <type>
                 <string />
               </type>
@@ -13631,34 +13569,6 @@ END_IF</xhtml>
               <initialValue>
                 <simpleValue value="TRUE" />
               </initialValue>
-            </variable>
-            <variable name="InitMqttDone">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicPrefix">
-              <type>
-                <pointer>
-                  <baseType>
-                    <string />
-                  </baseType>
-                </pointer>
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicSuffix">
-              <type>
-                <string length="50" />
-              </type>
-            </variable>
-            <variable name="pMqttPublishQueue">
-              <type>
-                <pointer>
-                  <baseType>
-                    <derived name="FB_MqttPublishQueue" />
-                  </baseType>
-                </pointer>
-              </type>
             </variable>
             <variable name="InitRS485Done">
               <type>
@@ -13760,6 +13670,7 @@ END_IF</xhtml>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
                 <Implements>RS485Device</Implements>
               </Inheritance>
             </data>
@@ -13780,7 +13691,7 @@ IF isDataUpdated THEN
 	IF InitMqttDone THEN
 		pMqttPublishQueue^.AddMessage(
 			Payload := REAL_TO_STRING(ACTIVEPOWER),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/ACTP' ),
+			Topic := CONCAT(THIS^.MQTTPublishTopic, '/ACTP'),
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := FALSE
 		);
@@ -13903,27 +13814,15 @@ THIS^.InitRS485Done := TRUE;</xhtml>
                     </type>
                   </variable>
                 </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-
-InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
-
-THIS^.InitMqttDone := TRUE;</xhtml>
+SUPER^.InitBaseMqtt();</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13994,7 +13893,7 @@ END_IF</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
 		pMqttPublishQueue^.AddMessage(
 			Payload := Data,
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix ),
+			Topic := CONCAT(THIS^.MQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := FALSE
 		);
@@ -14012,7 +13911,7 @@ END_IF</xhtml>
       <pou name="FB_RS485_EASTRON_SDM220_MQTT" pouType="functionBlock">
         <interface>
           <localVars>
-            <variable name="InstanceName">
+            <variable name="InstancePath">
               <type>
                 <string />
               </type>
@@ -14035,34 +13934,6 @@ END_IF</xhtml>
               <initialValue>
                 <simpleValue value="TRUE" />
               </initialValue>
-            </variable>
-            <variable name="InitMqttDone">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicPrefix">
-              <type>
-                <pointer>
-                  <baseType>
-                    <string />
-                  </baseType>
-                </pointer>
-              </type>
-            </variable>
-            <variable name="MqttPublishTopicSuffix">
-              <type>
-                <string length="50" />
-              </type>
-            </variable>
-            <variable name="pMqttPublishQueue">
-              <type>
-                <pointer>
-                  <baseType>
-                    <derived name="FB_MqttPublishQueue" />
-                  </baseType>
-                </pointer>
-              </type>
             </variable>
             <variable name="InitRS485Done">
               <type>
@@ -14347,6 +14218,7 @@ END_IF</xhtml>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
                 <Implements>RS485Device</Implements>
               </Inheritance>
             </data>
@@ -14624,27 +14496,15 @@ THIS^.InitRS485Done := TRUE;</xhtml>
                     </type>
                   </variable>
                 </inputVars>
-                <localVars>
-                  <variable name="InstanceNamePt">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.pMqttPublishQueue := pMqttPublishQueue;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
 THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-
-InstanceNamePt := CommonTypesAndFunctions.FindLastDot(ADR(THIS^.InstanceName)) + 1;
-THIS^.MqttPublishTopicSuffix := InstanceNamePt^;
-
-THIS^.InitMqttDone := TRUE;</xhtml>
+SUPER^.InitBaseMqtt();</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14719,7 +14579,7 @@ END_IF</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
 		pMqttPublishQueue^.AddMessage(
 			Payload := Data,
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix ),
+			Topic := CONCAT(THIS^.MQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := FALSE
 		);
@@ -14993,7 +14853,7 @@ END_IF</xhtml>
 	
 	THIS^.MqttDiscoveryDevice := Device;
 	
-	id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^);
+	id := SUPER^.ResolveEntityId(overruleId := '');
 	
 	Device^.init1WireDevice(
 		name := DeviceName,
@@ -15626,7 +15486,7 @@ IF FriendlyName &lt;&gt; '' THEN
 END_IF
 
 IF VirtualMode = VIRTUAL_MODES.Output THEN
-	IF (Startup AND PublishAtStartup) OR (UpdateFlag OR IN &lt;&gt; PreviousIn) AND InitMqttDone THEN
+	IF ((Startup AND PublishAtStartup) OR UpdateFlag OR (IN &lt;&gt; PreviousIn)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(IN),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -15640,7 +15500,7 @@ IF VirtualMode = VIRTUAL_MODES.Output THEN
 ELSIF VirtualMode = VIRTUAL_MODES.Input THEN
 	IF Startup AND SetDefaultValueStartup THEN
 		OUT := DefaultValue;
-	ELSIF UsePersistentAtStartup THEN
+	ELSIF Startup AND UsePersistentAtStartup THEN
 		OUT := PreviousState;
 	END_IF	
 	
@@ -16025,7 +15885,7 @@ IF FriendlyName &lt;&gt; '' THEN
 END_IF
 
 IF VirtualMode = VIRTUAL_MODES.Output THEN
-	IF (Startup AND PublishAtStartup) OR (UpdateFlag OR IN &lt;&gt; PreviousIn) AND InitMqttDone THEN
+	IF ((Startup AND PublishAtStartup) OR UpdateFlag OR (IN &lt;&gt; PreviousIn)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := INT_TO_STRING(IN),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -16039,7 +15899,7 @@ IF VirtualMode = VIRTUAL_MODES.Output THEN
 ELSIF VirtualMode = VIRTUAL_MODES.Input THEN
 	IF Startup AND SetDefaultValueStartup THEN
 		OUT := DefaultValue;
-	ELSIF UsePersistentAtStartup THEN
+	ELSIF Startup AND UsePersistentAtStartup THEN
 		OUT := PreviousState;
 	END_IF	
 	
@@ -16420,7 +16280,7 @@ IF FriendlyName &lt;&gt; '' THEN
 END_IF
 
 IF VirtualMode = VIRTUAL_MODES.Output THEN
-	IF (Startup AND PublishAtStartup) OR (UpdateFlag OR IN &lt;&gt; PreviousIn) AND InitMqttDone THEN
+	IF ((Startup AND PublishAtStartup) OR UpdateFlag OR (IN &lt;&gt; PreviousIn)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := REAL_TO_STRING(IN),
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -16434,7 +16294,7 @@ IF VirtualMode = VIRTUAL_MODES.Output THEN
 ELSIF VirtualMode = VIRTUAL_MODES.Input THEN
 	IF Startup AND SetDefaultValueStartup THEN
 		OUT := DefaultValue;
-	ELSIF UsePersistentAtStartup THEN
+	ELSIF Startup AND UsePersistentAtStartup THEN
 		OUT := PreviousState;
 	END_IF	
 	
@@ -16552,8 +16412,10 @@ ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= D
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 	//process the data
-	THIS^.OUT := STRING_TO_REAL(Data.PayloadString^);	
-	MqttMessageReceived := TRUE;	
+	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^, cmp:='0123456789.-') THEN
+		THIS^.OUT := STRING_TO_REAL(Data.PayloadString^);	
+		MqttMessageReceived := TRUE;
+	END_IF	
 END_IF </xhtml>
                 </ST>
               </body>
@@ -16813,7 +16675,7 @@ IF FriendlyName &lt;&gt; '' THEN
 END_IF
 
 IF VirtualMode = VIRTUAL_MODES.Output THEN
-	IF (Startup AND PublishAtStartup) OR (UpdateFlag OR IN &lt;&gt; PreviousIn) AND InitMqttDone THEN
+	IF ((Startup AND PublishAtStartup) OR UpdateFlag OR (IN &lt;&gt; PreviousIn)) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := IN,
 		Topic := CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix),
@@ -16827,7 +16689,7 @@ IF VirtualMode = VIRTUAL_MODES.Output THEN
 ELSIF VirtualMode = VIRTUAL_MODES.Input THEN
 	IF Startup AND SetDefaultValueStartup THEN
 		OUT := DefaultValue;
-	ELSIF UsePersistentAtStartup THEN
+	ELSIF Startup AND UsePersistentAtStartup THEN
 		OUT := PreviousState;
 	END_IF	
 	
@@ -18345,6 +18207,15 @@ FB_DALI_1_ADR0(
                         <simpleValue value="0" />
                       </initialValue>
                     </variable>
+                    <variable name="ErrorTrig">
+                      <type>
+                        <derived name="Standard.R_TRIG" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Rate-limits the connection-error log to one message per error, instead of
+ one per scan of a freewheeling task.</xhtml>
+                      </documentation>
+                    </variable>
                   </localVars>
                 </interface>
                 <body>
@@ -18387,7 +18258,7 @@ END_IF;
 
 
 size := 512+18;
-FOR i:= 0 TO size DO (* check whether the DMX values ​​in the global variable have changed *)
+FOR i:= 0 TO 511 DO (* check whether the DMX values ​​in the global variable have changed *)
 	// i+2 is strange, buffers are not the same, its often offset with 2 sometimes by 1, todo
 	IF S_BUF1.BUFFER[i+18] &lt;&gt; DMXVariables.DMX.BUFFER[i+2] THEN
    		S_BUF1.BUFFER[i+18]:= DMXVariables.DMX.BUFFER[i+2];
@@ -18395,15 +18266,9 @@ FOR i:= 0 TO size DO (* check whether the DMX values ​​in the global variabl
 	END_IF
 END_FOR
 
-S_BUF1.BUFFER [17]:= S_BUF1.BUFFER [17]; // low...
-DMXVariables.DMX.BUFFER[0] := DMXVariables.DMX.BUFFER[0];
-S_BUF1.BUFFER [18]:= S_BUF1.BUFFER [18];
-DMXVariables.DMX.BUFFER[1] := DMXVariables.DMX.BUFFER[1];
-S_BUF1.BUFFER [19]:= S_BUF1.BUFFER [19];
-DMXVariables.DMX.BUFFER[2] := DMXVariables.DMX.BUFFER[2];
-S_BUF1.BUFFER [20]:= S_BUF1.BUFFER [20];
-DMXVariables.DMX.BUFFER[3] := DMXVariables.DMX.BUFFER[3];
 
+
+ErrorTrig(CLK := IP_C.ERROR &lt;&gt; 0);
 
 CASE Step OF
 	0:
@@ -18429,7 +18294,7 @@ CASE Step OF
 		END_IF
 	666:		
      	PFC.SetLed(which:=PFC.LED.U3, how:=PFC.LedState.BLINK_RED);
-		IF IP_C.ERROR = 33554432  THEN
+		IF ErrorTrig.Q AND IP_C.ERROR = 33554432 THEN
 		MqttVariables.PLC_Device.SendLogMessage(CONCAT('ERROR|DMX has a connection error ', DWORD_TO_STRING(IP_C.ERROR)));
 		
 		END_IF;
@@ -18439,6 +18304,9 @@ CASE Step OF
 		IP_C.C_ENABLE:= FALSE; (* Enable connection establishment *) 
 		IP_C.TIME_RESET:= FALSE;
 		init:=FALSE;
+		(* Leave the error state. Without this the branch re-ran every scan; init is
+		   FALSE so the header is rebuilt, and the change-detect loop re-arms Step. *)
+		Step := 0;
 	ELSE
 	  Step := 0;
 END_CASE
@@ -19969,20 +19837,38 @@ RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();</xhtml>
                         <UDINT />
                       </type>
                     </variable>
+                    <variable name="PreviousReachable">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="16#FFFFFFFF" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Last reported result, so the log fires on transitions only. The sentinel
+ differs from every SysSockPing return, so the first pass still logs.</xhtml>
+                      </documentation>
+                    </variable>
                   </localVars>
                 </interface>
                 <body>
                   <ST>
                     <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Ping the DMX artNet node *)
-DMXnodeReachable := SysSockPing(szIPAddress:=DMXVariables.IP, ulTimeout:=500, pulReplyTime:= ADR(PingTime));
+DMXnodeReachable := SysSockPing(szIPAddress:=DMXVariables.IP, ulTimeout:=100, pulReplyTime:= ADR(PingTime));
 
 IF DMXnodeReachable = 0 THEN
     PFC.SetLed(which:=PFC.LED.U3, how:=PFC.LedState.STATIC_GRN);
-	MqttVariables.PLC_Device.SendLogMessage('DMX ping OK');
+	IF DMXnodeReachable &lt;&gt; PreviousReachable THEN
+		MqttVariables.PLC_Device.SendLogMessage('DMX ping OK');
+	END_IF
 ELSIF DMXnodeReachable = 5 THEN
      PFC.SetLed(which:=PFC.LED.U3, how:=PFC.LedState.BLINK_RED);
-	MqttVariables.PLC_Device.SendLogMessage('DMX ping Error');
-END_IF</xhtml>
+	IF DMXnodeReachable &lt;&gt; PreviousReachable THEN
+		MqttVariables.PLC_Device.SendLogMessage('DMX ping Error');
+	END_IF
+END_IF
+
+PreviousReachable := DMXnodeReachable;</xhtml>
                   </ST>
                 </body>
                 <addData>
@@ -20783,6 +20669,7 @@ END_IF</xhtml>
           </Object>
           <Object Name="FB_MQTT_BASE" ObjectId="11ae81d5-e6a0-421b-a61d-0c24db827330">
             <Object Name="InitBaseMqtt" ObjectId="696a1eee-8df4-4314-bb24-f14ad040c6a2" />
+            <Object Name="ResolveEntityId" ObjectId="83e9d81c-86b1-43ed-be1d-ca62a398dde6" />
           </Object>
           <Object Name="FB_MQTT_LOG" ObjectId="9e2b5adf-8be7-4755-bf4b-d002c1aec1e0">
             <Object Name="InitMqtt" ObjectId="24dab906-0e43-4db0-bac3-8a189ab8992b" />
