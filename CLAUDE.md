@@ -87,6 +87,24 @@ For the record, so this is not relitigated:
   association X / Main (Impl)>`. Leave the action as a stub with a comment saying
   what to delete by hand. `PLC_PRG_MAIN.PROCESS_VIRTUAL` is one such stub.
 
+## Open: an edit that reports success and does not take effect
+
+Not resolved, so do not assume an edit landed just because the report says so —
+read the compiler messages, which is the advice for the `harness` section too.
+
+Seen on `PLC_PRG_HVAC.HVAC_INIT` while splitting the publish queue: both
+`replace_in_body` (`x1`) and a whole-body `body_replace` reported success, and the
+compiler went on reporting the *old* text at that line. A diagnostic run that
+deleted only the referenced GVL member showed the same reference in `HVAC_INIT` at
+**two different line numbers at once** (14 and 25), i.e. that action gets compiled
+from more than one source. The same mechanism edits the same action correctly
+elsewhere — the collector-array change went through `HVAC_INIT` and is verified on
+hardware — so this is specific to some combination, not to the action.
+
+Worth checking next time: whether `find_editable` can return the
+`Task Configuration/HvacTask/PLC_PRG_HVAC` node rather than the `PRG's/` program
+(both are exported as roots), and whether `get_children(False)` should be `True`.
+
 - **Behavioural tests in CODESYS simulation.** Built as the `simulate` task, then
   found to be a dead end for *this* project, so do not spend time on it again.
   Enabling simulation retargets the application from the PFC200's 32-bit ARM
