@@ -137,8 +137,14 @@ Write-Host "topics : $($Topics -join ', ')"
 Write-Host "mode   : $(if ($Watch) { "live for ${Seconds}s" } else { "retained snapshot (${Seconds}s collect)" })"
 Write-Host ''
 
-# -W makes mosquitto_sub exit non-zero on timeout, which is its normal end here.
-$lines = & $sub @args 2>&1
+# -W makes mosquitto_sub print "Timed out" to stderr and exit non-zero, which is
+# its normal end here. Do NOT merge stderr with 2>&1: in Windows PowerShell 5.1
+# that wraps each stderr line in a NativeCommandError, which $ErrorActionPreference
+# = 'Stop' then turns into a terminating error on every successful run.
+$prevEap = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+$lines = @(& $sub @args)
+$ErrorActionPreference = $prevEap
 $lines = @($lines | Where-Object { $_ -notmatch '^Timed out$' })
 
 if ($Watch) {
