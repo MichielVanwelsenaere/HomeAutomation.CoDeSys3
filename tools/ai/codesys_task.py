@@ -634,6 +634,41 @@ def build_and_collect(proj, result):
     log("messages: %d" % len(result["messages"]))
 
 
+def find_or_create_member(target, kind, name, return_type=None):
+    """Find a method/action/property on a POU, creating it if absent.
+
+    Lets an edit spec add a brand-new method to an existing function block, which
+    a candidate import cannot do safely (it would replace the whole object) and
+    the plain textual API cannot do at all.
+    """
+    for child in list(safe(lambda: target.get_children(False), []) or []):
+        if safe(lambda: child.get_name(), "") == name:
+            return child, False
+    factory = {"method": "create_method", "action": "create_action", "property": "create_property"}[kind]
+    maker = getattr(target, factory)
+    created = None
+    # The .NET binding's argument order is not the stub's, so try the shapes.
+    attempts = []
+    if kind == "method":
+        attempts = [
+            lambda: maker(name, return_type),
+            lambda: maker(name),
+            lambda: maker(return_type, name),
+        ]
+    else:
+        attempts = [lambda: maker(name)]
+    errors = []
+    for attempt in attempts:
+        try:
+            created = attempt()
+            break
+        except Exception:
+            errors.append(traceback.format_exc().strip().split("\n")[-1])
+    if created is None:
+        raise ValueError("could not create %s %s: %s" % (kind, name, " | ".join(errors)))
+    return created, True
+
+
 def find_editable(proj, name, member=None):
     """Locate a POU (or one of its methods/actions) that owns editable text.
 
@@ -710,6 +745,36 @@ def edit_text(obj, spec, result):
         obj.textual_declaration.append(u"\n" + decl_append.rstrip() + u"\n")
         done.append("decl_append")
 
+    # Targeted substring replacement, for iterating on code that is ALREADY in the
+    # project - where a prepend is blocked by its own sentinel and a full replace
+    # would discard the original body. A miss is an error, never a silent no-op:
+    # that failure mode is exactly how a refactor quietly half-applies.
+    for key, prop in (("replace_in_body", "textual_implementation"),
+                      ("replace_in_decl", "textual_declaration")):
+        for rule in list(spec.get(key) or []):
+            find = rule.get("find")
+            with_text = rule.get("with", "")
+            if not find:
+                raise ValueError("%s needs a 'find'" % key)
+            current = getattr(obj, prop).text
+            if find not in current:
+                if rule.get("optional"):
+                    done.append("%s skipped (no match)" % key)
+                    continue
+                raise ValueError(
+                    "%s found no match for %r - the target text has changed"
+                    % (key, find[:80])
+                )
+            occurrences = current.count(find)
+            expected = rule.get("count")
+            if expected is not None and occurrences != int(expected):
+                raise ValueError(
+                    "%s expected %s occurrence(s) of %r but found %d"
+                    % (key, expected, find[:60], occurrences)
+                )
+            getattr(obj, prop).replace(current.replace(find, with_text))
+            done.append("%s x%d" % (key, occurrences))
+
     if body_replace is not None:
         obj.textual_implementation.replace(body_replace)
         done.append("body_replace")
@@ -735,7 +800,12 @@ def edit_text(obj, spec, result):
 
 def apply_edits(proj, cfg, result):
     """Apply every edit in the spec, in order, to POUs already in the project."""
-    specs = list(cfg.get("edits") or [])
+    specs = cfg.get("edits") or []
+    # PowerShell's ConvertTo-Json unwraps a single-element array into a bare
+    # object, and iterating a dict would yield its keys as strings. Normalise.
+    if isinstance(specs, dict):
+        specs = [specs]
+    specs = [s for s in list(specs) if isinstance(s, dict)]
     if not specs:
         return
     log("applying %d edit(s)" % len(specs))
@@ -746,6 +816,21 @@ def apply_edits(proj, cfg, result):
         label = name if not member else "%s.%s" % (name, member)
         entry = {"target": u(label), "applied": [], "error": None}
         target, problem = find_editable(proj, name, member)
+        # create_method/create_action name a member to add to the POU if missing;
+        # the decl/body keys of this same edit then apply to that member.
+        for kind in ("method", "action", "property"):
+            key = "create_" + kind
+            if target is not None and spec.get(key):
+                try:
+                    target, was_created = find_or_create_member(
+                        target, kind, spec[key], spec.get("return_type")
+                    )
+                    entry["target"] = u("%s.%s" % (name, spec[key]))
+                    entry["applied"].append("created %s" % kind if was_created else "%s exists" % kind)
+                    log("edit %s.%s: %s" % (name, spec[key], entry["applied"][-1]))
+                except Exception:
+                    problem = traceback.format_exc()
+                    target = None
         if target is None:
             entry["error"] = u(problem)
             result["errors"].append("edit %s: %s" % (label, problem))

@@ -55,6 +55,14 @@ light, a lock, a siren or a valve — and there `EntityType` picks which:
 | `E_MQTT_ENTITY.Siren` | `siren` |
 | `E_MQTT_ENTITY.Valve` | `valve` |
 | `E_MQTT_ENTITY.Switch` | `switch` |
+| `E_MQTT_ENTITY.Fan` | `fan` |
+
+A fan is announced as on/off only. Home Assistant's fan platform requires just
+`command_topic`; `percentage_command_topic` and `oscillation_command_topic` are
+supported by `CreateFanEntity` but left empty here, because a binary output has no
+speed or oscillation state to report. A dimmer-backed fan would pass them. Preset
+modes are not supported — `preset_modes` is a JSON list, which this one-`JSONVAR`-
+per-field struct cannot express.
 
 > **If you are migrating an existing project, check this one.** A block you used
 > to announce with `InitMqttDiscoveryAsLight` must now say

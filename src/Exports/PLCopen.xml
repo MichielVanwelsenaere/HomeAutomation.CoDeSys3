@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T09:03:45.8342443" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T09:02:47.0594078">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T09:35:27.6566015" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T09:34:26.6246056">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -81,10 +81,29 @@
               <value name="Cover" value="9" />
               <value name="Climate" value="10" />
               <value name="Event" value="11" />
+              <value name="Fan" value="12" />
             </values>
           </enum>
         </baseType>
         <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>Default</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> announce as whatever this function block announces by default</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>Fan</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Home Assistant fan platform. Supported by the binary and bistable outputs
+ as an on/off fan; speed and oscillation need topics a binary output has
+ nothing to report on, so they are left out of the published config.</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
             <Attributes>
               <Attribute Name="qualified_only" Value="" />
@@ -1184,6 +1203,126 @@
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>95eff7e5-06f8-4be2-b096-62409f4cd51d</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_FAN">
+        <baseType>
+          <struct>
+            <variable name="cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> command_topic (REQUIRED)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pl_on">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload_on</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pl_off">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload_off</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pct_cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> percentage_command_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pct_stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> percentage_state_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="spd_rng_min">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> speed_range_min</xhtml>
+              </documentation>
+            </variable>
+            <variable name="spd_rng_max">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> speed_range_max</xhtml>
+              </documentation>
+            </variable>
+            <variable name="osc_cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> oscillation_command_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="osc_stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> oscillation_state_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pl_osc_on">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload_oscillation_on</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pl_osc_off">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> payload_oscillation_off</xhtml>
+              </documentation>
+            </variable>
+            <variable name="opt">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> optimistic</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
+            </Inheritance>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>fb3fe26d-fe23-4358-87c1-ffeea777d962</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -2576,6 +2715,10 @@ IF FriendlyName &lt;&gt; '' THEN
 			THIS^.InitMqttDiscoveryAsValve(
 				Device := ADR(MqttVariables.PLC_Device),
 				Name := FriendlyName);
+		ELSIF EntityType = E_MQTT_ENTITY.Fan THEN
+			THIS^.InitMqttDiscoveryAsFan(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
 		ELSE
 			(* Default, and any platform this block cannot announce as. *)
 			THIS^.InitMqttDiscoveryAsSwitch(
@@ -3141,6 +3284,86 @@ END_IF		</xhtml>
               <addData />
             </Method>
           </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscoveryAsFan" ObjectId="65379509-f3d8-4cf6-ac09-7a61357d454f">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Invert">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^);
+	ELSE
+		id := overruleId;
+	END_IF
+
+	(* An on/off fan: no percentage or oscillation topics, because a binary output
+	   has no speed to report. A dimmer-backed fan would pass those. *)
+	Device^.CreateFanEntity(
+			Name := name,
+			Id := id,
+			Meta := meta,
+			CommandTopic := THIS^.MQTTSubscribeTopic,
+			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
+			PayloadOff := BOOL_TO_STRING(Invert),
+			StateTopic := THIS^.MQTTPublishTopic);
+
+	initMqttDiscoveryDone := TRUE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>b23328e2-e464-4e34-8621-16bac7fae3f3</ObjectId>
           </data>
@@ -3299,6 +3522,10 @@ IF FriendlyName &lt;&gt; '' THEN
 				Name := FriendlyName);
 		ELSIF EntityType = E_MQTT_ENTITY.Siren THEN
 			THIS^.InitMqttDiscoveryAsSiren(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		ELSIF EntityType = E_MQTT_ENTITY.Fan THEN
+			THIS^.InitMqttDiscoveryAsFan(
 				Device := ADR(MqttVariables.PLC_Device),
 				Name := FriendlyName);
 		ELSE
@@ -3804,6 +4031,86 @@ END_IF </xhtml>
 	
 	initMqttDiscoveryDone := TRUE;
 END_IF		</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscoveryAsFan" ObjectId="d897ac88-3039-409d-893a-0b9a35400ed6">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="Invert">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="FALSE" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^);
+	ELSE
+		id := overruleId;
+	END_IF
+
+	(* An on/off fan: no percentage or oscillation topics, because a binary output
+	   has no speed to report. A dimmer-backed fan would pass those. *)
+	Device^.CreateFanEntity(
+			Name := name,
+			Id := id,
+			Meta := meta,
+			CommandTopic := THIS^.MQTTSubscribeTopic,
+			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
+			PayloadOff := BOOL_TO_STRING(Invert),
+			StateTopic := THIS^.MQTTPublishTopic);
+
+	initMqttDiscoveryDone := TRUE;
+END_IF
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -8938,6 +9245,14 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                 <derived name="MQTT_DISCOVERY_VALVE" />
               </type>
             </variable>
+            <variable name="MqttDiscMsgFan">
+              <type>
+                <derived name="MQTT_DISCOVERY_FAN" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Home Assistant fan platform</xhtml>
+              </documentation>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -11566,6 +11881,225 @@ ComposeJSON(
 	JSONStringSize:= SIZEOF(MqttJSON),
 	JSONVars:= ADR(MqttDiscMsgValveState),
 	NumberOfVars:= SIZEOF(MqttDiscMsgValveState) / SIZEOF(JSONVAR),
+	MaxLevel := 3,
+	Rootless := TRUE,
+);
+ComposeJSON.Execute := TRUE;
+ComposeJSON();
+
+bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
+
+IF MqttJSON = '' THEN
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
+ELSIF bStripJsonRootOk = FALSE THEN
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
+ELSIF NOT (MqttJSON = '') THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload:= MqttJSON,
+		Topic := MqttTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE,
+	);
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateFanEntity" ObjectId="42111fdd-8268-497d-baba-e53bf1098874">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="CommandTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific - command_topic is the only key Home Assistant requires</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PayloadOn">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="PayloadOff">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="PercentageCommandTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> speed as a percentage; leave PercentageCommandTopic empty for an on/off fan</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PercentageStateTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="SpeedRangeMin">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="1" />
+                    </initialValue>
+                  </variable>
+                  <variable name="SpeedRangeMax">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="100" />
+                    </initialValue>
+                  </variable>
+                  <variable name="OscillationCommandTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> oscillation; leave OscillationCommandTopic empty to omit it</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="OscillationStateTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'fan'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="bStripJsonRootOk">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
+
+// 	Entity related: Basis
+MqttDiscMsgFan.name.CharString :=  name; // friendly name
+MqttDiscMsgFan.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id);
+MqttDiscMsgFan.uniq_id.CharString :=  Id;
+
+// Entity related: Specific
+// command_topic is the only key Home Assistant requires for a fan.
+MqttDiscMsgFan.cmd_t.CharString := CommandTopic;
+MqttDiscMsgFan.pl_on.CharString := PayloadOn;
+MqttDiscMsgFan.pl_off.CharString := PayloadOff;
+MqttDiscMsgFan.stat_t.CharString := StateTopic;
+MqttDiscMsgFan.opt.Boolean := FALSE;
+
+// Speed, as a percentage. Left out of the published JSON when no topic is given,
+// which is what makes this an on/off-only fan.
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(PercentageCommandTopic), str2:= ADR('')) THEN
+	MqttDiscMsgFan.pct_cmd_t.CharString := PercentageCommandTopic;
+	MqttDiscMsgFan.pct_stat_t.CharString := PercentageStateTopic;
+	MqttDiscMsgFan.spd_rng_min.Integer := SpeedRangeMin;
+	MqttDiscMsgFan.spd_rng_max.Integer := SpeedRangeMax;
+END_IF
+
+// Oscillation, likewise optional.
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(OscillationCommandTopic), str2:= ADR('')) THEN
+	MqttDiscMsgFan.osc_cmd_t.CharString := OscillationCommandTopic;
+	MqttDiscMsgFan.osc_stat_t.CharString := OscillationStateTopic;
+	MqttDiscMsgFan.pl_osc_on.CharString := 'oscillate_on';
+	MqttDiscMsgFan.pl_osc_off.CharString := 'oscillate_off';
+END_IF
+
+// Availabilty related
+MqttDiscMsgFan.avty[1].topic.CharString := THIS^.availabilityTopic1;
+MqttDiscMsgFan.avty[2].topic.CharString := THIS^.availabilityTopic2;
+MqttDiscMsgFan.avty_mode.CharString := 'all';
+MqttDiscMsgFan.pl_avail.CharString :=   THIS^.availabilityOnline;
+MqttDiscMsgFan.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+MqttDiscMsgFan.qos.Integer := 2;
+
+// Device related
+MqttDiscMsgFan.dev.cu.CharString := THIS^.cu;
+MqttDiscMsgFan.dev.name.CharString := THIS^.name;
+MqttDiscMsgFan.dev.hw.CharString := THIS^.hw;
+MqttDiscMsgFan.dev.ids.CharString := THIS^.ids;
+MqttDiscMsgFan.dev.sw.CharString := THIS^.sw;
+MqttDiscMsgFan.dev.mdl.CharString := THIS^.mdl;
+MqttDiscMsgFan.dev.mf.CharString := THIS^.mf;
+
+// Extra meta-data
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
+	MqttDiscMsgFan.meta.CharString := meta;
+END_IF
+
+ComposeJSON(
+	JSONString:= ADR(MqttJSON),
+	JSONStringSize:= SIZEOF(MqttJSON),
+	JSONVars:= ADR(MqttDiscMsgFan),
+	NumberOfVars:= SIZEOF(MqttDiscMsgFan) / SIZEOF(JSONVAR),
 	MaxLevel := 3,
 	Rootless := TRUE,
 );
@@ -20162,6 +20696,7 @@ END_IF</xhtml>
             <Object Name="PublishReceived" ObjectId="52e8ac2a-01b4-492a-9db8-f22caf82017d" />
             <Object Name="InitMqtt" ObjectId="30235ed8-7201-45cd-9dde-72c77a645555" />
             <Object Name="InitMqttDiscoveryAsValve" ObjectId="96db45a4-271a-44ee-bb80-584d090e34a3" />
+            <Object Name="InitMqttDiscoveryAsFan" ObjectId="65379509-f3d8-4cf6-ac09-7a61357d454f" />
           </Object>
           <Object Name="FB_OUTPUT_BISTABLE_MQTT" ObjectId="f4a9791a-ca0c-411f-9f37-128d5271e2b1">
             <Object Name="InitMqttDiscoveryAsLight" ObjectId="ce9e633c-8e3a-41a0-95fc-12b79b9d56b4" />
@@ -20171,6 +20706,7 @@ END_IF</xhtml>
             <Object Name="PublishReceived" ObjectId="b1d71d52-f220-4fe3-8ef2-8c33a62c050e" />
             <Object Name="ConfigureFunctionBlock" ObjectId="11019592-deec-41fd-99a9-7359b85ba933" />
             <Object Name="InitMqttDiscoveryAsSwitch" ObjectId="680cb675-f2ca-49f9-aeb0-1c0f278aecea" />
+            <Object Name="InitMqttDiscoveryAsFan" ObjectId="d897ac88-3039-409d-893a-0b9a35400ed6" />
           </Object>
           <Object Name="FB_OUTPUT_COVER_MQTT" ObjectId="98e65746-05d7-498b-8d26-ae952ca3588d">
             <Object Name="InitMqttDiscovery" ObjectId="556f0852-8507-4eb2-b36e-984232b63ffa" />
@@ -20262,6 +20798,7 @@ END_IF</xhtml>
             <Object Name="CreateValveEntity" ObjectId="6b0e6700-50ea-4369-9be6-046b2f760b4c" />
             <Object Name="CreateClimateEntity" ObjectId="809a6884-5bfd-4e38-839f-22d87d8e3322" />
             <Object Name="CreateValveStateEntity" ObjectId="3f86d29c-d345-4d73-8ea2-4c73496671f4" />
+            <Object Name="CreateFanEntity" ObjectId="42111fdd-8268-497d-baba-e53bf1098874" />
           </Object>
           <Object Name="FB_PLC_MQTT_DISCOVERY_DEVICE" ObjectId="293181e9-7da9-47da-a441-3d6d4f05045c">
             <Object Name="FB_init" ObjectId="0f05dfeb-28e6-4f3a-a8d1-4516d94b21ba" />
@@ -20290,6 +20827,7 @@ END_IF</xhtml>
             <Object Name="FC_StripJsonRoot" ObjectId="b4e04fa1-7370-47e1-a5b3-eb4645c8d421" />
           </Folder>
         </Folder>
+        <Object Name="MQTT_DISCOVERY_FAN" ObjectId="fb3fe26d-fe23-4358-87c1-ffeea777d962" />
         <Folder Name="RS485">
           <Object Name="FB_RS485_BUSCONTROLLER" ObjectId="78495725-4a33-4565-949d-be98f9fefe52">
             <Object Name="Init" ObjectId="549e8b15-74f2-48a2-a5a5-63fef5066e52" />
