@@ -59,6 +59,49 @@ END_VAR
 ```
 <!-- gvl:end -->
 
+## The publish queue
+
+Every block publishes by handing a message to `MqttVariables.fbMqttPublishQueue`, a
+ring buffer of 1025 slots. `PLC_PRG_MQTT.MQTT_PUBLISH` drains it and hands messages
+to a pool of 40 `FB_MqttPublishWorker` instances, which do the actual sending.
+
+### **Reading its state**
+
+| Member | Kind | Meaning |
+|:--|:--|:--|
+| `HasMessage()` | METHOD : BOOL | Something is queued. This is what the drain loop gates on. |
+| `IsFull()` | METHOD : BOOL | No room for another message. Reports full one slot early. |
+| `DroppedCount` | VAR_OUTPUT : UDINT | Messages discarded because the ring was full. Should stay at 0. |
+
+`HasMessage()` and `IsFull()` are **methods, not flags** — call them, do not read a
+stored value. There used to be `EMPTY` and `FULL` outputs and removing them was the
+point: with the read and write index equal, the ring is either completely empty or
+completely full, so a stored flag was the only thing distinguishing the two cases,
+and both the producers and the consumer wrote it. Losing that race either left a
+non-empty queue looking empty — the workers stop draining and a retained state
+change sits unsent until something else publishes — or cleared `FULL` while the ring
+really was full, letting a writer overwrite messages not yet sent.
+
+Computing them from the indices instead means nothing shared is mutable: the write
+index is only ever advanced by `AddMessage`, the read index only by `GetMessage`, and
+each side merely reads the other's. Reporting full one slot early is what pays for
+it, and is why the usable capacity is 1024 rather than 1025.
+
+### **What is still not safe**
+
+One race remains. Two tasks calling `AddMessage` at the same time can both read the
+same write index, leave one message in that slot built from each other's fields, and
+leave the next slot never written at all — so one publish is corrupted and the next
+carries whatever was in that slot a lap earlier. Nothing detects it, because the
+slot count still balances.
+
+Four tasks write to this queue (MainTask, HvacTask, RS485, MqttCommunication, plus
+Ping), so it is reachable. Fixing it needs one ring per producing task rather than a
+lock: a lock would have to be held across a 1.5 kB payload copy, and MainTask
+blocking on one held by RS485 is priority inversion on the task that also drives the
+covers. `SysTask`, `CmpIecTask` and `SysCpuHandling` are all unresolved on this
+device, so there is no runtime task identity and no atomics to build on either.
+
 ## MQTT Birth and Last Will message
 
 ### **General**
