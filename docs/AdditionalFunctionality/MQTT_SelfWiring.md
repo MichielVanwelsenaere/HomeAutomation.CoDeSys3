@@ -112,7 +112,7 @@ single name cannot describe, so they keep both of their calls:
 
 | Block | Why |
 |:--|:--|
-| `FB_HVAC_COLLECTOR_MQTT` | its discovery carries **eight separate valve names** |
+| `FB_HVAC_COLLECTOR_MQTT` | its discovery carries **a name per valve**, one entity per circuit |
 | `FB_RS485_ESERA_OWD_MQTT` | its discovery takes its own HA device, a parent device and six capability flags |
 
 For these, the wiring has to stay next to the discovery call. `InitMqttDiscovery*`

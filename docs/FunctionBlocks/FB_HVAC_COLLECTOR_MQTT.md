@@ -11,19 +11,12 @@ Designed to control multiple valves that share the same pump. Valves can be cont
 ### **Block diagram**
 
 ```text
-       ┌────────────────────────┐
-       │ FB_HVAC_COLLECTOR_MQTT │
-       ├────────────────────────┤
-BOOL ──┤ THERMOSTAT_1   VALVE_1 ├── BOOL
-BOOL ──┤ THERMOSTAT_2   VALVE_2 ├── BOOL
-BOOL ──┤ THERMOSTAT_3   VALVE_3 ├── BOOL
-BOOL ──┤ THERMOSTAT_4   VALVE_4 ├── BOOL
-BOOL ──┤ THERMOSTAT_5   VALVE_5 ├── BOOL
-BOOL ──┤ THERMOSTAT_6   VALVE_6 ├── BOOL
-BOOL ──┤ THERMOSTAT_7   VALVE_7 ├── BOOL
-BOOL ──┤ THERMOSTAT_8   VALVE_8 ├── BOOL
-       │                   PUMP ├── BOOL
-       └────────────────────────┘
+              ┌────────────────────────┐
+              │ FB_HVAC_COLLECTOR_MQTT │
+              ├────────────────────────┤
+ARRAY[1..8] ──┤ THERMOSTAT      VALVE  ├── ARRAY[1..8] OF BOOL
+    OF BOOL   │                   PUMP ├── BOOL
+              └────────────────────────┘
 ```
 
 ### **Interface**
@@ -32,27 +25,13 @@ BOOL ──┤ THERMOSTAT_8   VALVE_8 ├── BOOL
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `THERMOSTAT_1` | BOOL | Input for the signal coming from a thermostat function block. When high the valve should be opened and flow provided by the pump. |
-| `THERMOSTAT_2` | BOOL | Input for the signal coming from a thermostat function block. When high the valve should be opened and flow provided by the pump. |
-| `THERMOSTAT_3` | BOOL | Input for the signal coming from a thermostat function block. When high the valve should be opened and flow provided by the pump. |
-| `THERMOSTAT_4` | BOOL | Input for the signal coming from a thermostat function block. When high the valve should be opened and flow provided by the pump. |
-| `THERMOSTAT_5` | BOOL | Input for the signal coming from a thermostat function block. When high the valve should be opened and flow provided by the pump. |
-| `THERMOSTAT_6` | BOOL | Input for the signal coming from a thermostat function block. When high the valve should be opened and flow provided by the pump. |
-| `THERMOSTAT_7` | BOOL | Input for the signal coming from a thermostat function block. When high the valve should be opened and flow provided by the pump. |
-| `THERMOSTAT_8` | BOOL | Input for the signal coming from a thermostat function block. When high the valve should be opened and flow provided by the pump. |
+| `THERMOSTAT` | ARRAY[1..8] OF BOOL | Heat demand, one element per manifold circuit. When high the valve should be opened and flow provided by the pump. |
 
 **Outputs**
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `VALVE_1` | BOOL | Output for the valve that should be controlled by the matching thermostat. |
-| `VALVE_2` | BOOL | Output for the valve that should be controlled by the matching thermostat. |
-| `VALVE_3` | BOOL | Output for the valve that should be controlled by the matching thermostat. |
-| `VALVE_4` | BOOL | Output for the valve that should be controlled by the matching thermostat. |
-| `VALVE_5` | BOOL | Output for the valve that should be controlled by the matching thermostat. |
-| `VALVE_6` | BOOL | Output for the valve that should be controlled by the matching thermostat. |
-| `VALVE_7` | BOOL | Output for the valve that should be controlled by the matching thermostat. |
-| `VALVE_8` | BOOL | Output for the valve that should be controlled by the matching thermostat. |
+| `VALVE` | ARRAY[1..8] OF BOOL | Output for the valve controlled by the thermostat at the same index. |
 | `PUMP` | BOOL | Output that should be directed to an HVAC pump function block in order to turn a pump on or off. |
 
 ### **Methods**
@@ -75,16 +54,40 @@ BOOL ──┤ THERMOSTAT_8   VALVE_8 ├── BOOL
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
-| `NameValve1` | STRING(100) | `''` | Name shown in the Home Assistant front-end for this valve. Leave empty to skip it. |
-| `NameValve2` | STRING(100) | `''` | Name shown in the Home Assistant front-end for this valve. Leave empty to skip it. |
-| `NameValve3` | STRING(100) | `''` | Name shown in the Home Assistant front-end for this valve. Leave empty to skip it. |
-| `NameValve4` | STRING(100) | `''` | Name shown in the Home Assistant front-end for this valve. Leave empty to skip it. |
-| `NameValve5` | STRING(100) | `''` | Name shown in the Home Assistant front-end for this valve. Leave empty to skip it. |
-| `NameValve6` | STRING(100) | `''` | Name shown in the Home Assistant front-end for this valve. Leave empty to skip it. |
-| `NameValve7` | STRING(100) | `''` | Name shown in the Home Assistant front-end for this valve. Leave empty to skip it. |
-| `NameValve8` | STRING(100) | `''` | Name shown in the Home Assistant front-end for this valve. Leave empty to skip it. |
+| `NameValve` | ARRAY[1..8] OF STRING(100) |  | Name shown in the Home Assistant front-end for each valve, indexed as `THERMOSTAT` and `VALVE` are. An empty name means that circuit is unwired and announces no entity. |
 | `DeviceClass` | STRING(100) | `'water'` | Home Assistant device class for the entity. Leave empty for the default. |
 <!-- fb-interface:end -->
+
+### **Using it**
+
+The index is part of the interface, not an implementation detail: `THERMOSTAT[1]`
+drives `VALVE[1]`, which publishes to `<topic>/Valves/VALVE_1` and appears in Home
+Assistant as an entity whose id ends `_VALVE_1`. Renumbering the circuits renames
+Home Assistant entities and orphans their retained discovery configs.
+
+Array elements cannot be named as formal parameters, so a caller assigns the
+inputs, calls the block, then reads the outputs. `NameValve` likewise travels as a
+whole array, so the caller needs somewhere to hold it — with a bound matching
+`VALVE_COUNT` in the block:
+
+```ST
+// declaration
+CollectorValveNames : ARRAY[1..8] OF STRING(100);
+
+// once, at startup, after InitMqtt
+CollectorValveNames[1] := 'Radiator 1';
+CollectorValveNames[2] := 'Radiator 2';
+FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), CollectorValveNames);
+
+// every cycle
+FB_PUMP_2_COLLECTOR.THERMOSTAT[1] := FB_THERMOSTAT_2.OUT;
+FB_PUMP_2_COLLECTOR.THERMOSTAT[2] := FB_THERMOSTAT_3.OUT;
+
+FB_PUMP_2_COLLECTOR();
+
+DO_006 := FB_PUMP_2_COLLECTOR.VALVE[1];
+DO_007 := FB_PUMP_2_COLLECTOR.VALVE[2];
+```
 
 ### **MQTT publish behavior**
 
