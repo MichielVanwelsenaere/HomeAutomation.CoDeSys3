@@ -148,6 +148,22 @@ if ($Task -eq 'doctor') {
 
     Report 'project file' (Test-Path $project) $project
 
+    # mosquitto clients: the only way to verify runtime behaviour on this project,
+    # since CODESYS simulation cannot run it. Not needed to compile, so optional.
+    $mos = $null
+    $mosCmd = Get-Command mosquitto_sub -ErrorAction SilentlyContinue
+    if ($mosCmd) { $mos = $mosCmd.Source }
+    else {
+        foreach ($p in @("$env:ProgramFiles\mosquitto\mosquitto_sub.exe",
+                "${env:ProgramFiles(x86)}\mosquitto\mosquitto_sub.exe")) {
+            if (Test-Path $p) { $mos = $p; break }
+        }
+    }
+    if ($mos) { Report 'mosquitto_sub' $true $mos }
+    else {
+        Report 'mosquitto_sub' $false 'not found - winget install --id EclipseFoundation.Mosquitto' -Optional
+    }
+
     # Python is not needed by this harness, only by the update-fb-docs skill.
     $py = $null
     foreach ($c in @('py', 'python', 'python3')) {

@@ -32,6 +32,7 @@ Fast, does not launch CODESYS. Required:
 | `ScriptEngine.dll` | Under `CODESYS\Common\`. The entire harness depends on it. |
 | CODESYS Control for PFC200 SL | The project's device. Without it the device will not resolve and the build fails. |
 | Windows PowerShell 5.1 | The scripts avoid PowerShell 7-only syntax, so either works. |
+| mosquitto clients | **Optional but the only runtime check available.** `winget install --id EclipseFoundation.Mosquitto --scope machine`. The installer registers a broker service that is not needed here (leave it stopped) and does **not** add itself to `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
 
 Override discovery with `-Exe` / `-CodesysProfile`, or set `$env:CODESYS_EXE`.
 
@@ -301,6 +302,34 @@ The spec format, for when it is usable — or as the model for a device-side tes
 Run with `./tools/ai/codesys.ps1 simulate -Spec path\to\spec.json`. Values are
 strings in both directions. A failed `expect` lands in `test_failures` and fails
 the run, distinct from a compiler error.
+
+## Verifying runtime behaviour over MQTT
+
+The compiler is the only automated gate on the PLC side, but **the broker sees
+everything the PLC publishes** — which is the one runtime check available here.
+Use it around every download:
+
+```powershell
+./tools/ai/Mqtt-Snapshot.ps1 -Out .ai/mqtt/before.txt      # BEFORE the download
+./tools/ai/codesys.ps1 download -Force -Ip 10.101.1.232
+./tools/ai/Mqtt-Snapshot.ps1 -Out .ai/mqtt/after.txt       # after, once settled
+./tools/ai/Mqtt-Snapshot.ps1 -Diff .ai/mqtt/before.txt,.ai/mqtt/after.txt
+```
+
+The snapshot captures **retained** topics only (`--retained-only`), so it is
+reproducible rather than a race: discovery configs and last-known states survive a
+reconnect. Topics are sorted, so two snapshots diff cleanly. `-Watch` prints live
+traffic instead, for checking that a pushbutton event actually publishes.
+
+Read the diff's **GONE** section first. A discovery config that was retained
+before and is absent now means an entity Home Assistant still shows and nothing
+publishes to any more — exactly the silent regression an `EntityType` mistake
+causes, and exactly what a clean compile cannot tell you.
+
+Broker for this project is `10.101.1.11:1883` (`MqttVariables.broker`), and the
+trees worth watching are `homeassistant/#` and `Devices/PLC/Lab/#`
+(`MqttVariables.MqttBaseTopic`). Credentials via `-User` / `-Password` if the
+broker needs them.
 
 ## Downloading to the real PLC
 
