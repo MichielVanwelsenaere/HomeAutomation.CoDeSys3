@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T15:28:18.4812779" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T15:25:16.9829402">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T15:37:50.6883764" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T15:36:08.2198979">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -6534,45 +6534,94 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
       </pou>
       <pou name="FB_HVAC_COLLECTOR_MQTT" pouType="functionBlock">
         <interface>
+          <localVars constant="true">
+            <variable name="VALVE_COUNT">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="8" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Circuits on the manifold. A hardware fact rather than a tuning knob, and the
+ one place the count is written for this block. A caller that passes a valve
+ name array has to spell the same bound - see CollectorValveNames in
+ PLC_PRG_HVAC.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="VALVE_NAMES">
+              <type>
+                <array>
+                  <dimension lower="1" upper="VALVE_COUNT" />
+                  <baseType>
+                    <string length="8" />
+                  </baseType>
+                </array>
+              </type>
+              <initialValue>
+                <arrayValue>
+                  <value>
+                    <simpleValue value="'VALVE_1'" />
+                  </value>
+                  <value>
+                    <simpleValue value="'VALVE_2'" />
+                  </value>
+                  <value>
+                    <simpleValue value="'VALVE_3'" />
+                  </value>
+                  <value>
+                    <simpleValue value="'VALVE_4'" />
+                  </value>
+                  <value>
+                    <simpleValue value="'VALVE_5'" />
+                  </value>
+                  <value>
+                    <simpleValue value="'VALVE_6'" />
+                  </value>
+                  <value>
+                    <simpleValue value="'VALVE_7'" />
+                  </value>
+                  <value>
+                    <simpleValue value="'VALVE_8'" />
+                  </value>
+                </arrayValue>
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Spelled out instead of built with INT_TO_STRING at runtime. These strings are
+ the published topic suffix AND the tail of the Home Assistant entity id, so a
+ formatting surprise - a padded ' 1', a different width - would silently
+ rename every valve entity in Home Assistant and orphan the old ones.</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <inputVars>
+            <variable name="THERMOSTAT">
+              <type>
+                <array>
+                  <dimension lower="1" upper="VALVE_COUNT" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Heat demand, one element per circuit. The index IS the valve number as it
+ appears on MQTT and in the entity id: THERMOSTAT[1] drives VALVE[1], which
+ publishes to &lt;topic&gt;/Valves/VALVE_1. Renumbering these renames Home Assistant
+ entities, so the indices are part of the interface, not an implementation
+ detail.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
           <outputVars>
-            <variable name="VALVE_1">
+            <variable name="VALVE">
               <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="VALVE_2">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="VALVE_3">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="VALVE_4">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="VALVE_5">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="VALVE_6">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="VALVE_7">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="VALVE_8">
-              <type>
-                <BOOL />
+                <array>
+                  <dimension lower="1" upper="VALVE_COUNT" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
               </type>
             </variable>
             <variable name="PUMP">
@@ -6621,129 +6670,32 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
                 <TIME />
               </type>
             </variable>
-            <variable name="R_Trig_Valve1">
+            <variable name="R_Trig_Valve">
               <type>
-                <derived name="R_TRIG" />
+                <array>
+                  <dimension lower="1" upper="VALVE_COUNT" />
+                  <baseType>
+                    <derived name="R_TRIG" />
+                  </baseType>
+                </array>
               </type>
             </variable>
-            <variable name="F_Trig_Valve1">
+            <variable name="F_Trig_Valve">
               <type>
-                <derived name="F_TRIG" />
+                <array>
+                  <dimension lower="1" upper="VALVE_COUNT" />
+                  <baseType>
+                    <derived name="F_TRIG" />
+                  </baseType>
+                </array>
               </type>
             </variable>
-            <variable name="R_Trig_Valve2">
+            <variable name="i">
               <type>
-                <derived name="R_TRIG" />
-              </type>
-            </variable>
-            <variable name="F_Trig_Valve2">
-              <type>
-                <derived name="F_TRIG" />
-              </type>
-            </variable>
-            <variable name="R_Trig_Valve3">
-              <type>
-                <derived name="R_TRIG" />
-              </type>
-            </variable>
-            <variable name="F_Trig_Valve3">
-              <type>
-                <derived name="F_TRIG" />
-              </type>
-            </variable>
-            <variable name="R_Trig_Valve4">
-              <type>
-                <derived name="R_TRIG" />
-              </type>
-            </variable>
-            <variable name="F_Trig_Valve4">
-              <type>
-                <derived name="F_TRIG" />
-              </type>
-            </variable>
-            <variable name="R_Trig_Valve5">
-              <type>
-                <derived name="R_TRIG" />
-              </type>
-            </variable>
-            <variable name="F_Trig_Valve5">
-              <type>
-                <derived name="F_TRIG" />
-              </type>
-            </variable>
-            <variable name="R_Trig_Valve6">
-              <type>
-                <derived name="R_TRIG" />
-              </type>
-            </variable>
-            <variable name="F_Trig_Valve6">
-              <type>
-                <derived name="F_TRIG" />
-              </type>
-            </variable>
-            <variable name="R_Trig_Valve7">
-              <type>
-                <derived name="R_TRIG" />
-              </type>
-            </variable>
-            <variable name="F_Trig_Valve7">
-              <type>
-                <derived name="F_TRIG" />
-              </type>
-            </variable>
-            <variable name="R_Trig_Valve8">
-              <type>
-                <derived name="R_TRIG" />
-              </type>
-            </variable>
-            <variable name="F_Trig_Valve8">
-              <type>
-                <derived name="F_TRIG" />
+                <INT />
               </type>
             </variable>
           </localVars>
-          <inputVars>
-            <variable name="THERMOSTAT_1">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="THERMOSTAT_2">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="THERMOSTAT_3">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="THERMOSTAT_4">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="THERMOSTAT_5">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="THERMOSTAT_6">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="THERMOSTAT_7">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="THERMOSTAT_8">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-          </inputVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
@@ -6759,113 +6711,42 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">// General heat request variable
-HeatRequest := THERMOSTAT_1 OR THERMOSTAT_2 OR THERMOSTAT_3 OR THERMOSTAT_4 
-				OR THERMOSTAT_5 OR THERMOSTAT_6 OR THERMOSTAT_7 OR THERMOSTAT_8;
-				
-// Valves are NC
-// Valve should be powered when there heat requested for that valve
-// Valve where there is no heat request should remain closed
-VALVE_1 := THERMOSTAT_1;
-VALVE_2 := THERMOSTAT_2;
-VALVE_3 := THERMOSTAT_3;
-VALVE_4 := THERMOSTAT_4;
-VALVE_5 := THERMOSTAT_5;
-VALVE_6 := THERMOSTAT_6;
-VALVE_7 := THERMOSTAT_7;
-VALVE_8 := THERMOSTAT_8;
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// Valves are NC: a valve is powered - open - exactly when its own circuit asks for
+// heat, and closed otherwise.
+HeatRequest := FALSE;
+FOR i := 1 TO VALVE_COUNT DO
+	VALVE[i] := THERMOSTAT[i];
+	HeatRequest := HeatRequest OR THERMOSTAT[i];
+END_FOR
 
 // Pump should only start when valves had time to switch to their correct position
 PumpDelay(IN := HeatRequest,
 	PT := ValveCycleTime);
 
-PUMP := (VALVE_1 OR VALVE_2 OR VALVE_3 OR VALVE_4 OR VALVE_5 OR VALVE_6 OR VALVE_7 OR VALVE_8) AND PumpDelay.Q;
+// This was written as (VALVE_1 OR VALVE_2 OR ... OR VALVE_8) AND PumpDelay.Q, which
+// is the same value: every VALVE[i] has just been assigned THERMOSTAT[i], so the OR
+// over the valves is exactly the OR over the thermostats that HeatRequest holds.
+PUMP := HeatRequest AND PumpDelay.Q;
 
-// Detect edges on valves for MQTT messaging
-R_Trig_Valve1(CLK := VALVE_1);
-F_Trig_Valve1(CLK := VALVE_1);
-R_Trig_Valve2(CLK := VALVE_2);
-F_Trig_Valve2(CLK := VALVE_2);
-R_Trig_Valve3(CLK := VALVE_3);
-F_Trig_Valve3(CLK := VALVE_3);
-R_Trig_Valve4(CLK := VALVE_4);
-F_Trig_Valve4(CLK := VALVE_4);
-R_Trig_Valve5(CLK := VALVE_5);
-F_Trig_Valve5(CLK := VALVE_5);
-R_Trig_Valve6(CLK := VALVE_6);
-F_Trig_Valve6(CLK := VALVE_6);
-R_Trig_Valve7(CLK := VALVE_7);
-F_Trig_Valve7(CLK := VALVE_7);
-R_Trig_Valve8(CLK := VALVE_8);
-F_Trig_Valve8(CLK := VALVE_8);
+// Detect edges on valves for MQTT messaging, and publish only the ones that moved.
+// The topics are retained because Home Assistant reads them on reconnect, which is
+// also why Startup forces a publish of all eight on the first cycle after init.
+FOR i := 1 TO VALVE_COUNT DO
+	R_Trig_Valve[i](CLK := VALVE[i]);
+	F_Trig_Valve[i](CLK := VALVE[i]);
 
-// MQTT Messaging
-IF ((R_Trig_Valve1.Q OR F_Trig_Valve1.Q) OR Startup) AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(VALVE_1),
-		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_1'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-END_IF	
-IF ((R_Trig_Valve2.Q OR F_Trig_Valve2.Q) OR Startup) AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(VALVE_2),
-		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_2'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-END_IF	
-IF ((R_Trig_Valve3.Q OR F_Trig_Valve3.Q) OR Startup) AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(VALVE_3),
-		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_3'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-END_IF	
-IF ((R_Trig_Valve4.Q OR F_Trig_Valve4.Q) OR Startup) AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(VALVE_4),
-		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_4'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-END_IF	
-IF ((R_Trig_Valve5.Q OR F_Trig_Valve5.Q) OR Startup) AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(VALVE_5),
-		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_5'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-END_IF	
-IF ((R_Trig_Valve6.Q OR F_Trig_Valve6.Q) OR Startup) AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(VALVE_6),
-		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_6'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-END_IF	
-IF ((R_Trig_Valve7.Q OR F_Trig_Valve7.Q) OR Startup) AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(VALVE_7),
-		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_7'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-END_IF	
-IF ((R_Trig_Valve8.Q OR F_Trig_Valve8.Q) OR Startup) AND InitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload := BOOL_TO_STRING(VALVE_8),
-		Topic := CONCAT(MQTTPublishTopic, '/Valves/VALVE_8'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE
-	);
-END_IF	
+	IF ((R_Trig_Valve[i].Q OR F_Trig_Valve[i].Q) OR Startup) AND InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := BOOL_TO_STRING(VALVE[i]),
+			Topic := CONCAT(MQTTPublishTopic, CONCAT('/Valves/', VALVE_NAMES[i])),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE
+		);
+	END_IF
+END_FOR
 
-Startup := FALSE;</xhtml>
+Startup := FALSE;
+</xhtml>
           </ST>
         </body>
         <addData>
@@ -6920,69 +6801,21 @@ SUPER^.InitBaseMqtt();
                       </pointer>
                     </type>
                   </variable>
-                  <variable name="NameValve1">
+                  <variable name="NameValve">
                     <type>
-                      <string length="100" />
+                      <array>
+                        <dimension lower="1" upper="VALVE_COUNT" />
+                        <baseType>
+                          <string length="100" />
+                        </baseType>
+                      </array>
                     </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="NameValve2">
-                    <type>
-                      <string length="100" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="NameValve3">
-                    <type>
-                      <string length="100" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="NameValve4">
-                    <type>
-                      <string length="100" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="NameValve5">
-                    <type>
-                      <string length="100" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="NameValve6">
-                    <type>
-                      <string length="100" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="NameValve7">
-                    <type>
-                      <string length="100" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="NameValve8">
-                    <type>
-                      <string length="100" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> One name per circuit, indexed as THERMOSTAT and VALVE are. An empty name means
+ that circuit is not wired to anything and no Home Assistant entity is
+ announced for it - which is how six of the eight stay invisible on the one
+ instance this project has.</xhtml>
+                    </documentation>
                   </variable>
                   <variable name="DeviceClass">
                     <type>
@@ -6999,110 +6832,34 @@ SUPER^.InitBaseMqtt();
                       <string length="255" />
                     </type>
                   </variable>
+                  <variable name="i">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
-	
-	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve1), str2:= ADR(''))) THEN
-		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_1');
-		
-		Device^.CreateValveStateEntity(
-			Id := id,
-			Name := NameValve1,
-			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_1'),
-			StateOpen := 'TRUE',
-			StateClosed := 'FALSE',
-			DeviceClass := DeviceClass);			
-	END_IF
-	
-	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve2), str2:= ADR(''))) THEN
-		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_2');
-		
-		Device^.CreateValveStateEntity(
-			Id := id,
-			Name := NameValve2,
-			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_2'),
-			StateOpen := 'TRUE',
-			StateClosed := 'FALSE',
-			DeviceClass := DeviceClass);			
-	END_IF
-	
-	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve3), str2:= ADR(''))) THEN
-		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_3');
-		
-		Device^.CreateValveStateEntity(
-			Id := id,
-			Name := NameValve3,
-			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_3'),
-			StateOpen := 'TRUE',
-			StateClosed := 'FALSE',
-			DeviceClass := DeviceClass);			
-	END_IF
-	
-	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve4), str2:= ADR(''))) THEN
-		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_4');
-		
-		Device^.CreateValveStateEntity(
-			Id := id,
-			Name := NameValve4,
-			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_4'),
-			StateOpen := 'TRUE',
-			StateClosed := 'FALSE',
-			DeviceClass := DeviceClass);			
-	END_IF
-	
-	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve5), str2:= ADR(''))) THEN
-		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_5');
-		
-		Device^.CreateValveStateEntity(
-			Id := id,
-			Name := NameValve5,
-			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_5'),
-			StateOpen := 'TRUE',
-			StateClosed := 'FALSE',
-			DeviceClass := DeviceClass);			
-	END_IF
-	
-	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve6), str2:= ADR(''))) THEN
-		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_6');
-		
-		Device^.CreateValveStateEntity(
-			Id := id,
-			Name := NameValve6,
-			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_6'),
-			StateOpen := 'TRUE',
-			StateClosed := 'FALSE',
-			DeviceClass := DeviceClass);			
-	END_IF
-	
-	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve7), str2:= ADR(''))) THEN
-		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_7');
-		
-		Device^.CreateValveStateEntity(
-			Id := id,
-			Name := NameValve7,
-			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_7'),
-			StateOpen := 'TRUE',
-			StateClosed := 'FALSE',
-			DeviceClass := DeviceClass);			
-	END_IF
-	
-	IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve8), str2:= ADR(''))) THEN
-		id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), '_VALVE_8');
-		
-		Device^.CreateValveStateEntity(
-			Id := id,
-			Name := NameValve8,
-			StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/Valves/VALVE_8'),
-			StateOpen := 'TRUE',
-			StateClosed := 'FALSE',
-			DeviceClass := DeviceClass);			
-	END_IF
-		
+
+	FOR i := 1 TO VALVE_COUNT DO
+		IF NOT(CommonTypesAndFunctions.StrEquals(str1:= ADR(NameValve[i]), str2:= ADR(''))) THEN
+			id := CONCAT(CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^), CONCAT('_', THIS^.VALVE_NAMES[i]));
+
+			Device^.CreateValveStateEntity(
+				Id := id,
+				Name := NameValve[i],
+				StateTopic := CONCAT(THIS^.MQTTPublishTopic, CONCAT('/Valves/', THIS^.VALVE_NAMES[i])),
+				StateOpen := 'TRUE',
+				StateClosed := 'FALSE',
+				DeviceClass := DeviceClass);
+		END_IF
+	END_FOR
+
 	initMqttDiscoveryDone := TRUE;
-END_IF		</xhtml>
+END_IF
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -17394,6 +17151,23 @@ END_IF</xhtml>
                         </data>
                       </addData>
                     </variable>
+                    <variable name="CollectorValveNames">
+                      <type>
+                        <array>
+                          <dimension lower="1" upper="8" />
+                          <baseType>
+                            <string length="100" />
+                          </baseType>
+                        </array>
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Valve names for the collector's discovery config, indexed the same way as its
+	   THERMOSTAT and VALVE arrays. Only the wired circuits are named; the rest stay
+	   empty and announce no Home Assistant entity. The bound must match VALVE_COUNT
+	   in FB_HVAC_COLLECTOR_MQTT, which is the block's own declaration of how many
+	   circuits the manifold has. </xhtml>
+                      </documentation>
+                    </variable>
                     <variable name="FB_PUMP_2">
                       <type>
                         <derived name="FB_HVAC_PUMP_MQTT" />
@@ -17480,10 +17254,9 @@ IF NOT InitHvacDone THEN
 	InitHvacDone := TRUE;
 
 	FB_PUMP_2_COLLECTOR.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
-	FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(MqttVariables.PLC_Device),
-		NameValve1 := 'Radiator 1',
-		NameValve2 := 'Radiator 2'
-	);
+	CollectorValveNames[1] := 'Radiator 1';
+	CollectorValveNames[2] := 'Radiator 2';
+	FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), CollectorValveNames);
 END_IF
 </xhtml>
                       </ST>
@@ -17539,10 +17312,16 @@ FB_PUMP_1(
 FB_THERMOSTAT_2(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
 FB_THERMOSTAT_3(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
 
-FB_PUMP_2_COLLECTOR(
-	THERMOSTAT_1 := FB_THERMOSTAT_2.OUT, VALVE_1 =&gt; DO_006,
-	THERMOSTAT_2 := FB_THERMOSTAT_3.OUT, VALVE_2 =&gt; DO_007,
-	);
+(* Circuit 1 is Radiator 1, circuit 2 is Radiator 2; circuits 3..8 are unwired and
+   their valves stay closed. The indices match CollectorValveNames above and the
+   VALVE_n names published to MQTT. *)
+FB_PUMP_2_COLLECTOR.THERMOSTAT[1] := FB_THERMOSTAT_2.OUT;
+FB_PUMP_2_COLLECTOR.THERMOSTAT[2] := FB_THERMOSTAT_3.OUT;
+
+FB_PUMP_2_COLLECTOR();
+
+DO_006 := FB_PUMP_2_COLLECTOR.VALVE[1];
+DO_007 := FB_PUMP_2_COLLECTOR.VALVE[2];
 
 FB_PUMP_2(
 	IN := FB_PUMP_2_COLLECTOR.PUMP,
