@@ -40,6 +40,10 @@ param(
     [string]$Address,
     [string]$Ip,
 
+    # verify/apply: JSON list of surgical edits to POUs already in the project.
+    # Defaults to .ai/edits/edits.json when that exists. Use -Edits none to skip.
+    [string]$Edits,
+
     # simulate/download: JSON test spec to run against the running PLC.
     [string]$Spec,
 
@@ -179,6 +183,43 @@ if (-not $CodesysProfile) {
     $CodesysProfile = $profileFile.Name -replace '\.profile\.xml$', ''
 }
 
+# ---------------------------------------------------------------- edits
+
+function Resolve-Edits {
+    # Returns the edit list to hand to the driver, with every *_file path made
+    # absolute (the driver reads them itself, so no escaping games).
+    if ($Edits -eq 'none') { return @() }
+    $path = $Edits
+    if (-not $path) {
+        $default = Join-Path $repo '.ai\edits\edits.json'
+        if (-not (Test-Path $default)) { return @() }
+        $path = $default
+    }
+    if (-not (Test-Path $path)) { throw "Edit spec not found: $path" }
+    $spec = Get-Content $path -Raw | ConvertFrom-Json
+    $list = @($spec.edits)
+    $base = Split-Path (Resolve-Path $path) -Parent
+    $out = @()
+    foreach ($e in $list) {
+        if (-not $e) { continue }
+        $h = [ordered]@{}
+        foreach ($p in $e.PSObject.Properties) {
+            $v = $p.Value
+            if ($p.Name -like '*_file' -and $v) {
+                # Relative to the spec file, then to the repo root.
+                $cand = Join-Path $base $v
+                if (-not (Test-Path $cand)) { $cand = Join-Path $repo $v }
+                if (-not (Test-Path $cand)) { throw "Edit fragment not found: $v (for $($e.pou))" }
+                $v = (Resolve-Path $cand).Path
+            }
+            $h[$p.Name] = $v
+        }
+        $out += $h
+    }
+    Write-Host "edits     : $($out.Count) from $path"
+    return $out
+}
+
 # ---------------------------------------------------------------- sandbox
 
 function New-Sandbox {
@@ -223,6 +264,8 @@ switch ($Task) {
     'verify' {
         $cfg.project = New-Sandbox
         $cfg.candidates = if ($Baseline) { '' } else { $candidates }
+        # A baseline must be the untouched project, so it takes no edits.
+        if (-not $Baseline) { $cfg.edits = Resolve-Edits }
     }
     'simulate' {
         # Always a sandbox: `simulate` switches the device into simulation mode,
@@ -276,6 +319,7 @@ running application and re-initialises non-persistent variables. Re-run with
             throw 'apply writes to src/HomeAutomation.project. Re-run with -Force.'
         }
         $cfg.candidates = $candidates
+        $cfg.edits = Resolve-Edits
     }
 }
 
@@ -403,6 +447,10 @@ switch ($Task) {
         foreach ($imp in $report.imports) {
             Write-Host ("import {0}: +{1} replaced {2} skipped {3}" -f (Split-Path $imp.file -Leaf),
                 @($imp.added).Count, @($imp.replaced).Count, @($imp.skipped).Count)
+        }
+        foreach ($e in @($report.edits | Where-Object { $null -ne $_ })) {
+            if ($e.error) { Write-Host "edit $($e.target): FAILED - $($e.error)" -ForegroundColor Red }
+            else { Write-Host "edit $($e.target): $(@($e.applied) -join ', ')" }
         }
         Write-Host "built: $($report.built -join ', ')"
         if ($Task -eq 'apply') { Write-Host "saved: $($report.saved)" }

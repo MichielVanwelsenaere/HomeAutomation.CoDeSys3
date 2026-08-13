@@ -91,6 +91,7 @@ Control your HVAC setup, more detail in the [HVAC getting started guide](./docs/
 
 - [MQTT related settings](./docs/AdditionalFunctionality/MQTT_General.md)
 - [MQTT Discovery](./docs/AdditionalFunctionality/MQTT_Discovery.md)
+- [Naming a block instead of wiring it](./docs/AdditionalFunctionality/MQTT_SelfWiring.md)
 - [Controlling Wago PFC user LEDs](./docs/AdditionalFunctionality/User_leds_CODESYS3S_runtime.md)
 
 # FAQ

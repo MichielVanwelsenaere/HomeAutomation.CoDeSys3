@@ -634,6 +634,118 @@ def build_and_collect(proj, result):
     log("messages: %d" % len(result["messages"]))
 
 
+def find_editable(proj, name, member=None):
+    """Locate a POU (or one of its methods/actions) that owns editable text.
+
+    `proj.find` also returns things that merely share the name, such as the task
+    configuration's POU-call nodes, so candidates are filtered to objects that
+    actually carry declaration or implementation text.
+    """
+    def owns_text(obj):
+        return bool(safe(lambda: obj.has_textual_declaration, False)) or bool(
+            safe(lambda: obj.has_textual_implementation, False)
+        )
+
+    hits = [m for m in list(safe(lambda: proj.find(name, True), []) or []) if owns_text(m)]
+    if not hits:
+        return None, "no object named %s owns editable text" % name
+    if len(hits) > 1:
+        paths = ", ".join([object_path(h) for h in hits])
+        return None, "%s is ambiguous: %s" % (name, paths)
+    target = hits[0]
+    if not member:
+        return target, None
+    for child in list(safe(lambda: target.get_children(False), []) or []):
+        if safe(lambda: child.get_name(), "") == member and owns_text(child):
+            return child, None
+    return None, "%s has no method or action named %s that owns text" % (name, member)
+
+
+def edit_text(obj, spec, result):
+    """Apply one edit spec to one object's declaration and/or implementation.
+
+    Editing through the textual API rather than by re-importing XML: a candidate
+    import REPLACES the whole object (so a partial file drops methods), and
+    appending to an existing POU's plaintext declaration in XML is silently
+    ignored - the block keeps its old declaration and the only symptom is an
+    "Identifier not defined" somewhere else.
+    """
+    done = []
+
+    def text_of(key):
+        if spec.get(key) is not None:
+            return spec[key]
+        path = spec.get(key + "_file")
+        if path:
+            return read_text(path)
+        return None
+
+    decl_append = text_of("decl_append")
+    decl_replace = text_of("decl_replace")
+    body_prepend = text_of("body_prepend")
+    body_append = text_of("body_append")
+    body_replace = text_of("body_replace")
+
+    if decl_replace is not None:
+        obj.textual_declaration.replace(decl_replace)
+        done.append("decl_replace")
+    elif decl_append is not None:
+        obj.textual_declaration.append(u"\n" + decl_append.rstrip() + u"\n")
+        done.append("decl_append")
+
+    if body_replace is not None:
+        obj.textual_implementation.replace(body_replace)
+        done.append("body_replace")
+    else:
+        if body_prepend is not None:
+            text = body_prepend.rstrip() + u"\n\n"
+            # insert() takes the OFFSET FIRST in the .NET binding, the reverse of
+            # the shipped .pyi stub - same trap as export_xml/import_xml. Offset 0
+            # is the very top of the body.
+            try:
+                obj.textual_implementation.insert(0, text)
+            except TypeError:
+                # Fall back to a read-modify-write if the binding disagrees again.
+                existing = obj.textual_implementation.text
+                obj.textual_implementation.replace(text + existing)
+            done.append("body_prepend")
+        if body_append is not None:
+            obj.textual_implementation.append(u"\n" + body_append.rstrip() + u"\n")
+            done.append("body_append")
+
+    return done
+
+
+def apply_edits(proj, cfg, result):
+    """Apply every edit in the spec, in order, to POUs already in the project."""
+    specs = list(cfg.get("edits") or [])
+    if not specs:
+        return
+    log("applying %d edit(s)" % len(specs))
+    result["edits"] = []
+    for spec in specs:
+        name = spec.get("pou")
+        member = spec.get("member")
+        label = name if not member else "%s.%s" % (name, member)
+        entry = {"target": u(label), "applied": [], "error": None}
+        target, problem = find_editable(proj, name, member)
+        if target is None:
+            entry["error"] = u(problem)
+            result["errors"].append("edit %s: %s" % (label, problem))
+            log("edit %s FAILED: %s" % (label, problem))
+        else:
+            entry["path"] = u(object_path(target))
+            try:
+                entry["applied"] = edit_text(target, spec, result)
+                log("edit %s: %s" % (label, ", ".join(entry["applied"]) or "nothing"))
+            except Exception:
+                trace = traceback.format_exc()
+                entry["error"] = u(trace)
+                result["errors"].append("edit %s raised: %s" % (label, trace))
+                log("edit %s RAISED:\n%s" % (label, trace))
+        result["edits"].append(entry)
+
+
 def import_candidates(proj, cfg, result):
     files = candidate_files(cfg.get("candidates"))
     result["candidates"] = files
@@ -658,6 +770,9 @@ def do_verify(cfg, result):
     proj = projects.open(cfg["project"])  # noqa: F821 - sandbox copy, opened primary
     try:
         files = import_candidates(proj, cfg, result)
+        # Edits run after imports, so a candidate can introduce a type that an
+        # edit then refers to.
+        apply_edits(proj, cfg, result)
         add_verify_harness(proj, result, files, cfg.get("candidates"))
         build_and_collect(proj, result)
     finally:
@@ -668,8 +783,9 @@ def do_apply(cfg, result):
     proj = projects.open(cfg["project"])  # noqa: F821
     try:
         files = import_candidates(proj, cfg, result)
-        if not files:
-            result["errors"].append("nothing to apply: no candidate XML found")
+        apply_edits(proj, cfg, result)
+        if not files and not cfg.get("edits"):
+            result["errors"].append("nothing to apply: no candidate XML and no edits")
             return
         # No harness here: `apply` writes to the real project, so it must not
         # inject scaffolding. Run `verify` first - that is what checks the code.

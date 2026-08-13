@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-10T20:31:36.4063724" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-06-04T22:36:07.2332505">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T08:12:07.8993136" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T08:10:58.0895251">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -62,6 +62,37 @@
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>7e70064f-6492-4dc1-92cd-358022349669</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="E_MQTT_ENTITY">
+        <baseType>
+          <enum>
+            <values>
+              <value name="Default" value="0" />
+              <value name="BinarySensor" value="1" />
+              <value name="Sensor" value="2" />
+              <value name="Switch" value="3" />
+              <value name="Light" value="4" />
+              <value name="LightDimmer" value="5" />
+              <value name="Lock" value="6" />
+              <value name="Siren" value="7" />
+              <value name="Valve" value="8" />
+              <value name="Cover" value="9" />
+              <value name="Climate" value="10" />
+              <value name="Event" value="11" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+              <Attribute Name="strict" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>aef53a6b-9c40-421a-a8ff-44d7415f7bab</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -1355,7 +1386,44 @@
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DEBOUNCE(IN := BS,	
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPushbuttonPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(MqttVariables.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+FB_DEBOUNCE(IN := BS,	
 	TD := T#50MS, (* 2x cyle + 10ms *)
 	PM := FALSE
 	);
@@ -2140,7 +2208,44 @@ InitMqttDone := TRUE;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DETECTPUSH(
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPushbuttonPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(MqttVariables.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+FB_DETECTPUSH(
 	IN:= PB, 	
 	SINGLE=&gt; SINGLE, 
 	DOUBLE=&gt; DOUBLE, 
@@ -2423,7 +2528,65 @@ END_IF		</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubSwitchPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubSwitchPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		IF EntityType = E_MQTT_ENTITY.Light THEN
+			THIS^.InitMqttDiscoveryAsLight(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		ELSIF EntityType = E_MQTT_ENTITY.Lock THEN
+			THIS^.InitMqttDiscoveryAsLock(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		ELSIF EntityType = E_MQTT_ENTITY.Siren THEN
+			THIS^.InitMqttDiscoveryAsSiren(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		ELSIF EntityType = E_MQTT_ENTITY.Valve THEN
+			THIS^.InitMqttDiscoveryAsValve(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		ELSE
+			(* Default, and any platform this block cannot announce as. *)
+			THIS^.InitMqttDiscoveryAsSwitch(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		END_IF
+	END_IF
+
+END_IF
+
+IF Startup THEN
 	OUT := PreviousState;
 END_IF
 
@@ -3094,7 +3257,61 @@ END_IF		</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">HoldTimer(PT:= T_hold);
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubSwitchPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubSwitchPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		IF EntityType = E_MQTT_ENTITY.Light THEN
+			THIS^.InitMqttDiscoveryAsLight(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		ELSIF EntityType = E_MQTT_ENTITY.Lock THEN
+			THIS^.InitMqttDiscoveryAsLock(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		ELSIF EntityType = E_MQTT_ENTITY.Siren THEN
+			THIS^.InitMqttDiscoveryAsSiren(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		ELSE
+			(* Default, and any platform this block cannot announce as. *)
+			THIS^.InitMqttDiscoveryAsSwitch(
+				Device := ADR(MqttVariables.PLC_Device),
+				Name := FriendlyName);
+		END_IF
+	END_IF
+
+END_IF
+
+HoldTimer(PT:= T_hold);
 
 IF PRIO_HIGH THEN
 	IF NOT FEEDBACK THEN
@@ -3762,7 +3979,46 @@ END_IF		</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Run the timer to not power the motors for to long *)
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubCoverPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubCoverPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(MqttVariables.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+(* Run the timer to not power the motors for to long *)
 Cover_State_Timer(PT:=T_UD);
 Cover_State_Timer.IN:=FALSE;
 MU_RTrigger(CLK:=MU);
@@ -4360,7 +4616,49 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubDimmerPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubDimmerPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT),
+			OutputDimmer := TRUE,
+			Qos_Dimm := MQTT.QoS.ExactlyOnce,
+			Delta_Dimm := 5);
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(MqttVariables.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+IF Startup THEN
 	OUT := PreviousOUT;
 	Q := PreviousQ;
 END_IF
@@ -7521,6 +7819,42 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
               </initialValue>
             </variable>
           </localVars>
+          <inputVars>
+            <variable name="FriendlyName">
+              <type>
+                <string length="255" />
+              </type>
+              <initialValue>
+                <simpleValue value="''" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Human readable name shown in Home Assistant. Setting it is what switches
+ a block to self-wiring: on its first cyclic call the block reaches into
+ MqttVariables for its publish queue, topic prefixes and callback
+ collector, and announces itself for discovery. Leave it empty and the
+ block behaves exactly as before, wired only by an explicit
+ InitMqtt / InitMqttDiscovery* call - which remain available for anything
+ this declaration-only API cannot express, such as a second broker, a
+ custom prefix, or a per-instance Home Assistant device.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="EntityType">
+              <type>
+                <derived name="E_MQTT_ENTITY" />
+              </type>
+              <initialValue>
+                <simpleValue value="E_MQTT_ENTITY.Default" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Which Home Assistant platform to announce as. Default means "whatever
+ this block has always announced as", so an existing project keeps its
+ entity platform without naming it. A block announced as something other
+ than its own default MUST say so here: FB_DO_BIN_001 is a binary output
+ announced as a Light, and getting that wrong silently orphans the
+ retained light/.../config topic and creates a new switch entity instead.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
         </interface>
         <body>
           <ST>
@@ -14551,7 +14885,42 @@ SwapWordsToReal := pt_REAL^;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF VirtualMode = VIRTUAL_MODES.Output THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubVirtualPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubVirtualPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
+			MqttQos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE);
+	END_IF
+
+END_IF
+
+IF VirtualMode = VIRTUAL_MODES.Output THEN
 	IF (Startup AND PublishAtStartup) OR (UpdateFlag OR IN &lt;&gt; PreviousIn) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(IN),
@@ -14915,7 +15284,42 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF VirtualMode = VIRTUAL_MODES.Output THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubVirtualPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubVirtualPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
+			MqttQos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE);
+	END_IF
+
+END_IF
+
+IF VirtualMode = VIRTUAL_MODES.Output THEN
 	IF (Startup AND PublishAtStartup) OR (UpdateFlag OR IN &lt;&gt; PreviousIn) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := INT_TO_STRING(IN),
@@ -15275,7 +15679,42 @@ THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF VirtualMode = VIRTUAL_MODES.Output THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubVirtualPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubVirtualPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
+			MqttQos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE);
+	END_IF
+
+END_IF
+
+IF VirtualMode = VIRTUAL_MODES.Output THEN
 	IF (Startup AND PublishAtStartup) OR (UpdateFlag OR IN &lt;&gt; PreviousIn) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := REAL_TO_STRING(IN),
@@ -15633,7 +16072,42 @@ THIS^.VirtualMode:=VIRTUAL_MODES.Output;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">IF VirtualMode = VIRTUAL_MODES.Output THEN
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery*
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubVirtualPrefix),
+			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubVirtualPrefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
+			MqttQos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE);
+	END_IF
+
+END_IF
+
+IF VirtualMode = VIRTUAL_MODES.Output THEN
 	IF (Startup AND PublishAtStartup) OR (UpdateFlag OR IN &lt;&gt; PreviousIn) AND InitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := IN,
@@ -16507,19 +16981,50 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <type>
                         <derived name="FB_INPUT_PUSHBUTTON_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Button number 001'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> INPUT FUNCTION BLOCKS </xhtml>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Every MQTT block below now wires itself from MqttVariables on its first
+	   cyclic call. Setting FriendlyName is what enables that, and it is the only
+	   thing a normal instance has to say. The InitMqtt / InitMqttDiscovery* calls
+	   that used to live in MAIN_INIT are gone.
+
+	   EntityType is only needed where a block can announce as more than one Home
+	   Assistant platform and you do not want its default. Both switched outputs
+	   below are announced as lights, which is what they announced before this
+	   refactor - leaving that out would silently orphan their retained
+	   light/.../config topics and create switch entities instead. 
+ INPUT FUNCTION BLOCKS </xhtml>
                       </documentation>
                     </variable>
                     <variable name="FB_DI_PB_002">
                       <type>
                         <derived name="FB_INPUT_PUSHBUTTON_DIMMER_MQTT" />
                       </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> FB_INPUT_PUSHBUTTON_DIMMER_MQTT does not extend FB_MQTT_BASE yet, so it
+	   still needs its explicit InitMqtt call in MAIN_INIT. </xhtml>
+                      </documentation>
                     </variable>
                     <variable name="FB_DO_BIN_001">
                       <type>
                         <derived name="FB_OUTPUT_BINARY_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'light number 2'" />
+                          </value>
+                          <value member="EntityType">
+                            <simpleValue value="E_MQTT_ENTITY.Light" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <documentation>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml"> OUTPUT FUNCTION BLOCKS </xhtml>
                       </documentation>
@@ -16528,11 +17033,28 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <type>
                         <derived name="FB_OUTPUT_BISTABLE_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'light number 1'" />
+                          </value>
+                          <value member="EntityType">
+                            <simpleValue value="E_MQTT_ENTITY.Light" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                     </variable>
                     <variable name="FB_DO_COVER_001">
                       <type>
                         <derived name="FB_OUTPUT_COVER_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'cover number 001'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <documentation>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml"> COVER FUNCTION BLOCKS </xhtml>
                       </documentation>
@@ -16541,8 +17063,20 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <type>
                         <derived name="FB_OUTPUT_DIMMER_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'001. Office strip cold'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> DIMMER FUNCTION BLOCKS </xhtml>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> DIMMER FUNCTION BLOCKS 
+ NOTE: this instance never had InitMqtt called before this refactor - only
+	   ConfigureFunctionBlock and InitMqttDiscovery, and the latter short-circuited
+	   because InitMqttDone stayed FALSE. It therefore had no MQTT topic, no Home
+	   Assistant entity and no control at all. Naming it here fixes that, which
+	   means this instance starts publishing for the first time. </xhtml>
                       </documentation>
                     </variable>
                     <variable name="TestOUT">
@@ -16554,24 +17088,54 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <type>
                         <derived name="FB_VIRTUAL_INT_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Virtual int 001'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                       <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> VIRTUAL FUNCTION BLOCKS </xhtml>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> VIRTUAL FUNCTION BLOCKS 
+ The virtual blocks publish no discovery config - their Home Assistant YAML
+	   is hand-written - so FriendlyName here serves only to enable self-wiring. </xhtml>
                       </documentation>
                     </variable>
                     <variable name="FB_VIRTUAL_BOOL_001">
                       <type>
                         <derived name="FB_VIRTUAL_BOOL_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Virtual bool 001'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                     </variable>
                     <variable name="FB_VIRTUAL_STRING_001">
                       <type>
                         <derived name="FB_VIRTUAL_STRING_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Virtual string 001'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                     </variable>
                     <variable name="FB_VIRTUAL_REAL_001">
                       <type>
                         <derived name="FB_VIRTUAL_REAL_MQTT" />
                       </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Virtual real 001'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                     </variable>
                   </localVars>
                   <addData>
@@ -16631,23 +17195,23 @@ FB_DI_PB_002(PB:= DI_002);</xhtml>
                   <action name="MAIN_INIT">
                     <body>
                       <ST>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* INIT DIGITAL INPUT STUFF *)
-FB_DI_PB_001.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPushbuttonPrefix),	(* pointer to string prefix for the mqtt publish topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)		(* pointer to MqttPublishQueue to send a new Mqtt event *)
-);
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* MQTT wiring no longer lives here.
 
-FB_DI_PB_001.InitMqttDiscovery(
-	name := 'Button number 001',						(* The name show in Home Assistant frond-end*)
-	Device := ADR(MqttVariables.PLC_Device),							(* The device show in Home Assistant *)
-);
+   Every block that extends FB_MQTT_BASE now wires itself from MqttVariables on
+   its first cyclic call and announces itself to Home Assistant, driven by the
+   FriendlyName set on its declaration above. What remains in this action is the
+   behavioural configuration that genuinely is per-instance and is not MQTT: the
+   dimmer and cover timings, and the virtual blocks' default values.
+
+   The one exception is FB_DI_PB_002: FB_INPUT_PUSHBUTTON_DIMMER_MQTT does not
+   extend FB_MQTT_BASE, so it cannot self-wire yet and keeps its explicit call. *)
 
 FB_DI_PB_002.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPushbuttonPrefix),	
+	MQTTPublishPrefix:= ADR(MqttVariables.MqttPushbuttonPrefix),
 	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
     TRUE,                                                               (* specify whether dimmer value should be outputted on MQTT topic *)
-    MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
-    5                                                                   (* specify the resolution for the dimmer mqtt events *)    
+    MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the dimmer mqtt events (values 0-255) *)
+    5                                                                   (* specify the resolution for the dimmer mqtt events *)
 );
 
 
@@ -16666,111 +17230,42 @@ FB_AO_DIMMER_001.ConfigureFunctionBlock(
 	OUT_LinearScaleMax:=32767
 );
 
-(* INIT HOME ASSISTANT DISCOVERTY*)
-FB_AO_DIMMER_001.InitMqttDiscovery(
-	name := '001. Office strip cold',					(* The name show in Home Assistant frond-end*)
-	Device := ADR(MqttVariables.PLC_Device),							(* The device show in Home Assistant *)
-);
 
-
-(* INIT DIGITAL OUTPUT STUFF *)
-FB_DO_BISTABLE_001.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubSwitchPrefix),					(* pointer to string prefix for the mqtt publish topic *)
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubSwitchPrefix),				(* pointer to string prefix for the mqtt subscribe topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),					(* pointer to MqttPublishQueue to send a new Mqtt event *)
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT)(* pointer to CallbackCollector to receive Mqtt subscription events *)
-);
-
-FB_DO_BISTABLE_001.InitMqttDiscoveryAsLight(
-	name := 'light number 1',						(* The name show in Home Assistant frond-end*)
-	Device := ADR(MqttVariables.PLC_Device),							(* The device show in Home Assistant *)
-);
-
-FB_DO_BIN_001.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubSwitchPrefix),					(* pointer to string prefix for the mqtt publish topic *)
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubSwitchPrefix),				(* pointer to string prefix for the mqtt subscribe topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),					(* pointer to MqttPublishQueue to send a new Mqtt event *)
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT)(* pointer to CallbackCollector to receive Mqtt subscription events *)
-);
-
-FB_DO_BIN_001.InitMqttDiscoveryAsLight(
-	name := 'light number 2',						(* The name show in Home Assistant frond-end*)
-	Device := ADR(MqttVariables.PLC_Device),							(* The device show in Home Assistant *)
-);
-
-(* INIT COVERS STUFF *)
-FB_DO_COVER_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubCoverPrefix),	(* pointer to string prefix for the mqtt publish topic *)
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubCoverPrefix),					(* pointer to string prefix for the mqtt subscribe topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						(* pointer to MqttPublishQueue to send a new Mqtt event *)
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT)  	(* pointer to CallbackCollector to receive Mqtt subscription events *)
-);
-
-FB_DO_COVER_001.initmqttdiscovery(								(*see dimmer for full example *)
-	name := 'cover number 001',									(* the name show in home assistant frond-end*)
-	device := ADR(MqttVariables.PLC_Device),										(* the device show in home assistant *)
-);
-
+(* COVER TIMINGS *)
 FB_DO_COVER_001.ConfigureFunctionBlock(
 	T_LOCKOUT:=T#1S,											(* delay between change of direction *)
 	T_UD:=T#20S													(* run time to move the cover completely up/down *)
 );
 
 
-(* INIT VIRTUAL STUFF *)
-FB_VIRTUAL_STRING_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubVirtualPrefix),				
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubVirtualPrefix),									
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
-	MqttQos:=MQTT.QoS.ExactlyOnce, 
-	MqttRetain:=FALSE									
-);
+(* VIRTUAL BLOCK DEFAULTS *)
+(* These must stay ahead of the blocks' first cyclic call: a value that appears in
+   a published payload has to be set before the block wires itself and publishes.
+   The SFC init step guarantees that today - it runs a cycle before the working
+   step's actions. Moving any of these into a cyclic action would break it, with
+   no error anywhere. *)
 FB_VIRTUAL_STRING_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:='HelloWorld',SetDefaultValueStartup:=TRUE,PublishAtStartup:=TRUE,UsePersistentAtStartup:=FALSE,ConfirmReceival:=TRUE);
-
-
-FB_VIRTUAL_INT_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubVirtualPrefix),				
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubVirtualPrefix),									
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
-	MqttQos:=MQTT.QoS.ExactlyOnce, 
-	MqttRetain:=FALSE												
-);
 FB_VIRTUAL_INT_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=0,SetDefaultValueStartup:=TRUE,PublishAtStartup:=TRUE,UsePersistentAtStartup:=FALSE,ConfirmReceival:=TRUE);
 (* FB_VIRTUAL_INT_001.ConfigureFunctionBlockAsVirtualOutput(PublishAtStartup:=TRUE); *)
-
-
-FB_VIRTUAL_BOOL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubVirtualPrefix),				
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubVirtualPrefix),									
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
-	MqttQos:=MQTT.QoS.ExactlyOnce, 
-	MqttRetain:=FALSE											
-);
 (* FB_VIRTUAL_BOOL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=FALSE,SetDefaultValueStartup:=TRUE,PublishAtStartup:=TRUE,UsePersistentAtStartup:=FALSE); *)
 FB_VIRTUAL_BOOL_001.ConfigureFunctionBlockAsVirtualOutput(PublishAtStartup:=TRUE);
-
-FB_VIRTUAL_REAL_001.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubVirtualPrefix),				
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubVirtualPrefix),									
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_VIRTUAL_MQTT),
-	MqttQos:=MQTT.QoS.ExactlyOnce, 
-	MqttRetain:=FALSE												
-);
 FB_VIRTUAL_REAL_001.ConfigureFunctionBlockAsVirtualInput(DefaultValue:=0.1,SetDefaultValueStartup:=TRUE,PublishAtStartup:=TRUE,UsePersistentAtStartup:=FALSE,ConfirmReceival:=TRUE);
 (* FB_VIRTUAL_REAL_001.ConfigureFunctionBlockAsVirtualOutput(PublishAtStartup:=TRUE); *)
 
 
 (* DALI *)
 (*
-FB_DALI_1_ADR0.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPrefix),				
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubDimmerPrefix),									
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT)						
+FB_DALI_1_ADR0.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPrefix),
+	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubDimmerPrefix),
+	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
+	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT)
 );
 
 FB_DALI_1_ADR0.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'Keuken');
 *)
 
-MqttVariables.PLC_Device.SendLogMessage('Init finished', 'MAIN_INIT');</xhtml>
+MqttVariables.PLC_Device.SendLogMessage('Init finished', 'MAIN_INIT');
+</xhtml>
                       </ST>
                     </body>
                     <addData>
@@ -19501,6 +19996,7 @@ END_IF</xhtml>
             <Object Name="PublishReceived" ObjectId="b6447ece-f483-4ca8-8bca-bb718d21c763" />
           </Object>
         </Folder>
+        <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
             <Object Name="InitMqtt" ObjectId="69154081-2c02-43db-90a6-f8cbcade69d6" />
