@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T09:35:27.6566015" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T09:34:26.6246056">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T09:49:15.4714258" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T09:47:59.3670871">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -4764,6 +4764,12 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
               <type>
                 <INT />
               </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Minimum brightness change before republishing. 0 would publish every scan.</xhtml>
+              </documentation>
             </variable>
             <variable name="T_Debounce">
               <type>
@@ -5480,6 +5486,12 @@ END_IF</xhtml>
               <type>
                 <INT />
               </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Minimum brightness change before republishing. 0 would publish every scan.</xhtml>
+              </documentation>
             </variable>
             <variable name="T_Debounce">
               <type>
@@ -6062,6 +6074,7 @@ IF NOT THIS^.InitDmxDone THEN
 	THIS^.DmxChannel := DmxChannel;
 	THIS^.pDmxValues := pDmxValues;
 	THIS^.DmxWidth := DmxWidth;
+	THIS^.DmxUniverse := DmxUniverse;
 	THIS^.InitDmxDone := TRUE;
 	
 	THIS^.InitDmxDone := TRUE;
@@ -8501,8 +8514,8 @@ SUPER^.InitBaseMqtt();</xhtml>
 	pMqttPublishQueue^.AddMessage(
 		Payload:= CONCAT(CONCAT(instance,' | '),str),
 		Topic := THIS^.MQTTPublishTopic,
-		Qos := 1,
-		MqttRetain := TRUE
+		Qos := THIS^.MqttQos,
+		MqttRetain := THIS^.MqttRetain
 	);
 END_IF		</xhtml>
                 </ST>
@@ -15343,7 +15356,9 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.BRIGHTNESS := WORD_TO_REAL(Data) / 100;
-PubMqttMessage(Suffix := '/BNESS', Data := REAL_TO_STRING(BRIGHTNESS));</xhtml>
+(* /ILLUM, matching the entity id and the StateTopic in InitMqttDiscovery.
+   This published to /BNESS, so the illuminance entity never received a value. *)
+PubMqttMessage(Suffix := '/ILLUM', Data := REAL_TO_STRING(BRIGHTNESS));</xhtml>
                 </ST>
               </body>
               <addData />
@@ -15758,7 +15773,7 @@ THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
-IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
+IF NOT(InitMqttDone) OR VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 //check if the packet is for this FB
@@ -16134,7 +16149,7 @@ THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
-IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
+IF NOT(InitMqttDone) OR VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 //check if the packet is for this FB
@@ -16529,7 +16544,7 @@ THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
-IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
+IF NOT(InitMqttDone) OR VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 //check if the packet is for this FB
@@ -16945,7 +16960,7 @@ THIS^.VirtualMode:=VIRTUAL_MODES.Input;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized and FB in input mode, otherwise do nothing
-IF NOT(InitMqttDone) AND VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
+IF NOT(InitMqttDone) OR VirtualMode &lt;&gt; VIRTUAL_MODES.Input THEN
 	//mark the interface call from the collector as done
 	PublishReceived := TRUE;
 //check if the packet is for this FB
