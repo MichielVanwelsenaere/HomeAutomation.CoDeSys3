@@ -316,10 +316,23 @@ running application and re-initialises non-persistent variables. Re-run with
         if ($Ip) { $cfg.ip = $Ip; Write-Host "target    : $Ip (this run only)" }
         # Credentials from the environment only. They are passed through the task
         # file, which lives in gitignored .ai/ and is deleted after the run.
-        if ($env:PLC_USER) {
-            $cfg.plc_user = $env:PLC_USER
-            $cfg.plc_password = $env:PLC_PASS
-            Write-Host "credentials: using `$env:PLC_USER ($($env:PLC_USER))"
+        # Process environment first, then the User-scope registry value. The
+        # fallback matters for an agent: a tool call's shell inherits the host
+        # process's environment block, which was captured at startup, so a
+        # [Environment]::SetEnvironmentVariable(...,'User') made mid-session is
+        # invisible to $env: until the host restarts - but it IS readable here.
+        $plcUser = $env:PLC_USER
+        $plcPass = $env:PLC_PASS
+        $plcFrom = '$env:PLC_USER'
+        if (-not $plcUser) {
+            $plcUser = [Environment]::GetEnvironmentVariable('PLC_USER', 'User')
+            $plcPass = [Environment]::GetEnvironmentVariable('PLC_PASS', 'User')
+            $plcFrom = 'User-scope environment'
+        }
+        if ($plcUser) {
+            $cfg.plc_user = $plcUser
+            $cfg.plc_password = $plcPass
+            Write-Host "credentials: using $plcFrom ($plcUser)"
         }
         else {
             Write-Host 'credentials: none set; relying on CODESYS''s cached device login'
