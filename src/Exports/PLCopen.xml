@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T13:27:02.4823861" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T13:15:13.3959096">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T14:23:06.0775309" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T14:19:22.4074236">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -1185,7 +1185,7 @@
             </variable>
             <variable name="Topic">
               <type>
-                <string length="128" />
+                <string length="MqttVariables.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="Qos">
@@ -5415,14 +5415,6 @@ END_IF</xhtml>
                 <derived name="Util.LIN_TRAFO" />
               </type>
             </variable>
-            <variable name="enabled">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="TRUE" />
-              </initialValue>
-            </variable>
             <variable name="Startup">
               <type>
                 <BOOL />
@@ -5593,74 +5585,10 @@ END_IF</xhtml>
                 <BOOL />
               </type>
             </variable>
-            <variable name="UpdateValueStep">
-              <type>
-                <BYTE />
-              </type>
-              <initialValue>
-                <simpleValue value="4" />
-              </initialValue>
-            </variable>
             <variable name="OUT_Internal_tmp">
               <type>
                 <BYTE />
               </type>
-            </variable>
-            <variable name="curve">
-              <type>
-                <DINT />
-              </type>
-              <initialValue>
-                <simpleValue value="DIMMER_CURVE.linear" />
-              </initialValue>
-            </variable>
-            <variable name="wait">
-              <type>
-                <derived name="TON" />
-              </type>
-            </variable>
-            <variable name="Step">
-              <type>
-                <INT />
-              </type>
-              <initialValue>
-                <simpleValue value="0" />
-              </initialValue>
-            </variable>
-            <variable name="dimmedValue">
-              <type>
-                <INT />
-              </type>
-              <initialValue>
-                <simpleValue value="1" />
-              </initialValue>
-            </variable>
-            <variable name="waitTimeAtTop">
-              <type>
-                <TIME />
-              </type>
-              <initialValue>
-                <simpleValue value="TIME#200ms" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> one time before and after blink</xhtml>
-              </documentation>
-            </variable>
-            <variable name="blinkValue">
-              <type>
-                <BYTE />
-              </type>
-              <initialValue>
-                <simpleValue value="100" />
-              </initialValue>
-            </variable>
-            <variable name="blinkEnabled">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
             </variable>
           </localVars>
           <localVars persistent="true">
@@ -7256,6 +7184,11 @@ code. You can evaluate the return value.</xhtml>
               <type>
                 <BOOL />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Alias of PUMP, kept deliberately: PLC_PRG_HVAC ORs both pumps' HEAT_REQUEST
+	   into the gas burner's demand input, so this is the name that expresses
+	   "this pump is asking for heat" at the call site. </xhtml>
+              </documentation>
             </variable>
             <variable name="MIN_ONTIME_ACTIVE">
               <type>
@@ -7312,6 +7245,13 @@ code. You can evaluate the return value.</xhtml>
               <type>
                 <UDINT />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Maintained by the OSCAT actuator and currently consumed by nobody. Left in
+	   place rather than deleted: these are pump lifetime statistics, and the useful
+	   fix is to publish them as diagnostic sensors, not to drop them. Note they are
+	   not persistent, so they count from the last download rather than for the
+	   life of the pump. </xhtml>
+              </documentation>
             </variable>
             <variable name="CYCLES">
               <type>
@@ -7651,6 +7591,19 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
                 <REAL />
               </type>
             </variable>
+            <variable name="SensorFault">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Latches this scan's verdict on the temperature reading.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="PreviousFault">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
           </localVars>
           <localVars persistent="true">
             <variable name="DESIRED_TEMP">
@@ -7690,6 +7643,20 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
               <initialValue>
                 <simpleValue value="TRUE" />
               </initialValue>
+            </variable>
+            <variable name="SENSOR_VALID">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Wire this from the temperature source's own health outputs, e.g.
+	     SENSOR_VALID := sensor.DataAvailable AND NOT sensor.Error
+	   Defaults TRUE so existing call sites behave as before, but leaving it out
+	   means the thermostat is trusting a reading it cannot vouch for. </xhtml>
+              </documentation>
             </variable>
           </inputVars>
           <addData>
@@ -7748,7 +7715,17 @@ IF FriendlyName &lt;&gt; '' THEN
 
 END_IF
 
-IF NOT ENABLED OR HvacMode = HvacModes.off THEN
+(* Refuse to act on a reading we cannot trust. Note the plausibility window
+   alone would NOT catch this project's actual failure: 0.0 is a perfectly
+   plausible temperature, so a dead sensor is only detectable via SENSOR_VALID.
+   The window catches garbage from a mis-scaled or corrupted transfer. *)
+SensorFault := NOT SENSOR_VALID OR MEASURED_TEMP &lt;= -50 OR MEASURED_TEMP &gt;= 80;
+
+IF SensorFault THEN
+	(* Fail safe: no heat demand on a suspect sensor. For a heating system this is
+	   the branch that matters - the alternative is calling for heat forever. *)
+	OUT := FALSE;
+ELSIF NOT ENABLED OR HvacMode = HvacModes.off THEN
 	OUT := FALSE;
 ELSIF MEASURED_TEMP &gt; MaxAllowedTemp THEN
 	OUT := FALSE;
@@ -7815,6 +7792,16 @@ IF ((PreviousHum &lt;&gt; MEASURED_HUM) OR Startup) AND InitMqttDone THEN
 	);	
 END_IF	
 
+
+IF ((PreviousFault &lt;&gt; SensorFault) OR Startup) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := BOOL_TO_STRING(SensorFault),
+		Topic := CONCAT(MQTTPublishTopic, '/FAULT'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+END_IF
+PreviousFault := SensorFault;
 
 Startup:=FALSE;
 PreviousTemp := MEASURED_TEMP;
@@ -8153,12 +8140,12 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="50" />
+                <string length="MqttVariables.MQTT_SUFFIX_LEN" />
               </type>
             </variable>
             <variable name="MQTTPublishTopic">
               <type>
-                <string length="100" />
+                <string length="MqttVariables.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="MqttSubscribeTopicPrefix">
@@ -8175,12 +8162,12 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
             </variable>
             <variable name="MqttSubscribeTopicSuffix">
               <type>
-                <string length="50" />
+                <string length="MqttVariables.MQTT_SUFFIX_LEN" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
               <type>
-                <string length="100" />
+                <string length="MqttVariables.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="pMqttPublishQueue">
@@ -8233,6 +8220,16 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
               <initialValue>
                 <simpleValue value="FALSE" />
               </initialValue>
+            </variable>
+            <variable name="TopicTruncated">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE when a composed topic did not fit and was silently cut short. Read it
+ to prove a deployment's naming scheme actually fits, which is otherwise
+ invisible until Home Assistant shows an entity as unavailable.</xhtml>
+              </documentation>
             </variable>
           </localVars>
           <inputVars>
@@ -8299,6 +8296,19 @@ END_IF
 IF	MqttSubscribeTopicPrefix &lt;&gt; 0 THEN
 	THIS^.MQTTSubscribeTopicSuffix := InstanceNamePt^;
 	THIS^.MQTTSubscribeTopic := CONCAT(MqttSubscribeTopicPrefix^ ,THIS^.MQTTSubscribeTopicSuffix);
+END_IF
+
+(* Make truncation detectable. IEC cuts an over-long CONCAT short without any
+   error, so without this the only symptom is an entity that never appears. *)
+IF MqttPublishTopicPrefix &lt;&gt; 0 THEN
+	IF LEN(MqttPublishTopicPrefix^) + LEN(THIS^.MqttPublishTopicSuffix) &gt; MqttVariables.MQTT_TOPIC_LEN THEN
+		THIS^.TopicTruncated := TRUE;
+	END_IF
+END_IF
+IF MqttSubscribeTopicPrefix &lt;&gt; 0 THEN
+	IF LEN(MqttSubscribeTopicPrefix^) + LEN(THIS^.MQTTSubscribeTopicSuffix) &gt; MqttVariables.MQTT_TOPIC_LEN THEN
+		THIS^.TopicTruncated := TRUE;
+	END_IF
 END_IF
 
 InitMqttDone := TRUE;</xhtml>
@@ -8643,7 +8653,7 @@ END_IF;</xhtml>
                   </variable>
                   <variable name="Topic">
                     <type>
-                      <string length="128" />
+                      <string length="MqttVariables.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="Qos">
@@ -9029,24 +9039,6 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">configuration_url</xhtml>
               </documentation>
             </variable>
-            <variable name="cns">
-              <type>
-                <array>
-                  <dimension lower="1" upper="2" />
-                  <baseType>
-                    <array>
-                      <dimension lower="1" upper="2" />
-                      <baseType>
-                        <string />
-                      </baseType>
-                    </array>
-                  </baseType>
-                </array>
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml">connections </xhtml>
-              </documentation>
-            </variable>
             <variable name="ids">
               <type>
                 <string />
@@ -9091,6 +9083,14 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
               <type>
                 <string />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Held for SendDeviceUpdate's change detection, NOT published. Home Assistant
+	   carries these in the device's "connections" field, which is a list of pairs
+	   ([["mac","aa:bb:.."]]); MQTT_DISCOVERY_DEVICE is one JSONVAR per field and
+	   cannot express a nested array, the same limitation that stops the fan
+	   platform advertising preset_modes. Publishing them needs that struct to gain
+	   real list support first. </xhtml>
+              </documentation>
             </variable>
             <variable name="mac">
               <type>
@@ -9121,19 +9121,6 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name </xhtml>
               </documentation>
             </variable>
-            <variable name="Startup">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="TRUE" />
-              </initialValue>
-            </variable>
-            <variable name="InitMqttDone">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
             <variable name="pMqttPublishQueue">
               <type>
                 <pointer>
@@ -9141,11 +9128,6 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                     <derived name="FB_MqttPublishQueue" />
                   </baseType>
                 </pointer>
-              </type>
-            </variable>
-            <variable name="logger">
-              <type>
-                <derived name="FB_MQTT_LOG" />
               </type>
             </variable>
             <variable name="availabilityTopic1">
@@ -9354,12 +9336,14 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgSensorDiagnostic.name.CharString :=  name; // friendly name
-MqttDiscMsgSensorDiagnostic.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgSensorDiagnostic.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgSensorDiagnostic),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 //MqttDiscoverySensorMessage.ic.CharString := Icon;
@@ -9367,62 +9351,20 @@ MqttDiscMsgSensorDiagnostic.stat_t.CharString := StateTopic;
 MqttDiscMsgSensorDiagnostic.exp_aft.Integer := ExpiryAfter;
 MqttDiscMsgSensorDiagnostic.ent_cat.CharString := 'diagnostic';
 
-// Availabilty related
-MqttDiscMsgSensorDiagnostic.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgSensorDiagnostic.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgSensorDiagnostic.avty_mode.CharString := 'all';
-MqttDiscMsgSensorDiagnostic.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgSensorDiagnostic.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgSensorDiagnostic.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgSensorDiagnostic.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgSensorDiagnostic.dev.name.CharString := THIS^.name;
-MqttDiscMsgSensorDiagnostic.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgSensorDiagnostic.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgSensorDiagnostic.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgSensorDiagnostic.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgSensorDiagnostic.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgSensorDiagnostic.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgSensorDiagnostic),
-	NumberOfVars:= SIZEOF(MqttDiscMsgSensorDiagnostic) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
+IF THIS^.PublishEntityConfig(
+		pStruct := ADR(MqttDiscMsgSensorDiagnostic),
+		StructSize := SIZEOF(MqttDiscMsgSensorDiagnostic),
+		EntityId := EntityId,
+		Id := Id) AND NOT (StateValue = '') THEN
+	(* This entity seeds its own initial value as well as its config. *)
 	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
+		Payload:= StateValue,
+		Topic := StateTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	IF NOT (StateValue = '') THEN		
-		pMqttPublishQueue^.AddMessage(
-			Payload:= StateValue,
-			Topic := StateTopic,
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := TRUE,
-		);
-	END_IF
-	
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 END_IF
 </xhtml>
                 </ST>
@@ -9457,7 +9399,7 @@ END_IF
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">pMqttPublishQueue^.AddMessage(
 	Payload:= CONCAT(CONCAT(instance,' | '),str),
 	Topic := CONCAT(MqttDiagnosticTopic, '/Log'),
-	Qos := 1,
+	Qos := MQTT.QoS.AtLeastOnce,
 	MqttRetain := TRUE
 );</xhtml>
                 </ST>
@@ -9559,12 +9501,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgSwitch.name.CharString :=  name; // friendly name
-MqttDiscMsgSwitch.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgSwitch.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgSwitch),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgSwitch.cmd_t.CharString := CommandTopic;
@@ -9576,54 +9520,13 @@ MqttDiscMsgSwitch.stat_off.CharString := StateOffPayload;
 MqttDiscMsgSwitch.opt.Boolean := FALSE;
 MqttDiscMsgSwitch.dev_cla.CharString := DeviceClass;
 
-// Availabilty related
-MqttDiscMsgSwitch.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgSwitch.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgSwitch.avty_mode.CharString := 'all';
-MqttDiscMsgSwitch.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgSwitch.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgSwitch.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgSwitch.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgSwitch.dev.name.CharString := THIS^.name;
-MqttDiscMsgSwitch.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgSwitch.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgSwitch.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgSwitch.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgSwitch.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgSwitch.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgSwitch),
-	NumberOfVars:= SIZEOF(MqttDiscMsgSwitch) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgSwitch),
+	StructSize := SIZEOF(MqttDiscMsgSwitch),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -9759,12 +9662,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgLightDim.name.CharString :=  name; // friendly name
-MqttDiscMsgLightDim.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgLightDim.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgLightDim),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgLightDim.cmd_t.CharString := CommandTopic;
@@ -9782,54 +9687,13 @@ MqttDiscMsgLightDim.dmxChannel.Integer := DmxChannel;
 MqttDiscMsgLightDim.dmxWidth.Integer := DmxWidth;
 MqttDiscMsgLightDim.dmxUniverse.Integer := DmxUniverse;
 
-// Availabilty related
-MqttDiscMsgLightDim.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgLightDim.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgLightDim.avty_mode.CharString := 'all';
-MqttDiscMsgLightDim.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgLightDim.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgLightDim.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgLightDim.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgLightDim.dev.name.CharString := THIS^.name;
-MqttDiscMsgLightDim.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgLightDim.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgLightDim.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgLightDim.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgLightDim.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgLightDim.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgLightDim),
-	NumberOfVars:= SIZEOF(MqttDiscMsgLightDim) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgLightDim),
+	StructSize := SIZEOF(MqttDiscMsgLightDim),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -9927,12 +9791,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgSensor.name.CharString :=  name; // friendly name
-MqttDiscMsgSensor.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgSensor.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgSensor),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 //MqttDiscoverySensorMessage.ic.CharString := Icon;
@@ -9945,54 +9811,13 @@ ELSE
 	MqttDiscMsgSensor.unit_of_meas.Null := 'null';
 END_IF
 
-// Availabilty related
-MqttDiscMsgSensor.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgSensor.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgSensor.avty_mode.CharString := 'all';
-MqttDiscMsgSensor.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgSensor.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgSensor.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgSensor.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgSensor.dev.name.CharString := THIS^.name;
-MqttDiscMsgSensor.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgSensor.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgSensor.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgSensor.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgSensor.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgSensor.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgSensor),
-	NumberOfVars:= SIZEOF(MqttDiscMsgSensor) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgSensor),
+	StructSize := SIZEOF(MqttDiscMsgSensor),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -10088,12 +9913,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgSiren.name.CharString :=  name; // friendly name
-MqttDiscMsgSiren.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgSiren.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgSiren),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgSiren.cmd_t.CharString := CommandTopic;
@@ -10104,55 +9931,13 @@ MqttDiscMsgSiren.stat_on.CharString := StateOnPayload;
 MqttDiscMsgSiren.stat_off.CharString := StateOffPayload;
 MqttDiscMsgSiren.opt.Boolean := FALSE;
 
-// Availabilty related
-MqttDiscMsgSiren.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgSiren.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgSiren.avty_mode.CharString := 'all';
-MqttDiscMsgSiren.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgSiren.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgSiren.qos.Integer := 2;
 
 
-// Device related
-MqttDiscMsgSiren.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgSiren.dev.name.CharString := THIS^.name;
-MqttDiscMsgSiren.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgSiren.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgSiren.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgSiren.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgSiren.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgSiren.meta.CharString := meta;
-END_IF
-
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgSiren),
-	NumberOfVars:= SIZEOF(MqttDiscMsgSiren) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgSiren),
+	StructSize := SIZEOF(MqttDiscMsgSiren),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -10248,12 +10033,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgLock.name.CharString :=  name; // friendly name
-MqttDiscMsgLock.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgLock.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgLock),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgLock.cmd_t.CharString := CommandTopic;
@@ -10264,54 +10051,13 @@ MqttDiscMsgLock.stat_locked.CharString := StateLocked;
 MqttDiscMsgLock.stat_unlocked.CharString := StateUnlocked;
 MqttDiscMsgLock.opt.Boolean := FALSE;
 
-// Availabilty related
-MqttDiscMsgLock.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgLock.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgLock.avty_mode.CharString := 'all';
-MqttDiscMsgLock.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgLock.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgLock.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgLock.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgLock.dev.name.CharString := THIS^.name;
-MqttDiscMsgLock.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgLock.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgLock.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgLock.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgLock.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgLock.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgLock),
-	NumberOfVars:= SIZEOF(MqttDiscMsgLock) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgLock),
+	StructSize := SIZEOF(MqttDiscMsgLock),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -10397,12 +10143,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgLight.name.CharString :=  name; // friendly name
-MqttDiscMsgLight.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgLight.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgLight),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgLight.cmd_t.CharString := CommandTopic;
@@ -10411,55 +10159,13 @@ MqttDiscMsgLight.pl_off.CharString := PayloadOff;
 MqttDiscMsgLight.stat_t.CharString := StateTopic;
 MqttDiscMsgLight.opt.Boolean := FALSE;
 
-// Availabilty related
-MqttDiscMsgLight.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgLight.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgLight.avty_mode.CharString := 'all';
-MqttDiscMsgLight.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgLight.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgLight.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgLight.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgLight.dev.name.CharString := THIS^.name;
-MqttDiscMsgLight.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgLight.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgLight.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgLight.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgLight.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgLight.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgLight),
-	NumberOfVars:= SIZEOF(MqttDiscMsgLight) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-	
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);	
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgLight),
+	StructSize := SIZEOF(MqttDiscMsgLight),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -10748,12 +10454,14 @@ CreateDiagnosticSensorEntity(
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgCover.name.CharString :=  name; // friendly name
-MqttDiscMsgCover.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgCover.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgCover),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgCover.cmd_t.CharString := CommandTopic;
@@ -10769,54 +10477,13 @@ MqttDiscMsgCover.stat_stopped.CharString := StateStopped;
 MqttDiscMsgCover.opt.Boolean := FALSE;
 MqttDiscMsgCover.dev_cla.CharString := Deviceclass;
 
-// Availabilty related
-MqttDiscMsgCover.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgCover.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgCover.avty_mode.CharString := 'all';
-MqttDiscMsgCover.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgCover.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgCover.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgCover.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgCover.dev.name.CharString := THIS^.name;
-MqttDiscMsgCover.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgCover.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgCover.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgCover.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgCover.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgCover.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgCover),
-	NumberOfVars:= SIZEOF(MqttDiscMsgCover) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgCover),
+	StructSize := SIZEOF(MqttDiscMsgCover),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -11038,13 +10705,14 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-
-// 	Entity related: Basis
-MqttDiscMsgBinSens.name.CharString :=  name; // friendly name
-MqttDiscMsgBinSens.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgBinSens.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgBinSens),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgBinSens.stat_t.CharString := StateTopic;
@@ -11052,54 +10720,13 @@ MqttDiscMsgBinSens.pl_on.CharString := PayloadOn;
 MqttDiscMsgBinSens.pl_off.CharString := PayloadOff;
 MqttDiscMsgBinSens.dev_cla.CharString := DeviceClass;
 
-// Availabilty related
-MqttDiscMsgBinSens.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgBinSens.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgBinSens.avty_mode.CharString := 'all';
-MqttDiscMsgBinSens.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgBinSens.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgBinSens.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgBinSens.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgBinSens.dev.name.CharString := THIS^.name;
-MqttDiscMsgBinSens.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgBinSens.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgBinSens.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgBinSens.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgBinSens.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgBinSens.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgBinSens),
-	NumberOfVars:= SIZEOF(MqttDiscMsgBinSens) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgBinSens),
+	StructSize := SIZEOF(MqttDiscMsgBinSens),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -11200,13 +10827,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-
-// 	Entity related: Basis
-MqttDiscMsgBinSensWCat.name.CharString :=  name; // friendly name
-MqttDiscMsgBinSensWCat.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgBinSensWCat.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgBinSensWCat),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgBinSensWCat.stat_t.CharString := StateTopic;
@@ -11215,54 +10843,13 @@ MqttDiscMsgBinSensWCat.pl_off.CharString := PayloadOff;
 MqttDiscMsgBinSensWCat.dev_cla.CharString := DeviceClass;
 MqttDiscMsgBinSensWCat.ent_cat.CharString := EntityCategory;
 
-// Availabilty related
-MqttDiscMsgBinSensWCat.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgBinSensWCat.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgBinSensWCat.avty_mode.CharString := 'all';
-MqttDiscMsgBinSensWCat.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgBinSensWCat.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgBinSensWCat.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgBinSensWCat.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgBinSensWCat.dev.name.CharString := THIS^.name;
-MqttDiscMsgBinSensWCat.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgBinSensWCat.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgBinSensWCat.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgBinSensWCat.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgBinSensWCat.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgBinSensWCat.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgBinSensWCat),
-	NumberOfVars:= SIZEOF(MqttDiscMsgBinSensWCat) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgBinSensWCat),
+	StructSize := SIZEOF(MqttDiscMsgBinSensWCat),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -11348,12 +10935,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgEvent.name.CharString :=  name; // friendly name
-MqttDiscMsgEvent.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgEvent.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgEvent),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgEvent.stat_t.CharString := StateTopic;
@@ -11362,54 +10951,13 @@ MqttDiscMsgEvent.evt_typ[2].CharString := EventTypes[2];
 MqttDiscMsgEvent.evt_typ[3].CharString := EventTypes[3];
 MqttDiscMsgEvent.dev_cla.CharString := Deviceclass;
 
-// Availabilty related
-MqttDiscMsgEvent.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgEvent.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgEvent.avty_mode.CharString := 'all';
-MqttDiscMsgEvent.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgEvent.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgEvent.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgEvent.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgEvent.dev.name.CharString := THIS^.name;
-MqttDiscMsgEvent.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgEvent.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgEvent.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgEvent.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgEvent.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgEvent.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgEvent),
-	NumberOfVars:= SIZEOF(MqttDiscMsgEvent) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgEvent),
+	StructSize := SIZEOF(MqttDiscMsgEvent),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -11513,12 +11061,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgValve.name.CharString :=  name; // friendly name
-MqttDiscMsgValve.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgValve.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgValve),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgValve.cmd_t.CharString := CommandTopic;
@@ -11530,54 +11080,13 @@ MqttDiscMsgValve.stat_clsd.CharString := StateClosed;
 MqttDiscMsgValve.opt.Boolean := FALSE;
 MqttDiscMsgValve.dev_cla.CharString := Deviceclass;
 
-// Availabilty related
-MqttDiscMsgValve.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgValve.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgValve.avty_mode.CharString := 'all';
-MqttDiscMsgValve.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgValve.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgValve.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgValve.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgValve.dev.name.CharString := THIS^.name;
-MqttDiscMsgValve.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgValve.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgValve.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgValve.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgValve.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgValve.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgValve),
-	NumberOfVars:= SIZEOF(MqttDiscMsgValve) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgValve),
+	StructSize := SIZEOF(MqttDiscMsgValve),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -11686,12 +11195,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgClimate.name.CharString :=  name; // friendly name
-MqttDiscMsgClimate.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgClimate.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgClimate),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgClimate.init.Integer := InitialDesiredTemperature;
@@ -11707,54 +11218,13 @@ MqttDiscMsgClimate.temp_stat_t.CharString := TemperatureStateTopic;
 MqttDiscMsgClimate.temp_step.Number := TempStep;
 MqttDiscMsgClimate.opt.Boolean := FALSE;
 
-// Availabilty related
-MqttDiscMsgClimate.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgClimate.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgClimate.avty_mode.CharString := 'all';
-MqttDiscMsgClimate.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgClimate.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgClimate.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgClimate.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgClimate.dev.name.CharString := THIS^.name;
-MqttDiscMsgClimate.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgClimate.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgClimate.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgClimate.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgClimate.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgClimate.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgClimate),
-	NumberOfVars:= SIZEOF(MqttDiscMsgClimate) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgClimate),
+	StructSize := SIZEOF(MqttDiscMsgClimate),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -11843,12 +11313,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgValveState.name.CharString :=  name; // friendly name
-MqttDiscMsgValveState.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id); 
-MqttDiscMsgValveState.uniq_id.CharString :=  Id; 
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgValveState),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 MqttDiscMsgValveState.stat_t.CharString := StateTopic;
@@ -11857,54 +11329,13 @@ MqttDiscMsgValveState.stat_clsd.CharString := StateClosed;
 MqttDiscMsgValveState.opt.Boolean := FALSE;
 MqttDiscMsgValveState.dev_cla.CharString := Deviceclass;
 
-// Availabilty related
-MqttDiscMsgValveState.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgValveState.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgValveState.avty_mode.CharString := 'all';
-MqttDiscMsgValveState.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgValveState.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgValveState.qos.Integer := 2;
 
-// Device related
-MqttDiscMsgValveState.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgValveState.dev.name.CharString := THIS^.name;
-MqttDiscMsgValveState.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgValveState.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgValveState.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgValveState.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgValveState.dev.mf.CharString := THIS^.mf;
-	
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgValveState.meta.CharString := meta;
-END_IF
 
-ComposeJSON(
-	JSONString:= ADR(MqttJSON), 
-	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgValveState),
-	NumberOfVars:= SIZEOF(MqttDiscMsgValveState) / SIZEOF(JSONVAR),
-	MaxLevel := 3,
-	Rootless := TRUE,
-);
-ComposeJSON.Execute := TRUE;
-ComposeJSON();
-
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
-
-IF MqttJSON = '' THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
-ELSIF bStripJsonRootOk = FALSE THEN
-	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := InstanceName);
-ELSIF NOT (MqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= MqttJSON,
-		Topic := MqttTopic,
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := TRUE,
-	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgValveState),
+	StructSize := SIZEOF(MqttDiscMsgValveState),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -12044,12 +11475,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
-
-// 	Entity related: Basis
-MqttDiscMsgFan.name.CharString :=  name; // friendly name
-MqttDiscMsgFan.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id);
-MqttDiscMsgFan.uniq_id.CharString :=  Id;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgFan),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
 
 // Entity related: Specific
 // command_topic is the only key Home Assistant requires for a fan.
@@ -12076,33 +11509,192 @@ IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(OscillationCommandTopic), st
 	MqttDiscMsgFan.pl_osc_off.CharString := 'oscillate_off';
 END_IF
 
+
+
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgFan),
+	StructSize := SIZEOF(MqttDiscMsgFan),
+	EntityId := EntityId,
+	Id := Id);
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FillCommonFields" ObjectId="def60523-6479-4453-92db-f3019ef2d61a">
+              <interface>
+                <inputVars>
+                  <variable name="pBase">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT_DISCOVERY_BASE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> ADR() of the concrete discovery struct; its base part is what gets written.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Home Assistant platform, e.g. 'light' - used to build default_entity_id.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Fills the part of a discovery config that is identical for every entity type.
+ Every MQTT_DISCOVERY_* struct EXTENDS MQTT_DISCOVERY_BASE, so one pointer
+ reaches the shared fields of all of them.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF pBase = 0 THEN
+	RETURN;
+END_IF
+
+// 	Entity related: Basis
+pBase^.name.CharString :=  Name; // friendly name
+pBase^.default_entity_id.CharString :=  CONCAT(CONCAT(EntityId, '.'), Id);
+pBase^.uniq_id.CharString :=  Id;
+
 // Availabilty related
-MqttDiscMsgFan.avty[1].topic.CharString := THIS^.availabilityTopic1;
-MqttDiscMsgFan.avty[2].topic.CharString := THIS^.availabilityTopic2;
-MqttDiscMsgFan.avty_mode.CharString := 'all';
-MqttDiscMsgFan.pl_avail.CharString :=   THIS^.availabilityOnline;
-MqttDiscMsgFan.pl_not_avail.CharString :=  THIS^.availabilityOffline;
-MqttDiscMsgFan.qos.Integer := 2;
+pBase^.avty[1].topic.CharString := THIS^.availabilityTopic1;
+pBase^.avty[2].topic.CharString := THIS^.availabilityTopic2;
+pBase^.avty_mode.CharString := 'all';
+pBase^.pl_avail.CharString :=   THIS^.availabilityOnline;
+pBase^.pl_not_avail.CharString :=  THIS^.availabilityOffline;
+pBase^.qos.Integer := 2;
 
 // Device related
-MqttDiscMsgFan.dev.cu.CharString := THIS^.cu;
-MqttDiscMsgFan.dev.name.CharString := THIS^.name;
-MqttDiscMsgFan.dev.hw.CharString := THIS^.hw;
-MqttDiscMsgFan.dev.ids.CharString := THIS^.ids;
-MqttDiscMsgFan.dev.sw.CharString := THIS^.sw;
-MqttDiscMsgFan.dev.mdl.CharString := THIS^.mdl;
-MqttDiscMsgFan.dev.mf.CharString := THIS^.mf;
+pBase^.dev.cu.CharString := THIS^.cu;
+pBase^.dev.name.CharString := THIS^.name;
+pBase^.dev.hw.CharString := THIS^.hw;
+pBase^.dev.ids.CharString := THIS^.ids;
+pBase^.dev.sw.CharString := THIS^.sw;
+pBase^.dev.mdl.CharString := THIS^.mdl;
+pBase^.dev.mf.CharString := THIS^.mf;
 
 // Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(meta), str2:= ADR('')) THEN
-	MqttDiscMsgFan.meta.CharString := meta;
+IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(Meta), str2:= ADR('')) THEN
+	pBase^.meta.CharString := Meta;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishEntityConfig" ObjectId="d5e9838e-75b1-4870-af63-4249d4044e89">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="pStruct">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> ADR() of the concrete discovery struct.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="StructSize">
+                    <type>
+                      <UDINT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> SIZEOF() of that same struct - the caller must pass it, because this method
+ only sees a pointer and SIZEOF here would measure the pointer.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="MqttVariables.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="bStripJsonRootOk">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </localVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Protected="true" />
+                  </data>
+                </addData>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml"> Composes the discovery JSON for an already-filled struct and publishes it to
+ the entity's config topic. Returns TRUE when a payload was queued.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">PublishEntityConfig := FALSE;
+IF pStruct = 0 OR StructSize = 0 THEN
+	RETURN;
 END_IF
+
+MqttTopic := CONCAT(CONCAT(CONCAT(CONCAT(THIS^.MqttDiscoveryPrefix, EntityId),'/'), Id),'/config' );
 
 ComposeJSON(
 	JSONString:= ADR(MqttJSON),
 	JSONStringSize:= SIZEOF(MqttJSON),
-	JSONVars:= ADR(MqttDiscMsgFan),
-	NumberOfVars:= SIZEOF(MqttDiscMsgFan) / SIZEOF(JSONVAR),
+	JSONVars:= pStruct,
+	NumberOfVars:= StructSize / SIZEOF(JSONVAR),
 	MaxLevel := 3,
 	Rootless := TRUE,
 );
@@ -12123,8 +11715,8 @@ ELSIF NOT (MqttJSON = '') THEN
 		MqttRetain := TRUE,
 	);
 	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
-END_IF
-</xhtml>
+	PublishEntityConfig := TRUE;
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -12453,6 +12045,18 @@ FC_StripJsonRoot := TRUE;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> in case the bus is occupied for an unusual long time, release it</xhtml>
               </documentation>
             </variable>
+            <variable name="FailSafeTimeout">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#10s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long a device may hold the bus before it is assumed dead. Was hard-coded
+ in the body while StartupDelay and SilenceTime both came through Init.</xhtml>
+              </documentation>
+            </variable>
             <variable name="devices">
               <type>
                 <array>
@@ -12540,11 +12144,6 @@ FC_StripJsonRoot := TRUE;</xhtml>
                 </pointer>
               </type>
             </variable>
-            <variable name="exc">
-              <type>
-                <derived name="__SYSTEM.ExceptionCode" />
-              </type>
-            </variable>
           </localVars>
         </interface>
         <body>
@@ -12552,7 +12151,7 @@ FC_StripJsonRoot := TRUE;</xhtml>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">IF Startup THEN
 	tonDelay.PT := StartupDelay;
 	tonDelay.IN := TRUE;
-	failSafeTimer.PT := T#10S;
+	failSafeTimer.PT := FailSafeTimeout;
 	Startup := FALSE;
 END_IF
 
@@ -12606,6 +12205,18 @@ END_IF
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> Amount of time that should be waited on PLC startup to start using the RS485 bus, can prevent errors due to devices not booted up yet</xhtml>
                     </documentation>
                   </variable>
+                  <variable name="FailSafeTimeout">
+                    <type>
+                      <TIME />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="TIME#10s0ms" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long a device may hold the bus before it is assumed dead. Defaulted, so
+ existing Init call sites keep working unchanged.</xhtml>
+                    </documentation>
+                  </variable>
                   <variable name="SilenceTime">
                     <type>
                       <TIME />
@@ -12654,6 +12265,7 @@ END_IF
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.StartupDelay := StartupDelay;
+THIS^.FailSafeTimeout := FailSafeTimeout;
 THIS^.SilenceTime := SilenceTime;
 THIS^.BusTrigger := BusTrigger;
 THIS^.BusData := BusData;
@@ -13329,7 +12941,7 @@ END_IF</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="51" />
+                <string length="MqttVariables.MQTT_SUFFIX_LEN" />
               </type>
             </variable>
             <variable name="pMqttPublishQueue">
@@ -17053,7 +16665,32 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
               </data>
             </addData>
           </task>
-          <globalVars name="MqttVariables">
+          <globalVars name="MqttVariables" constant="true">
+            <variable name="MQTT_TOPIC_LEN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="160" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Widths for topics and topic fragments. These used to be spelled out at five
+   different values for the same conceptual string, and IEC string assignment and
+   CONCAT both truncate without any error - so every mismatch was a silent
+   failure point. The tightest real chain: a 28-character prefix like
+   'Devices/PLC/Lab/Out/Dimmers/' plus a 40-character instance name plus '/OUT'
+   already reached the old STRING(100) limit, after which Home Assistant sees a
+   truncated state topic and the entity goes quietly unavailable. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="MQTT_SUFFIX_LEN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="64" />
+              </initialValue>
+            </variable>
             <variable name="clientID">
               <type>
                 <string />
@@ -17473,6 +17110,450 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
               </data>
               <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
                 <ObjectId>4f9cb91a-49cd-4924-912b-f57a11772a7e</ObjectId>
+              </data>
+              <data name="http://www.3s-software.com/plcopenxml/mixedattrsvarlist" handleUnknown="implementation">
+                <MixedAttrsVarList>
+                  <globalVars name="MqttVariables" constant="true">
+                    <variable name="MQTT_TOPIC_LEN">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="160" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Widths for topics and topic fragments. These used to be spelled out at five
+   different values for the same conceptual string, and IEC string assignment and
+   CONCAT both truncate without any error - so every mismatch was a silent
+   failure point. The tightest real chain: a 28-character prefix like
+   'Devices/PLC/Lab/Out/Dimmers/' plus a 40-character instance name plus '/OUT'
+   already reached the old STRING(100) limit, after which Home Assistant sees a
+   truncated state topic and the entity goes quietly unavailable. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="MQTT_SUFFIX_LEN">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="64" />
+                      </initialValue>
+                    </variable>
+                  </globalVars>
+                  <globalVars name="MqttVariables">
+                    <variable name="clientID">
+                      <type>
+                        <string />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="'PLC-Lab'" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Broker setup </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="broker">
+                      <type>
+                        <string />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="'10.101.1.11:1883'" />
+                      </initialValue>
+                    </variable>
+                    <variable name="fbMqttPublishQueue">
+                      <type>
+                        <derived name="FB_MqttPublishQueue" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> use the below for username password authentication to broker 
+ broker					:STRING:='user:password@192.168.1.36:1883'; 
+ Shared Variables for MQTT publish communication </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="collector_FB_OUTPUT_SWITCH_MQTT">
+                      <type>
+                        <derived name="MQTT.CallbackCollector" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Shared Variables for MQTT subscribe communication </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="collector_FB_OUTPUT_COVER_MQTT">
+                      <type>
+                        <derived name="MQTT.CallbackCollector" />
+                      </type>
+                    </variable>
+                    <variable name="collector_FB_VIRTUAL_MQTT">
+                      <type>
+                        <derived name="MQTT.CallbackCollector" />
+                      </type>
+                    </variable>
+                    <variable name="collector_FB_DIMMER_MQTT">
+                      <type>
+                        <derived name="MQTT.CallbackCollector" />
+                      </type>
+                    </variable>
+                    <variable name="collector_FB_MQTT_LOG">
+                      <type>
+                        <derived name="MQTT.CallbackCollector" />
+                      </type>
+                    </variable>
+                    <variable name="collector_FB_RS485_MQTT">
+                      <type>
+                        <derived name="MQTT.CallbackCollector" />
+                      </type>
+                    </variable>
+                    <variable name="collector_FB_HVAC_MQTT">
+                      <type>
+                        <derived name="MQTT.CallbackCollector" />
+                      </type>
+                    </variable>
+                    <variable name="MQTT_QOS_EXACTLY_ONCE">
+                      <type>
+                        <derived name="MQTT.QoS" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="MQTT.QoS.ExactlyOnce" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> QOS Constants </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="MqttMain">
+                      <type>
+                        <string length="16" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="'Devices/'" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Topics </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="MqttType">
+                      <type>
+                        <string length="16" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="'PLC/'" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttDevice">
+                      <type>
+                        <string length="16" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="'Lab/'" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttBaseTopic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(CONCAT(MqttMain, MqttType), MqttDevice)" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> e.g. Devices/PLC/House</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="MqttDiagnosticTopic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'diagnostic')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttAvailabilityTopic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'availability')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttAvailabilityOnlinePayload">
+                      <type>
+                        <string length="20" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="'online'" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttAvailabilityOfflinePayload">
+                      <type>
+                        <string length="20" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="'offline'" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MQTTAvailabilityHartbeatTime">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#5s0ms" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttHADiscoveryPrefix">
+                      <type>
+                        <string length="16" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="'homeassistant/'" />
+                      </initialValue>
+                    </variable>
+                    <variable name="PLC_Device">
+                      <type>
+                        <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                      </type>
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                          <InputAssignments>
+                            <InputAssignment>
+                              <Name>friendlyName</Name>
+                              <Value>'PLC Lab'</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>id</Name>
+                              <Value>'plc-lab'</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>manufacturer</Name>
+                              <Value>'WAGO'</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>availabilityTopic</Name>
+                              <Value>MqttAvailabilityTopic</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>availabilityOnline</Name>
+                              <Value>MqttAvailabilityOnlinePayload</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>availabilityOffline</Name>
+                              <Value>MqttAvailabilityOfflinePayload</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>MqttDiscoveryPrefix</Name>
+                              <Value>MqttHADiscoveryPrefix</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>MqttDiagnosticTopic</Name>
+                              <Value>MqttDiagnosticTopic</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>pMqttPublishQueue</Name>
+                              <Value>ADR(fbMqttPublishQueue)</Value>
+                            </InputAssignment>
+                          </InputAssignments>
+                        </data>
+                      </addData>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> HOME ASSISTANT DISCOVERY VIA MQTT</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="OWD_MULTISENSOR_01">
+                      <type>
+                        <derived name="FB_1WIRE_MQTT_DISCOVERY_DEVICE" />
+                      </type>
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                          <InputAssignments>
+                            <InputAssignment>
+                              <Name>manufacturer</Name>
+                              <Value>'Esera'</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>availabilityTopic</Name>
+                              <Value>MqttAvailabilityTopic</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>availabilityOnline</Name>
+                              <Value>MqttAvailabilityOnlinePayload</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>availabilityOffline</Name>
+                              <Value>MqttAvailabilityOfflinePayload</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>MqttDiscoveryPrefix</Name>
+                              <Value>MqttHADiscoveryPrefix</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>MqttDiagnosticTopic</Name>
+                              <Value>MqttDiagnosticTopic</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>pMqttPublishQueue</Name>
+                              <Value>ADR(fbMqttPublishQueue)</Value>
+                            </InputAssignment>
+                          </InputAssignments>
+                        </data>
+                      </addData>
+                    </variable>
+                    <variable name="MqttPushbuttonPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/DigitalInputs/Pushbuttons/')" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> FB Topics </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="MqttPubSwitchPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/DigitalOutputs/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubSwitchPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'In/DigitalOutputs/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttPubCoverPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Covers/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubCoverPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'In/Covers/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttPubDimmerPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Dimmers/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubDimmerPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'In/Dimmers/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttPubVirtualPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Virtuals/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubVirtualPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'In/Virtuals/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttPubRS485Prefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/RS485/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubRS485Prefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'In/RS485/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttPubHVACPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/HVAC/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubHVACPrefix">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'In/HVAC/')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubSwitchTopic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttSubSwitchPrefix, '+')" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Wildcard subscriptions </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="MqttSubCoverTopic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttSubCoverPrefix, '+')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubVirtualTopic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttSubVirtualPrefix, '+')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubDimmerTopic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttSubDimmerPrefix, '#')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubRS485Topic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttSubRS485Prefix, '#')" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MqttSubHVACTopic">
+                      <type>
+                        <string length="100" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttSubHVACPrefix, '#')" />
+                      </initialValue>
+                    </variable>
+                  </globalVars>
+                </MixedAttrsVarList>
               </data>
             </addData>
           </globalVars>
@@ -18649,12 +18730,9 @@ END_IF
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">(* If MQTT is initialized, let the subscriber(s) do its work *)
 IF initMqtt THEN
 	
-	MQTT_IN_OUT.clientFB(
-		MQTT_IN_OUT:= MQTT_IN_OUT, 
-		ENABLE:= TRUE, 
-		URL:= MqttVariables.broker, 
-		TIMEOUT:= T#1S, 
-		TLS:= FALSE);
+	(* The clientFB call deliberately lives only in MQTT_PUBLISH. Both actions run
+	   every scan, so calling it here as well advanced one client instance's state
+	   machine twice per cycle in a freewheeling task. *)
 
 	subscriber_FB_OUTPUT_SWITCH_MQTT(
 		Subscribe:= TRUE, 
@@ -19179,7 +19257,7 @@ END_IF
 
 
 // FLoorheating
-FB_THERMOSTAT_1(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY);
+FB_THERMOSTAT_1(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
 FB_PUMP_1(
 	IN := FB_THERMOSTAT_1.OUT,
 	PUMP =&gt; DO_005
@@ -19187,8 +19265,8 @@ FB_PUMP_1(
 
 
 // Radiators
-FB_THERMOSTAT_2(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY);
-FB_THERMOSTAT_3(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY);
+FB_THERMOSTAT_2(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
+FB_THERMOSTAT_3(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
 
 FB_PUMP_2_COLLECTOR(
 	THERMOSTAT_1 := FB_THERMOSTAT_2.OUT, VALVE_1 =&gt; DO_006,
@@ -20749,6 +20827,8 @@ PreviousReachable := DMXnodeReachable;</xhtml>
             <Object Name="CreateClimateEntity" ObjectId="809a6884-5bfd-4e38-839f-22d87d8e3322" />
             <Object Name="CreateValveStateEntity" ObjectId="3f86d29c-d345-4d73-8ea2-4c73496671f4" />
             <Object Name="CreateFanEntity" ObjectId="42111fdd-8268-497d-baba-e53bf1098874" />
+            <Object Name="FillCommonFields" ObjectId="def60523-6479-4453-92db-f3019ef2d61a" />
+            <Object Name="PublishEntityConfig" ObjectId="d5e9838e-75b1-4870-af63-4249d4044e89" />
           </Object>
           <Object Name="FB_PLC_MQTT_DISCOVERY_DEVICE" ObjectId="293181e9-7da9-47da-a441-3d6d4f05045c">
             <Object Name="FB_init" ObjectId="0f05dfeb-28e6-4f3a-a8d1-4516d94b21ba" />
