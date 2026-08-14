@@ -248,15 +248,28 @@ a previous session, and 18.0 measured is below that. `HeatRequest TRUE` before y
 have commanded anything is that, not a bug. Read every thermostat's `/MODE` and
 `/DESIRED_TEMP` before concluding a valve opened on its own.
 
-**An `FB_init` value can refuse to update on the PLC.** `ValveCycleTime` and the pump
-times can still read as the *old* values with the source, the export and a clean
-build all agreeing on the new ones — and neither a forced full download nor a cold
-reset fixes it. Cause unknown; see [CLAUDE.md](../../CLAUDE.md) for what has already
-been ruled out, and power-cycle the PLC as the known-good workaround.
+**Do not shorten these timings in the source to speed a test up.** It does not work:
+an existing `FB_init` argument changed from a script updates the declaration text
+while the compiler keeps reading the old `InputAssignments`, so the PLC runs the old
+value with a clean build and a matching export
+([CLAUDE.md](../../CLAUDE.md) has the detail). It is also the wrong place — 5-second
+valve travel in source can reach an installation with real pipes.
 
-Practical consequence for this suite: **read `ValveCycleTime` off the PLC first and
-time your waits by what it actually says**, not by what the declaration says. A
-3-minute wait mistaken for 5 seconds looks exactly like a broken pump.
+**Write the members at runtime instead**, which is what
+`specs/hvac-fast-chain.json` does:
+
+```json
+{"write": {"PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5S",
+           "PLC_PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10S"}}
+```
+
+They are plain `VAR` members that only `FB_init` assigns, so the write sticks for the
+life of the session. Verified: the whole chain then runs in about 15 seconds — valve
+open at t+3s, pump and burner by t+17s — against ten minutes at production timings.
+
+Either way, **read `ValveCycleTime` off the PLC and time your waits by what it
+actually says.** A 3-minute delay mistaken for 5 seconds looks exactly like a dead
+pump.
 
 ### The test
 

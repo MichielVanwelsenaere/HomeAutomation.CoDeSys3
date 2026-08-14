@@ -107,40 +107,54 @@ For the record, so this is not relitigated:
   no hint in the chart that anything is missing. `PLC_PRG_MAIN.PROCESS_VIRTUAL` was
   retired this way and is gone; that program's chart is the worked example.
 
-## Unexplained: an `FB_init` value that will not update on the PLC
+## An instance's `FB_init` arguments live outside the declaration text
 
-**Always assert an `FB_init` value on the PLC, never from the source.** That is the
-rule; the cause is not yet known, and two plausible explanations have already been
-tested and disproved.
+**Changing an existing `FB_init` argument from a script does not work, and looks
+like it did.** This is the nastiest trap found in this project so far, because every
+check you would normally trust agrees with you and the PLC still runs the old value.
 
-The evidence, all from one change — the HVAC valve travel time, `T#3M` → `T#5S`:
+CODESYS stores an instance's `FB_init` arguments in a separate structure —
+`<addData>` → `plcopenxml/inputassignments` → `<InputAssignment><Value>` — and **the
+compiler reads that, not the declaration text.** `textual_declaration.replace()`
+updates the text only. So:
 
-- `apply` reported the edit applied and saved.
-- The export contains `T#5S` and **zero** occurrences of `T#3M`.
-- The build is clean, 0 errors, no new messages.
-- The running PLC reports `ValveCycleTime = TIME#3m`.
+| | says |
+|:--|:--|
+| declaration text (what you edited, what a human reads) | `FB_HVAC_COLLECTOR_MQTT(T#5S)` |
+| `InputAssignments` (what the compiler reads) | `TIME#3m0s0ms` |
+| the running PLC | `TIME#3m` |
 
-Disproved so far:
+`apply` reported four successful replacements; **none** of the four reached the
+compiler. The build was clean, `NEW vs baseline: 0`, and a plaintext export shows
+the new values — because it serialises the text.
 
-1. *"The download did an online change."* No — `OnlineChangeOption.Never` is
-   documented as forcing a full download, and the enum was read to confirm it.
-2. *"`FB_init` was not re-run, so the instance kept its old data."* No — a
-   `reset(ResetOption.Cold)` was added between login and start, the report confirms
-   `cold reset : True`, and the value is **still** `TIME#3m`.
+Adding arguments to an instance that had **none** does work: there is no stale
+metadata to win, so CODESYS parses the text. That is why the cover's
+`FB_OUTPUT_COVER_MQTT(T#1S, T#20S)` landed correctly and is in `InputAssignments`,
+while changing the collector's existing `T#3M` did not.
 
-`ValveCycleTime` is not in `PersistentVars`, so persistence does not explain it
-either. Note that the cover's `T_UD` *does* arrive through `FB_init` correctly, and
-that this value belongs to `PLC_PRG_HVAC` — the same POU as the edit-reports-success-
-but-does-not-take-effect problem below. Those two are plausibly one bug; that is a
-hypothesis, not a finding.
+There is no scripting API for `InputAssignments` — nothing in the ScriptEngine stubs
+touches it — so this cannot be fixed in the harness. `apply` and `verify` now print
+an **ADVISORY** whenever a `replace_in_decl` changes an argument list, because the
+only available defence is refusing to let it pass in silence.
 
-Worth trying next: `probe` the real `reset` / `login` signatures, since the shipped
-`.pyi` stubs are known to disagree with the .NET binding on argument order in this
-codebase, and a wrong positional would make `reset(Cold)` a no-op that raises
-nothing. A power cycle is the known-good workaround.
+Three ways to actually change one:
 
-The cold reset stays regardless — it is correct in principle and cheap — but it is
-**not** a fix for this, and the report line exists so nobody assumes it is.
+1. **In the IDE.** Same class of blind spot as an SFC chart.
+2. **Write the member at runtime**, which is right for anything test-only — see
+   `hvac-fast-chain.json` in the `test-plc-logic` skill. It also keeps the
+   production values in source, so short bench timings cannot be shipped by
+   accident.
+3. **Don't put tunable values in `FB_init` arguments.** Read them from a GVL
+   constant inside the block instead; a GVL declaration is ordinary text with no
+   input assignments behind it.
+
+Ruled out along the way, so nobody re-tests them: it is not an online change
+(`OnlineChangeOption.Never` is documented as forcing a full download), and it is not
+`FB_init` failing to re-run (`download` now does a `reset(ResetOption.Cold)` and
+reports `cold reset : True`; the value did not budge). The cold reset was kept
+anyway — it makes a download an unambiguous fresh start, which is worth having on
+its own.
 
 ## Open: an edit that reports success and does not take effect
 

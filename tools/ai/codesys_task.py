@@ -800,6 +800,33 @@ def edit_text(obj, spec, result):
                     "%s found no match for %r - the target text has changed"
                     % (key, find[:80])
                 )
+            # An FB_init argument list in a declaration is a trap. CODESYS keeps an
+            # instance's FB_init arguments in a separate "InputAssignments" structure,
+            # and the COMPILER READS THAT, not the declaration text. Editing the text
+            # updates the text only: the source looks right, the PLCopen export looks
+            # right, the build is clean, and the PLC keeps running the old value.
+            #
+            # Confirmed the hard way - the HVAC valve travel time read T#5S in the
+            # declaration and TIME#3m0s0ms in InputAssignments, and the PLC ran 3m.
+            # No scripting API reaches InputAssignments, so this cannot be fixed here;
+            # it can only be refused to pass in silence.
+            if key == "replace_in_decl":
+                args = re.compile(r":\s*[\w.]+\s*\(([^)]*)\)")
+                old_args = args.search(find)
+                new_args = args.search(with_text)
+                if old_args and new_args and old_args.group(1).strip() != new_args.group(1).strip():
+                    who = spec.get("pou") or "?"
+                    note = (
+                        u"%s: this changes an FB_init argument list (%s -> %s). The "
+                        u"compiler reads InputAssignments, NOT this text, so the PLC "
+                        u"will keep the OLD value however clean the build looks. "
+                        u"Change it in the IDE, or write the member at runtime."
+                        % (who, old_args.group(1).strip(), new_args.group(1).strip())
+                    )
+                    result.setdefault("advisories", []).append(note)
+                    # Loud in the log too: the report is skimmed, the log is read when
+                    # something is wrong, and this is the case where nothing LOOKS wrong.
+                    log("WARNING %s" % note)
             occurrences = current.count(find)
             expected = rule.get("count")
             if expected is not None and occurrences != int(expected):

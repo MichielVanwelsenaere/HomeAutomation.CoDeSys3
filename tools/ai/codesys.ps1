@@ -567,6 +567,15 @@ if ($testFailures.Count -gt 0) {
 Show-Messages -Messages $errors -Title "ERRORS ($($errors.Count)):"
 Show-Messages -Messages $warnings -Title "WARNINGS ($($warnings.Count)):"
 
+# Advisories are not compiler output: they are cases where the build is clean and the
+# change still will not do what it looks like it does. Printed for every task, because
+# the whole point is that nothing else would tell you.
+if ($report.advisories) {
+    Write-Host ''
+    Write-Host "ADVISORIES ($(@($report.advisories).Count)):" -ForegroundColor Yellow
+    foreach ($a in $report.advisories) { Write-Host "  $a" -ForegroundColor Yellow }
+}
+
 # Diff against the recorded baseline so pre-existing warnings stay quiet.
 $baselinePath = Join-Path $reports 'baseline.json'
 if ($Task -eq 'verify' -and -not $Baseline -and (Test-Path $baselinePath)) {
