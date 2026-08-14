@@ -37,6 +37,7 @@ Used to control the RS485 bus in order to allow only one device with one Modbus 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `StartupDelay` | TIME |  | Amount of time that should be waited on PLC startup before using the RS485 bus, can prevent errors due to RS485 devices not having booted up yet. |
+| `FailSafeTimeout` | TIME | `TIME#10s0ms` | How long a device may hold the bus before it is taken back. A device that stops answering mid-query would otherwise keep the bus occupied forever and stall every other device on it; when this expires the controller processes what arrived and releases the bus. |
 | `SilenceTime` | TIME |  | The silence time between two requests. Typically 10-20ms. |
 | `BusTrigger` | POINTER TO BOOL |  | Boolean controlling bus actions. |
 | `BusData` | POINTER TO ARRAY [0..124] OF WORD |  | Array containing bus read data. |

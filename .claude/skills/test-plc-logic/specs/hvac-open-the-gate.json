@@ -1,0 +1,53 @@
+{
+  "_what": "Step 1 of the HVAC suite. Downloads, then makes the thermostats willing to act by convincing them the temperature sensor is healthy - which on the bench unit it is not, so every thermostat sits at /FAULT TRUE and no MQTT command can make one call for heat.",
+  "_then": "Once this passes, drive the rest over MQTT and watch the broker: publish 'heat' to In/HVAC/FB_THERMOSTAT_2/MODE and '22' to .../DESIRED_TEMP, then expect Out/HVAC/FB_THERMOSTAT_2 TRUE, Valves/VALVE_1 TRUE immediately, and Out/HVAC/FB_PUMP_2 TRUE only after ValveCycleTime (3 minutes).",
+  "_warning": "This forces a sensor-health flag. It proves the LOGIC downstream of the sensor, and proves nothing about the sensor itself. Never report a green run here as 'the HVAC works' without saying the reading was fabricated.",
+  "steps": [
+    {
+      "label": "baseline: nothing calling for heat, and the real reason why",
+      "delay_ms": 3000,
+      "read": [
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable",
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error",
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE",
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SENSOR_VALID",
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SensorFault",
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.ENABLED",
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.HvacMode"
+      ],
+      "expect": {
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE",
+        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "FALSE",
+        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.PUMP": "FALSE"
+      }
+    },
+    {
+      "label": "fabricate a healthy 18 C reading, then check it survived a cycle - if the RS485 block rewrites these outputs every scan the write lasts one cycle and the rest of the suite is not runnable this way",
+      "write": {
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"
+      },
+      "delay_ms": 2000,
+      "expect": {
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SENSOR_VALID": "TRUE",
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SensorFault": "FALSE"
+      },
+      "read": [
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.MEASURED_TEMP",
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.DESIRED_TEMP"
+      ]
+    },
+    {
+      "label": "the gate is open but nothing has asked for heat yet: mode is still off, so OUT must stay FALSE. If OUT is TRUE here, the mode gate is broken, not working.",
+      "expect": {
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE",
+        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "FALSE"
+      },
+      "read": [
+        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime",
+        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.HeatRequest"
+      ]
+    }
+  ]
+}

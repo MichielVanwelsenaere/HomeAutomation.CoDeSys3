@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Minimal PLCopen XML skeleton for one function block, in the dialect CODESYS
+  imports. Copy this to .ai/candidates/FB_YOUR_NAME.xml, rename the block in
+  BOTH the contentHeader and the <pou> element, then verify with:
+
+      ./tools/ai/codesys.ps1 verify
+
+  Notes on the format, which is PLCopen TC6 plus 3S extensions:
+
+  * Methods, properties and actions are NOT plain PLCopen. They live in the
+    <addData> block at the end of <pou>, one <data> element per method. The
+    example below keeps one method; delete it if the block has none.
+  * Implementation text goes inside <xhtml> verbatim. Indent with tabs to match
+    the rest of the project, and XML-escape &, < and > (&amp; &lt; &gt;).
+  * <derived name="..."/> references another type: an FB, a DUT, an enum, or a
+    library type such as R_TRIG.
+  * Declaration order inside <interface> matters to CODESYS: inputVars,
+    outputVars, inOutVars, localVars.
+  * Leave the ObjectId addData out entirely. CODESYS assigns one on import;
+    inventing a GUID risks colliding with an existing object.
+-->
+<project xmlns="http://www.plcopen.org/xml/tc6_0200">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-01-01T00:00:00" />
+  <contentHeader name="FB_TEMPLATE" modificationDateTime="2026-01-01T00:00:00">
+    <coordinateInfo>
+      <fbd>
+        <scaling x="1" y="1" />
+      </fbd>
+      <ld>
+        <scaling x="1" y="1" />
+      </ld>
+      <sfc>
+        <scaling x="1" y="1" />
+      </sfc>
+    </coordinateInfo>
+  </contentHeader>
+  <types>
+    <dataTypes />
+    <pous>
+      <pou name="FB_TEMPLATE" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="Enable">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Enables the block.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Device">
+              <type>
+                <string length="80" />
+              </type>
+              <initialValue>
+                <simpleValue value="''" />
+              </initialValue>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="Counter">
+              <type>
+                <INT />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="rTrig">
+              <type>
+                <derived name="R_TRIG" />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">rTrig(CLK := Enable);
+IF rTrig.Q THEN
+	Counter := Counter + 1;
+END_IF</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="Reset">
+              <interface>
+                <inputVars>
+                  <variable name="StartValue">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Counter := StartValue;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+        </addData>
+      </pou>
+    </pous>
+  </types>
+  <instances>
+    <configurations />
+  </instances>
+</project>

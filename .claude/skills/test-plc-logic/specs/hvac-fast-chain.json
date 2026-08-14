@@ -1,0 +1,34 @@
+{
+  "_what": "Make the HVAC chain fast at RUNTIME instead of in the source. ValveCycleTime, MIN_ONTIME and MIN_OFFTIME are plain VAR members that only FB_init assigns, so a write after download sticks - and this sidesteps the fact that changing an FB_init ARGUMENT from a script does not reach the compiler at all (see CLAUDE.md).",
+  "_better": "It is also the safer arrangement: the source keeps the production minutes, so there is no way to accidentally ship 5-second valve travel to an installation with real pipes.",
+  "steps": [
+    {
+      "label": "shrink the timings at runtime, and prove the writes actually stuck",
+      "delay_ms": 1500,
+      "write": {
+        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5S",
+        "PLC_PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10S",
+        "PLC_PRG_HVAC.FB_PUMP_2.MIN_OFFTIME": "TIME#5S",
+        "PLC_PRG_HVAC.FB_BURNER_GAS.MIN_ONTIME": "TIME#10S",
+        "PLC_PRG_HVAC.FB_BURNER_GAS.MIN_OFFTIME": "TIME#5S"
+      },
+      "expect": {
+        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5s",
+        "PLC_PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10s"
+      }
+    },
+    {
+      "label": "and make the sensor trustworthy so a thermostat can call for heat at all",
+      "write": {
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
+        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"
+      },
+      "delay_ms": 2000,
+      "expect": {
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SensorFault": "FALSE",
+        "PLC_PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE"
+      }
+    }
+  ]
+}

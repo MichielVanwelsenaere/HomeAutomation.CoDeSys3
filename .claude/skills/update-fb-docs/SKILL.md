@@ -23,7 +23,11 @@ wiring — is hand-written and left alone.
 
 ## Commands
 
-Run from the repo root:
+Run from the repo root. On Windows use `py` rather than `python3`: the python.org
+build that `winget` installs ships no `python3.exe`, and the bare name hits the
+Microsoft Store alias instead. `./tools/ai/codesys.ps1 doctor` reports whether a
+usable interpreter is present, and the `codesys-loop` skill has the install
+command.
 
 | Task | Command |
 |:--|:--|
