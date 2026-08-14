@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-14T08:13:38.1163472" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-14T08:11:08.7103354">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-14T09:11:15.6145504" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-14T09:01:41.6959834">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />

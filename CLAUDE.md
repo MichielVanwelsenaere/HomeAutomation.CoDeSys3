@@ -107,6 +107,23 @@ For the record, so this is not relitigated:
   no hint in the chart that anything is missing. `PLC_PRG_MAIN.PROCESS_VIRTUAL` was
   retired this way and is gone; that program's chart is the worked example.
 
+## `download` does not reliably re-run `FB_init`
+
+Confirmed on hardware: the HVAC timings were changed at the declaration
+(`FB_HVAC_COLLECTOR_MQTT(T#5S)`), `apply` saved, the export contains `T#5S` and
+**zero** occurrences of the old `T#3M` — and the running PLC still reported
+`ValveCycleTime = TIME#3m` after a `download`. The code was new; the instance data
+was not. That is an online change, not a cold start, whatever the report says.
+
+Why it matters more than it looks: **an `FB_init` change can appear to work.** The
+build is clean, the source is right, the export agrees, and the PLC quietly keeps
+the old constants. Timings, limits and buffer sizes all arrive this way.
+
+So when a change goes through `FB_init`, assert the *value on the PLC*, not the
+source — `{"expect": {"...ValveCycleTime": "TIME#5s"}}`. A power cycle re-runs init
+against the new boot application, so the value does appear after a restart; on the
+bench unit the licence expiry provides one for free.
+
 ## Open: an edit that reports success and does not take effect
 
 Not resolved, so do not assume an edit landed just because the report says so —

@@ -149,6 +149,15 @@ Assert in the same run that the output really moved, not just the topic:
 self-wired blocks wire themselves on their *first cyclic call*, so an instance whose
 body never runs is silently absent from Home Assistant.
 
+**`FB_DO_BISTABLE_001` will look broken on a bench and is not.** It drives an
+impulse relay: `OUT` is a short pulse to the coil (`OUT := HoldTimer.Q`) and the
+state it publishes is `FEEDBACK` — the relay's own contact, read back from an input.
+With no relay wired, pulsing the coil changes nothing observable, so the state topic
+stays `FALSE` however many commands you send. To prove the *subscription* works here
+you have to read `MqttHighRequest` or the hold timer inside the block; the broker
+cannot tell you. Do not record this as a failure without saying which half was
+tested.
+
 **Both of these announce as `light`, not `switch`.** If Home Assistant shows
 `switch.` entities, `EntityType` was lost on the declaration; the retained
 `homeassistant/light/..._FB_DO_BIN_001/config` will have been orphaned.
@@ -231,6 +240,18 @@ three minutes after heat is first requested, so a valve can open fully before th
 is flow. `FB_PUMP_2` then has its own minimum run and run-on times (2 min / 1 min),
 so it will not stop the moment demand goes away. A test that waits two seconds and
 reports "pump did not start" is measuring the wrong thing.
+
+**Setpoint and mode are PERSISTENT RETAIN, so another thermostat may already be
+asking for heat.** On the first run here, forcing the sensor healthy immediately put
+`FB_THERMOSTAT_3` into demand — it still held `MODE heat` and a setpoint of 18.5 from
+a previous session, and 18.0 measured is below that. `HeatRequest TRUE` before you
+have commanded anything is that, not a bug. Read every thermostat's `/MODE` and
+`/DESIRED_TEMP` before concluding a valve opened on its own.
+
+**A `download` may not re-run `FB_init`,** so `ValveCycleTime` and the pump times can
+still be the *old* values however clean the build was — see
+[CLAUDE.md](../../CLAUDE.md). Read `ValveCycleTime` off the PLC and time your waits
+by what it actually says.
 
 ### The test
 
