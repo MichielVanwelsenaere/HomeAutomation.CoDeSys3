@@ -11,12 +11,12 @@ Designed to control multiple valves that share the same pump. Valves can be cont
 ### **Block diagram**
 
 ```text
-              ┌────────────────────────┐
-              │ FB_HVAC_COLLECTOR_MQTT │
-              ├────────────────────────┤
-ARRAY[1..8] ──┤ THERMOSTAT      VALVE  ├── ARRAY[1..8] OF BOOL
-    OF BOOL   │                   PUMP ├── BOOL
-              └────────────────────────┘
+                                 ┌────────────────────────┐
+                                 │ FB_HVAC_COLLECTOR_MQTT │
+                                 ├────────────────────────┤
+ARRAY [1..VALVE_COUNT] OF BOOL ──┤ THERMOSTAT       VALVE ├── ARRAY [1..VALVE_COUNT] OF BOOL
+                                 │                   PUMP ├── BOOL
+                                 └────────────────────────┘
 ```
 
 ### **Interface**
@@ -25,13 +25,13 @@ ARRAY[1..8] ──┤ THERMOSTAT      VALVE  ├── ARRAY[1..8] OF BOOL
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `THERMOSTAT` | ARRAY[1..8] OF BOOL | Heat demand, one element per manifold circuit. When high the valve should be opened and flow provided by the pump. |
+| `THERMOSTAT` | ARRAY [1..VALVE_COUNT] OF BOOL | Heat demand, one element per manifold circuit. When high the valve should be opened and flow provided by the pump. |
 
 **Outputs**
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `VALVE` | ARRAY[1..8] OF BOOL | Output for the valve controlled by the thermostat at the same index. |
+| `VALVE` | ARRAY [1..VALVE_COUNT] OF BOOL | Output for the valve controlled by the thermostat at the same index. |
 | `PUMP` | BOOL | Output that should be directed to an HVAC pump function block in order to turn a pump on or off. |
 
 ### **Methods**
@@ -54,7 +54,7 @@ ARRAY[1..8] ──┤ THERMOSTAT      VALVE  ├── ARRAY[1..8] OF BOOL
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
-| `NameValve` | ARRAY[1..8] OF STRING(100) |  | Name shown in the Home Assistant front-end for each valve, indexed as `THERMOSTAT` and `VALVE` are. An empty name means that circuit is unwired and announces no entity. |
+| `NameValve` | ARRAY [1..VALVE_COUNT] OF STRING(100) |  | Name shown in the Home Assistant front-end for each valve, indexed as `THERMOSTAT` and `VALVE` are. An empty name means that circuit is unwired and announces no entity. |
 | `DeviceClass` | STRING(100) | `'water'` | Home Assistant device class for the entity. Leave empty for the default. |
 <!-- fb-interface:end -->
 

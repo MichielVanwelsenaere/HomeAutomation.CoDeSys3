@@ -11,12 +11,9 @@ The topic root is built from `MqttMain` + `MqttType` + `MqttDevice`, so the refe
 
 <!-- gvl:start -->
 ```ST
-VAR_GLOBAL CONSTANT
+VAR_GLOBAL
     MQTT_TOPIC_LEN : INT := 160;
     MQTT_SUFFIX_LEN : INT := 64;
-END_VAR
-
-VAR_GLOBAL
     clientID : STRING := 'PLC-Lab';
     broker : STRING := '10.101.1.11:1883';
     fbMqttPublishQueue : FB_MqttPublishQueue;

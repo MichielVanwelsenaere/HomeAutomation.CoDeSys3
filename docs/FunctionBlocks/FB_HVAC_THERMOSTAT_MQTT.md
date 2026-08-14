@@ -17,6 +17,7 @@ Designed to control the heat requirements in a room. Creates a thermostat entity
 REAL ──┤ MEASURED_TEMP       OUT ├── BOOL
 REAL ──┤ MEASURED_HUM            │
 BOOL ──┤ ENABLED                 │
+BOOL ──┤ SENSOR_VALID            │
        └─────────────────────────┘
 ```
 
@@ -29,6 +30,7 @@ BOOL ──┤ ENABLED                 │
 | `MEASURED_TEMP` | REAL | Measured temperature in the room. |
 | `MEASURED_HUM` | REAL | Measured humidity in the room. |
 | `ENABLED` | BOOL | Enables or disables the thermostat. |
+| `SENSOR_VALID` | BOOL | Whether `MEASURED_TEMP` can be trusted — wire it to the sensor's own health, e.g. `DataAvailable AND NOT Error`. FALSE, or a reading outside -50..80 °C, raises `SensorFault`, forces `OUT` off and publishes `/FAULT`. Defaults TRUE so an existing call site keeps working, but a thermostat left on the default will act on a stale reading from a dead sensor. |
 
 **Outputs**
 

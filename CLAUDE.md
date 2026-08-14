@@ -37,10 +37,23 @@ XML.
 Two things worth knowing before you start, both covered in detail by
 `codesys-loop`:
 
-- Run `./tools/ai/codesys.ps1 doctor` to check the toolchain. CODESYS 3.5 SP21
-  with the PFC200 SL package is required; Python is needed only by
-  `update-fb-docs`, and is **not currently installed on this machine** (the skill
-  has the `winget` command and the Windows `python3` caveat).
+- Run `./tools/ai/codesys.ps1 doctor` to check the toolchain.
+
+  | Dependency | Needed by | Notes |
+  |:--|:--|:--|
+  | CODESYS 3.5 SP21 (3.5.21.30) + PFC200 SL package | everything | No licence needed for `--noUI` scripting. |
+  | Python 3.12 | `update-fb-docs` only | **Installed** at `C:\Program Files\Python312-arm64`. Invoke it as **`py`**. |
+  | mosquitto clients | `Mqtt-Snapshot.ps1` — the only runtime check there is | Not on `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
+
+  **Trust `doctor`, not a bare `python3`.** Windows ships an App Execution Alias
+  stub at `WindowsApps\python3.exe` that prints *"Python was not found; run
+  without arguments to install from the Microsoft Store"* and exits non-zero
+  **even when Python is installed** — the python.org build provides `python.exe`
+  and the `py` launcher but no `python3.exe`. `doctor` already skips anything
+  under `WindowsApps`, so it reports the truth; a bare `python3 --version` does
+  not. That stub is why this file used to claim Python was missing when it had
+  been installed for days, and why a whole branch of docs got hand-maintained for
+  no reason.
 - A successful build does **not** always mean your code was checked — an
   unreferenced POU is never compiled. Read the `harness` section of the verify
   report, not just the result line.

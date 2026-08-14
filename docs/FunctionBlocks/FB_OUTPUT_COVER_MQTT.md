@@ -47,10 +47,7 @@ BOOL ──┤ PRIO_DN              │
 
 ### **Methods**
 
-**`FB_init`** — Sets the cover timings. These describe the motor and the shutter, so
-they are fixed for the life of the instance and are passed where the instance is
-declared rather than through a method call. CODESYS requires every `FB_init`
-argument at the declaration site, so both are mandatory:
+**`FB_init`** — Sets the cover timings, once, where the instance is declared. Both arguments are mandatory: CODESYS requires every `FB_init` argument at the declaration site.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
