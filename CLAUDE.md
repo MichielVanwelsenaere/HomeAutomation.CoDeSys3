@@ -33,6 +33,7 @@ XML.
 |:--|:--|
 | Add or change a function block, refactor ST, check that something compiles, re-export the PLCopen XML, inspect the project structure | **`codesys-loop`** |
 | Regenerate or check the generated regions of `docs/FunctionBlocks/*.md` | **`update-fb-docs`** |
+| Check whether the logic actually *works* — lights, pushbuttons, covers, HVAC — on a real PLC | **`test-plc-logic`** |
 
 Two things worth knowing before you start, both covered in detail by
 `codesys-loop`:
