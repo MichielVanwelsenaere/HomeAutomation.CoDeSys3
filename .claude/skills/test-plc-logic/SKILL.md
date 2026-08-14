@@ -248,10 +248,15 @@ a previous session, and 18.0 measured is below that. `HeatRequest TRUE` before y
 have commanded anything is that, not a bug. Read every thermostat's `/MODE` and
 `/DESIRED_TEMP` before concluding a valve opened on its own.
 
-**A `download` may not re-run `FB_init`,** so `ValveCycleTime` and the pump times can
-still be the *old* values however clean the build was — see
-[CLAUDE.md](../../CLAUDE.md). Read `ValveCycleTime` off the PLC and time your waits
-by what it actually says.
+**An `FB_init` value can refuse to update on the PLC.** `ValveCycleTime` and the pump
+times can still read as the *old* values with the source, the export and a clean
+build all agreeing on the new ones — and neither a forced full download nor a cold
+reset fixes it. Cause unknown; see [CLAUDE.md](../../CLAUDE.md) for what has already
+been ruled out, and power-cycle the PLC as the known-good workaround.
+
+Practical consequence for this suite: **read `ValveCycleTime` off the PLC first and
+time your waits by what it actually says**, not by what the declaration says. A
+3-minute wait mistaken for 5 seconds looks exactly like a broken pump.
 
 ### The test
 

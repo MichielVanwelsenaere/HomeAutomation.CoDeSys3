@@ -1352,6 +1352,40 @@ def do_download(cfg, result):
             result["errors"].append("login reported success but the application is not logged in")
             return
 
+        # A cold reset before starting, so what runs is unambiguously the code just
+        # downloaded, initialised from scratch.
+        #
+        # login(OnlineChangeOption.Never, ...) is documented as forcing a full
+        # download, and yet a change to an FB_init argument was observed NOT taking
+        # effect: the HVAC valve travel time was T#5S in the source and in the
+        # export, the build was clean, and the running PLC still reported the old
+        # TIME#3m afterwards. New code, old instance data. Whatever the cause, the
+        # failure mode is the dangerous one - an FB_init change that looks applied
+        # everywhere except on the PLC - so do not rely on the download to
+        # re-initialise. Ask for it.
+        #
+        # Cold, not Warm: warm keeps retain variables, and FB_init's whole job is
+        # assigning them. Cold KEEPS persistent variables (only reset_origin clears
+        # those), so the thermostat setpoints and the cover's direction in
+        # PersistentVars survive this - which is what we want, since losing them
+        # would change behaviour rather than just re-initialise it.
+        if cfg.get("cold_reset", True):
+            log("cold reset (re-runs FB_init; keeps PERSISTENT, clears RETAIN) ...")
+            try:
+                online_app.reset(ResetOption.Cold, True)  # noqa: F821
+                online_info["cold_reset"] = True
+            except Exception:
+                trace = traceback.format_exc()
+                online_info["cold_reset"] = False
+                # Not fatal on its own, but it must not pass silently: without the
+                # reset an FB_init value on the PLC may be stale, and that is
+                # exactly what this exists to prevent.
+                result["errors"].append("cold reset failed, FB_init values may be stale: %s" % trace)
+                log("cold reset FAILED:\n%s" % trace)
+        else:
+            online_info["cold_reset"] = False
+
+        # After the reset, so the boot application is the initialised one.
         if cfg.get("boot_application"):
             log("creating boot application (survives a power cycle) ...")
             online_app.create_boot_application()

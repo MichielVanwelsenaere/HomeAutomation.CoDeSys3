@@ -107,22 +107,40 @@ For the record, so this is not relitigated:
   no hint in the chart that anything is missing. `PLC_PRG_MAIN.PROCESS_VIRTUAL` was
   retired this way and is gone; that program's chart is the worked example.
 
-## `download` does not reliably re-run `FB_init`
+## Unexplained: an `FB_init` value that will not update on the PLC
 
-Confirmed on hardware: the HVAC timings were changed at the declaration
-(`FB_HVAC_COLLECTOR_MQTT(T#5S)`), `apply` saved, the export contains `T#5S` and
-**zero** occurrences of the old `T#3M` — and the running PLC still reported
-`ValveCycleTime = TIME#3m` after a `download`. The code was new; the instance data
-was not. That is an online change, not a cold start, whatever the report says.
+**Always assert an `FB_init` value on the PLC, never from the source.** That is the
+rule; the cause is not yet known, and two plausible explanations have already been
+tested and disproved.
 
-Why it matters more than it looks: **an `FB_init` change can appear to work.** The
-build is clean, the source is right, the export agrees, and the PLC quietly keeps
-the old constants. Timings, limits and buffer sizes all arrive this way.
+The evidence, all from one change — the HVAC valve travel time, `T#3M` → `T#5S`:
 
-So when a change goes through `FB_init`, assert the *value on the PLC*, not the
-source — `{"expect": {"...ValveCycleTime": "TIME#5s"}}`. A power cycle re-runs init
-against the new boot application, so the value does appear after a restart; on the
-bench unit the licence expiry provides one for free.
+- `apply` reported the edit applied and saved.
+- The export contains `T#5S` and **zero** occurrences of `T#3M`.
+- The build is clean, 0 errors, no new messages.
+- The running PLC reports `ValveCycleTime = TIME#3m`.
+
+Disproved so far:
+
+1. *"The download did an online change."* No — `OnlineChangeOption.Never` is
+   documented as forcing a full download, and the enum was read to confirm it.
+2. *"`FB_init` was not re-run, so the instance kept its old data."* No — a
+   `reset(ResetOption.Cold)` was added between login and start, the report confirms
+   `cold reset : True`, and the value is **still** `TIME#3m`.
+
+`ValveCycleTime` is not in `PersistentVars`, so persistence does not explain it
+either. Note that the cover's `T_UD` *does* arrive through `FB_init` correctly, and
+that this value belongs to `PLC_PRG_HVAC` — the same POU as the edit-reports-success-
+but-does-not-take-effect problem below. Those two are plausibly one bug; that is a
+hypothesis, not a finding.
+
+Worth trying next: `probe` the real `reset` / `login` signatures, since the shipped
+`.pyi` stubs are known to disagree with the .NET binding on argument order in this
+codebase, and a wrong positional would make `reset(Cold)` a no-op that raises
+nothing. A power cycle is the known-good workaround.
+
+The cold reset stays regardless — it is correct in principle and cheap — but it is
+**not** a fix for this, and the report line exists so nobody assumes it is.
 
 ## Open: an edit that reports success and does not take effect
 

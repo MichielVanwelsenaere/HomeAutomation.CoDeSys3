@@ -61,6 +61,13 @@ param(
     # running this project after a power cycle.
     [switch]$BootApplication,
 
+    # download only: skip the cold reset that normally runs between login and
+    # start. The reset is what guarantees FB_init re-runs, so without it a changed
+    # FB_init argument can still read as its OLD value on the PLC while the source,
+    # the export and the build all agree on the new one. Only pass this if you are
+    # deliberately preserving RETAIN state across a download.
+    [switch]$NoColdReset,
+
     # verify only: build the project as-is and store the result as the baseline
     # that every later verify run is diffed against.
     [switch]$Baseline,
@@ -318,6 +325,11 @@ running application and re-initialises non-persistent variables. Re-run with
         # Downloads the real project deliberately: the point is to ship what
         # src/HomeAutomation.project actually contains.
         $cfg.start = (-not $NoStart)
+        # A cold reset between login and start, so what runs is the code just
+        # downloaded, initialised from scratch. Off only if you are deliberately
+        # keeping RETAIN state across the download and accept that an FB_init value
+        # on the PLC may then be the previous one. See do_download.
+        $cfg.cold_reset = (-not $NoColdReset)
         $cfg.boot_application = [bool]$BootApplication
         $cfg.settle_ms = $SettleMs
         if ($Address -and $Ip) { throw 'Pass -Address or -Ip, not both.' }
@@ -520,6 +532,11 @@ if ($report.online) {
         Write-Host "  credentials: $($report.online.credentials)"
     }
     Write-Host "  logged in  : $($report.online.logged_in)"
+    if ($null -ne $report.online.cold_reset) {
+        # Worth printing either way: if this says False after a download, any value
+        # that arrives through FB_init may still be the previous one.
+        Write-Host "  cold reset : $($report.online.cold_reset)"
+    }
     if ($null -ne $report.online.started) { Write-Host "  started    : $($report.online.started)" }
     if ($report.online.boot_application) { Write-Host "  boot app   : written" }
     Write-Host "  app state  : $($report.online.application_state)"
