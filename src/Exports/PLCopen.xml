@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-13T20:54:10.046158" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-13T20:49:26.0092982">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-14T08:13:38.1163472" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-14T08:11:08.7103354">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -15930,29 +15930,6 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                   </addData>
                 </interface>
                 <actions>
-                  <action name="PROCESS_VIRTUAL">
-                    <body>
-                      <ST>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Nothing left to process.
-
-   This action called the four FB_VIRTUAL_* blocks, which have been removed. It
-   survives only because the SFC step 'Main' still holds an action association to
-   it, and that association is compiled: delete the action alone and the build
-   fails with "Identifier 'PROCESS_VIRTUAL' not defined". Charts are graphical
-   and the ScriptEngine cannot edit them, so this could not be finished from a
-   script.
-
-   To finish it by hand: open PLC_PRG_MAIN, delete the PROCESS_VIRTUAL box from
-   the Main step's action list, then delete this action. Nothing else refers to
-   either. *)</xhtml>
-                      </ST>
-                    </body>
-                    <addData>
-                      <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-                        <ObjectId>f412b353-21e6-4a73-ab2e-3201c51f6fc4</ObjectId>
-                      </data>
-                    </addData>
-                  </action>
                   <action name="MOVE_COVERS">
                     <body>
                       <ST>
@@ -16183,7 +16160,7 @@ FB_DALI_1_ADR0(
                         </data>
                       </addData>
                     </step>
-                    <actionBlock localId="11">
+                    <actionBlock localId="10">
                       <position x="0" y="0" />
                       <connectionPointIn>
                         <connection refLocalId="5" />
@@ -16248,35 +16225,20 @@ FB_DALI_1_ADR0(
                           </data>
                         </addData>
                       </action>
-                      <action localId="10" qualifier="N" duration="" indicator="">
-                        <relPosition x="0" y="0" />
-                        <reference name="PROCESS_VIRTUAL" />
-                        <connectionPointOut />
-                        <addData>
-                          <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
-                            <attributes xmlns="">
-                              <attribute guid="38391c6d-6d4a-42f8-8ee7-9f45e5adafa8">PROCESS_VIRTUAL</attribute>
-                              <attribute guid="01580b27-6378-448b-8ecb-0e4b795b58d6">FALSE</attribute>
-                              <attribute guid="bc882c11-1e91-4dd8-a6b8-2075724ed18b">0</attribute>
-                              <attribute guid="e174fc0d-80b0-4a9e-a530-ca239c249a50">N</attribute>
-                            </attributes>
-                          </data>
-                        </addData>
-                      </action>
                     </actionBlock>
-                    <inVariable localId="12">
+                    <inVariable localId="11">
                       <position x="0" y="0" />
                       <connectionPointOut />
                       <expression>TRUE</expression>
                     </inVariable>
-                    <transition localId="13">
+                    <transition localId="12">
                       <position x="0" y="0" />
                       <connectionPointIn>
                         <connection refLocalId="5" formalParameter="sfc" />
                       </connectionPointIn>
                       <condition>
                         <connectionPointIn>
-                          <connection refLocalId="12" />
+                          <connection refLocalId="11" />
                         </connectionPointIn>
                       </condition>
                       <addData>
@@ -16291,10 +16253,10 @@ FB_DALI_1_ADR0(
                         </data>
                       </addData>
                     </transition>
-                    <jumpStep localId="14" targetName="Main">
+                    <jumpStep localId="13" targetName="Main">
                       <position x="0" y="0" />
                       <connectionPointIn>
-                        <connection refLocalId="13" />
+                        <connection refLocalId="12" />
                       </connectionPointIn>
                       <addData>
                         <data name="http://www.3s-software.com/plcopenxml/sfc/element" handleUnknown="implementation">
@@ -19017,7 +18979,6 @@ PreviousReachable := DMXnodeReachable;</xhtml>
                 <Object Name="MQTT_SUBSCRIBE" ObjectId="8f495dd5-08ff-4021-8d5e-f2fc6292398c" />
               </Object>
               <Object Name="PLC_PRG_MAIN" ObjectId="98c8b3af-823f-460e-96b4-4a3a11616ef1">
-                <Object Name="PROCESS_VIRTUAL" ObjectId="f412b353-21e6-4a73-ab2e-3201c51f6fc4" />
                 <Object Name="MOVE_COVERS" ObjectId="0179406e-0243-4248-bd15-86bda23b0ead" />
                 <Object Name="READ_PUSHBUTTONS" ObjectId="72c511d1-ce6f-4b43-a80f-bcc4f298eb89" />
                 <Object Name="MAIN_INIT" ObjectId="f5b06497-3f42-4150-9639-33f5f16d160a" />

@@ -98,7 +98,13 @@ For the record, so this is not relitigated:
   the step's action association is compiled and the name has to keep resolving —
   deleting the action alone fails with `Identifier 'X' not defined <... Action
   association X / Main (Impl)>`. Leave the action as a stub with a comment saying
-  what to delete by hand. `PLC_PRG_MAIN.PROCESS_VIRTUAL` is one such stub.
+  what to delete by hand.
+
+  **Order matters when someone does it by hand**, and the obvious order is the
+  wrong one: delete the association box from the step's action list *first*, then
+  the action. Deleting the action first leaves a project that does not build, with
+  no hint in the chart that anything is missing. `PLC_PRG_MAIN.PROCESS_VIRTUAL` was
+  retired this way and is gone; that program's chart is the worked example.
 
 ## Open: an edit that reports success and does not take effect
 
