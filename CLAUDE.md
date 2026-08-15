@@ -200,6 +200,86 @@ project that does not build, so all of those failed runs left the project
 untouched and correct. The guard works. It also means a wrong theory costs nothing
 but time.
 
+**Do not let this section talk you out of the next one.** Having found the cache,
+this file briefly claimed the structured-initialiser trap below was *not* real.
+That was an over-correction and it was wrong. The two are separate faults with
+opposite symptoms, and both happen:
+
+| | cache | structValue |
+|:--|:--|:--|
+| build | **fails**, citing an identifier the source no longer contains | **succeeds** |
+| save | refused | succeeds, `saved=True` |
+| what changed | nothing (guard held) | the text only |
+
+## A structured initialiser goes stale exactly like `FB_init` — `:= (Name := ...)`
+
+**Changing a value inside an existing initialiser does not reach the compiler.**
+Same storage trick as `FB_init` arguments: CODESYS keeps the initialiser in
+`<initialValue><structValue>` beside the declaration, and reads *that*.
+
+Proven on the annex `PLC_PRG_MAIN`, renaming four `FriendlyName` values. `apply`
+reported `decl_replace` applied, `errors=0`, `saved=True`, and afterwards:
+
+| | says |
+|:--|:--|
+| declaration text (what `info` shows, what a human reads) | `'Smoke detector landing'` |
+| `structValue` (what the compiler reads, what the PLC runs) | `'Landing'` |
+
+**The discriminator is whether the initialiser's *shape* changes**, and it explains
+every case seen so far:
+
+- new instance → no stored entry to win → text is parsed. The whole annex
+  migration landed this way, 37 instances at once.
+- member **renamed** (`Invert` → `RelayType`) → the stored entry names a member
+  that no longer exists → re-derived. That rename landed, `RelayType` and all.
+- same members, **different value** → shape unchanged → silently dropped.
+
+### Verifying it: `info` cannot see this, `export` can
+
+This is why it went unnoticed. `info -Full` returns the declaration **text**, which
+is updated and looks right. The check that works is a PLCopen `export`, whose
+`<variable>` elements carry the `<structValue>`:
+
+```
+./tools/ai/codesys.ps1 export -Project <path> -Output .ai/scratch.xml
+```
+
+Two traps in reading that export. It carries **no declaration text at all** — no
+`interfaceasplaintext` — so grepping it for a comment proves nothing either way.
+And bound each `<variable>` element properly when parsing: an instance with no
+initialiser has no `<structValue>`, so a fixed-size window silently reads the
+*next* instance's values. That produced a first draft of this finding that showed
+a binary sensor with an `EntityType` and an uninitialised block with a name.
+
+### There is no scripted way round it. Three were tried.
+
+| Attempt | Result |
+|:--|:--|
+| `decl_replace` with the new values | text updated, `structValue` unchanged |
+| `decl_replace` dropping the initialiser entirely, then a second `apply` re-adding it | **both saved clean, `structValue` unchanged by either** |
+| (for `FB_init`, previously) `replace_in_decl` per line | same |
+
+The second is the decisive one: removing `:= (...)` from the text does not remove
+the stored members, so there is no clear-and-re-add trick. The store is simply
+unreachable from `textual_declaration`.
+
+Which retires the "shape change" theory this file carried for one revision. The
+cases that *did* land are better explained without it:
+
+- the 37 migrated instances were **new**, so there was no store to lose to;
+- `Invert := TRUE` becoming `RelayType := E_RELAY_TYPE.NC` was almost certainly
+  CODESYS re-binding the existing entry through the renamed member and keeping its
+  ordinal — and `TRUE` and `NC` are both `1`. It came out right by luck, not
+  because a script wrote it. Do not build on it.
+
+**Remedy: the IDE**, same as `FB_init`. If the declaration text is already correct
+and only the store is stale, that is a small job — open the POU, touch the
+declaration and save, and the editor re-parses it. Better still, design so a value
+someone will want to change does not live in an initialiser at all.
+
+And whatever you do, **confirm with `export` and `structValue`, never with `info`**
+— `info` returns the text, which is exactly the half that lies.
+
 ## Open: an edit that reports success and does not take effect
 
 Not resolved, so do not assume an edit landed just because the report says so —

@@ -269,7 +269,7 @@ The case in this project is **self-wiring**. A block that carries the
 `FB_MQTT_BASE` configures itself from its declaration:
 
 ```iecst
-FB_DO_LIGHT_001  :FB_OUTPUT_BINARY_MQTT := (FriendlyName := 'Spotjes oversteek',
+FB_DO_LIGHT_001  :FB_OUTPUT_BINARY_MQTT := (FriendlyName := 'Landing spots',
                                             EntityType := E_MQTT_ENTITY.Light);
 ```
 
@@ -441,7 +441,7 @@ Two things to find, and both were confirmed present for SiteA:
 <variable name="FB_DO_LIGHT_001">
   <type><derived name="FB_OUTPUT_BINARY_MQTT" /></type>
   <initialValue><structValue>
-      <value member="FriendlyName"><simpleValue value="'Spotjes oversteek'" /></value>
+      <value member="FriendlyName"><simpleValue value="'Landing spots'" /></value>
       <value member="EntityType"><simpleValue value="E_MQTT_ENTITY.Light" /></value>
   </structValue></initialValue>
 ```
