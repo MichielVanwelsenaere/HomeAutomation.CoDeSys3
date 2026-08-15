@@ -584,6 +584,22 @@ def do_export(cfg, result):
     proj = projects.open(cfg["project"], allow_readonly=True)  # noqa: F821
     try:
         roots = iec_export_roots(proj)
+        # cfg["only"]: export just these objects, by name. This is how the sync
+        # skill lifts the shared function blocks out of the reference without
+        # dragging along its programs, GVLs and device tree - which are that
+        # installation's own logic and must never reach another one.
+        only = cfg.get("only")
+        if only:
+            wanted = set([u(n) for n in only])
+            roots = [r for r in roots if u(safe(lambda: r.get_name(), u"")) in wanted]
+            found = set([u(safe(lambda: r.get_name(), u"")) for r in roots])
+            missing = sorted(wanted - found)
+            result["not_found"] = missing
+            if missing:
+                # Loud, not silent: a typo here produces a sync that quietly
+                # leaves a block un-updated and still reports success.
+                result["errors"].append("requested objects not found in project: %s" % ", ".join(missing))
+                return
         result["exported_roots"] = [object_path(r) for r in roots]
         if not roots:
             result["errors"].append("no exportable IEC objects found")
@@ -608,6 +624,338 @@ def do_export(cfg, result):
         result["errors"].extend(reporter.errors)
     finally:
         safe(lambda: proj.close())
+
+
+# ---------------------------------------------------------------- info
+
+
+def text_of(obj, which):
+    """Declaration or implementation text of an object, or None.
+
+    `has_textual_*` lies often enough to matter: some objects report True and
+    then raise on access (an SFC program has a declaration but no
+    implementation *attribute at all*). So the presence flag is a hint and the
+    access is guarded.
+    """
+    flag = "has_textual_" + which
+    if not safe(lambda: getattr(obj, flag), False):
+        return None
+    holder = safe(lambda: getattr(obj, "textual_" + which), None)
+    if holder is None:
+        return None
+    return safe(lambda: u(holder.text), None)
+
+
+def digest(text):
+    if text is None:
+        return None
+    import hashlib
+
+    # Newlines and trailing whitespace are not semantic here, and CODESYS is not
+    # consistent about them across a save cycle. Normalise so that "this block
+    # is unchanged" does not turn on a line ending.
+    norm = u"\n".join([line.rstrip() for line in text.replace(u"\r\n", u"\n").split(u"\n")])
+    return hashlib.md5(norm.strip().encode("utf-8")).hexdigest()
+
+
+# Object-type GUID of a task's call entry - the "PLC_PRG_MAIN" that appears
+# under Task Configuration/MainTask as well as under PRG's. It carries no code
+# and is not the program; it is a reference to it.
+#
+# This matters more than it looks. Indexing an inventory by name without
+# filtering these gives you the EMPTY task-call node for every program in the
+# project, because it sorts after the real one - so every program silently
+# reads as "no declaration, no kind, nothing to see". The same duplication is
+# what the project notes flag about find_editable returning the Task
+# Configuration node instead of the program.
+TASK_CALL_TYPE = "413e2a7d"
+
+KIND_PATTERN = re.compile(
+    r"^\s*(FUNCTION_BLOCK|FUNCTION|PROGRAM|INTERFACE|TYPE|VAR_GLOBAL|VAR_CONFIG)\b",
+    re.IGNORECASE | re.MULTILINE,
+)
+
+
+def declared_kind(decl):
+    """FUNCTION_BLOCK / PROGRAM / FUNCTION / TYPE / VAR_GLOBAL, from the text.
+
+    The object-type GUID only distinguishes POU from DUT from GVL; it cannot
+    tell a function block from a program, and that distinction is the whole
+    basis of the sync decision - a function block is shared library code, a
+    program is the installation's own logic. The declaration's first keyword is
+    the authoritative answer and costs nothing.
+    """
+    if not decl:
+        return None
+    # Skip pragmas and comments ahead of the keyword: {attribute ...} lines and
+    # a leading (* ... *) banner are both common here.
+    text = re.sub(r"\(\*.*?\*\)", u" ", decl, flags=re.DOTALL)
+    text = re.sub(r"^\s*\{[^}]*\}", u" ", text, flags=re.MULTILINE)
+    match = KIND_PATTERN.search(text)
+    return u(match.group(1).upper()) if match else None
+
+
+def inventory(proj, full=False):
+    """Every content-bearing object in the project, with a hash of its code.
+
+    This is the mechanism the sync skill runs on. Comparing two projects object
+    by object on a hash of (declaration + implementation + every member) answers
+    "which function blocks actually differ from the reference" without exporting,
+    parsing or diffing a 19000-line XML file on either side.
+    """
+    items = []
+
+    def visit(node, depth, top):
+        for child in list(safe(lambda: node.get_children(False), []) or []):
+            name = u(safe(lambda: child.get_name(), u"?"))
+            if safe(lambda: child.is_project_info, False):
+                continue
+            top_name = name if depth == 0 else top
+            is_folder = bool(safe(lambda: child.is_folder, False))
+            decl = text_of(child, "declaration")
+            impl = text_of(child, "implementation")
+            owns_code = decl is not None or impl is not None
+            if not is_folder:
+                # Members (methods, actions, properties) roll into the parent's
+                # signature: a changed method is a changed function block, and
+                # the sync replaces whole objects anyway.
+                members = []
+                if owns_code:
+                    for m in list(safe(lambda: child.get_children(False), []) or []):
+                        m_decl = text_of(m, "declaration")
+                        m_impl = text_of(m, "implementation")
+                        if m_decl is None and m_impl is None:
+                            continue
+                        entry = {
+                            "name": u(safe(lambda: m.get_name(), u"?")),
+                            "decl_hash": digest(m_decl),
+                            "impl_hash": digest(m_impl),
+                        }
+                        if full:
+                            entry["decl"] = m_decl
+                            entry["impl"] = m_impl
+                        members.append(entry)
+                    members.sort(key=lambda e: e["name"])
+                item = {
+                    "name": name,
+                    "path": object_path(child),
+                    "top": top_name,
+                    "depth": depth,
+                    "is_folder": is_folder,
+                    "is_device": bool(safe(lambda: child.is_device, False)),
+                    "is_application": bool(safe(lambda: child.is_application, False)),
+                    "is_libman": bool(safe(lambda: child.is_libman, False)),
+                    "is_task_configuration": bool(safe(lambda: child.is_task_configuration, False)),
+                    "type": u(safe(lambda: str(child.type), u"")),
+                    "is_task_call": u(safe(lambda: str(child.type), u"")).lower().startswith(TASK_CALL_TYPE),
+                    "kind": declared_kind(decl),
+                    "decl_hash": digest(decl),
+                    "impl_hash": digest(impl),
+                    "members": members,
+                }
+                # One hash per object, over everything that is code in it. This
+                # is what a sync decision is made on.
+                parts = [item["decl_hash"] or u"", item["impl_hash"] or u""]
+                for m in members:
+                    parts.append(u"%s:%s:%s" % (m["name"], m["decl_hash"] or u"", m["impl_hash"] or u""))
+                item["signature"] = digest(u"|".join(parts)) if owns_code else None
+                if full:
+                    item["decl"] = decl
+                    item["impl"] = impl
+                items.append(item)
+            # Descend through containers only. A POU's children are its members,
+            # already folded into its signature above.
+            if not owns_code and depth < 12:
+                visit(child, depth + 1, top_name)
+
+    visit(proj, 0, u"")
+    items.sort(key=lambda i: (sort_key(i["top"]), sort_key(i["name"])))
+    return items
+
+
+def library_references(proj):
+    """Every library the project references, from every library manager in it."""
+    out = []
+    for child in list(safe(lambda: proj.get_children(True), []) or []):
+        if not safe(lambda: child.is_libman, False):
+            continue
+        manager = object_path(child)
+        refs = safe(lambda: list(child.references), None)
+        if refs is None:
+            # Older/leaner managers only answer get_libraries().
+            for nm in list(safe(lambda: child.get_libraries(False), []) or []):
+                out.append({"manager": manager, "name": u(nm), "is_placeholder": None,
+                            "namespace": None, "system": None})
+            continue
+        for ref in refs:
+            out.append({
+                "manager": manager,
+                # "Name, Version (Company)" for a fixed reference, "#Name" for a
+                # placeholder. The version is inside the name; there is no
+                # separate version property on a reference.
+                "name": u(safe(lambda: ref.name, u"?")),
+                "is_placeholder": bool(safe(lambda: ref.is_placeholder, False)),
+                "namespace": u(safe(lambda: ref.namespace, u"")),
+                "system": bool(safe(lambda: ref.system_library, False)),
+            })
+    out.sort(key=lambda r: (r["manager"], r["name"]))
+    return out
+
+
+def device_identifications(proj):
+    out = []
+    for child in list(safe(lambda: proj.get_children(True), []) or []):
+        if not safe(lambda: child.is_device, False):
+            continue
+        ident = safe(lambda: child.get_device_identification(), None)
+        out.append({
+            "name": u(safe(lambda: child.get_name(), u"?")),
+            "path": object_path(child),
+            "type_id": u(safe(lambda: str(ident.type), u"")),
+            "id": u(safe(lambda: str(ident.id), u"")),
+            "version": u(safe(lambda: str(ident.version), u"")),
+            "simulation": bool(safe(lambda: child.get_simulation_mode(), False)),
+        })
+    return out
+
+
+# The compiler version a project stores is NOT reachable from the scripting
+# API - it is an application property with no accessor, and a reflection sweep
+# over the application object finds nothing. Do not go looking again.
+#
+# The check that matters is empirical anyway: build the project with the
+# installed IDE. If its stored compiler version is not installed, the build says
+# so in as many words. That is what `verify -Baseline -Project <impl>` is for,
+# and the sync skill gates on it.
+
+
+def do_info(cfg, result):
+    """Read-only description of a project: versions, libraries, code hashes.
+
+    Opened with the default VersionUpdateFlags.NoUpdates, so inspecting an older
+    installation project never converts it as a side effect of being looked at.
+    That matters: a conversion is what an implementation project must NOT get
+    by accident, and `open` would happily do it under other flags.
+    """
+    clear_all_messages()
+    proj = projects.open(cfg["project"], allow_readonly=True)  # noqa: F821
+    try:
+        full = bool(cfg.get("full"))
+        # Messages raised by the open itself. A project written by an older
+        # CODESYS reports its version-compatibility complaints here, which is the
+        # closest thing to a "would this be converted?" answer the API offers.
+        result["messages"] = collect_messages()
+        info = {
+            "path": u(cfg["project"]),
+            "ide_version": u(cfg.get("ide_version", u"")),
+            "applications": [object_path(c) for c in list(safe(lambda: proj.get_children(True), []) or [])
+                             if safe(lambda: c.is_application, False)],
+            "libraries": library_references(proj),
+            "devices": device_identifications(proj),
+            "project_info": {},
+        }
+        if safe(lambda: proj.has_project_info, False):
+            pi = safe(lambda: proj.get_project_info(), None)
+            if pi is not None:
+                for name in ("company", "title", "version", "released", "author", "description"):
+                    value = safe(lambda: getattr(pi, name), None)
+                    if value is not None:
+                        info["project_info"][name] = u(str(value))
+        result["info"] = info
+        result["objects"] = inventory(proj, full)
+        log("info: %d objects, %d libraries" % (len(result["objects"]), len(info["libraries"])))
+        target = cfg.get("output")
+        if target:
+            parent = os.path.dirname(target)
+            if parent and not os.path.isdir(parent):
+                os.makedirs(parent)
+            fh = codecs.open(target, "w", "utf-8")
+            try:
+                fh.write(json.dumps({"info": info, "objects": result["objects"]},
+                                    indent=2, sort_keys=True, ensure_ascii=False, default=u))
+            finally:
+                fh.close()
+            result["output"] = target
+    finally:
+        safe(lambda: proj.close())
+
+
+DIFF_NAMES = [
+    (0x01, "ADDED"),
+    (0x02, "DELETED"),
+    (0x04, "CONTENT_CHANGED"),
+    (0x08, "FOLDER_CHANGED"),
+    (0x10, "ACCESS_RIGHTS_CHANGED"),
+    (0x20, "PROPERTIES_CHANGED"),
+    (0x40, "RENAMED"),
+]
+
+
+def diff_names(value):
+    try:
+        bits = int(value)
+    except Exception:
+        return [u(str(value))]
+    if bits == 0:
+        return [u"EQUAL"]
+    return [u(name) for mask, name in DIFF_NAMES if bits & mask]
+
+
+def do_compare(cfg, result):
+    """CODESYS's own project comparison between two projects.
+
+    `left` is cfg["project"] (the installation project), `right` is
+    cfg["against"] (the reference). ADDED therefore means "only in the
+    installation project" and DELETED means "in the reference but missing from
+    the installation project" - read them in that direction, they are easy to
+    get backwards.
+    """
+    left = projects.open(cfg["project"], allow_readonly=True)  # noqa: F821
+    right = None
+    try:
+        # primary=False: the second project must not take over as the primary,
+        # or later calls quietly address the wrong one.
+        right = projects.open(cfg["against"], primary=False, allow_readonly=True)  # noqa: F821
+        # IGNORE_WHITESPACE | IGNORE_PROPERTIES: reformatting and metadata are
+        # not a reason to resync a block. Numeric because the enum is not one of
+        # the injected globals and the values are stable.
+        flags = 1 | 4
+        log("comparing ...")
+        comparison = left.compare_to(right, flags)
+        rows = []
+        for obj in list(safe(lambda: comparison.get_changed_objects(0xFFFFFF), []) or []):
+            state = safe(lambda: comparison.get_diff_state(obj), None)
+            bits = safe(lambda: state.ObjectDifferences, 0) if state is not None else 0
+            rows.append({
+                "path": object_path(obj),
+                "name": u(safe(lambda: obj.get_name(), u"?")),
+                "difference": u"+".join(diff_names(bits)),
+                "in_installation": state is not None and safe(lambda: state.left_object, None) is not None,
+                "in_reference": state is not None and safe(lambda: state.right_object, None) is not None,
+            })
+        rows.sort(key=lambda r: (sort_key(r["path"]), sort_key(r["name"])))
+        result["compare"] = {
+            "left": u(cfg["project"]),
+            "right": u(cfg["against"]),
+            "differences": rows,
+        }
+        log("compare: %d difference(s)" % len(rows))
+        target = cfg.get("output")
+        if target:
+            parent = os.path.dirname(target)
+            if parent and not os.path.isdir(parent):
+                os.makedirs(parent)
+            fh = codecs.open(target, "w", "utf-8")
+            try:
+                fh.write(json.dumps(result["compare"], indent=2, sort_keys=True,
+                                    ensure_ascii=False, default=u))
+            finally:
+                fh.close()
+            result["output"] = target
+    finally:
+        if right is not None:
+            safe(lambda: right.close())
+        safe(lambda: left.close())
 
 
 def build_and_collect(proj, result):
@@ -669,12 +1017,21 @@ def find_or_create_member(target, kind, name, return_type=None):
     return created, True
 
 
-def find_editable(proj, name, member=None):
+def find_editable(proj, name, member=None, path=None):
     """Locate a POU (or one of its methods/actions) that owns editable text.
 
     `proj.find` also returns things that merely share the name, such as the task
     configuration's POU-call nodes, so candidates are filtered to objects that
     actually carry declaration or implementation text.
+
+    A name alone stops being enough as soon as a project holds more than one
+    controller: an installation with two PFCs has two `PLC_PRG_MAIN`, both
+    text-owning and both legitimate, and every edit addressed by name is then
+    refused as ambiguous. `path` is a substring of the object path - normally the
+    device node, e.g. "Wago_G1_Annex/" - matched case-insensitively to pick
+    one. It narrows, it never widens: if the filter leaves nothing, that is
+    reported rather than falling back to the unfiltered set, because silently
+    editing the other controller's program is exactly the failure this prevents.
     """
     def owns_text(obj):
         return bool(safe(lambda: obj.has_textual_declaration, False)) or bool(
@@ -684,9 +1041,18 @@ def find_editable(proj, name, member=None):
     hits = [m for m in list(safe(lambda: proj.find(name, True), []) or []) if owns_text(m)]
     if not hits:
         return None, "no object named %s owns editable text" % name
+    if path:
+        needle = u(path).lower().replace(u"\\", u"/")
+        narrowed = [h for h in hits
+                    if needle in u(object_path(h)).lower().replace(u"\\", u"/")]
+        if not narrowed:
+            return None, "no object named %s under path %r (candidates: %s)" % (
+                name, path, ", ".join([object_path(h) for h in hits]))
+        hits = narrowed
     if len(hits) > 1:
         paths = ", ".join([object_path(h) for h in hits])
-        return None, "%s is ambiguous: %s" % (name, paths)
+        hint = "" if path else " - add \"path\" to the edit to pick one"
+        return None, "%s is ambiguous: %s%s" % (name, paths, hint)
     target = hits[0]
     if not member:
         return target, None
@@ -907,7 +1273,7 @@ def apply_edits(proj, cfg, result):
                     log("delete %s RAISED:\n%s" % (label, trace))
             result["edits"].append(entry)
             continue
-        target, problem = find_editable(proj, name, member)
+        target, problem = find_editable(proj, name, member, spec.get("path"))
         # create_method/create_action name a member to add to the POU if missing;
         # the decl/body keys of this same edit then apply to that member.
         for kind in ("method", "action", "property"):
@@ -1003,15 +1369,20 @@ def import_candidates(proj, cfg, result):
     resolve = conflict_resolve(mode) if mode else None
     if resolve is not None:
         log("import conflict policy: %s (no reporter on this overload)" % mode)
+    # A hand-written candidate holds a bare <pous> list with no folders, so
+    # honouring its structure files the object at the project root - hence the
+    # default below. A candidate *exported from another project* does carry
+    # folders, and then honouring them is exactly right: it is what puts
+    # FB_OUTPUT_COVER_MQTT back into BASIC/ instead of at the root, where it
+    # would sit beside the real one and never be compiled. The sync sets this.
+    folders = bool(cfg.get("import_folders", False))
+    log("import folder structure: %s" % folders)
     for path in files:
         if resolve is not None:
             entry = {"file": path, "conflict": mode, "errors": [], "warnings": [],
                      "added": None, "replaced": None, "skipped": None}
             try:
-                # import_folder_structure=False: a candidate holds a bare <pous>
-                # list with no folders, and asking CODESYS to honour that
-                # structure is what files the object at the project root.
-                proj.import_xml(resolve, path, False)
+                proj.import_xml(resolve, path, folders)
                 log("imported %s with conflict=%s" % (os.path.basename(path), mode))
             except Exception:
                 trace = traceback.format_exc()
@@ -1022,7 +1393,9 @@ def import_candidates(proj, cfg, result):
             continue
         reporter = Reporter()
         try:
-            # Positional, reporter first (see the `probe` task).
+            # Positional, reporter first (see the `probe` task). The reporter
+            # overload has always honoured folders; only the conflict overload
+            # needed the flag made explicit.
             proj.import_xml(reporter, path, True)
         except Exception:
             trace = traceback.format_exc()
@@ -1048,6 +1421,30 @@ def do_verify(cfg, result):
         safe(lambda: proj.close())
 
 
+def clear_precompile_cache(cfg, result):
+    """Delete `<name>_project.precompilecache` beside the project, if there is one.
+
+    Returns True when a file was actually removed, so the caller only pays for a
+    rebuild when there was something to invalidate. The cache is a build
+    accelerator and CODESYS regenerates it, so removing it is safe; it is not
+    removed pre-emptively because a full rebuild of a two-controller project costs
+    minutes.
+    """
+    path = cfg.get("project") or ""
+    stem, _ = os.path.splitext(path)
+    cache = stem + "_project.precompilecache"
+    if not os.path.isfile(cache):
+        return False
+    try:
+        os.remove(cache)
+        log("removed %s" % cache)
+        return True
+    except Exception:
+        result.setdefault("warnings_local", []).append(
+            "could not remove %s: %s" % (cache, traceback.format_exc().strip().split("\n")[-1]))
+        return False
+
+
 def do_apply(cfg, result):
     proj = projects.open(cfg["project"])  # noqa: F821
     try:
@@ -1060,6 +1457,28 @@ def do_apply(cfg, result):
         # inject scaffolding. Run `verify` first - that is what checks the code.
         build_and_collect(proj, result)
         blocking = [m for m in result["messages"] if m["severity"] in BAD_SEVERITIES]
+        if blocking and not result["errors"] and clear_precompile_cache(cfg, result):
+            # `verify` builds a copy alone in .ai/work; `apply` builds the real
+            # project, beside CODESYS's <name>_project.precompilecache. That cache
+            # can serve a stale compiled interface for a block this very run just
+            # re-declared, and the result is an error naming an identifier the
+            # source no longer contains - "'Invert' is no valid assignment target"
+            # for code already rewritten to RelayType, in a project where the only
+            # remaining `Invert` was inside a comment.
+            #
+            # It is worth a rebuild rather than a warning because the failure is
+            # indistinguishable from a real one by reading the messages, and the
+            # cost of getting it wrong is abandoning a change that was correct.
+            # Only when the build itself failed: a tool error means something else
+            # broke, and rebuilding would bury it.
+            del result["messages"][:]
+            log("build failed; precompile cache cleared, rebuilding once")
+            build_and_collect(proj, result)
+            blocking = [m for m in result["messages"] if m["severity"] in BAD_SEVERITIES]
+            result["precompile_cache_cleared"] = True
+            if not blocking:
+                log("clean after clearing the cache - the first failure was stale, "
+                    "not your edit")
         if blocking or result["errors"]:
             result["saved"] = False
             result["errors"].append("project NOT saved: the imported code does not build")
@@ -1498,6 +1917,8 @@ def do_device(cfg, result):
 
 
 TASKS = {
+    "compare": do_compare,
+    "info": do_info,
     "device": do_device,
     "download": do_download,
     "scan": do_scan,

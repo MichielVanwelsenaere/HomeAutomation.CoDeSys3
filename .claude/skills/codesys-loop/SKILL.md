@@ -88,6 +88,27 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 | `./tools/ai/codesys.ps1 simulate` | Download to a simulated PLC and run a test spec. **Currently blocked — see below.** |
 | `./tools/ai/codesys.ps1 apply -Force` | Import candidates into the **real** project and save. |
 | `./tools/ai/codesys.ps1 probe` | Dump real .NET signatures of the scripting API. |
+| `./tools/ai/codesys.ps1 info` | Read-only: IDE version, libraries, devices, and a hash of every object's code. |
+| `./tools/ai/codesys.ps1 compare -Project A -Against B` | CODESYS's own object-level diff between two projects. |
+
+### Working on another project
+
+`-Project <path>` points any task at a different `.project` file — that is how
+`sync-implementation-project` drives a building's installation project. Reports
+are then stem-qualified (`baseline.SiteA.json`), so a foreign build
+cannot overwrite this project's baseline. `download` **refuses** `-Project`.
+
+Four companions to it:
+
+| Flag | Why |
+|:--|:--|
+| `-Candidates <dir>` | A separate candidate set, so two pieces of work cannot import into each other's project. |
+| `-Only <names>` | Export just some objects. Errors by name if one is not found rather than exporting less than asked. |
+| `-ImportFolders` | Honour the folder structure in a candidate exported from another project. Without it the block lands at the project root, is never compiled, and the build stays green while the import achieved nothing. |
+| `-ImportConflict replace` | Replace an object that already exists. Without a policy the importer has no say and files a **second** object of the same name, leaving the original compiled. |
+
+The last two fail the same way — silently, with a green build — and a candidate
+lifted out of another project needs both.
 
 ## Workflow
 
@@ -149,6 +170,7 @@ ScriptEngine's textual API and is applied by both `verify` and `apply`:
 | Key | Effect |
 |:--|:--|
 | `pou` | POU, program **or GVL** name. Must resolve to exactly one object that owns text. |
+| `path` | Substring of the object path, matched case-insensitively, to disambiguate `pou`. |
 | `member` | Target a method or action instead of the POU itself. |
 | `decl_append` / `decl_replace` | Declaration, inline text or `*_file`. |
 | `body_prepend` / `body_append` / `body_replace` | Implementation, same. |
@@ -161,6 +183,13 @@ Notes that cost real time to rediscover:
   duplicates the text. `*_replace` needs no guard.
 - `*_file` paths resolve relative to the spec file, then to the repo root. Keep
   fragments in `.ai/edits/` — **never `.ai/work`, which `verify` deletes.**
+- **A name stops identifying a POU as soon as a project has two controllers.**
+  An installation with two PFCs has two `PLC_PRG_MAIN`, both real, both owning
+  text, and every edit addressed by name alone is then refused as ambiguous.
+  `"path": "Wago_G1_Annex/"` picks one. The refusal is the useful behaviour —
+  the alternative is a coin flip over which building gets rewritten — so do not
+  work around it by renaming a program. `delete_pou` has no such qualifier yet;
+  it will report the same ambiguity and stop.
 - `insert()` takes the **offset first**, the reverse of the shipped stub. Same trap
   as `export_xml`.
 - `-Edits none` skips the spec, which is how you build the committed project
@@ -187,6 +216,18 @@ Established by compile probe, not by reading documentation:
   (`textual_declaration.append`) for editing an existing POU's declaration; that
   path is already proven by the verify harness, which injects into a real program
   this way on every run.
+- **A `<dataType>` takes `<baseType>` then `<addData>`, and nothing else.** There
+  is no `<documentation>` child on a DUT in `tc6_0200`; adding one fails the whole
+  file with
+
+      The element 'dataType' ... has invalid child element 'addData'
+
+  which names the wrong element and reads like an ordering problem, so the obvious
+  fix — shuffling the children — does not help. Put a type's prose in the
+  per-value `enumvaluedocumentation` block instead. **The import failure is easy
+  to miss**: `verify` reports it in `imports[].errors`, then the build fails with
+  a hundred `Identifier not defined` errors for the type, and the real message is
+  the first one, not the hundred. `E_RELAY_TYPE` was authored this way — copy it.
 - For a NEW POU, put the plaintext declaration in an `<addData>` block on the
   `<pou>`:
 

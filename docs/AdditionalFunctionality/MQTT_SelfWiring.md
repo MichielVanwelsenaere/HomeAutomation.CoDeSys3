@@ -80,6 +80,36 @@ per-field struct cannot express.
 > retained `light/.../config` topic is orphaned — the light disappears from your
 > dashboards and automations.
 
+## `RelayType`
+
+Say which way round the contact the output drives actually sits:
+
+| Value | The load is live when | Typical use |
+|:--|:--|:--|
+| `E_RELAY_TYPE.NO` | `OUT` is `TRUE` | the default; almost every lighting circuit |
+| `E_RELAY_TYPE.NC` | `OUT` is `FALSE` | sockets, and anything that must survive a dead controller |
+
+```iecst
+FB_DO_SW_RE : FB_OUTPUT_BINARY_MQTT := (FriendlyName := 'Living room sockets',
+                                        EntityType   := E_MQTT_ENTITY.Switch,
+                                        RelayType    := E_RELAY_TYPE.NC);
+```
+
+This changes nothing in the PLC — the output behaves identically either way — and
+everything in the discovery config, where it swaps the `payload_on` /
+`payload_off` pair so Home Assistant reports the state of the **load** rather than
+the state of the coil. Leave it at `NO` on an NC circuit and the entity reads
+exactly backwards: "off" while the sockets are live. Nothing catches that, because
+nothing in the PLC is wrong.
+
+The default is `NO` and `NO` is `0`, so an instance that says nothing behaves as
+it always has.
+
+Only the blocks whose discovery methods take it honour it —
+`FB_OUTPUT_BINARY_MQTT` and `FB_OUTPUT_BISTABLE_MQTT`. It lives on `FB_MQTT_BASE`
+alongside `FriendlyName` and `EntityType`, so it is accepted and ignored
+elsewhere, the same way `EntityType` is on a block that can only be one thing.
+
 ## Leaving a block unnamed
 
 `FriendlyName` is optional and defaults to empty. An unnamed block does nothing
@@ -94,7 +124,7 @@ yourself when the declaration cannot express what you need:
 
 - a second broker, or a publish queue other than `MqttVariables.fbMqttPublishQueue`
 - a topic prefix that is not the standard one for that block's category
-- a `DeviceClass`, `overruleId`, `meta` or `Invert` on the discovery config
+- a `DeviceClass`, `overruleId` or `meta` on the discovery config
 - a per-instance Home Assistant device rather than the shared `PLC_Device`
 
 Leave `FriendlyName` empty when you do, so the block does not also wire itself.

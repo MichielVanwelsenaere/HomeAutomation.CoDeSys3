@@ -19,6 +19,11 @@ explains the layering. Function blocks are documented one per page under
 | `tools/ai/` | Headless CODESYS driver. |
 | `.ai/` | Gitignored scratch: candidate blocks, sandbox copy, compiler reports. |
 
+This project is the **reference**. Real buildings run separate *installation*
+projects that reuse its function blocks but own their own logic, I/O and device
+tree. `sync-implementation-project` is how one of those catches up; nothing in
+this repository ever downloads to a building's PLC.
+
 ## The core constraint
 
 `src/HomeAutomation.project` is a binary. It cannot be read, diffed or edited as
@@ -34,6 +39,7 @@ XML.
 | Add or change a function block, refactor ST, check that something compiles, re-export the PLCopen XML, inspect the project structure | **`codesys-loop`** |
 | Regenerate or check the generated regions of `docs/FunctionBlocks/*.md` | **`update-fb-docs`** |
 | Check whether the logic actually *works* — lights, pushbuttons, covers, HVAC — on a real PLC | **`test-plc-logic`** |
+| Bring a real building's installation project up to this project's function blocks, or check whether it is still version-compatible | **`sync-implementation-project`** |
 
 Two things worth knowing before you start, both covered in detail by
 `codesys-loop`:
@@ -155,6 +161,124 @@ Ruled out along the way, so nobody re-tests them: it is not an online change
 reports `cold reset : True`; the value did not budge). The cold reset was kept
 anyway — it makes a download an unambiguous fresh start, which is worth having on
 its own.
+
+## `verify` passes and `apply` fails: delete the precompile cache
+
+**Not an editing problem at all, and it looks exactly like one.** `verify` copies
+the project to `.ai/work` and builds the copy, alone in an empty folder. `apply`
+builds the real project **in place**, where CODESYS keeps
+`<name>_project.precompilecache` beside it — and that cache can serve a stale
+compiled interface for a block whose declaration the same run just changed.
+
+The symptom is an error describing code that no longer exists anywhere:
+
+    'Invert' is no valid assignment target                          x3
+    Identifier 'Invert' not defined                                 x3
+    <Wago_G1_Annex/Plc Logic/HomeAutomation/PRG's/PLC_PRG_MAIN>
+
+after a run that had already rewritten every `Invert` to `RelayType`, in a project
+whose source contained the string `Invert` only inside a comment. Deleting
+`SiteA_project.precompilecache` and re-running the identical spec built
+clean and saved.
+
+Three hours went into the wrong theory first, so it is written down: the same six
+errors survived `replace_in_decl` per line, a whole-declaration `decl_replace`,
+**and** a `decl_replace` that deleted the initialiser outright — which reads as
+overwhelming evidence that a structured initialiser `:= (Name := ...)` is stored
+outside the text like an `FB_init` argument list. It is not. Every one of those
+runs simply hit the same stale cache. What actually proved it was a `verify
+-Baseline` on the untouched project: `ok=True`, no errors. A project that builds
+clean untouched, and fails an edit-free `apply`, is telling you the difference is
+the folder, not the edit.
+
+`do_apply` now clears the cache and rebuilds once when the first build fails, and
+reports `precompile cache cleared, rebuilt` when it does. If that line appears,
+nothing was wrong with the edit.
+
+Related, and the reason this was so easy to misdiagnose: `apply` refuses to save a
+project that does not build, so all of those failed runs left the project
+untouched and correct. The guard works. It also means a wrong theory costs nothing
+but time.
+
+**Do not let this section talk you out of the next one.** Having found the cache,
+this file briefly claimed the structured-initialiser trap below was *not* real.
+That was an over-correction and it was wrong. The two are separate faults with
+opposite symptoms, and both happen:
+
+| | cache | structValue |
+|:--|:--|:--|
+| build | **fails**, citing an identifier the source no longer contains | **succeeds** |
+| save | refused | succeeds, `saved=True` |
+| what changed | nothing (guard held) | the text only |
+
+## A structured initialiser goes stale exactly like `FB_init` — `:= (Name := ...)`
+
+**Changing a value inside an existing initialiser does not reach the compiler.**
+Same storage trick as `FB_init` arguments: CODESYS keeps the initialiser in
+`<initialValue><structValue>` beside the declaration, and reads *that*.
+
+Proven on the annex `PLC_PRG_MAIN`, renaming four `FriendlyName` values. `apply`
+reported `decl_replace` applied, `errors=0`, `saved=True`, and afterwards:
+
+| | says |
+|:--|:--|
+| declaration text (what `info` shows, what a human reads) | `'Smoke detector landing'` |
+| `structValue` (what the compiler reads, what the PLC runs) | `'Landing'` |
+
+**The discriminator is whether the initialiser's *shape* changes**, and it explains
+every case seen so far:
+
+- new instance → no stored entry to win → text is parsed. The whole annex
+  migration landed this way, 37 instances at once.
+- member **renamed** (`Invert` → `RelayType`) → the stored entry names a member
+  that no longer exists → re-derived. That rename landed, `RelayType` and all.
+- same members, **different value** → shape unchanged → silently dropped.
+
+### Verifying it: `info` cannot see this, `export` can
+
+This is why it went unnoticed. `info -Full` returns the declaration **text**, which
+is updated and looks right. The check that works is a PLCopen `export`, whose
+`<variable>` elements carry the `<structValue>`:
+
+```
+./tools/ai/codesys.ps1 export -Project <path> -Output .ai/scratch.xml
+```
+
+Two traps in reading that export. It carries **no declaration text at all** — no
+`interfaceasplaintext` — so grepping it for a comment proves nothing either way.
+And bound each `<variable>` element properly when parsing: an instance with no
+initialiser has no `<structValue>`, so a fixed-size window silently reads the
+*next* instance's values. That produced a first draft of this finding that showed
+a binary sensor with an `EntityType` and an uninitialised block with a name.
+
+### There is no scripted way round it. Three were tried.
+
+| Attempt | Result |
+|:--|:--|
+| `decl_replace` with the new values | text updated, `structValue` unchanged |
+| `decl_replace` dropping the initialiser entirely, then a second `apply` re-adding it | **both saved clean, `structValue` unchanged by either** |
+| (for `FB_init`, previously) `replace_in_decl` per line | same |
+
+The second is the decisive one: removing `:= (...)` from the text does not remove
+the stored members, so there is no clear-and-re-add trick. The store is simply
+unreachable from `textual_declaration`.
+
+Which retires the "shape change" theory this file carried for one revision. The
+cases that *did* land are better explained without it:
+
+- the 37 migrated instances were **new**, so there was no store to lose to;
+- `Invert := TRUE` becoming `RelayType := E_RELAY_TYPE.NC` was almost certainly
+  CODESYS re-binding the existing entry through the renamed member and keeping its
+  ordinal — and `TRUE` and `NC` are both `1`. It came out right by luck, not
+  because a script wrote it. Do not build on it.
+
+**Remedy: the IDE**, same as `FB_init`. If the declaration text is already correct
+and only the store is stale, that is a small job — open the POU, touch the
+declaration and save, and the editor re-parses it. Better still, design so a value
+someone will want to change does not live in an initialiser at all.
+
+And whatever you do, **confirm with `export` and `structValue`, never with `info`**
+— `info` returns the text, which is exactly the half that lies.
 
 ## Open: an edit that reports success and does not take effect
 

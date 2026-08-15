@@ -31,8 +31,53 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true, Position = 0)]
-    [ValidateSet('doctor', 'tree', 'device', 'scan', 'export', 'verify', 'simulate', 'download', 'apply', 'probe')]
+    [ValidateSet('doctor', 'tree', 'device', 'scan', 'export', 'verify', 'simulate', 'download', 'apply', 'probe',
+        'info', 'compare')]
     [string]$Task,
+
+    # Operate on a project other than src/HomeAutomation.project. This is what
+    # lets the sync-implementation-project skill drive an installation project
+    # that lives in a different repository entirely.
+    #
+    # `download` REFUSES a -Project override: shipping a foreign project to a PLC
+    # from this repo's tooling is never what was meant, and the mistake is not
+    # undoable.
+    [string]$Project,
+
+    # info/compare/export: where the report artefact goes. `export` needs it
+    # whenever -Project is given, because the default output path is this
+    # repository's committed src/Exports/PLCopen.xml.
+    [string]$Output,
+
+    # compare only: the project to compare -Project against. Defaults to this
+    # repository's src/HomeAutomation.project, i.e. the reference.
+    [string]$Against,
+
+    # info only: include the full declaration and implementation text of every
+    # object, not just a hash of it. Large, but it is what lets an agent read an
+    # external project without exporting it.
+    [switch]$Full,
+
+    # verify/apply: take candidates from somewhere other than .ai/candidates.
+    # The sync skill keeps its own set so a half-finished sync and a half-finished
+    # block edit cannot get imported into each other's project.
+    [string]$Candidates,
+
+    # export only: export just these objects, by name, instead of all IEC content.
+    [string[]]$Only,
+
+    # verify/apply: honour the folder structure recorded in the candidate XML.
+    # Right for a candidate exported from another project, wrong for a
+    # hand-written one (which has no folders and would land at the root).
+    [switch]$ImportFolders,
+
+    # verify/apply: what to do when a candidate names an object that already
+    # exists. Without this the importer has no say and quietly adds a SECOND
+    # object of the same name, leaving the original in place and compiled.
+    # An edits spec can also carry it as "import_conflict"; this parameter is
+    # for a sync, which has no edits spec.
+    [ValidateSet('replace', 'copy', 'skip')]
+    [string]$ImportConflict,
 
     # download only: retarget for one run instead of using the stored address.
     # -Address takes a gateway node address as listed by `scan` (e.g. 003E);
@@ -85,9 +130,18 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..')).Path
-$project = Join-Path $repo 'src\HomeAutomation.project'
+$referenceProject = Join-Path $repo 'src\HomeAutomation.project'
+# NOT $project: PowerShell variable names are case-insensitive, so $project and
+# the -Project parameter are the same variable, and assigning to it silently
+# discarded the override. Every task then ran against the reference project
+# while the banner cheerfully said "override".
+$targetProject = $referenceProject
+if ($Project) {
+    if (-not (Test-Path $Project)) { throw "Project not found: $Project" }
+    $targetProject = (Resolve-Path $Project).Path
+}
 $aiDir = Join-Path $repo '.ai'
-$candidates = Join-Path $aiDir 'candidates'
+$candidates = if ($Candidates) { $Candidates } else { Join-Path $aiDir 'candidates' }
 $reports = Join-Path $aiDir 'reports'
 $work = Join-Path $aiDir 'work'
 
@@ -153,7 +207,7 @@ if ($Task -eq 'doctor') {
             if ($pfc) { 'installed' } else { 'missing - the project device will not resolve' }) -Optional:(-not $pfc)
     }
 
-    Report 'project file' (Test-Path $project) $project
+    Report 'project file' (Test-Path $targetProject) $targetProject
 
     # mosquitto clients: the only way to verify runtime behaviour on this project,
     # since CODESYS simulation cannot run it. Not needed to compile, so optional.
@@ -253,33 +307,74 @@ function Resolve-Edits {
 
 function New-Sandbox {
     # A throwaway copy, so a broken candidate or a simulation flag can never
-    # reach src/. Returns the path of the copied project.
+    # reach the real project. Returns the path of the copied project.
     if (Test-Path $work) { Remove-Item $work -Recurse -Force }
     New-Item -ItemType Directory -Path $work -Force | Out-Null
-    $sandbox = Join-Path $work 'HomeAutomation.project'
-    Copy-Item $project $sandbox
-    # Keep the project-relative Libraries layout intact in the sandbox.
-    Copy-Item (Join-Path $repo 'src\Libraries') (Join-Path $work 'Libraries') -Recurse -Force
+    $sandbox = Join-Path $work (Split-Path $targetProject -Leaf)
+    Copy-Item $targetProject $sandbox
+    # Keep the project-relative Libraries layout intact in the sandbox. A
+    # foreign project may resolve everything from the installed repository and
+    # have no sibling folder at all, which is fine.
+    $libs = Join-Path (Split-Path $targetProject -Parent) 'Libraries'
+    if (Test-Path $libs) { Copy-Item $libs (Join-Path $work 'Libraries') -Recurse -Force }
     return $sandbox
 }
 
 # ---------------------------------------------------------------- build the task
 
+$projectStem = [IO.Path]::GetFileNameWithoutExtension($targetProject)
+# Reports for a foreign project are stem-qualified, so a `verify` on an
+# installation project cannot overwrite this repository's own baseline.json and
+# quietly retune what "NEW vs baseline" means for the next reference build.
+$suffix = if ($Project) { ".$projectStem" } else { '' }
 $reportName = switch ($Task) {
-    'verify' { if ($Baseline) { 'baseline.json' } else { 'verify.json' } }
-    default  { "$Task.json" }
+    'verify' { if ($Baseline) { "baseline$suffix.json" } else { "verify$suffix.json" } }
+    # Always stem-qualified: the sync skill runs `info` against two projects in
+    # a row, and an unqualified name would make the second clobber the first.
+    'info'   { "info.$projectStem.json" }
+    default  { "$Task$suffix.json" }
 }
+$baselineName = "baseline$suffix.json"
 $reportPath = Join-Path $reports $reportName
 
 $cfg = [ordered]@{
     task    = $Task
     report  = $reportPath
-    project = $project
+    project = $targetProject
 }
 
 switch ($Task) {
+    'info' {
+        # Read-only. Opened with VersionUpdateFlags.NoUpdates on the driver side,
+        # so looking at an older project never silently converts it.
+        $cfg.full = [bool]$Full
+        $cfg.ide_version = $codesys.VersionInfo.ProductVersion
+        if ($Output) { $cfg.output = $Output }
+    }
+    'compare' {
+        $right = if ($Against) { $Against } else { $referenceProject }
+        if (-not (Test-Path $right)) { throw "Comparison project not found: $right" }
+        $cfg.against = (Resolve-Path $right).Path
+        if ($cfg.against -eq $targetProject) {
+            throw 'compare needs two different projects. Pass -Project and -Against.'
+        }
+        if ($Output) { $cfg.output = $Output }
+        Write-Host "left      : $targetProject"
+        Write-Host "right     : $($cfg.against)"
+    }
     'export' {
-        if ($Plaintext) {
+        if ($Project -and -not $Output -and -not $Plaintext) {
+            throw @'
+export writes src/Exports/PLCopen.xml by default, which belongs to THIS
+repository and does not describe the project you passed with -Project.
+Pass -Output <path> to say where the foreign export should go.
+'@
+        }
+        if ($Output) {
+            $cfg.output = $Output
+            $cfg.plaintext = [bool]$Plaintext
+        }
+        elseif ($Plaintext) {
             # Scratch copy with lossless ST declarations: much easier to read
             # than the XML-encoded form, but not the committed artefact - the
             # docs generator parses the structured declarations.
@@ -289,6 +384,7 @@ switch ($Task) {
         else {
             $cfg.output = Join-Path $repo 'src\Exports\PLCopen.xml'
         }
+        if ($Only) { $cfg.only = @($Only); Write-Host "objects   : $($Only -join ', ')" }
     }
     'verify' {
         $cfg.project = New-Sandbox
@@ -296,7 +392,10 @@ switch ($Task) {
         # A baseline must be the untouched project, so it takes no edits.
         if (-not $Baseline) {
             $cfg.edits = Resolve-Edits
+            # Explicit parameter wins over whatever an edits spec happened to say.
+            if ($ImportConflict) { $script:importConflict = $ImportConflict }
             if ($script:importConflict) { $cfg.import_conflict = $script:importConflict }
+            $cfg.import_folders = [bool]$ImportFolders
         }
     }
     'simulate' {
@@ -315,6 +414,14 @@ switch ($Task) {
         }
     }
     'download' {
+        if ($Project) {
+            throw @'
+download refuses a -Project override. This repository's tooling ships THIS
+project to a PLC; pointing it at an installation project would put reference
+code onto a building's controller from the wrong working copy, and there is no
+undo. Open that project in the IDE and download it from there.
+'@
+        }
         if (-not $Force) {
             throw @'
 download transfers the application to the real PLC and starts it. This stops the
@@ -366,11 +473,13 @@ running application and re-initialises non-persistent variables. Re-run with
     }
     'apply' {
         if (-not $Force) {
-            throw 'apply writes to src/HomeAutomation.project. Re-run with -Force.'
+            throw "apply writes to $targetProject. Re-run with -Force."
         }
         $cfg.candidates = $candidates
         $cfg.edits = Resolve-Edits
+        if ($ImportConflict) { $script:importConflict = $ImportConflict }
         if ($script:importConflict) { $cfg.import_conflict = $script:importConflict }
+        $cfg.import_folders = [bool]$ImportFolders
     }
 }
 
@@ -386,13 +495,14 @@ $driver = Join-Path $PSScriptRoot 'codesys_task.py'
 Write-Host "CODESYS   : $($codesys.FullName) ($($codesys.VersionInfo.ProductVersion))"
 Write-Host "profile   : $CodesysProfile"
 Write-Host "task      : $Task -> $reportPath"
+if ($Project) { Write-Host "project   : $targetProject (override)" -ForegroundColor Cyan }
 if ($Task -in @('verify', 'apply')) {
     $n = @(Get-ChildItem $candidates -Filter '*.xml' -ErrorAction SilentlyContinue).Count
     if ($Baseline) { Write-Host 'candidates: none (baseline run)' }
     else { Write-Host "candidates: $n file(s)" }
 }
 
-if ($Task -eq 'verify' -and -not $Baseline -and -not (Test-Path (Join-Path $reports 'baseline.json'))) {
+if ($Task -eq 'verify' -and -not $Baseline -and -not (Test-Path (Join-Path $reports $baselineName))) {
     Write-Host 'note      : no baseline recorded; pre-existing library warnings will be listed too.' -ForegroundColor Yellow
     Write-Host '            run "./tools/ai/codesys.ps1 verify -Baseline" once to silence them.' -ForegroundColor Yellow
 }
@@ -475,6 +585,32 @@ switch ($Task) {
     'export' {
         Write-Host "exported roots: $($report.exported_roots -join ', ')"
         Write-Host "written to    : $($report.output)"
+    }
+    'info' {
+        $i = $report.info
+        if ($i) {
+            Write-Host "project      : $($i.path)"
+            Write-Host "IDE running  : $($i.ide_version)"
+            Write-Host "devices      : $(@($i.devices | ForEach-Object { "$($_.name) [$($_.id) $($_.version)]" }) -join ', ')"
+            Write-Host "objects      : $(@($report.objects).Count)"
+            Write-Host ''
+            Write-Host 'libraries:'
+            foreach ($l in @($i.libraries)) {
+                Write-Host ("  {0,-46} {1}" -f $l.name, $(if ($l.is_placeholder) { 'placeholder' } else { 'fixed' }))
+            }
+        }
+        if ($report.output) { Write-Host ''; Write-Host "written to   : $($report.output)" }
+    }
+    'compare' {
+        Write-Host "left  : $($report.compare.left)"
+        Write-Host "right : $($report.compare.right)"
+        Write-Host ''
+        foreach ($d in @($report.compare.differences)) {
+            Write-Host ("  {0,-14} {1}" -f $d.difference, $d.path)
+        }
+        Write-Host ''
+        Write-Host "differences: $(@($report.compare.differences).Count)"
+        if ($report.output) { Write-Host "written to : $($report.output)" }
     }
     'tree' {
         foreach ($node in $report.tree) {
@@ -577,7 +713,7 @@ if ($report.advisories) {
 }
 
 # Diff against the recorded baseline so pre-existing warnings stay quiet.
-$baselinePath = Join-Path $reports 'baseline.json'
+$baselinePath = Join-Path $reports $baselineName
 if ($Task -eq 'verify' -and -not $Baseline -and (Test-Path $baselinePath)) {
     $base = Get-Content $baselinePath -Raw | ConvertFrom-Json
     $known = @{}
