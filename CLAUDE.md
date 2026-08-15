@@ -19,6 +19,11 @@ explains the layering. Function blocks are documented one per page under
 | `tools/ai/` | Headless CODESYS driver. |
 | `.ai/` | Gitignored scratch: candidate blocks, sandbox copy, compiler reports. |
 
+This project is the **reference**. Real buildings run separate *installation*
+projects that reuse its function blocks but own their own logic, I/O and device
+tree. `sync-implementation-project` is how one of those catches up; nothing in
+this repository ever downloads to a building's PLC.
+
 ## The core constraint
 
 `src/HomeAutomation.project` is a binary. It cannot be read, diffed or edited as
@@ -34,6 +39,7 @@ XML.
 | Add or change a function block, refactor ST, check that something compiles, re-export the PLCopen XML, inspect the project structure | **`codesys-loop`** |
 | Regenerate or check the generated regions of `docs/FunctionBlocks/*.md` | **`update-fb-docs`** |
 | Check whether the logic actually *works* — lights, pushbuttons, covers, HVAC — on a real PLC | **`test-plc-logic`** |
+| Bring a real building's installation project up to this project's function blocks, or check whether it is still version-compatible | **`sync-implementation-project`** |
 
 Two things worth knowing before you start, both covered in detail by
 `codesys-loop`:
@@ -155,6 +161,44 @@ Ruled out along the way, so nobody re-tests them: it is not an online change
 reports `cold reset : True`; the value did not budge). The cold reset was kept
 anyway — it makes a download an unambiguous fresh start, which is worth having on
 its own.
+
+## `verify` passes and `apply` fails: delete the precompile cache
+
+**Not an editing problem at all, and it looks exactly like one.** `verify` copies
+the project to `.ai/work` and builds the copy, alone in an empty folder. `apply`
+builds the real project **in place**, where CODESYS keeps
+`<name>_project.precompilecache` beside it — and that cache can serve a stale
+compiled interface for a block whose declaration the same run just changed.
+
+The symptom is an error describing code that no longer exists anywhere:
+
+    'Invert' is no valid assignment target                          x3
+    Identifier 'Invert' not defined                                 x3
+    <Wago_G1_Annex/Plc Logic/HomeAutomation/PRG's/PLC_PRG_MAIN>
+
+after a run that had already rewritten every `Invert` to `RelayType`, in a project
+whose source contained the string `Invert` only inside a comment. Deleting
+`SiteA_project.precompilecache` and re-running the identical spec built
+clean and saved.
+
+Three hours went into the wrong theory first, so it is written down: the same six
+errors survived `replace_in_decl` per line, a whole-declaration `decl_replace`,
+**and** a `decl_replace` that deleted the initialiser outright — which reads as
+overwhelming evidence that a structured initialiser `:= (Name := ...)` is stored
+outside the text like an `FB_init` argument list. It is not. Every one of those
+runs simply hit the same stale cache. What actually proved it was a `verify
+-Baseline` on the untouched project: `ok=True`, no errors. A project that builds
+clean untouched, and fails an edit-free `apply`, is telling you the difference is
+the folder, not the edit.
+
+`do_apply` now clears the cache and rebuilds once when the first build fails, and
+reports `precompile cache cleared, rebuilt` when it does. If that line appears,
+nothing was wrong with the edit.
+
+Related, and the reason this was so easy to misdiagnose: `apply` refuses to save a
+project that does not build, so all of those failed runs left the project
+untouched and correct. The guard works. It also means a wrong theory costs nothing
+but time.
 
 ## Open: an edit that reports success and does not take effect
 

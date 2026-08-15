@@ -113,8 +113,11 @@ GLOSSARY = {
     "Device": "Pointer to the discovery device this entity belongs to, normally "
               "`MqttVariables.PLC_Device`.",
     "Name": "Name shown in the Home Assistant front-end.",
-    "Invert": "Set TRUE for a normally-closed (NC) contact. FALSE, the default, "
-              "assumes normally-open (NO).",
+    "RelayType": "Which way round the driven contact sits: `E_RELAY_TYPE.NO` "
+                 "(the default) means the load is live when the output is TRUE, "
+                 "`E_RELAY_TYPE.NC` means it is live when the output is FALSE. "
+                 "Swaps the payload pair so the entity reports the state of the "
+                 "load rather than of the coil.",
     "overruleId": "Overrides the generated entity id. Leave empty to derive it "
                   "from the function block name.",
     "meta": "Extra JSON merged into the discovery config. Leave empty for none.",

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-14T09:56:12.7427627" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-14T09:55:19.5382643">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-15T09:58:47.2887915" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-15T09:44:11.7439434">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -112,6 +112,54 @@
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>aef53a6b-9c40-421a-a8ff-44d7415f7bab</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="E_RELAY_TYPE">
+        <baseType>
+          <enum>
+            <values>
+              <value name="NO" value="0" />
+              <value name="NC" value="1" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>NO</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Normally open, and the default. The load is live when the output is TRUE, so a
+dead PLC leaves it off. What almost every lighting circuit is.
+
+Which way round the contact sits decides nothing in the PLC - the output behaves
+identically either way - and everything in the Home Assistant discovery config,
+where it swaps the payload_on / payload_off pair so the entity reports the state
+of the LOAD rather than the state of the coil.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>NC</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Normally closed. The load is live when the output is FALSE, so a dead PLC leaves
+it ON - which is the point: sockets, and anything that must survive the
+controller, are wired this way.
+
+Home Assistant reads such an output exactly backwards unless it is told, and no
+build can catch that, because nothing in the PLC is wrong.</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+              <Attribute Name="strict" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>1725693c-2e66-470f-96cb-0947d108f150</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -2647,28 +2695,34 @@ IF FriendlyName &lt;&gt; '' THEN
 		IF EntityType = E_MQTT_ENTITY.Light THEN
 			THIS^.InitMqttDiscoveryAsLight(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Lock THEN
 			THIS^.InitMqttDiscoveryAsLock(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Siren THEN
 			THIS^.InitMqttDiscoveryAsSiren(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Valve THEN
 			THIS^.InitMqttDiscoveryAsValve(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Fan THEN
 			THIS^.InitMqttDiscoveryAsFan(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSE
 			(* Default, and any platform this block cannot announce as. *)
 			THIS^.InitMqttDiscoveryAsSwitch(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		END_IF
 	END_IF
 
@@ -2742,13 +2796,17 @@ PreviousState := OUT;</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -2770,11 +2828,11 @@ PreviousState := OUT;</xhtml>
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
-			PayloadOff := BOOL_TO_STRING(Invert),
+			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic,
-			StateOnPayload := BOOL_TO_STRING(NOT(Invert)),
-			StateOffPayload := BOOL_TO_STRING(Invert)
+			StateOnPayload := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			StateOffPayload := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC)
 		);
 
 
@@ -2819,13 +2877,17 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -2847,11 +2909,11 @@ END_IF		</xhtml>
 		Id := id,
 		Meta := meta,
 		CommandTopic := THIS^.MQTTSubscribeTopic,
-		PayloadLock := BOOL_TO_STRING(NOT(Invert)),
-		PayloadUnlock := BOOL_TO_STRING(Invert),
+		PayloadLock := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+		PayloadUnlock := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 		StateTopic := THIS^.MQTTPublishTopic,
-		StateUnlocked := BOOL_TO_STRING(Invert),
-		StateLocked := BOOL_TO_STRING(NOT(Invert)));
+		StateUnlocked := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
+		StateLocked := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO));
 
 	initMqttDiscoveryDone := TRUE;
 END_IF		</xhtml>
@@ -2894,13 +2956,17 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -2922,8 +2988,8 @@ END_IF		</xhtml>
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
-			PayloadOff := BOOL_TO_STRING(Invert),
+			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic);
 
 	initMqttDiscoveryDone := TRUE;
@@ -2975,13 +3041,17 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -3003,11 +3073,11 @@ END_IF		</xhtml>
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
-			PayloadOff := BOOL_TO_STRING(Invert),
+			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic,
-			StateOnPayload := BOOL_TO_STRING(NOT(Invert)),
-			StateOffPayload := BOOL_TO_STRING(Invert),
+			StateOnPayload := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			StateOffPayload := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			DeviceClass := DeviceClass);
 	
 	initMqttDiscoveryDone := TRUE;
@@ -3167,13 +3237,17 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -3195,11 +3269,11 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOpen := BOOL_TO_STRING(NOT(Invert)),
-			PayloadClosed := BOOL_TO_STRING(Invert),
+			PayloadOpen := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadClosed := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic,
-			StateOpen := BOOL_TO_STRING(Invert),
-			StateClosed := BOOL_TO_STRING(NOT(Invert)),
+			StateOpen := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
+			StateClosed := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			Deviceclass := DeviceClass);
 
 	initMqttDiscoveryDone := TRUE;
@@ -3243,13 +3317,17 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -3273,8 +3351,8 @@ END_IF		</xhtml>
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
-			PayloadOff := BOOL_TO_STRING(Invert),
+			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic);
 
 	initMqttDiscoveryDone := TRUE;
@@ -3436,24 +3514,29 @@ IF FriendlyName &lt;&gt; '' THEN
 		IF EntityType = E_MQTT_ENTITY.Light THEN
 			THIS^.InitMqttDiscoveryAsLight(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Lock THEN
 			THIS^.InitMqttDiscoveryAsLock(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Siren THEN
 			THIS^.InitMqttDiscoveryAsSiren(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Fan THEN
 			THIS^.InitMqttDiscoveryAsFan(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		ELSE
 			(* Default, and any platform this block cannot announce as. *)
 			THIS^.InitMqttDiscoveryAsSwitch(
 				Device := ADR(MqttVariables.PLC_Device),
-				Name := FriendlyName);
+				Name := FriendlyName,
+				RelayType := RelayType);
 		END_IF
 	END_IF
 
@@ -3538,13 +3621,17 @@ PulseTrigger:=FALSE;</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -3566,8 +3653,8 @@ PulseTrigger:=FALSE;</xhtml>
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
-			PayloadOff := BOOL_TO_STRING(Invert),
+			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic);
 
 	initMqttDiscoveryDone := TRUE;
@@ -3611,13 +3698,17 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -3639,11 +3730,11 @@ END_IF		</xhtml>
 		Id := id,
 		Meta := meta,
 		CommandTopic := THIS^.MQTTSubscribeTopic,
-		PayloadLock := BOOL_TO_STRING(NOT(Invert)),
-		PayloadUnlock := BOOL_TO_STRING(Invert),
+		PayloadLock := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+		PayloadUnlock := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 		StateTopic := THIS^.MQTTPublishTopic,
-		StateUnlocked := BOOL_TO_STRING(Invert),
-		StateLocked := BOOL_TO_STRING(NOT(Invert)));
+		StateUnlocked := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
+		StateLocked := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO));
 
 	initMqttDiscoveryDone := TRUE;
 END_IF		</xhtml>
@@ -3686,13 +3777,17 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -3714,11 +3809,11 @@ END_IF		</xhtml>
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
-			PayloadOff := BOOL_TO_STRING(Invert),
+			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic,
-			StateOnPayload := BOOL_TO_STRING(NOT(Invert)),
-			StateOffPayload := BOOL_TO_STRING(Invert)
+			StateOnPayload := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			StateOffPayload := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC)
 		);
 
 	initMqttDiscoveryDone := TRUE;
@@ -3899,13 +3994,17 @@ END_IF </xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -3927,11 +4026,11 @@ END_IF </xhtml>
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
-			PayloadOff := BOOL_TO_STRING(Invert),
+			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic,
-			StateOnPayload := BOOL_TO_STRING(NOT(Invert)),
-			StateOffPayload := BOOL_TO_STRING(Invert),
+			StateOnPayload := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			StateOffPayload := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			DeviceClass := DeviceClass);
 	
 	initMqttDiscoveryDone := TRUE;
@@ -3975,13 +4074,17 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="Invert">
+                  <variable name="RelayType">
                     <type>
-                      <BOOL />
+                      <derived name="E_RELAY_TYPE" />
                     </type>
                     <initialValue>
-                      <simpleValue value="FALSE" />
+                      <simpleValue value="E_RELAY_TYPE.NO" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> NO (default) or NC. Swaps the payload pair so the entity reports the
+ state of the load, not of the coil.</xhtml>
+                    </documentation>
                   </variable>
                 </inputVars>
                 <localVars>
@@ -4005,8 +4108,8 @@ END_IF		</xhtml>
 			Id := id,
 			Meta := meta,
 			CommandTopic := THIS^.MQTTSubscribeTopic,
-			PayloadOn := BOOL_TO_STRING(NOT(Invert)),
-			PayloadOff := BOOL_TO_STRING(Invert),
+			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.MQTTPublishTopic);
 
 	initMqttDiscoveryDone := TRUE;
@@ -8007,6 +8110,27 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
  than its own default MUST say so here: FB_DO_BIN_001 is a binary output
  announced as a Light, and getting that wrong silently orphans the
  retained light/.../config topic and creates a new switch entity instead.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="RelayType">
+              <type>
+                <derived name="E_RELAY_TYPE" />
+              </type>
+              <initialValue>
+                <simpleValue value="E_RELAY_TYPE.NO" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Which way round the contact this output drives sits: NO (the default) means
+ the load is live when OUT is TRUE, NC means it is live when OUT is FALSE.
+ It changes nothing in the PLC and everything in the discovery config, which
+ swaps payload_on / payload_off so Home Assistant reports the state of the
+ LOAD rather than of the coil. Get it wrong on an NC circuit and the entity
+ reads exactly backwards, with nothing anywhere to flag it.
+
+ NC is not exotic: it is how anything that must survive a dead controller is
+ wired, sockets above all. Honoured only by blocks whose discovery methods
+ take it - the binary and bistable outputs - and accepted and ignored
+ elsewhere, the same way EntityType is on a block that can only be one thing.</xhtml>
               </documentation>
             </variable>
           </inputVars>
@@ -18804,6 +18928,7 @@ PreviousReachable := DMXnodeReachable;</xhtml>
           </Object>
         </Folder>
         <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
+        <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
             <Object Name="InitMqtt" ObjectId="69154081-2c02-43db-90a6-f8cbcade69d6" />
