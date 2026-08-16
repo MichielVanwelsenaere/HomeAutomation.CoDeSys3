@@ -7,7 +7,7 @@ description: Exercise the PLC's actual behaviour on real hardware - lights, push
 
 The compiler is the only automated gate this project has. It cannot tell you
 whether pressing a button turns on a light, or whether a thermostat opens a valve —
-[CODESYS simulation cannot run this project at all](../../CLAUDE.md), so *behaviour
+[CODESYS simulation cannot run this project at all](../../../CLAUDE.md), so *behaviour
 is only observable on a real PFC*.
 
 Two ways in, and the difference matters:
@@ -252,7 +252,7 @@ have commanded anything is that, not a bug. Read every thermostat's `/MODE` and
 an existing `FB_init` argument changed from a script updates the declaration text
 while the compiler keeps reading the old `InputAssignments`, so the PLC runs the old
 value with a clean build and a matching export
-([CLAUDE.md](../../CLAUDE.md) has the detail). It is also the wrong place — 5-second
+([CLAUDE.md](../../../CLAUDE.md) has the detail). It is also the wrong place — 5-second
 valve travel in source can reach an installation with real pipes.
 
 **Write the members at runtime instead**, which is what

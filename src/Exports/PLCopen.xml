@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-15T09:58:47.2887915" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-15T09:44:11.7439434">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-16T12:12:32.3978518" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-16T12:11:51.4525695">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -916,6 +916,14 @@ build can catch that, because nothing in the PLC is wrong.</xhtml>
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> unit of measurement, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_cla">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state class, can be null</xhtml>
               </documentation>
             </variable>
           </struct>
@@ -6314,6 +6322,1113 @@ END_IF </xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="Manufacturer">
+              <type>
+                <string />
+              </type>
+              <initialValue>
+                <simpleValue value="'Eastron'" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Fixed for this block - every SDM is an Eastron meter. The model varies
+ (SDM120, SDM220, SDM630), so it is passed in per instance instead.</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_BASE_MQTT_DISCOVERY_DEVICE</Extends>
+              </Inheritance>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1">
+              <interface>
+                <inputVars>
+                  <variable name="name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Model">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'unknown'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="availabilityTopic1">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="availabilityTopic2">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="availabilityOnline">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="availabilityOffline">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="MqttDiscoveryPrefix">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="MqttDiagnosticTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Announces the meter itself as a Home Assistant device, so its measurements
+   group under one card instead of scattering across the PLC device. Same shape
+   as FB_1WIRE_MQTT_DISCOVERY_DEVICE, with Model passed through because one
+   block serves the whole SDM family. *)
+IF xInit THEN
+	xInit := FALSE;
+
+	SUPER^.initBaseDevice(
+		Name := name,
+		Identifiers := id,
+		Manufacturer := THIS^.Manufacturer,
+		Model := Model,
+		availabilityTopic := availabilityTopic1,
+		availabilityTopic2 := availabilityTopic2,
+		availabilityOnline := availabilityOnline,
+		availabilityOffline := availabilityOffline,
+		MqttDiscoveryPrefix := MqttDiscoveryPrefix,
+		MqttDiagnosticTopic := MqttDiagnosticTopic,
+		pMqttPublishQueue := pMqttPublishQueue);
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>83ba608b-36e7-4e0d-bc48-e72f8108c8bd</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_RS485_EASTRON_SDM630_MQTT" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="noinit" />
+                    <Attribute Name="instance-path" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="isDataUpdated">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="timerData">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="SDM630RtuQuery">
+              <type>
+                <derived name="RS485_RtuQuery" />
+              </type>
+              <initialValue>
+                <structValue>
+                  <value member="FunctionCode">
+                    <simpleValue value="4" />
+                  </value>
+                  <value member="ReadAddress">
+                    <simpleValue value="12" />
+                  </value>
+                  <value member="ReadQuantity">
+                    <simpleValue value="64" />
+                  </value>
+                </structValue>
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> One read covers the whole measurement block: function 4 (input registers),
+	   64 words from 16#000C (phase 1 power) to 16#004B (total export energy).
+	   Reading it in one transaction keeps the values consistent with each other
+	   and costs the bus one slot instead of 26. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="MqttDiscoveryDevice">
+              <type>
+                <derived name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Owned rather than referenced, unlike the 1-Wire sensors which share a
+	   gateway device from the GVL: a meter is one Home Assistant device on its
+	   own, so there is nothing to share and self-wiring has nothing to look up. </xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <outputVars>
+            <variable name="L1_ACTIVEPOWER">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="L2_ACTIVEPOWER">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L1 Active Power. SDM630 input register 16#000C.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L3_ACTIVEPOWER">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L2 Active Power. SDM630 input register 16#000E.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L1_VA">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L3 Active Power. SDM630 input register 16#0010.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L2_VA">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L1 Apparent Power. SDM630 input register 16#0012.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L3_VA">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L2 Apparent Power. SDM630 input register 16#0014.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L1_VAR">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L3 Apparent Power. SDM630 input register 16#0016.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L2_VAR">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L1 Reactive Power. SDM630 input register 16#0018.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L3_VAR">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L2 Reactive Power. SDM630 input register 16#001A.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L1_PF">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L3 Reactive Power. SDM630 input register 16#001C.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L2_PF">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L1 Power Factor. SDM630 input register 16#001E.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L3_PF">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L2 Power Factor. SDM630 input register 16#0020.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L1_PHI">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L3 Power Factor. SDM630 input register 16#0022.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L2_PHI">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L1 Phase Angle. SDM630 input register 16#0024.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="L3_PHI">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L2 Phase Angle. SDM630 input register 16#0026.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="AVG_LN_V">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> L3 Phase Angle. SDM630 input register 16#0028.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="AVG_LINE_I">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Average L-N Voltage. SDM630 input register 16#002A.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="SUM_LINE_I">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Average Line Current. SDM630 input register 16#002C.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ACTIVEPOWER">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Sum of Line Currents. SDM630 input register 16#002E.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="TOTAL_VA">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Active Power. SDM630 input register 16#0034.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="TOTAL_VAR">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Total Apparent Power. SDM630 input register 16#0038.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="TOTAL_PF">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Total Reactive Power. SDM630 input register 16#003C.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="TOTAL_PHI">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Total Power Factor. SDM630 input register 16#003E.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="FREQUENCY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Total Phase Angle. SDM630 input register 16#0042.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="TOTAL_IMPORT_ENERGY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Frequency. SDM630 input register 16#0046.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="TOTAL_EXPORT_ENERGY">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Total Import Energy. SDM630 input register 16#0048.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="DataAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Total Export Energy. SDM630 input register 16#004A.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Error">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </outputVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+                <Implements>RS485Device</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check. The
+   body is the same lifecycle phase the init actions used, so this is not merely
+   safe, it is the phase that already works today.
+
+   The wiring calls this block's own unmodified InitMqtt / InitMqttDiscovery
+   methods, so anything published - topics and discovery JSON alike - is produced
+   by exactly the code that produces it today. Only the trigger moved.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where the init action used
+   to wire it regardless. Nothing warns about that.  *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubRS485Prefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(THIS^.MqttDiscoveryDevice),
+			DeviceName := FriendlyName);
+	END_IF
+
+END_IF
+
+timerData();
+
+(* Publish on change of data rather than on a timer: ProcessDataArray sets the
+   flag when a response arrives, so the publish rate follows DataPollingInterval
+   and nothing is republished while the bus is quiet. PubMqttMessage is a no-op
+   until InitMqtt has run, so this needs no further guard. *)
+IF isDataUpdated THEN
+	isDataUpdated := FALSE;
+
+	PubMqttMessage(Suffix := '/L1_ACTP', Data := REAL_TO_STRING(L1_ACTIVEPOWER));
+	PubMqttMessage(Suffix := '/L2_ACTP', Data := REAL_TO_STRING(L2_ACTIVEPOWER));
+	PubMqttMessage(Suffix := '/L3_ACTP', Data := REAL_TO_STRING(L3_ACTIVEPOWER));
+	PubMqttMessage(Suffix := '/L1_VA', Data := REAL_TO_STRING(L1_VA));
+	PubMqttMessage(Suffix := '/L2_VA', Data := REAL_TO_STRING(L2_VA));
+	PubMqttMessage(Suffix := '/L3_VA', Data := REAL_TO_STRING(L3_VA));
+	PubMqttMessage(Suffix := '/L1_VAR', Data := REAL_TO_STRING(L1_VAR));
+	PubMqttMessage(Suffix := '/L2_VAR', Data := REAL_TO_STRING(L2_VAR));
+	PubMqttMessage(Suffix := '/L3_VAR', Data := REAL_TO_STRING(L3_VAR));
+	PubMqttMessage(Suffix := '/L1_PF', Data := REAL_TO_STRING(L1_PF));
+	PubMqttMessage(Suffix := '/L2_PF', Data := REAL_TO_STRING(L2_PF));
+	PubMqttMessage(Suffix := '/L3_PF', Data := REAL_TO_STRING(L3_PF));
+	PubMqttMessage(Suffix := '/L1_PHI', Data := REAL_TO_STRING(L1_PHI));
+	PubMqttMessage(Suffix := '/L2_PHI', Data := REAL_TO_STRING(L2_PHI));
+	PubMqttMessage(Suffix := '/L3_PHI', Data := REAL_TO_STRING(L3_PHI));
+	PubMqttMessage(Suffix := '/AVG_V', Data := REAL_TO_STRING(AVG_LN_V));
+	PubMqttMessage(Suffix := '/AVG_I', Data := REAL_TO_STRING(AVG_LINE_I));
+	PubMqttMessage(Suffix := '/SUM_I', Data := REAL_TO_STRING(SUM_LINE_I));
+	PubMqttMessage(Suffix := '/ACTP', Data := REAL_TO_STRING(ACTIVEPOWER));
+	PubMqttMessage(Suffix := '/TOT_VA', Data := REAL_TO_STRING(TOTAL_VA));
+	PubMqttMessage(Suffix := '/TOT_VAR', Data := REAL_TO_STRING(TOTAL_VAR));
+	PubMqttMessage(Suffix := '/TOT_PF', Data := REAL_TO_STRING(TOTAL_PF));
+	PubMqttMessage(Suffix := '/TOT_PHI', Data := REAL_TO_STRING(TOTAL_PHI));
+	PubMqttMessage(Suffix := '/FREQ', Data := REAL_TO_STRING(FREQUENCY));
+	PubMqttMessage(Suffix := '/IMPE', Data := REAL_TO_STRING(TOTAL_IMPORT_ENERGY));
+	PubMqttMessage(Suffix := '/EXPE', Data := REAL_TO_STRING(TOTAL_EXPORT_ENERGY));
+END_IF</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="0054ec84-c547-4567-a12a-f8f66915f6a1">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="DeviceName">
+                    <type>
+                      <string length="50" />
+                    </type>
+                  </variable>
+                  <variable name="Model">
+                    <type>
+                      <string length="20" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'SDM630'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Announces the meter as a device of its own, then one sensor entity per
+   measurement. StateClass is what puts the two kWh totals into the Home
+   Assistant energy dashboard; the instantaneous values are 'measurement' and
+   power factor, phase angle, voltage, current and frequency carry none. *)
+IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+
+	id := SUPER^.ResolveEntityId(overruleId := overruleId);
+
+	Device^.initEastronDevice(
+		name := DeviceName,
+		id := id,
+		Model := Model,
+		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic2 := CONCAT(THIS^.MQTTPublishTopic, '/availability'),
+		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
+		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
+		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+
+	Device^.CreateSensorEntity(
+		Name := 'L1 Active Power',
+		Id := CONCAT(id, '_L1_ACTP'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L1_ACTP'),
+		DeviceClass := 'power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'W');
+
+	Device^.CreateSensorEntity(
+		Name := 'L2 Active Power',
+		Id := CONCAT(id, '_L2_ACTP'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L2_ACTP'),
+		DeviceClass := 'power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'W');
+
+	Device^.CreateSensorEntity(
+		Name := 'L3 Active Power',
+		Id := CONCAT(id, '_L3_ACTP'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L3_ACTP'),
+		DeviceClass := 'power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'W');
+
+	Device^.CreateSensorEntity(
+		Name := 'L1 Apparent Power',
+		Id := CONCAT(id, '_L1_VA'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L1_VA'),
+		DeviceClass := 'apparent_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'VA');
+
+	Device^.CreateSensorEntity(
+		Name := 'L2 Apparent Power',
+		Id := CONCAT(id, '_L2_VA'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L2_VA'),
+		DeviceClass := 'apparent_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'VA');
+
+	Device^.CreateSensorEntity(
+		Name := 'L3 Apparent Power',
+		Id := CONCAT(id, '_L3_VA'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L3_VA'),
+		DeviceClass := 'apparent_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'VA');
+
+	Device^.CreateSensorEntity(
+		Name := 'L1 Reactive Power',
+		Id := CONCAT(id, '_L1_VAR'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L1_VAR'),
+		DeviceClass := 'reactive_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'var');
+
+	Device^.CreateSensorEntity(
+		Name := 'L2 Reactive Power',
+		Id := CONCAT(id, '_L2_VAR'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L2_VAR'),
+		DeviceClass := 'reactive_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'var');
+
+	Device^.CreateSensorEntity(
+		Name := 'L3 Reactive Power',
+		Id := CONCAT(id, '_L3_VAR'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L3_VAR'),
+		DeviceClass := 'reactive_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'var');
+
+	Device^.CreateSensorEntity(
+		Name := 'L1 Power Factor',
+		Id := CONCAT(id, '_L1_PF'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L1_PF'),
+		DeviceClass := 'power_factor',
+		UnitOfMeasurement := '');
+
+	Device^.CreateSensorEntity(
+		Name := 'L2 Power Factor',
+		Id := CONCAT(id, '_L2_PF'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L2_PF'),
+		DeviceClass := 'power_factor',
+		UnitOfMeasurement := '');
+
+	Device^.CreateSensorEntity(
+		Name := 'L3 Power Factor',
+		Id := CONCAT(id, '_L3_PF'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L3_PF'),
+		DeviceClass := 'power_factor',
+		UnitOfMeasurement := '');
+
+	Device^.CreateSensorEntity(
+		Name := 'L1 Phase Angle',
+		Id := CONCAT(id, '_L1_PHI'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L1_PHI'),
+		DeviceClass := '',
+		UnitOfMeasurement := '°');
+
+	Device^.CreateSensorEntity(
+		Name := 'L2 Phase Angle',
+		Id := CONCAT(id, '_L2_PHI'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L2_PHI'),
+		DeviceClass := '',
+		UnitOfMeasurement := '°');
+
+	Device^.CreateSensorEntity(
+		Name := 'L3 Phase Angle',
+		Id := CONCAT(id, '_L3_PHI'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/L3_PHI'),
+		DeviceClass := '',
+		UnitOfMeasurement := '°');
+
+	Device^.CreateSensorEntity(
+		Name := 'Average L-N Voltage',
+		Id := CONCAT(id, '_AVG_V'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/AVG_V'),
+		DeviceClass := 'voltage',
+		UnitOfMeasurement := 'V');
+
+	Device^.CreateSensorEntity(
+		Name := 'Average Line Current',
+		Id := CONCAT(id, '_AVG_I'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/AVG_I'),
+		DeviceClass := 'current',
+		UnitOfMeasurement := 'A');
+
+	Device^.CreateSensorEntity(
+		Name := 'Sum of Line Currents',
+		Id := CONCAT(id, '_SUM_I'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/SUM_I'),
+		DeviceClass := 'current',
+		UnitOfMeasurement := 'A');
+
+	Device^.CreateSensorEntity(
+		Name := 'Active Power',
+		Id := CONCAT(id, '_ACTP'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/ACTP'),
+		DeviceClass := 'power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'W');
+
+	Device^.CreateSensorEntity(
+		Name := 'Total Apparent Power',
+		Id := CONCAT(id, '_TOT_VA'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/TOT_VA'),
+		DeviceClass := 'apparent_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'VA');
+
+	Device^.CreateSensorEntity(
+		Name := 'Total Reactive Power',
+		Id := CONCAT(id, '_TOT_VAR'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/TOT_VAR'),
+		DeviceClass := 'reactive_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'var');
+
+	Device^.CreateSensorEntity(
+		Name := 'Total Power Factor',
+		Id := CONCAT(id, '_TOT_PF'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/TOT_PF'),
+		DeviceClass := 'power_factor',
+		UnitOfMeasurement := '');
+
+	Device^.CreateSensorEntity(
+		Name := 'Total Phase Angle',
+		Id := CONCAT(id, '_TOT_PHI'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/TOT_PHI'),
+		DeviceClass := '',
+		UnitOfMeasurement := '°');
+
+	Device^.CreateSensorEntity(
+		Name := 'Frequency',
+		Id := CONCAT(id, '_FREQ'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/FREQ'),
+		DeviceClass := 'frequency',
+		UnitOfMeasurement := 'Hz');
+
+	Device^.CreateSensorEntity(
+		Name := 'Total Import Energy',
+		Id := CONCAT(id, '_IMP_ENERG'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/IMPE'),
+		DeviceClass := 'energy',
+		StateClass := 'total_increasing',
+		UnitOfMeasurement := 'kWh');
+
+	Device^.CreateSensorEntity(
+		Name := 'Total Export Energy',
+		Id := CONCAT(id, '_EXP_ENERG'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/EXPE'),
+		DeviceClass := 'energy',
+		StateClass := 'total_increasing',
+		UnitOfMeasurement := 'kWh');
+
+	initMqttDiscoveryDone := TRUE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PubMqttMessage" ObjectId="f88b499e-2380-4a8d-922d-bd4560cf731b">
+              <interface>
+                <inputVars>
+                  <variable name="Suffix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := Data,
+			Topic := CONCAT(THIS^.MQTTPublishTopic, Suffix),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ProcessDataArray" ObjectId="20b0d7c4-e988-4229-818b-157dede241aa">
+              <interface>
+                <inputVars>
+                  <variable name="Error">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BOOL />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <array>
+                            <dimension lower="0" upper="124" />
+                            <baseType>
+                              <WORD />
+                            </baseType>
+                          </array>
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.Error := Error^;
+THIS^.timerData.IN := TRUE;
+
+IF Error^ THEN
+	PubMqttMessage(Suffix := '/availability', Data := 'offline');
+ELSE
+	PubMqttMessage(Suffix := '/availability', Data := 'online');
+END_IF
+
+IF NOT Error^ THEN
+	(* Every value is a big-endian IEEE float across two consecutive words, so the
+	   word index is the register offset from 16#000C doubled. Gaps below are
+	   registers the SDM630 reserves. *)
+	THIS^.L1_ACTIVEPOWER := SwapWordsToReal(Data^[0], Data^[1]);	// 16#000C L1 Active Power
+	THIS^.L2_ACTIVEPOWER := SwapWordsToReal(Data^[2], Data^[3]);	// 16#000E L2 Active Power
+	THIS^.L3_ACTIVEPOWER := SwapWordsToReal(Data^[4], Data^[5]);	// 16#0010 L3 Active Power
+	THIS^.L1_VA := SwapWordsToReal(Data^[6], Data^[7]);	// 16#0012 L1 Apparent Power
+	THIS^.L2_VA := SwapWordsToReal(Data^[8], Data^[9]);	// 16#0014 L2 Apparent Power
+	THIS^.L3_VA := SwapWordsToReal(Data^[10], Data^[11]);	// 16#0016 L3 Apparent Power
+	THIS^.L1_VAR := SwapWordsToReal(Data^[12], Data^[13]);	// 16#0018 L1 Reactive Power
+	THIS^.L2_VAR := SwapWordsToReal(Data^[14], Data^[15]);	// 16#001A L2 Reactive Power
+	THIS^.L3_VAR := SwapWordsToReal(Data^[16], Data^[17]);	// 16#001C L3 Reactive Power
+	THIS^.L1_PF := SwapWordsToReal(Data^[18], Data^[19]);	// 16#001E L1 Power Factor
+	THIS^.L2_PF := SwapWordsToReal(Data^[20], Data^[21]);	// 16#0020 L2 Power Factor
+	THIS^.L3_PF := SwapWordsToReal(Data^[22], Data^[23]);	// 16#0022 L3 Power Factor
+	THIS^.L1_PHI := SwapWordsToReal(Data^[24], Data^[25]);	// 16#0024 L1 Phase Angle
+	THIS^.L2_PHI := SwapWordsToReal(Data^[26], Data^[27]);	// 16#0026 L2 Phase Angle
+	THIS^.L3_PHI := SwapWordsToReal(Data^[28], Data^[29]);	// 16#0028 L3 Phase Angle
+	THIS^.AVG_LN_V := SwapWordsToReal(Data^[30], Data^[31]);	// 16#002A Average L-N Voltage
+	THIS^.AVG_LINE_I := SwapWordsToReal(Data^[32], Data^[33]);	// 16#002C Average Line Current
+	THIS^.SUM_LINE_I := SwapWordsToReal(Data^[34], Data^[35]);	// 16#002E Sum of Line Currents
+	THIS^.ACTIVEPOWER := SwapWordsToReal(Data^[40], Data^[41]);	// 16#0034 Active Power
+	THIS^.TOTAL_VA := SwapWordsToReal(Data^[44], Data^[45]);	// 16#0038 Total Apparent Power
+	THIS^.TOTAL_VAR := SwapWordsToReal(Data^[48], Data^[49]);	// 16#003C Total Reactive Power
+	THIS^.TOTAL_PF := SwapWordsToReal(Data^[50], Data^[51]);	// 16#003E Total Power Factor
+	THIS^.TOTAL_PHI := SwapWordsToReal(Data^[54], Data^[55]);	// 16#0042 Total Phase Angle
+	THIS^.FREQUENCY := SwapWordsToReal(Data^[58], Data^[59]);	// 16#0046 Frequency
+	THIS^.TOTAL_IMPORT_ENERGY := SwapWordsToReal(Data^[60], Data^[61]);	// 16#0048 Total Import Energy
+	THIS^.TOTAL_EXPORT_ENERGY := SwapWordsToReal(Data^[62], Data^[63]);	// 16#004A Total Export Energy
+
+	THIS^.DataAvailable := TRUE;
+	THIS^.isDataUpdated := TRUE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetRtuQuery" ObjectId="7407039a-a784-4544-99c8-a5c3d90e423e">
+              <interface>
+                <returnType>
+                  <derived name="RS485_RtuQuery" />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
+	THIS^.timerData.IN := FALSE;
+	GetRtuQuery := THIS^.SDM630RtuQuery;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestBusTime" ObjectId="ed257093-d067-4622-b16d-0eaea6b88517">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
+	RequestBusTime := TRUE;
+ELSE
+	RequestBusTime := FALSE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt" ObjectId="fee8d535-2303-49b0-a39c-99133d384d7b">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+
+SUPER^.InitBaseMqtt();</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init" ObjectId="cf26ca08-9a13-4700-8165-b02fc227a95a">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the instance will be copied to the copy code afterward (online change)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DeviceAddress">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Modbus slave address of the meter.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DataPollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">How often the meter is read. One read covers all 26 measurements.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Modbus address and poll rate describe the wiring, not a mode, so they are
+   fixed for the life of the instance and belong here rather than in a runtime
+   setter. Note the consequence: changing either afterwards means editing the
+   declaration in the IDE - CODESYS stores an instance's FB_init arguments beside
+   the declaration text, where no script can reach them. *)
+THIS^.SDM630RtuQuery.DeviceId := DeviceAddress;
+THIS^.timerData.PT := DataPollingInterval;
+THIS^.timerData.IN := TRUE;
+
+FB_init := TRUE;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>af59857b-6616-4cd6-a053-847b3c89d96f</ObjectId>
+          </data>
+        </addData>
+      </pou>
       <pou name="FB_HVAC_BURNER_MQTT" pouType="functionBlock">
         <interface>
           <outputVars>
@@ -9657,6 +10772,20 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
+                  <variable name="StateClass">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Home Assistant state_class: 'measurement', 'total' or 'total_increasing'.
+ Empty publishes null, which is right for anything Home Assistant should
+ not keep statistics on; a kWh total needs 'total_increasing' or it never
+ reaches the energy dashboard.</xhtml>
+                    </documentation>
+                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="EntityId">
@@ -9704,21 +10833,31 @@ THIS^.FillCommonFields(
 //MqttDiscoverySensorMessage.ic.CharString := Icon;
 MqttDiscMsgSensor.stat_t.CharString := StateTopic;
 MqttDiscMsgSensor.exp_aft.Integer := ExpiryAfter;
-MqttDiscMsgSensor.dev_cla.CharString := DeviceClass;
+(* An empty device class has to publish null rather than the empty string: Home
+   Assistant validates dev_cla against a fixed list and rejects the whole config
+   otherwise, which loses the entity rather than just its class. Same reason the
+   unit is nulled below. *)
+IF DeviceClass &lt;&gt; '' THEN
+	MqttDiscMsgSensor.dev_cla.CharString := DeviceClass;
+ELSE
+	MqttDiscMsgSensor.dev_cla.Null := 'null';
+END_IF
 IF UnitOfMeasurement &lt;&gt; '' THEN
 	MqttDiscMsgSensor.unit_of_meas.CharString := UnitOfMeasurement;
 ELSE
 	MqttDiscMsgSensor.unit_of_meas.Null := 'null';
 END_IF
-
-
+IF StateClass &lt;&gt; '' THEN
+	MqttDiscMsgSensor.stat_cla.CharString := StateClass;
+ELSE
+	MqttDiscMsgSensor.stat_cla.Null := 'null';
+END_IF
 
 THIS^.PublishEntityConfig(
 	pStruct := ADR(MqttDiscMsgSensor),
 	StructSize := SIZEOF(MqttDiscMsgSensor),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -15907,6 +17046,34 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                 </data>
               </addData>
             </variable>
+            <variable name="FB_RS485_EASTRON_SDM630_1">
+              <type>
+                <derived name="FB_RS485_EASTRON_SDM630_MQTT" />
+              </type>
+              <initialValue>
+                <structValue>
+                  <value member="FriendlyName">
+                    <simpleValue value="'Lab PLC energy meter'" />
+                  </value>
+                </structValue>
+              </initialValue>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                  <InputAssignments>
+                    <InputAssignment>
+                      <Value>4</Value>
+                    </InputAssignment>
+                    <InputAssignment>
+                      <Value>TIME#10s0ms</Value>
+                    </InputAssignment>
+                  </InputAssignments>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Self-wiring: FriendlyName is what turns the MQTT and discovery wiring on,
+	   so this needs no Init call in RS485_INIT - only registration on the bus. </xhtml>
+              </documentation>
+            </variable>
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                 <Attributes>
@@ -17815,6 +18982,7 @@ RS485BusController.Init(
 *)
 
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM220_1);
+RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM630_1);
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME);
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01);
 
@@ -17923,7 +19091,8 @@ RS485BusController();
 (* RS485 devices *)
 RS485Variables.FB_RS485_EASTRON_SDM220_1();
 RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME();
-RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();</xhtml>
+RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();
+RS485Variables.FB_RS485_EASTRON_SDM630_1();</xhtml>
                       </ST>
                     </body>
                     <addData>
@@ -18929,6 +20098,18 @@ PreviousReachable := DMXnodeReachable;</xhtml>
         </Folder>
         <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
         <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
+        <Object Name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" ObjectId="83ba608b-36e7-4e0d-bc48-e72f8108c8bd">
+          <Object Name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1" />
+        </Object>
+        <Object Name="FB_RS485_EASTRON_SDM630_MQTT" ObjectId="af59857b-6616-4cd6-a053-847b3c89d96f">
+          <Object Name="InitMqttDiscovery" ObjectId="0054ec84-c547-4567-a12a-f8f66915f6a1" />
+          <Object Name="PubMqttMessage" ObjectId="f88b499e-2380-4a8d-922d-bd4560cf731b" />
+          <Object Name="ProcessDataArray" ObjectId="20b0d7c4-e988-4229-818b-157dede241aa" />
+          <Object Name="GetRtuQuery" ObjectId="7407039a-a784-4544-99c8-a5c3d90e423e" />
+          <Object Name="RequestBusTime" ObjectId="ed257093-d067-4622-b16d-0eaea6b88517" />
+          <Object Name="InitMqtt" ObjectId="fee8d535-2303-49b0-a39c-99133d384d7b" />
+          <Object Name="FB_init" ObjectId="cf26ca08-9a13-4700-8165-b02fc227a95a" />
+        </Object>
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
             <Object Name="InitMqtt" ObjectId="69154081-2c02-43db-90a6-f8cbcade69d6" />
