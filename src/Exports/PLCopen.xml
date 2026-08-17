@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-16T12:12:32.3978518" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-16T12:11:51.4525695">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-17T10:21:21.2256866" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-17T10:18:23.2844465">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -18879,26 +18879,6 @@ FB_BURNER_GAS(
                         </array>
                       </type>
                     </variable>
-                    <variable name="awWriteBuffer">
-                      <type>
-                        <array>
-                          <dimension lower="0" upper="124" />
-                          <baseType>
-                            <WORD />
-                          </baseType>
-                        </array>
-                      </type>
-                    </variable>
-                    <variable name="fbModbusRequest">
-                      <type>
-                        <derived name="IoDrvModbus.ModbusRequest2" />
-                      </type>
-                    </variable>
-                    <variable name="eComError">
-                      <type>
-                        <derived name="IoDrvModbus.MB_ErrorCodes" />
-                      </type>
-                    </variable>
                     <variable name="Trigger">
                       <type>
                         <BOOL />
@@ -18944,6 +18924,298 @@ FB_BURNER_GAS(
                         <derived name="FB_RS485_BUSCONTROLLER" />
                       </type>
                     </variable>
+                    <variable name="xBusError">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- RS485 bus completion handshake and diagnostics ---------------------
+	   Added while tracking down why the bus never delivered a single reading
+	   after the CODESYS 3 conversion. See RS485_RUN for the explanation. 
+ What the registered devices see as Error^ in ProcessDataArray. Kept apart
+	   from xComPortError, which is about the serial port itself and must not be
+	   set by a device that simply did not answer. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="PortConfigured">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="FALSE" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Port settings are applied once, then left alone so an online session can
+	   change them and re-open with ReopenPort. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="ReopenPort">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="FALSE" />
+                      </initialValue>
+                    </variable>
+                    <variable name="diagRequests">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Completed modbus requests since start, and how many of those failed. A
+	   stalled bus is diagRequests frozen; a wired-but-silent bus is diagErrors
+	   climbing in step with diagRequests. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="diagErrors">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="RtuState">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- Modbus RTU transaction ----------------------------------------------
+	   Replaces IoDrvModbus.ModbusRequest2, which cannot be used on this port.
+
+	   Every reply from the meter arrives wrapped in glitch bytes - a 00 as the
+	   slave's driver enables and another as it releases - because the RS485 pair
+	   is undriven between frames. Measured on the bench: 34 of 34 captures had
+	   both, and all 34 were perfectly valid once trimmed. ModbusRequest2 rejects
+	   them outright; WAGO's FbMbMasterSerial frames on the 3.5-character silence
+	   and discards them, which is why e!COCKPIT installations never saw this.
+
+	   So frame the way RTU actually specifies: read until the line has been
+	   quiet, trim, then let the CRC say whether what is left is real.
+
+	   FB_RS485_BUSCONTROLLER's contract is unchanged - the controller raises
+	   Trigger, this clears it when the transaction finishes, and that falling
+	   edge is what tells the controller to hand the data to the device. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="RtuSlave">
+                      <type>
+                        <BYTE />
+                      </type>
+                    </variable>
+                    <variable name="RtuFunction">
+                      <type>
+                        <BYTE />
+                      </type>
+                    </variable>
+                    <variable name="RtuTx">
+                      <type>
+                        <array>
+                          <dimension lower="0" upper="15" />
+                          <baseType>
+                            <BYTE />
+                          </baseType>
+                        </array>
+                      </type>
+                    </variable>
+                    <variable name="RtuRx">
+                      <type>
+                        <array>
+                          <dimension lower="0" upper="287" />
+                          <baseType>
+                            <BYTE />
+                          </baseType>
+                        </array>
+                      </type>
+                    </variable>
+                    <variable name="RtuRxCount">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="RtuGapTime">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#50ms" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> silence that ends a frame </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="RtuTimeout">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#1s0ms" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> give up on a silent slave </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="rtuGap">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                    </variable>
+                    <variable name="rtuLimit">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                    </variable>
+                    <variable name="rtuRestartGap">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="FALSE" />
+                      </initialValue>
+                    </variable>
+                    <variable name="rtuRestartLimit">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="FALSE" />
+                      </initialValue>
+                    </variable>
+                    <variable name="RtuValid">
+                      <type>
+                        <BOOL />
+                      </type>
+                    </variable>
+                    <variable name="RtuExceptionCode">
+                      <type>
+                        <BYTE />
+                      </type>
+                    </variable>
+                    <variable name="RtuOk">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Outcome counters. Worth keeping in production: they make line quality
+	   visible without a scope, and RtuLeadNulls climbing in step with RtuOk is
+	   the normal healthy picture on this hardware, not a fault. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="RtuCrcFail">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="RtuNoReply">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="RtuShortFrame">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="RtuBadAddr">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="RtuBadFunc">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="RtuExceptions">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="RtuLeadNulls">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="RtuTrailNulls">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="rtuResult">
+                      <type>
+                        <derived name="RTS_IEC_RESULT" />
+                      </type>
+                    </variable>
+                    <variable name="rtuFlush">
+                      <type>
+                        <array>
+                          <dimension lower="0" upper="63" />
+                          <baseType>
+                            <BYTE />
+                          </baseType>
+                        </array>
+                      </type>
+                    </variable>
+                    <variable name="rtuPtr">
+                      <type>
+                        <pointer>
+                          <baseType>
+                            <BYTE />
+                          </baseType>
+                        </pointer>
+                      </type>
+                    </variable>
+                    <variable name="rtuN">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="rtuCrcAcc">
+                      <type>
+                        <WORD />
+                      </type>
+                    </variable>
+                    <variable name="rtuCount">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
+                    <variable name="rtuStart">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
+                    <variable name="rtuEnd">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
+                    <variable name="rtuLen">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
+                    <variable name="rtuK">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
+                    <variable name="rtuBit">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
+                    <variable name="rtuRegs">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
                   </localVars>
                   <addData>
                     <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -18966,7 +19238,7 @@ RS485BusController.Init(
 	SilenceTime := T#50MS,				(* Silence time between two requests, important to not get faulty data on bus *)
 	BusTrigger := ADR(Trigger),			(* Pointer to the bool used to initiate bus requests *)
 	BusData := ADR(awReadBuffer),		(* Pointer to the array containing the bus response data *)
-	BusError := ADR(xComPortError)		(* Pointer to the bus error bool *)
+	BusError := ADR(xBusError)		(* Pointer to the bus error bool *)
 );
 
 
@@ -19048,34 +19320,186 @@ END_IF</xhtml>
                       <ST>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">(* CODESYS 3S Version version*)
 
+(* Serial port settings are assigned here rather than left to the declaration's
+   initialiser, for two reasons. A value inside an existing structured
+   initialiser cannot be changed from a script - the compiler keeps reading the
+   stored structValue, see CLAUDE.md - and having them in code means the port can
+   be re-opened with different settings from an online session. *)
+IF NOT PortConfigured THEN
+	PortConfigured := TRUE;
+	stComPortSettings.sPort			:= SYS_COM_PORTS.SYS_COMPORT1;
+	stComPortSettings.ulBaudrate	:= 9600;
+	stComPortSettings.byParity		:= SysCom.SYS_COM_PARITY.SYS_NOPARITY;
+	stComPortSettings.byStopBits	:= SysCom.SYS_COM_STOPBITS.SYS_ONESTOPBIT;
+	stComPortSettings.ulTimeout		:= 0;
+	stComPortSettings.ulBufferSize	:= 256;
+END_IF
+
+(* Set ReopenPort online to re-open with whatever is in stComPortSettings now. *)
+IF ReopenPort THEN
+	ReopenPort := FALSE;
+	IF xComPortOpen THEN
+		SysCom.SysComClose(hComPort);
+	END_IF
+	xComPortOpen := FALSE;
+	xComPortError := FALSE;
+	Trigger := FALSE;
+	RtuState := 0;
+END_IF
+
 IF(NOT xComPortOpen AND NOT xComPortError) THEN
-    hComPort := SysCom.SysComOpen2( pSettings := ADR(stComPortSettings), pSettingsEx := 0, pResult := ADR(rtsResult));     
+    hComPort := SysCom.SysComOpen2( pSettings := ADR(stComPortSettings), pSettingsEx := 0, pResult := ADR(rtsResult));
     xComPortError := (hComPort = RTS_INVALID_HANDLE OR rtsResult &lt;&gt; 0);
     xComPortOpen := NOT xComPortError;
 END_IF
 
 
+(* ------------------------------------------------------- Modbus RTU master *)
+rtuGap(IN := (RtuState = 1) AND NOT rtuRestartGap, PT := RtuGapTime);
+rtuLimit(IN := (RtuState = 1) AND NOT rtuRestartLimit, PT := RtuTimeout);
+rtuRestartGap := FALSE;
+rtuRestartLimit := FALSE;
+
 IF xComPortOpen THEN
-	fbModbusRequest.modbusCommand.uiFunctionCode := RS485BusController.ActiveRtuQuery.FunctionCode;
-    fbModbusRequest.modbusCommand.uiReadOffset := RS485BusController.ActiveRtuQuery.ReadAddress;	
-    fbModbusRequest.modbusCommand.uiReadLen :=RS485BusController.ActiveRtuQuery.ReadQuantity;	   
-    fbModbusRequest.pRecvData := ADR(awReadBuffer);
-    fbModbusRequest.pSendData := ADR(awWriteBuffer);        
-    fbModbusRequest.tResponseTimeout := T#1S;
-	fbModbusRequest.transmission := MB_Transmission.RTU;
-    fbModbusRequest(
-        hComPort := hComPort,
-        xExecute := Trigger,
-        usiSlaveAddr := RS485BusController.ActiveRtuQuery.DeviceId,		
-        byModbusError =&gt; eComError);
-		
+	CASE RtuState OF
+
+	0:	(* Idle. The bus controller raises Trigger when a device wants the bus. *)
+		IF Trigger THEN
+			RtuSlave := RS485BusController.ActiveRtuQuery.DeviceId;
+			RtuFunction := RS485BusController.ActiveRtuQuery.FunctionCode;
+
+			(* Anything still sitting in the receive buffer belongs to the last
+			   transaction and would be read as this one's reply. *)
+			rtuN := SysCom.SysComRead(hComPort, ADR(rtuFlush), SIZEOF(rtuFlush), 0, ADR(rtuResult));
+
+			RtuTx[0] := RtuSlave;
+			RtuTx[1] := RtuFunction;
+			RtuTx[2] := UINT_TO_BYTE(SHR(RS485BusController.ActiveRtuQuery.ReadAddress, 8));
+			RtuTx[3] := UINT_TO_BYTE(RS485BusController.ActiveRtuQuery.ReadAddress AND 16#00FF);
+			RtuTx[4] := UINT_TO_BYTE(SHR(RS485BusController.ActiveRtuQuery.ReadQuantity, 8));
+			RtuTx[5] := UINT_TO_BYTE(RS485BusController.ActiveRtuQuery.ReadQuantity AND 16#00FF);
+
+			(* Modbus RTU CRC16: poly 16#A001, init 16#FFFF, low byte first *)
+			rtuCrcAcc := 16#FFFF;
+			FOR rtuK := 0 TO 5 DO
+				rtuCrcAcc := rtuCrcAcc XOR BYTE_TO_WORD(RtuTx[rtuK]);
+				FOR rtuBit := 0 TO 7 DO
+					IF (rtuCrcAcc AND 16#0001) &lt;&gt; 0 THEN
+						rtuCrcAcc := SHR(rtuCrcAcc, 1) XOR 16#A001;
+					ELSE
+						rtuCrcAcc := SHR(rtuCrcAcc, 1);
+					END_IF
+				END_FOR
+			END_FOR
+			RtuTx[6] := WORD_TO_BYTE(rtuCrcAcc AND 16#00FF);
+			RtuTx[7] := WORD_TO_BYTE(SHR(rtuCrcAcc, 8));
+
+			SysCom.SysComWrite(hComPort, ADR(RtuTx), 8, 100, ADR(rtuResult));
+			RtuRxCount := 0;
+			rtuRestartGap := TRUE;
+			rtuRestartLimit := TRUE;
+			RtuState := 1;
+		END_IF
+
+	1:	(* Collect until the line has been quiet, which is how RTU delimits a
+		   frame, or until the slave has clearly not answered at all. *)
+		IF RtuRxCount &lt; SIZEOF(RtuRx) THEN
+			rtuPtr := ADR(RtuRx);
+			rtuPtr := rtuPtr + RtuRxCount;
+			rtuN := SysCom.SysComRead(hComPort, rtuPtr, SIZEOF(RtuRx) - RtuRxCount, 0, ADR(rtuResult));
+			IF rtuN &gt; 0 THEN
+				RtuRxCount := RtuRxCount + rtuN;
+				rtuRestartGap := TRUE;
+			END_IF
+		END_IF
+
+		IF (RtuRxCount &gt; 0 AND rtuGap.Q) OR rtuLimit.Q OR RtuRxCount &gt;= SIZEOF(RtuRx) THEN
+			RtuState := 2;
+		END_IF
+
+	2:	(* Trim the driver's glitch bytes, then let the CRC judge the rest. *)
+		rtuCount := UDINT_TO_INT(RtuRxCount);
+		rtuStart := 0;
+		WHILE rtuStart &lt; rtuCount AND RtuRx[rtuStart] = 0 DO
+			rtuStart := rtuStart + 1;
+		END_WHILE
+		IF rtuStart &gt; 0 THEN
+			RtuLeadNulls := RtuLeadNulls + 1;
+		END_IF
+
+		rtuEnd := rtuCount;
+		WHILE rtuEnd &gt; rtuStart AND RtuRx[rtuEnd - 1] = 0 DO
+			rtuEnd := rtuEnd - 1;
+		END_WHILE
+		IF rtuEnd &lt; rtuCount THEN
+			RtuTrailNulls := RtuTrailNulls + 1;
+		END_IF
+
+		rtuLen := rtuEnd - rtuStart;
+		RtuValid := FALSE;
+		RtuExceptionCode := 0;
+
+		IF rtuLen = 0 THEN
+			RtuNoReply := RtuNoReply + 1;
+		ELSIF rtuLen &lt; 5 THEN
+			RtuShortFrame := RtuShortFrame + 1;
+		ELSE
+			rtuCrcAcc := 16#FFFF;
+			FOR rtuK := rtuStart TO rtuEnd - 1 DO
+				rtuCrcAcc := rtuCrcAcc XOR BYTE_TO_WORD(RtuRx[rtuK]);
+				FOR rtuBit := 0 TO 7 DO
+					IF (rtuCrcAcc AND 16#0001) &lt;&gt; 0 THEN
+						rtuCrcAcc := SHR(rtuCrcAcc, 1) XOR 16#A001;
+					ELSE
+						rtuCrcAcc := SHR(rtuCrcAcc, 1);
+					END_IF
+				END_FOR
+			END_FOR
+
+			IF rtuCrcAcc &lt;&gt; 0 THEN
+				RtuCrcFail := RtuCrcFail + 1;
+			ELSIF RtuRx[rtuStart] &lt;&gt; RtuSlave THEN
+				RtuBadAddr := RtuBadAddr + 1;
+			ELSIF RtuRx[rtuStart + 1] = (RtuFunction OR 16#80) THEN
+				RtuExceptions := RtuExceptions + 1;
+				RtuExceptionCode := RtuRx[rtuStart + 2];
+			ELSIF RtuRx[rtuStart + 1] &lt;&gt; RtuFunction THEN
+				RtuBadFunc := RtuBadFunc + 1;
+			ELSE
+				(* Byte count is a byte count; the device blocks read registers,
+				   big-endian, which is the order SwapWordsToReal expects. *)
+				rtuRegs := BYTE_TO_INT(RtuRx[rtuStart + 2]) / 2;
+				IF rtuRegs &gt; 125 THEN
+					rtuRegs := 125;
+				END_IF
+				FOR rtuK := 0 TO rtuRegs - 1 DO
+					awReadBuffer[rtuK] := SHL(BYTE_TO_WORD(RtuRx[rtuStart + 3 + 2 * rtuK]), 8)
+					                      OR BYTE_TO_WORD(RtuRx[rtuStart + 4 + 2 * rtuK]);
+				END_FOR
+				RtuOk := RtuOk + 1;
+				RtuValid := TRUE;
+			END_IF
+		END_IF
+
+		(* What the registered devices see as Error^ in ProcessDataArray. *)
+		xBusError := NOT RtuValid;
+		diagRequests := diagRequests + 1;
+		IF NOT RtuValid THEN
+			diagErrors := diagErrors + 1;
+		END_IF
+
+		(* Falling edge: this is what tells the bus controller we are done. *)
+		Trigger := FALSE;
+		RtuState := 0;
+
+	END_CASE
 END_IF
 
 (* é!COCKPIT version*)
 (*
-RtuQuery.bUnitId := RS485BusController.ActiveRtuQuery.DeviceId;	
-RtuQuery.bFunctionCode := RS485BusController.ActiveRtuQuery.FunctionCode;	
-RtuQuery.uiReadAddress := RS485BusController.ActiveRtuQuery.ReadAddress;	
+RtuQuery.bUnitId := RS485BusController.ActiveRtuQuery.DeviceId;
+RtuQuery.bFunctionCode := RS485BusController.ActiveRtuQuery.FunctionCode;
+RtuQuery.uiReadAddress := RS485BusController.ActiveRtuQuery.ReadAddress;
 RtuQuery.uiReadQuantity := RS485BusController.ActiveRtuQuery.ReadQuantity;
 ModbusMaster(
 	I_Port := IoConfig_Globals.COM1,
@@ -19092,7 +19516,8 @@ RS485BusController();
 RS485Variables.FB_RS485_EASTRON_SDM220_1();
 RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME();
 RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();
-RS485Variables.FB_RS485_EASTRON_SDM630_1();</xhtml>
+RS485Variables.FB_RS485_EASTRON_SDM630_1();
+</xhtml>
                       </ST>
                     </body>
                     <addData>
