@@ -62,6 +62,15 @@ HIDDEN_METHODS = {
     "ProcessOwdVoltage",
     "AddNode",               # DucoBox: internal node bookkeeping
     "InitNode",
+    "Crc16",                 # RTU transport: framing internals, all PRIVATE.
+    "Frame",                 #   Documenting them would describe the block's
+    "Judge",                 #   guts as though they were its API.
+    "SelectNext",            # Bus controller: arbitration internals, PRIVATE
+    "FinishStep",
+    # NOT hidden, deliberately: HasWork, BuildTransaction, OnStepResult and
+    # OnTransactionDone are the RS485Device contract itself. This set is keyed
+    # by bare name and so applies to every block, which is exactly why they
+    # must stay out of it.
 }
 
 # Descriptions for methods and parameters that mean the same thing on every
@@ -83,6 +92,40 @@ GLOSSARY = {
     "FB_init": "CODESYS constructor. These parameters are supplied in the "
                "instance declaration, not by calling a method, and are applied "
                "once at startup.",
+
+    # --- the RS485Device contract ------------------------------------------
+    # Identical on every RS485 device block, so it lives here rather than being
+    # written out five times and drifting four ways.
+    "HasWork": "Asked by the bus controller whether this device wants the bus, "
+               "and how badly: `NONE`, `POLL`, or `COMMAND` for something a "
+               "person or Home Assistant is waiting on. Must be free of side "
+               "effects - it is called on every device, twice per cycle.",
+    "BuildTransaction": "Called once after this device has been granted the "
+                        "bus. Fills in every step it wants executed and returns "
+                        "how many; they then run back to back with the bus "
+                        "held. Returning 0 withdraws.",
+    "OnStepResult": "Called once per executed step, in order, while the bus is "
+                    "still held. A step skipped by an `AbortOnError` "
+                    "predecessor is never reported.",
+    "OnTransactionDone": "Called once, after the last `OnStepResult`, as the "
+                         "bus is released. The one place to publish "
+                         "`/availability` and clear a pending command.",
+    "BuildTransaction.pSteps": "Scheduler-owned scratch to fill. Only valid for "
+                               "the duration of the call.",
+    "OnStepResult.StepIndex": "Which step of the transaction this answers, "
+                              "indexed as `BuildTransaction` filled them.",
+    "OnStepResult.Failed": "No reply, a bad frame, or a Modbus exception. "
+                           "`pData` holds nothing meaningful.",
+    "OnStepResult.pData": "Registers returned by a read step, big-endian, index "
+                          "0 being the first register requested.",
+    "OnStepResult.Count": "How many registers `pData` actually holds. Trusting "
+                          "this rather than the quantity requested is what "
+                          "stops a short reply being read past the end of.",
+    "OnTransactionDone.StepsRun": "Steps actually executed. Fewer than "
+                                  "requested means an `AbortOnError` step "
+                                  "failed.",
+    "OnTransactionDone.Failures": "How many of those failed. Zero is the only "
+                                  "wholly good outcome.",
     "InitRS485": "Configures the Modbus RTU device address and the polling "
                  "interval(s) for the read command(s).",
     "RequestBusTime": "`RS485Device` interface method. See the "
