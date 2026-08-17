@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-17T15:17:23.126779" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-17T15:16:49.8261482">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-17T23:35:54.6825867" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-17T23:35:06.7574096">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -20875,11 +20875,6 @@ PreviousReachable := DMXnodeReachable;</xhtml>
                   </Parameters>
                 </Library>
                 <Library Name="SysTypes2 Interfaces, * (System)" Namespace="SysTypes" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
-                <Library Name="#IoDrvModbus" Namespace="IoDrvModbus" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="IoDrvModbus, * (CODESYS)">
-                  <Parameters>
-                    <Parameter Name="MAX_MODBUS_CHANNELS" Value="100" />
-                  </Parameters>
-                </Library>
                 <Library Name="#SysCom" Namespace="SysCom" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="SysCom, * (System)" />
                 <Library Name="#SysSocket Implementation" Namespace="SysSocket_Implementation" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="SysSocket Implementation, * (System)" />
                 <Library Name="#CDS_MemMan" Namespace="CMM" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="CDS_MemMan, 3.3.2.0 (3S - Smart Software Solutions GmbH)" />
@@ -20954,15 +20949,15 @@ PreviousReachable := DMXnodeReachable;</xhtml>
                   <PlaceholderRedirection Placeholder="IoDrvModbusBase" Redirection="IoDrvModbusBase, 4.5.0.0 (CODESYS)" />
                   <PlaceholderRedirection Placeholder="System_VisuElemCamDisplayer" Redirection="VisuElemCamDisplayer, 4.7.0.0 (System)" />
                   <PlaceholderRedirection Placeholder="System_VisuElems" Redirection="VisuElems, 4.9.1.0 (System)" />
-                  <PlaceholderRedirection Placeholder="System_VisuNativeControl" Redirection="VisuNativeControl, 4.9.0.0 (System)" />
                   <PlaceholderRedirection Placeholder="StringUtils" Redirection="StringUtils, 3.5.20.0 (System)" />
                   <PlaceholderRedirection Placeholder="System_VisuElemsDateTime" Redirection="VisuElemsDateTime, 4.9.0.0 (System)" />
                   <PlaceholderRedirection Placeholder="System_VisuElemsAlarm" Redirection="VisuElemsAlarm, 4.9.0.0 (System)" />
+                  <PlaceholderRedirection Placeholder="System_VisuInputs" Redirection="VisuInputs, 4.7.0.0 (System)" />
                   <PlaceholderRedirection Placeholder="Standard64" Redirection="Standard64, 3.5.20.0 (System)" />
                   <PlaceholderRedirection Placeholder="System_VisuElemsWinControls" Redirection="VisuElemsWinControls, 4.9.0.0 (System)" />
                   <PlaceholderRedirection Placeholder="Collections" Redirection="Collections, 3.5.17.0 (System)" />
                   <PlaceholderRedirection Placeholder="System_VisuElemBase" Redirection="VisuElemBase, 4.9.1.0 (System)" />
-                  <PlaceholderRedirection Placeholder="System_VisuInputs" Redirection="VisuInputs, 4.7.0.0 (System)" />
+                  <PlaceholderRedirection Placeholder="System_VisuNativeControl" Redirection="VisuNativeControl, 4.9.0.0 (System)" />
                 </PlaceholderRedirections>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">

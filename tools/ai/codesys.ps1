@@ -1,4 +1,4 @@
-<#
+﻿<#
 .SYNOPSIS
     Drives CODESYS headlessly so an AI agent (or CI) gets real compiler feedback
     on this PLC project.
@@ -32,7 +32,7 @@
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet('doctor', 'tree', 'device', 'scan', 'export', 'verify', 'simulate', 'download', 'apply', 'probe',
-        'info', 'compare')]
+        'info', 'compare', 'libs')]
     [string]$Task,
 
     # Operate on a project other than src/HomeAutomation.project. This is what
@@ -84,6 +84,27 @@ param(
     # -Ip takes an IP. The project is never saved, so committed settings stand.
     [string]$Address,
     [string]$Ip,
+
+    # libs only: change the project's library references. Without any of these
+    # `libs` is read-only and just reports what is referenced against what is
+    # installed.
+    #
+    # -RemoveLib takes the name exactly as the Library Manager shows it,
+    # placeholders included. -AddLib adds a fixed reference. -UpdateLib takes a
+    # PLACEHOLDER name and repoints its default resolution at the newest version
+    # installed on this machine - which is not the same as the newest that
+    # exists, because a library nobody has downloaded is invisible to it.
+    #
+    # All three build before saving and refuse to save a project that does not
+    # build, exactly as `apply` does.
+    [string[]]$RemoveLib,
+    [string[]]$AddLib,
+    [string[]]$UpdateLib,
+
+    # libs only: also report installed versions of libraries whose name contains
+    # this, whether or not the project references them. How to answer "is there
+    # a newer Modbus library?" without knowing what it would be called.
+    [string]$LibFilter,
 
     # verify/apply: JSON list of surgical edits to POUs already in the project.
     # Defaults to .ai/edits/edits.json when that exists. Use -Edits none to skip.
@@ -351,6 +372,18 @@ switch ($Task) {
         $cfg.ide_version = $codesys.VersionInfo.ProductVersion
         if ($Output) { $cfg.output = $Output }
     }
+    'libs' {
+        if ($RemoveLib) { $cfg.lib_remove = @($RemoveLib) }
+        if ($AddLib)    { $cfg.lib_add    = @($AddLib) }
+        if ($UpdateLib) { $cfg.lib_update = @($UpdateLib) }
+        if ($LibFilter) { $cfg.lib_filter = $LibFilter }
+        if ($RemoveLib -or $AddLib -or $UpdateLib) {
+            Write-Host 'mode      : editing library references (builds before saving)'
+        }
+        else {
+            Write-Host 'mode      : read-only report'
+        }
+    }
     'compare' {
         $right = if ($Against) { $Against } else { $referenceProject }
         if (-not (Test-Path $right)) { throw "Comparison project not found: $right" }
@@ -600,6 +633,40 @@ switch ($Task) {
             }
         }
         if ($report.output) { Write-Host ''; Write-Host "written to   : $($report.output)" }
+    }
+    'libs' {
+        foreach ($c in @($report.library_changes | Where-Object { $_ })) {
+            Write-Host "  $c" -ForegroundColor Green
+        }
+        if ($report.library_changes) { Write-Host '' }
+        Write-Host 'references:'
+        foreach ($r in @($report.library_references)) {
+            $kind = if ($r.is_placeholder) { 'placeholder' } else { 'fixed' }
+            $note = ''
+            if ($r.outdated) { $note = "  <-- $($r.latest_installed) is installed" }
+            elseif ($r.not_in_repository) { $note = '  <-- not in any local repository' }
+            elseif ($r.unresolved) { $note = '  (not resolved in this project)' }
+            $shown = if ($r.is_placeholder -and $r.effective_resolution) { "$($r.name)  ->  $($r.effective_resolution)" } else { $r.name }
+            $line = "  {0,-64} {1,-12}{2}" -f $shown, $kind, $note
+            if ($r.outdated) { Write-Host $line -ForegroundColor Yellow }
+            elseif ($r.not_in_repository) { Write-Host $line -ForegroundColor Red }
+            else { Write-Host $line }
+        }
+        if ($report.library_repository_error) {
+            Write-Host ''
+            Write-Host "library repository: $($report.library_repository_error)" -ForegroundColor Yellow
+        }
+        if ($report.installed_libraries) {
+            Write-Host ''
+            Write-Host 'installed versions (this machine only - the Store is not consulted):'
+            foreach ($p in $report.installed_libraries.PSObject.Properties | Sort-Object Name) {
+                Write-Host ("  {0,-46} {1}" -f $p.Name, ($p.Value.versions -join ', '))
+            }
+        }
+        if ($null -ne $report.saved) {
+            Write-Host ''
+            Write-Host "saved     : $($report.saved)"
+        }
     }
     'compare' {
         Write-Host "left  : $($report.compare.left)"
