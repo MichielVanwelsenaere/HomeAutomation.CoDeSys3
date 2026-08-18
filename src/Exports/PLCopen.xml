@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T10:44:59.4723958" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T10:37:27.695722">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T11:09:47.8310522" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T11:01:30.6000215">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -22554,10 +22554,14 @@ RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM6
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_1);
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_SEN0492_1);
 
-(* Thirty seconds, to see what the failure rate does when the sensor is given
-   far more room than its measured floor of eight. Set here rather than in the
-   declaration because an FB_init argument cannot be revised by tooling. *)
-RS485Variables.FB_RS485_SEN0492_1.PollIntervalOverride := T#30S;
+(* Ten seconds. Thirty was tried and measured, and bought nothing: link quality
+   sat at 60-75% either way, because what limits this sensor past its eight
+   second floor is not the rate but a first byte lost as its driver turns on.
+   So take the readings rather than the wait.
+
+   Set here rather than in the declaration because an FB_init argument cannot be
+   revised by tooling - CODESYS stores it outside the declaration text. *)
+RS485Variables.FB_RS485_SEN0492_1.PollIntervalOverride := T#10S;
 
 (* INIT RS485 DEVICE STUFF.
    Nothing to do for the three Eastron meters. Modbus address, poll rate and -

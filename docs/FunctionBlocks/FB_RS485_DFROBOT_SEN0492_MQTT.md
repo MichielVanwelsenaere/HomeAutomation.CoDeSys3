@@ -261,11 +261,13 @@ A caller who asks for something the device cannot sustain gets a working sensor 
 one. The alternative is a reading that is right a quarter of the time and an entity that keeps
 going unavailable, which is worse in every way that matters.
 
-:bulb: **The shipped instance in `RS485Variables` still declares `T#2S`.** The clamp is what
-holds it at 8 s. CODESYS stores an instance's `FB_init` arguments outside the declaration text —
-see [CLAUDE.md](../../CLAUDE.md) — so that argument cannot be corrected by any script, only in
-the IDE. The clamp exists partly because of that: a value that cannot be fixed automatically
-should not be able to break the device.
+:bulb: **The shipped instance in `RS485Variables` still declares `T#2S`, and does not run at
+it.** Two things stop it: the clamp would hold it at 8 s on its own, and `RS485_INIT` sets
+`PollIntervalOverride := T#10S` on top of that, which is the rate this project actually polls
+the sensor at. The declaration is wrong and stays wrong because CODESYS stores an instance's
+`FB_init` arguments outside the declaration text — see [CLAUDE.md](../../CLAUDE.md) — so that
+argument cannot be corrected by any script, only in the IDE. The clamp exists partly because of
+that: a value that cannot be fixed automatically should not be able to break the device.
 
 :rotating_light: **A residual failure rate remains, it is specific to this sensor, and slowing
 the poll further does not help.** Raising the interval from 8 s to 30 s was tried and changed
