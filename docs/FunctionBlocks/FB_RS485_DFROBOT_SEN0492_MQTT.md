@@ -230,7 +230,7 @@ Two signals, because they answer different questions and one cannot do both jobs
 RS485 bus is ordinary. But that same debounce means a sensor answering two polls in three still
 reads `online`, which is true and useless if what you want to know is whether it is degrading.
 
-`/QUALITY` is that second signal: the share of the last sixteen transactions that succeeded.
+`/QUALITY` is that second signal: the share of the last sixteen transactions that succeeded. It is announced as a **diagnostic** entity — it belongs beside the measurement state, under the device's diagnostics, not on a dashboard — but it keeps a unit and a state class so Home Assistant still graphs it and holds statistics.
 **It is the entity to put an automation on.** A sensor that starts answering nine polls in ten
 instead of ten shows up there immediately, while availability is still reporting a cheerful
 `online`; a loose pair, a failing driver or a bus getting busier all appear as a number settling
@@ -305,10 +305,11 @@ The block publishes its own discovery configs, so no YAML is needed. It announce
 a device of its own — manufacturer `DFRobot`, model from the `Model` parameter — with two
 entities underneath it:
 
-| Entity | `device_class` | `state_class` | Unit |
-|:--|:--|:--|:--|
-| Distance | `distance` | — | mm |
-| Measurement state | — | — | — |
+| Entity | Category | `device_class` | `state_class` | Unit |
+|:--|:--|:--|:--|:--|
+| Distance | — | `distance` | — | mm |
+| Measurement state | diagnostic | — | — | — |
+| Link quality | diagnostic | — | `measurement` | % |
 
 Distance carries no state class on purpose: it is a position, not a quantity worth averaging or
 totalling, and Home Assistant's long-term statistics on it would be meaningless. Measurement

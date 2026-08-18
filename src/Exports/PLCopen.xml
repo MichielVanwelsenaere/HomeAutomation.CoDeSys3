@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T09:54:56.096972" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T09:50:57.5216992">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T10:04:51.3383253" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T10:00:21.6660384">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -965,6 +965,24 @@ build can catch that, because nothing in the PLC is wrong.</xhtml>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity category</xhtml>
               </documentation>
+            </variable>
+            <variable name="unit_of_meas">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Added so a diagnostic entity can still carry a unit and keep long-term
+	   statistics. A diagnostic sensor is still a sensor: link quality belongs
+	   under diagnostics rather than on a dashboard, but it is only worth having
+	   if Home Assistant will graph it. Empty on every entity that does not set
+	   them, where they serialise as null - the same way stat_cla was added to
+	   the ordinary sensor struct. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_cla">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
             </variable>
           </struct>
         </baseType>
@@ -6509,7 +6527,7 @@ END_IF </xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="initDFRobotDevice" ObjectId="dabdf36f-cd19-479e-8832-3e37aa783b83">
+            <Method name="initDFRobotDevice" ObjectId="4f83d96e-35ae-4b58-8dfe-67d7e2e9d2a1">
               <interface>
                 <inputVars>
                   <variable name="name">
@@ -7627,7 +7645,7 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RequestConfigWrite" ObjectId="7b52bdaf-1cf1-4189-adee-76db69634128">
+            <Method name="RequestConfigWrite" ObjectId="a9832bfc-a54f-43d6-af3b-9f4a08c65632">
               <interface>
                 <returnType>
                   <BOOL />
@@ -7687,7 +7705,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnTransactionDone" ObjectId="be10a842-1dfa-49c7-a1f2-f8b9975e6bfb">
+            <Method name="OnTransactionDone" ObjectId="48abd0ec-0cda-4737-98ad-9e741a8b72eb">
               <interface>
                 <inputVars>
                   <variable name="StepsRun">
@@ -7796,7 +7814,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnStepResult" ObjectId="d6e3f646-f0c3-4e9f-ba98-79ba01d2e6ed">
+            <Method name="OnStepResult" ObjectId="8dd882d9-fc25-4f15-a232-125b402e046b">
               <interface>
                 <inputVars>
                   <variable name="StepIndex">
@@ -7858,7 +7876,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="BuildTransaction" ObjectId="b5a6321e-2cd5-4274-92fe-896f020ec138">
+            <Method name="BuildTransaction" ObjectId="c89fbcd1-51fe-4fff-a458-9275a3577546">
               <interface>
                 <returnType>
                   <INT />
@@ -7898,7 +7916,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="HasWork" ObjectId="265b325b-09de-468d-9acd-014b81ba3573">
+            <Method name="HasWork" ObjectId="77f38c94-06d2-4260-b1dd-b3027483e701">
               <interface>
                 <returnType>
                   <derived name="RS485_WorkLevel" />
@@ -7922,7 +7940,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="8c152fc5-bed4-4317-a117-b36b7d293cbf">
+            <Method name="InitMqttDiscovery" ObjectId="7784e7d6-752f-4d30-bf29-c9d32b2f7417">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -8004,11 +8022,10 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 	   and keep statistics. This is the entity to put an automation on: a sensor
 	   that starts answering nine polls in ten instead of ten shows up here
 	   while availability is still reporting a cheerful 'online'. *)
-	Device^.CreateSensorEntity(
+	Device^.CreateDiagnosticSensorEntity(
 		Name := 'Link quality',
 		Id := CONCAT(id, '_QUALITY'),
 		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/QUALITY'),
-		DeviceClass := '',
 		StateClass := 'measurement',
 		UnitOfMeasurement := '%');
 
@@ -8021,7 +8038,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PubMqttMessage" ObjectId="875897ef-62d5-43d7-9b08-9b3c1b976ab0">
+            <Method name="PubMqttMessage" ObjectId="b0f77285-acb9-4e45-b392-d5d0682afbf8">
               <interface>
                 <inputVars>
                   <variable name="Suffix">
@@ -8053,7 +8070,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="3971886e-d96c-40a1-be95-7f85ae37bae6">
+            <Method name="InitMqtt" ObjectId="47033255-be9f-452e-9385-23621b19e22d">
               <interface>
                 <inputVars>
                   <variable name="MQTTPublishPrefix">
@@ -8091,7 +8108,7 @@ SUPER^.InitBaseMqtt();
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="FB_init" ObjectId="5f435e5f-5ff6-4554-abbd-cd15e5bc94c4">
+            <Method name="FB_init" ObjectId="5c07e072-d4b8-4742-922f-3db6909c79a8">
               <interface>
                 <returnType>
                   <BOOL />
@@ -13191,6 +13208,22 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                       <simpleValue value="0" />
                     </initialValue>
                   </variable>
+                  <variable name="UnitOfMeasurement">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="StateClass">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="EntityId">
@@ -13239,6 +13272,15 @@ THIS^.FillCommonFields(
 MqttDiscMsgSensorDiagnostic.stat_t.CharString := StateTopic;
 MqttDiscMsgSensorDiagnostic.exp_aft.Integer := ExpiryAfter;
 MqttDiscMsgSensorDiagnostic.ent_cat.CharString := 'diagnostic';
+
+(* Optional, and left out of the JSON entirely when not given, so every existing
+   diagnostic entity is unaffected. *)
+IF NOT CommonTypesAndFunctions.StrEquals(str1 := ADR(UnitOfMeasurement), str2 := ADR('')) THEN
+	MqttDiscMsgSensorDiagnostic.unit_of_meas.CharString := UnitOfMeasurement;
+END_IF
+IF NOT CommonTypesAndFunctions.StrEquals(str1 := ADR(StateClass), str2 := ADR('')) THEN
+	MqttDiscMsgSensorDiagnostic.stat_cla.CharString := StateClass;
+END_IF
 
 
 
@@ -23966,7 +24008,7 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
         <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
         <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
         <Object Name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" ObjectId="88157962-75ef-47ae-bd1a-543d8dd22c58">
-          <Object Name="initDFRobotDevice" ObjectId="dabdf36f-cd19-479e-8832-3e37aa783b83" />
+          <Object Name="initDFRobotDevice" ObjectId="4f83d96e-35ae-4b58-8dfe-67d7e2e9d2a1" />
         </Object>
         <Object Name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" ObjectId="83ba608b-36e7-4e0d-bc48-e72f8108c8bd">
           <Object Name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1" />
@@ -23978,15 +24020,15 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
           <Object Name="Init" ObjectId="1f5ff39a-3d06-4841-a742-9ba51e7243e2" />
         </Object>
         <Object Name="FB_RS485_DFROBOT_SEN0492_MQTT" ObjectId="64f1d9ac-10e3-430e-9ae8-cc98d25585ed">
-          <Object Name="RequestConfigWrite" ObjectId="7b52bdaf-1cf1-4189-adee-76db69634128" />
-          <Object Name="OnTransactionDone" ObjectId="be10a842-1dfa-49c7-a1f2-f8b9975e6bfb" />
-          <Object Name="OnStepResult" ObjectId="d6e3f646-f0c3-4e9f-ba98-79ba01d2e6ed" />
-          <Object Name="BuildTransaction" ObjectId="b5a6321e-2cd5-4274-92fe-896f020ec138" />
-          <Object Name="HasWork" ObjectId="265b325b-09de-468d-9acd-014b81ba3573" />
-          <Object Name="InitMqttDiscovery" ObjectId="8c152fc5-bed4-4317-a117-b36b7d293cbf" />
-          <Object Name="PubMqttMessage" ObjectId="875897ef-62d5-43d7-9b08-9b3c1b976ab0" />
-          <Object Name="InitMqtt" ObjectId="3971886e-d96c-40a1-be95-7f85ae37bae6" />
-          <Object Name="FB_init" ObjectId="5f435e5f-5ff6-4554-abbd-cd15e5bc94c4" />
+          <Object Name="RequestConfigWrite" ObjectId="a9832bfc-a54f-43d6-af3b-9f4a08c65632" />
+          <Object Name="OnTransactionDone" ObjectId="48abd0ec-0cda-4737-98ad-9e741a8b72eb" />
+          <Object Name="OnStepResult" ObjectId="8dd882d9-fc25-4f15-a232-125b402e046b" />
+          <Object Name="BuildTransaction" ObjectId="c89fbcd1-51fe-4fff-a458-9275a3577546" />
+          <Object Name="HasWork" ObjectId="77f38c94-06d2-4260-b1dd-b3027483e701" />
+          <Object Name="InitMqttDiscovery" ObjectId="7784e7d6-752f-4d30-bf29-c9d32b2f7417" />
+          <Object Name="PubMqttMessage" ObjectId="b0f77285-acb9-4e45-b392-d5d0682afbf8" />
+          <Object Name="InitMqtt" ObjectId="47033255-be9f-452e-9385-23621b19e22d" />
+          <Object Name="FB_init" ObjectId="5c07e072-d4b8-4742-922f-3db6909c79a8" />
         </Object>
         <Object Name="FB_RS485_EASTRON_SDM630_MQTT" ObjectId="af59857b-6616-4cd6-a053-847b3c89d96f">
           <Object Name="HasWork" ObjectId="aebc6851-9dee-4d6c-8c39-27331d94fc01" />
