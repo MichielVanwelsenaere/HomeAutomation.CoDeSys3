@@ -62,6 +62,11 @@ To translate the byte array received by the Modbus device to their actual value 
 Each of them implements the [RS485Device interface](./docs/RS485/RS485Device_Interface.md), which
 is what lets one bus be shared between many of them.
 
+The three Eastron meter blocks announce themselves to Home Assistant over MQTT discovery:
+give the instance a `FriendlyName` and it appears as a device of its own with its
+measurements underneath, no YAML and no init calls. See
+[MQTT self-wiring](./docs/AdditionalFunctionality/MQTT_SelfWiring.md).
+
 Two more blocks sit underneath:
 
 - [FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md) decides whose turn it

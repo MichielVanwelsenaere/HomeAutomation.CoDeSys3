@@ -135,7 +135,8 @@ methods do nothing until `InitMqtt` has run.
 
 **Self-wiring**, driven by `FriendlyName`: the pushbutton and binary sensor
 inputs, the binary, bistable, cover and dimmer outputs, the HVAC thermostat, pump
-and burner, the DMX dimmer, and the Eastron SDM630 meter.
+and burner, the DMX dimmer, and all three Eastron meter blocks — the SDM630, the
+SDM220 and the SDM_POWER.
 
 `FB_RS485_EASTRON_SDM630_MQTT` is the first RS485 block to self-wire, and it shows
 what the others would need. Its discovery announces a Home Assistant device of its
@@ -158,19 +159,30 @@ a block's first body call — so self-wiring them while leaving discovery in the
 action would make that discovery call fire too early and silently announce
 nothing.
 
-**Not self-wired.** These four *do* extend `FB_MQTT_BASE`, so `FriendlyName` is
+**Not self-wired.** These two *do* extend `FB_MQTT_BASE`, so `FriendlyName` is
 already on them. What they lack is an `InitMqttDiscovery` method — a prologue could
 wire their MQTT publishing but would have nothing to announce:
 
 - `FB_INPUT_PUSHBUTTON_DIMMER_MQTT`
-- `FB_RS485_EASTRON_SDM220_MQTT`
-- `FB_RS485_EASTRON_SDM_POWER_MQTT`
 - `FB_RS485_DUCO_DUCOBOX_MQTT`
 
-Giving them discovery is the worthwhile follow-up, and
-`FB_RS485_EASTRON_SDM630_MQTT` is the worked example of what that looks like for an
-RS485 block. Until then their call sites are untouched and keep working exactly as
-before.
+Giving them discovery is the worthwhile follow-up, and the three Eastron meter blocks
+are the worked examples of what that looks like for an RS485 block. Until then their
+call sites are untouched and keep working exactly as before.
+
+All three Eastron meters now take their Modbus address, poll rate and — for the
+SDM_POWER block — the meter model through `FB_init`, so their whole configuration
+is the declaration and `RS485_INIT` does nothing for them but register them on the
+bus. That is the shape to copy: a value that describes the wiring rather than a
+mode belongs in `FB_init`, where it is settled before the first cycle and cannot
+be forgotten at a call site.
+
+`FB_RS485_EASTRON_SDM_POWER_MQTT` shows why that matters for discovery. The model
+it announces itself as is derived from `DeviceType`, so a name alone does not
+describe it — and because `FB_init` settles `DeviceType` before the first cyclic
+call, the prologue has nothing to wait for. Configuration through `FB_init` and
+self-wiring through `FriendlyName` are complementary: together they remove the
+whole init sequence rather than half of it.
 
 `FB_MQTT_LOG` extends the base and could self-wire, but it has no call site
 anywhere in the reference project and there is no log topic prefix in

@@ -230,6 +230,13 @@ every case seen so far:
 
 - new instance → no stored entry to win → text is parsed. The whole annex
   migration landed this way, 37 instances at once.
+- **existing instance that had no initialiser** → also no stored entry → also
+  parsed. `RS485Variables.FB_RS485_EASTRON_SDM220_1` had been declared bare since
+  it was written; a scripted `replace_in_decl` adding `:= (FriendlyName := '...')`
+  reached `structValue` and the PLC ran it. So the test is whether a stored entry
+  **exists**, not whether the instance is new — which is the more useful form of
+  the rule, because adding a `FriendlyName` to an old instance is exactly what
+  self-wiring a block asks you to do.
 - member **renamed** (`Invert` → `RelayType`) → the stored entry names a member
   that no longer exists → re-derived. That rename landed, `RelayType` and all.
 - same members, **different value** → shape unchanged → silently dropped.

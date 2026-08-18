@@ -1,5 +1,6 @@
 ## FB_RS485_EASTRON_SDM_POWER_MQTT
 <!-- fb-badge:start -->
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 <!-- fb-badge:end -->
 
 ### **General**
@@ -19,7 +20,9 @@ Eastron SDM630 datasheet:
 
 ----------------------------
 
-:rotating_light: **Compile-verified only.** No SDM120 or SDM630 has been on a bench with a CODESYS runtime, so the register decoding here has not been checked against a real meter — unlike [FB_RS485_EASTRON_SDM220_MQTT](FB_RS485_EASTRON_SDM220_MQTT.md), which has. The bus underneath it is verified; this block's own register map is not.
+:white_check_mark: **The SDM220 branch is verified on hardware, and stays verified.** The reference project registers an instance of this block on the **same meter** as [FB_RS485_EASTRON_SDM220_MQTT](FB_RS485_EASTRON_SDM220_MQTT.md), declared as an `SDM220`. Both decode active power out of register 30013, so the two publish the same number continuously and any drift between them is a real regression in one of them. It is also the only way this block is exercised at all — see [the standing cross-check](#the-standing-cross-check) below.
+
+:rotating_light: **The SDM120 and SDM630 branches are compile-verified only.** Neither meter has been on a bench with a CODESYS runtime. The SDM120 shares the SDM220's register (`30013`) so it is likely right; the SDM630 uses a different one (`30053`) and nothing has checked it.
 
 ----------------------------
 
@@ -54,6 +57,14 @@ Eastron SDM630 datasheet:
 |:--|:--|:--|:--|
 | `pSteps` | POINTER TO RS485_StepList |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
 
+**`FB_init`** — CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
+| `DeviceType` | RS485_EASTRON_SDM_Devices |  | Which Eastron SDM model is connected, from `RS485_EASTRON_SDM_Devices`. It decides which register active power is read from — `30013` on the SDM120 and SDM220, `30053` on the SDM630 — and is also the model announced to Home Assistant. |
+| `DataPollingInterval` | TIME |  | How often this block polls the device. |
+
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
 **`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
@@ -63,13 +74,14 @@ Eastron SDM630 datasheet:
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
 | `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 
-**`InitRS485`** — Configures the Modbus RTU device address and the execution/polling interval for the Modbus read command.
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `DataPollingInterval` | TIME |  | How often this block polls the device. |
-| `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
-| `DeviceType` | RS485_EASTRON_SDM_Devices |  | Which Eastron SDM model is connected, from `RS485_EASTRON_SDM_Devices`. |
+| `Device` | POINTER TO FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `DeviceName` | STRING(50) |  | Name of that Home Assistant device. The self-wiring prologue passes `FriendlyName`. |
+| `Model` | STRING(20) | `''` | Model shown on the Home Assistant device page. Empty means derive it from `DeviceType`, which is what the self-wiring prologue relies on; pass a string to overrule that. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
 
 **`OnStepResult`** — Called once per executed step, in order, while the bus is still held. A step skipped by an `AbortOnError` predecessor is never reported.
 
@@ -89,7 +101,9 @@ Eastron SDM630 datasheet:
 <!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
-Requires method call `InitMQTT` to enable MQTT capabilities.
+
+Set `FriendlyName` at the declaration and the block wires itself; see the code example
+below. Calling `InitMqtt` explicitly still works and is what an older call site does.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
@@ -103,62 +117,80 @@ MQTT publish topic is a concatenation of the publish prefix, the function block 
 
 ### **Code example**
 
-- variables initiation:
-```
-MQTTPubRS485Prefix                :STRING(100) := 'Devices/PLC/Lab/Out/RS485/';
-FB_RS485_EASTRON_SDM_POWER_001    :FB_RS485_EASTRON_SDM_POWER_MQTT;
-```
-
-- Init RS485 method call (called once during startup):
-```
-FB_RS485_EASTRON_SDM_POWER_001.InitRS485(
-	DataPollingInterval := T#15S,                     (* Polling interval for data array *)			
-	DeviceAddress := 1,                               (* Device address of the modbus device *)
-	DeviceType := RS485_EASTRON_SDM_Devices.SDM630    (* Type of Eastron SDM device *)
-);
-```
-
-- Init MQTT method call (called once during startup):
-```
-FB_RS485_EASTRON_SDM_POWER_001.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttRS485Prefix),                       (* pointer to string prefix for the mqtt publish topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)      (* pointer to MqttPublishQueue to send a new Mqtt event *)
-);
+The declaration is the whole configuration. `FB_init` takes the Modbus address, **which meter
+this is**, and the poll rate; the initialiser takes the Home Assistant name:
 
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001` (MQTTPubSwitchPrefix variable + function block name).
-
-- Registering device to a bus controller (called once during startup):
-```
-RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM_POWER_001);
+FB_RS485_EASTRON_SDM_POWER_001 : FB_RS485_EASTRON_SDM_POWER_MQTT(1, RS485_EASTRON_SDM_Devices.SDM630, T#15S)
+                               := (FriendlyName := 'Car charger');
 ```
 
-### **Home Assistant YAML**
-To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+`DeviceType` is the parameter the other two Eastron blocks do not need: one block serves the
+SDM120, SDM220 and SDM630, and the register it reads depends on the answer — `30013` on the
+single-phase meters, `30053` on the SDM630. It is also the model this block announces itself to
+Home Assistant as.
 
-```YAML
-mqtt:
-  sensor:
-  - name: "car charger power"
-    object_id: "car_charger_power"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/ACTP"
-    unit_of_measurement: "W"
-    device_class: "power"
-    state_class: "measurement"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM_POWER_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
+Register it with the bus controller once at startup, in `RS485_INIT`:
+
+```
+RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_001);
 ```
 
-In addition to the above a [Riemann sum integral](https://www.home-assistant.io/integrations/integration/) integration can be added to calculate the energy (kWh) from the power (W):
+and call it cyclically, in `RS485_RUN`:
+
+```
+RS485Variables.FB_RS485_EASTRON_SDM_POWER_001();
+```
+
+No `InitRS485`, no `InitMqtt`, no `InitMqttDiscovery`: the block wires itself from
+`MqttVariables` on its first cyclic call. **A block wired this way must be called cyclically** —
+an instance whose body never runs stays unwired and never appears in Home Assistant, and nothing
+warns about it.
+
+### **The standing cross-check**
+
+`RS485Variables.FB_RS485_EASTRON_SDM_POWER_1` is wired in `PLC_PRG_RS485` against the lab
+SDM220 at address 1 — the same meter `FB_RS485_EASTRON_SDM220_1` reads. That is deliberate
+and it is not redundant instrumentation:
+
+- **It is the only call site this block has.** An unreferenced POU is never compiled, so
+  without an instance somewhere a broken edit here passes `verify` with a clean build.
+- **It gives the decoding a continuous witness.** Both blocks read register `30013` of the
+  same meter, so `.../FB_RS485_EASTRON_SDM_POWER_1/ACTP` and
+  `.../FB_RS485_EASTRON_SDM220_1/ACTP` should track each other. They will not be
+  bit-identical every time — each block polls on its own timer and the meter updates
+  between reads — but a persistent difference means one of them has stopped decoding
+  correctly.
+
+:bulb: **Both will publish an exact `0.0` from time to time and neither is broken.** A meter
+carrying a few watts reports zero for some updates. The control that settles it is a
+different value out of the *same* frame: the SDM220 block reads current and power factor
+from the same 40-register reply as active power, and those hold steady on the cycles where
+active power reads 0.
+
+### **Home Assistant**
+
+The block publishes its own discovery config, so no YAML is needed. It announces the meter as a
+device of its own — manufacturer `Eastron`, model from `DeviceType` — carrying a single entity:
+
+| Entity | `device_class` | `state_class` | Unit |
+|:--|:--|:--|:--|
+| Active Power | `power` | `measurement` | W |
+
+`state_class: measurement` means Home Assistant keeps short-term statistics but no energy total,
+because this block reads power and not energy. To get kWh out of it, add a
+[Riemann sum integral](https://www.home-assistant.io/integrations/integration/) on the Home
+Assistant side:
+
 ```YAML
 - platform: integration
-  source: sensor.car_charger_power
+  source: sensor.car_charger_active_power
   name: "car charger energy"
   unit_prefix: k
   round: 3
 ```
+
+If the meter is one whose own energy registers you want instead, use
+[FB_RS485_EASTRON_SDM220_MQTT](FB_RS485_EASTRON_SDM220_MQTT.md) or
+[FB_RS485_EASTRON_SDM630_MQTT](FB_RS485_EASTRON_SDM630_MQTT.md), which read them directly and
+announce them with `state_class: total_increasing` for the energy dashboard.
