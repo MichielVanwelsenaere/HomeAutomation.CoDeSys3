@@ -1,5 +1,6 @@
 ## FB_RS485_EASTRON_SDM220_MQTT
 <!-- fb-badge:start -->
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 <!-- fb-badge:end -->
 
 ### **General**
@@ -94,6 +95,15 @@ Eastron SDM220 datasheets:
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
 | `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `DeviceName` | STRING(50) |  | Name of that Home Assistant device. The self-wiring prologue passes `FriendlyName`. |
+| `Model` | STRING(20) | `'SDM220'` | Model shown on the Home Assistant device page. This block reads the SDM220 register map, so the default is right unless you are pointing it at a meter that shares that map. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+
 **`InitRS485`** — Configures the Modbus RTU device address and the execution/polling interval for the multiple Modbus read commands.
 
 | Parameter | Type | Default | Description |
@@ -121,7 +131,9 @@ Eastron SDM220 datasheets:
 <!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
-Requires method call `InitMQTT` to enable MQTT capabilities.
+
+Set `FriendlyName` at the declaration and the block wires itself; see the code example
+below. Calling `InitMqtt` explicitly still works and is what an older call site does.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
@@ -148,36 +160,38 @@ MQTT publish topic is a concatenation of the publish prefix, the function block 
 
 ### **Code example**
 
-- variables initiation:
+`FriendlyName` is what turns the MQTT and Home Assistant wiring on:
+
 ```
-MQTTPubRS485Prefix              :STRING(100) := 'Devices/PLC/Lab/Out/RS485/';
-FB_RS485_EASTRON_SDM220_001     :FB_RS485_EASTRON_SDM220_MQTT;
+FB_RS485_EASTRON_SDM220_001 : FB_RS485_EASTRON_SDM220_MQTT
+                            := (FriendlyName := 'Garage energy meter');
 ```
 
-- Init RS485 method call (called once during startup):
-```
-FB_RS485_EASTRON_SDM220_001.InitRS485(
-	Data1PollingInterval := T#1S,       (* Polling interval for data array 1 *)				
-	Data2PollingInterval := T#20S,      (* Polling interval for data array 2 *)			
-	Data3PollingInterval := T#30S,      (* Polling interval for data array 3 *)			
-	DeviceAddress := 1                  (* Device address of the modbus device *)			
-);
-```
+The Modbus address and the three polling intervals are still a method call, because this
+block has no `FB_init` — put it in `RS485_INIT` alongside the registration:
 
-- Init MQTT method call (called once during startup):
 ```
-FB_RS485_EASTRON_SDM220_001.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttRS485Prefix),                       (* pointer to string prefix for the mqtt publish topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)      (* pointer to MqttPublishQueue to send a new Mqtt event *)
+RS485Variables.FB_RS485_EASTRON_SDM220_001.InitRS485(
+	Data1PollingInterval := T#5S,       (* volts, amps, powers, PF, phase angle *)
+	Data2PollingInterval := T#5S,       (* frequency and the four energy counters *)
+	Data3PollingInterval := T#30S,      (* the two totals *)
+	DeviceAddress := 1
 );
 
+RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM220_001);
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001` (MQTTPubSwitchPrefix variable + function block name).
 
-- Registering device to a bus controller (called once during startup):
+and call it cyclically, in `RS485_RUN`:
+
 ```
-RS485BusController.RegisterDevice(device := FB_RS485_EASTRON_SDM220_1);
+RS485Variables.FB_RS485_EASTRON_SDM220_001();
 ```
+
+No `InitMqtt` or `InitMqttDiscovery` call is needed: the block wires itself from
+`MqttVariables` on its first cyclic call. The publish topic becomes
+`Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001` — the `MqttPubRS485Prefix` plus
+the instance name. **A block wired this way must be called cyclically** — an instance whose
+body never runs stays unwired and never appears in Home Assistant, and nothing warns about it.
 
 ### **Wago PFC wiring diagram**
 Wire the device as below in order to establish communication between a Wago PFC device and an Eastron SDM220:
@@ -186,148 +200,36 @@ Wire the device as below in order to establish communication between a Wago PFC 
 
 Note: RS485 terminator resistors are not shown in the image but are nevertheless required.
 
-### **Home Assistant YAML**
-To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+### **Home Assistant**
 
-```YAML
-mqtt:
-  sensor:
-  - name: "FB_RS485_EASTRON_SDM220_001_VOLT"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/VOLT"
-    unit_of_measurement: "Volts"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_CURR"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/CURR"
-    unit_of_measurement: "Amps"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_ACTP"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/ACTP"
-    unit_of_measurement: "Watts"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_APPP"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/APPP"
-    unit_of_measurement: "VoltAmps"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_REAP"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/REAP"
-    unit_of_measurement: "VAr"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_POWF"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/POWF"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_PHAA"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/PHAA"
-    unit_of_measurement: "Degree"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_FREQ"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/FREQ"
-    unit_of_measurement: "Hz"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_IMAE"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/IMAE"
-    unit_of_measurement: "kwh"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_EXAE"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/EXAE"
-    unit_of_measurement: "kwh"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_IMRE"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/IMRE"
-    unit_of_measurement: "kvarh"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_EXRE"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/EXRE"
-    unit_of_measurement: "kvarh"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_TOTAE"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/TOTAE"
-    unit_of_measurement: "kwh"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "FB_RS485_EASTRON_SDM220_001_TOTRE"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/TOTRE"
-    unit_of_measurement: "kvarh"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-```
+The block publishes its own discovery configs, so no YAML is needed. It announces the meter
+as a device of its own — manufacturer `Eastron`, model from the `Model` parameter — with all
+fourteen measurements as entities underneath it, rather than adding fourteen entities to the
+PLC device.
+
+| Entity | `device_class` | `state_class` | Unit |
+|:--|:--|:--|:--|
+| Voltage | `voltage` | `measurement` | V |
+| Current | `current` | `measurement` | A |
+| Active Power | `power` | `measurement` | W |
+| Apparent Power | `apparent_power` | `measurement` | VA |
+| Reactive Power | `reactive_power` | `measurement` | var |
+| Power Factor | `power_factor` | — | — |
+| Phase Angle | — | — | ° |
+| Frequency | `frequency` | `measurement` | Hz |
+| Import Active Energy | `energy` | `total_increasing` | kWh |
+| Export Active Energy | `energy` | `total_increasing` | kWh |
+| Import Reactive Energy | — | `total_increasing` | kvarh |
+| Export Reactive Energy | — | `total_increasing` | kvarh |
+| Total Active Energy | `energy` | `total_increasing` | kWh |
+| Total Reactive Energy | — | `total_increasing` | kvarh |
+
+`state_class: total_increasing` on the four kWh counters is what makes them selectable in the
+**energy dashboard**. Power factor and phase angle carry no state class, because neither is
+meaningful to sum or average over time.
+
+:bulb: **The four reactive-energy entities carry no `device_class` on purpose.** Home Assistant
+gained `reactive_energy` only recently, and an unrecognised device class makes it reject the
+whole discovery config — the entity disappears rather than degrading. Leaving it empty keeps
+the entity, its unit and its long-term statistics. If your Home Assistant is new enough, adding
+`DeviceClass := 'reactive_energy'` to those four `CreateSensorEntity` calls is a one-word change.

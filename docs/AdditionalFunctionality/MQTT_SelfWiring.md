@@ -135,7 +135,8 @@ methods do nothing until `InitMqtt` has run.
 
 **Self-wiring**, driven by `FriendlyName`: the pushbutton and binary sensor
 inputs, the binary, bistable, cover and dimmer outputs, the HVAC thermostat, pump
-and burner, the DMX dimmer, and the Eastron SDM630 meter.
+and burner, the DMX dimmer, and all three Eastron meter blocks — the SDM630, the
+SDM220 and the SDM_POWER.
 
 `FB_RS485_EASTRON_SDM630_MQTT` is the first RS485 block to self-wire, and it shows
 what the others would need. Its discovery announces a Home Assistant device of its
@@ -158,19 +159,22 @@ a block's first body call — so self-wiring them while leaving discovery in the
 action would make that discovery call fire too early and silently announce
 nothing.
 
-**Not self-wired.** These four *do* extend `FB_MQTT_BASE`, so `FriendlyName` is
+**Not self-wired.** These two *do* extend `FB_MQTT_BASE`, so `FriendlyName` is
 already on them. What they lack is an `InitMqttDiscovery` method — a prologue could
 wire their MQTT publishing but would have nothing to announce:
 
 - `FB_INPUT_PUSHBUTTON_DIMMER_MQTT`
-- `FB_RS485_EASTRON_SDM220_MQTT`
-- `FB_RS485_EASTRON_SDM_POWER_MQTT`
 - `FB_RS485_DUCO_DUCOBOX_MQTT`
 
-Giving them discovery is the worthwhile follow-up, and
-`FB_RS485_EASTRON_SDM630_MQTT` is the worked example of what that looks like for an
-RS485 block. Until then their call sites are untouched and keep working exactly as
-before.
+Giving them discovery is the worthwhile follow-up, and the three Eastron meter blocks
+are the worked examples of what that looks like for an RS485 block. Until then their
+call sites are untouched and keep working exactly as before.
+
+`FB_RS485_EASTRON_SDM_POWER_MQTT` is worth a look before writing the next one: its
+prologue waits for `InitRS485` as well as for a name, because the model it announces
+itself as is derived from `DeviceType` and a name alone does not describe it. A block
+whose discovery depends on more than `FriendlyName` does not have to give up
+self-wiring — it has to wait for the rest.
 
 `FB_MQTT_LOG` extends the base and could self-wire, but it has no call site
 anywhere in the reference project and there is no log topic prefix in

@@ -390,6 +390,67 @@ this project has, and it is not on the bench. The shape of the assertion:
    read-back, and **nothing is published**. That is the case worth proving: the
    old code published the payload it had sent as though sending were proof.
 
+### MQTT discovery on a self-wiring block
+
+A discovery change is one of the few things where the broker is a better witness
+than the PLC. Assert both halves, because they fail independently:
+
+**The block thinks it announced.** In a download spec:
+
+```json
+{"expect": {
+  "RS485Variables.FB_RS485_EASTRON_SDM220_1.InitMqttDone": "TRUE",
+  "RS485Variables.FB_RS485_EASTRON_SDM220_1.initMqttDiscoveryDone": "TRUE",
+  "RS485Variables.FB_RS485_EASTRON_SDM220_1.TopicTruncated": "FALSE"}}
+```
+
+`TopicTruncated` is the one people forget. IEC cuts an over-long `CONCAT` short
+with no error at all, so a long prefix plus a long instance name yields an entity
+that simply never appears — and `initMqttDiscoveryDone` is still TRUE.
+
+**The broker actually has it.** A `-Diff` around the download counts the configs:
+
+```
+NEW (19):
+  + homeassistant/sensor/..._FB_RS485_EASTRON_SDM220_1_VOLT/config
+  ...
+```
+
+Count them against what the block should publish — 14 measurements plus
+`diag_availability` and `diag_log` is 16 for the SDM220 — and read one payload to
+check `stat_t` against a topic the block really publishes to. **A discovery config
+pointing at a topic nothing writes is the failure this catches**, and it looks
+perfect from inside the PLC. The cheapest way to make the two agree is to publish
+through `PubMqttMessage`, which uses the same `MQTTPublishTopic` the discovery
+config advertises, rather than concatenating the prefix and suffix by hand at
+every call site.
+
+Read the **GONE** section before the NEW one. A discovery config that was retained
+before and is absent now is an entity Home Assistant still shows and nothing
+publishes to any more.
+
+### Two meters' worth of block on one meter
+
+To check that a device block decodes a register correctly, point a *second* block
+at the same register of the same meter and compare readings. That is how
+`FB_RS485_EASTRON_SDM_POWER_MQTT` was verified: declared as an `SDM220` at address
+1, alongside `FB_RS485_EASTRON_SDM220_1` reading the same meter, both publishing
+`/ACTP`.
+
+```powershell
+./tools/ai/Mqtt-Snapshot.ps1 -Watch -Seconds 60 `
+  -Topics 'Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_1/ACTP',
+          'Devices/PLC/Lab/Out/RS485/FB_RS485_SDM_POWER_BENCH/ACTP'
+```
+
+:bulb: **A near-idle meter publishes exact zeros, and it is not your decode.** On
+this bench both blocks intermittently reported `0.0` W against ~4.5 W otherwise.
+What settles it is watching a *different value from the same frame*: the SDM220
+block reads current, power factor and active power out of one 40-register reply,
+and `CURR` stayed at 0.037 A and `POWF` at 1.0 on the very cycles where `ACTP`
+read 0. Same frame, same CRC, same decode path — so the zero came from the meter.
+Do not chase a decode bug without that control.
+
 ### Bench gotchas, both of which look like your bug and are not
 
 - **Port 11740 closed while ping succeeds** — the runtime is down, which on this

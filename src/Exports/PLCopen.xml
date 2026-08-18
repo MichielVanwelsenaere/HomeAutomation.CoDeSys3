@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T02:17:15.5845454" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T02:13:44.3513906">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T03:24:50.9703907" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T03:23:36.6374635">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -15825,6 +15825,19 @@ END_IF
               </initialValue>
             </variable>
           </outputVars>
+          <localVars>
+            <variable name="MqttDiscoveryDevice">
+              <type>
+                <derived name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The meter as a Home Assistant device of its own. This block reads one
+	   value, so the device carries a single sensor entity - but it still wants
+	   to be a device rather than a loose entity on the PLC, because the model
+	   and the availability topic belong to the meter, not to the controller. </xhtml>
+              </documentation>
+            </variable>
+          </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
@@ -15841,19 +15854,45 @@ END_IF
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">timerData();
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check.
+
+   Discovery additionally waits for InitRS485Done, because the model this meter
+   announces itself as is derived from DeviceType and DeviceType is not known
+   until InitRS485 has run. Announcing an SDM120 as an SDM220 would be a wrong
+   answer published once and retained; waiting a cycle costs nothing.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched. A block wired this way MUST be called
+   cyclically, and nothing warns if it is not. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubRS485Prefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+	END_IF
+
+	IF InitMqttDone AND InitRS485Done AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(THIS^.MqttDiscoveryDevice),
+			DeviceName := FriendlyName);
+	END_IF
+
+END_IF
+
+timerData();
 
 IF isDataUpdated THEN
 	isDataUpdated := FALSE;
-	
-	IF InitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(ACTIVEPOWER),
-			Topic := CONCAT(THIS^.MQTTPublishTopic, '/ACTP'),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-	END_IF
+
+	PubMqttMessage(Suffix := '/ACTP', Data := REAL_TO_STRING(ACTIVEPOWER));
 END_IF
 </xhtml>
           </ST>
@@ -16112,6 +16151,105 @@ IF StepsRun &gt; 0 AND Failures &gt;= StepsRun THEN
 	PubMqttMessage(Suffix := '/availability', Data := 'offline');
 ELSIF StepsRun &gt; 0 THEN
 	PubMqttMessage(Suffix := '/availability', Data := 'online');
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="0e2b6bf0-e083-4b9f-a573-714fea2f5fa9">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="DeviceName">
+                    <type>
+                      <string length="50" />
+                    </type>
+                  </variable>
+                  <variable name="Model">
+                    <type>
+                      <string length="20" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="resolvedModel">
+                    <type>
+                      <string length="20" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Announces the meter as a device carrying one sensor: active power. Unlike the
+   SDM220 and SDM630 blocks this one serves three meter models, so the model
+   string is derived from DeviceType rather than fixed - InitRS485 must therefore
+   have run before this does, which is what the self-wiring prologue waits for.
+   Pass Model explicitly to overrule the derivation. *)
+IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+
+	IF Model &lt;&gt; '' THEN
+		resolvedModel := Model;
+	ELSE
+		CASE DeviceType OF
+			RS485_EASTRON_SDM_Devices.SDM120:	resolvedModel := 'SDM120';
+			RS485_EASTRON_SDM_Devices.SDM220:	resolvedModel := 'SDM220';
+			RS485_EASTRON_SDM_Devices.SDM630:	resolvedModel := 'SDM630';
+		ELSE
+			resolvedModel := 'unknown';
+		END_CASE
+	END_IF
+
+	id := SUPER^.ResolveEntityId(overruleId := overruleId);
+
+	Device^.initEastronDevice(
+		name := DeviceName,
+		id := id,
+		Model := resolvedModel,
+		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic2 := CONCAT(THIS^.MQTTPublishTopic, '/availability'),
+		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
+		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
+		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+
+	Device^.CreateSensorEntity(
+		Name := 'Active Power',
+		Id := CONCAT(id, '_ACTP'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/ACTP'),
+		DeviceClass := 'power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'W');
+
+	initMqttDiscoveryDone := TRUE;
 END_IF
 </xhtml>
                 </ST>
@@ -16395,6 +16533,19 @@ END_IF
               </initialValue>
             </variable>
           </outputVars>
+          <localVars>
+            <variable name="MqttDiscoveryDevice">
+              <type>
+                <derived name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The meter announced to Home Assistant as a device of its own, so its
+	   fourteen measurements group under one card instead of scattering across
+	   the PLC device. One per meter and its lifetime is the meter's, so it lives
+	   here rather than in a GVL - the SDM630 does the same. </xhtml>
+              </documentation>
+            </variable>
+          </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
@@ -16411,117 +16562,77 @@ END_IF
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">timerData1();
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check.
+
+   Dormant while FriendlyName is empty, so existing projects and existing call
+   sites keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is unwired and absent from Home Assistant, and nothing warns about that. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubRS485Prefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(THIS^.MqttDiscoveryDevice),
+			DeviceName := FriendlyName);
+	END_IF
+
+END_IF
+
+timerData1();
 timerData2();
 timerData3();
 
+(* Published through PubMqttMessage rather than by building each topic inline.
+   The inline form concatenated the prefix and suffix at every one of these
+   fourteen call sites, which is the same string MQTTPublishTopic already holds -
+   and the discovery configs advertise MQTTPublishTopic. Two ways of spelling one
+   topic is how a state topic and its discovery config drift apart. *)
 IF Update1 THEN
 	Update1 := FALSE;
 	DataAvailable1 := TRUE;
-	
-	IF InitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(VOLTAGE),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/VOLT' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(CURRENT),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/CURR' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);	
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(ACTIVEPOWER),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/ACTP' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(APPARENT_POWER),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/APPP' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(REACTIVE_POWER),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/REAP' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(POWER_FACTOR),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/POWF' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(PHASE_ANGLE),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/PHAA' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-	END_IF
+
+	PubMqttMessage(Suffix := '/VOLT', Data := REAL_TO_STRING(VOLTAGE));
+	PubMqttMessage(Suffix := '/CURR', Data := REAL_TO_STRING(CURRENT));
+	PubMqttMessage(Suffix := '/ACTP', Data := REAL_TO_STRING(ACTIVEPOWER));
+	PubMqttMessage(Suffix := '/APPP', Data := REAL_TO_STRING(APPARENT_POWER));
+	PubMqttMessage(Suffix := '/REAP', Data := REAL_TO_STRING(REACTIVE_POWER));
+	PubMqttMessage(Suffix := '/POWF', Data := REAL_TO_STRING(POWER_FACTOR));
+	PubMqttMessage(Suffix := '/PHAA', Data := REAL_TO_STRING(PHASE_ANGLE));
 END_IF
 
 IF Update2 THEN
 	Update2 := FALSE;
 	DataAvailable2 := TRUE;
-	
-	IF InitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(FREQUENCY),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/FREQ' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(IMPORT_ACTIVE_ENERGY),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/IMAE' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(EXPORT_ACTIVE_ENERGY),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/EXAE' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(IMPORT_REACTIVE_ENERGY),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/IMRE' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(EXPORT_REACTIVE_ENERGY),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/EXRE' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-	END_IF
+
+	PubMqttMessage(Suffix := '/FREQ', Data := REAL_TO_STRING(FREQUENCY));
+	PubMqttMessage(Suffix := '/IMAE', Data := REAL_TO_STRING(IMPORT_ACTIVE_ENERGY));
+	PubMqttMessage(Suffix := '/EXAE', Data := REAL_TO_STRING(EXPORT_ACTIVE_ENERGY));
+	PubMqttMessage(Suffix := '/IMRE', Data := REAL_TO_STRING(IMPORT_REACTIVE_ENERGY));
+	PubMqttMessage(Suffix := '/EXRE', Data := REAL_TO_STRING(EXPORT_REACTIVE_ENERGY));
 END_IF
 
 IF Update3 THEN
-	Update3 := FALSE;	
+	Update3 := FALSE;
 	DataAvailable3 := TRUE;
-	
-	IF InitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(TOTAL_ACTIVE_ENERGY),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/TOTAE' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-		pMqttPublishQueue^.AddMessage(
-			Payload := REAL_TO_STRING(TOTAL_REACTIVE_ENERGY),
-			Topic := CONCAT(CONCAT(MqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/TOTRE' ),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
-	END_IF
-END_IF</xhtml>
+
+	PubMqttMessage(Suffix := '/TOTAE', Data := REAL_TO_STRING(TOTAL_ACTIVE_ENERGY));
+	PubMqttMessage(Suffix := '/TOTRE', Data := REAL_TO_STRING(TOTAL_REACTIVE_ENERGY));
+END_IF
+</xhtml>
           </ST>
         </body>
         <addData>
@@ -16842,6 +16953,196 @@ IF StepsRun &gt; 0 AND Failures &gt;= StepsRun THEN
 	PubMqttMessage(Suffix := '/availability', Data := 'offline');
 ELSIF StepsRun &gt; 0 THEN
 	PubMqttMessage(Suffix := '/availability', Data := 'online');
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="2b812951-77fa-47eb-a147-95605afdc536">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="DeviceName">
+                    <type>
+                      <string length="50" />
+                    </type>
+                  </variable>
+                  <variable name="Model">
+                    <type>
+                      <string length="20" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'SDM220'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Announces the meter as a device of its own, then one sensor entity per
+   measurement. StateClass is what puts the energy totals into the Home
+   Assistant energy dashboard; the instantaneous values are 'measurement', and
+   power factor and phase angle carry none because neither is meaningful to
+   sum or average over time. *)
+IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+
+	id := SUPER^.ResolveEntityId(overruleId := overruleId);
+
+	Device^.initEastronDevice(
+		name := DeviceName,
+		id := id,
+		Model := Model,
+		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic2 := CONCAT(THIS^.MQTTPublishTopic, '/availability'),
+		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
+		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
+		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+
+	(* --- register block 1: the instantaneous electrical values ------------- *)
+
+	Device^.CreateSensorEntity(
+		Name := 'Voltage',
+		Id := CONCAT(id, '_VOLT'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/VOLT'),
+		DeviceClass := 'voltage',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'V');
+
+	Device^.CreateSensorEntity(
+		Name := 'Current',
+		Id := CONCAT(id, '_CURR'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/CURR'),
+		DeviceClass := 'current',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'A');
+
+	Device^.CreateSensorEntity(
+		Name := 'Active Power',
+		Id := CONCAT(id, '_ACTP'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/ACTP'),
+		DeviceClass := 'power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'W');
+
+	Device^.CreateSensorEntity(
+		Name := 'Apparent Power',
+		Id := CONCAT(id, '_APPP'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/APPP'),
+		DeviceClass := 'apparent_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'VA');
+
+	Device^.CreateSensorEntity(
+		Name := 'Reactive Power',
+		Id := CONCAT(id, '_REAP'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/REAP'),
+		DeviceClass := 'reactive_power',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'var');
+
+	Device^.CreateSensorEntity(
+		Name := 'Power Factor',
+		Id := CONCAT(id, '_POWF'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/POWF'),
+		DeviceClass := 'power_factor',
+		UnitOfMeasurement := '');
+
+	Device^.CreateSensorEntity(
+		Name := 'Phase Angle',
+		Id := CONCAT(id, '_PHAA'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/PHAA'),
+		DeviceClass := '',
+		UnitOfMeasurement := '°');
+
+	(* --- register block 2: frequency and the four energy counters ---------- *)
+
+	Device^.CreateSensorEntity(
+		Name := 'Frequency',
+		Id := CONCAT(id, '_FREQ'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/FREQ'),
+		DeviceClass := 'frequency',
+		StateClass := 'measurement',
+		UnitOfMeasurement := 'Hz');
+
+	Device^.CreateSensorEntity(
+		Name := 'Import Active Energy',
+		Id := CONCAT(id, '_IMAE'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/IMAE'),
+		DeviceClass := 'energy',
+		StateClass := 'total_increasing',
+		UnitOfMeasurement := 'kWh');
+
+	Device^.CreateSensorEntity(
+		Name := 'Export Active Energy',
+		Id := CONCAT(id, '_EXAE'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/EXAE'),
+		DeviceClass := 'energy',
+		StateClass := 'total_increasing',
+		UnitOfMeasurement := 'kWh');
+
+	Device^.CreateSensorEntity(
+		Name := 'Import Reactive Energy',
+		Id := CONCAT(id, '_IMRE'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/IMRE'),
+		DeviceClass := '',
+		StateClass := 'total_increasing',
+		UnitOfMeasurement := 'kvarh');
+
+	Device^.CreateSensorEntity(
+		Name := 'Export Reactive Energy',
+		Id := CONCAT(id, '_EXRE'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/EXRE'),
+		DeviceClass := '',
+		StateClass := 'total_increasing',
+		UnitOfMeasurement := 'kvarh');
+
+	(* --- register block 3: the totals -------------------------------------- *)
+
+	Device^.CreateSensorEntity(
+		Name := 'Total Active Energy',
+		Id := CONCAT(id, '_TOTAE'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/TOTAE'),
+		DeviceClass := 'energy',
+		StateClass := 'total_increasing',
+		UnitOfMeasurement := 'kWh');
+
+	Device^.CreateSensorEntity(
+		Name := 'Total Reactive Energy',
+		Id := CONCAT(id, '_TOTRE'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/TOTRE'),
+		DeviceClass := '',
+		StateClass := 'total_increasing',
+		UnitOfMeasurement := 'kvarh');
+
+	initMqttDiscoveryDone := TRUE;
 END_IF
 </xhtml>
                 </ST>
@@ -18640,6 +18941,13 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               <type>
                 <derived name="FB_RS485_EASTRON_SDM220_MQTT" />
               </type>
+              <initialValue>
+                <structValue>
+                  <value member="FriendlyName">
+                    <simpleValue value="'Lab PLC SDM220 energy meter'" />
+                  </value>
+                </structValue>
+              </initialValue>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> RS485 </xhtml>
               </documentation>
@@ -18695,6 +19003,22 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Self-wiring: FriendlyName is what turns the MQTT and discovery wiring on,
 	   so this needs no Init call in RS485_INIT - only registration on the bus. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="FB_RS485_EASTRON_SDM_POWER_1">
+              <type>
+                <derived name="FB_RS485_EASTRON_SDM_POWER_MQTT" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Declared but not registered with the bus controller and given no
+	   FriendlyName, so it neither talks to the bus nor announces itself - the
+	   same dormant shape as FB_RS485_DUCO_DUCOBOX_HOME and the 1-Wire sensorhub
+	   above, whose RegisterDevice calls are likewise commented out.
+
+	   It is here because an unreferenced POU is never compiled: without an
+	   instance somewhere in the application, this block's code is not checked by
+	   any build and a broken edit to it would pass verify. To actually use it,
+	   give it a FriendlyName and call InitRS485 - see the block's page. </xhtml>
               </documentation>
             </variable>
             <addData>
@@ -20519,6 +20843,7 @@ RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM2
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM630_1);
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME);
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01);
+//RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_1);
 
 (* INIT RS485 DEVICE STUFF *)
 RS485Variables.FB_RS485_EASTRON_SDM220_1.InitRS485(
@@ -20528,10 +20853,10 @@ RS485Variables.FB_RS485_EASTRON_SDM220_1.InitRS485(
 	DeviceAddress := 1					(* Device address of the modbus device *)
 );
 
-RS485Variables.FB_RS485_EASTRON_SDM220_1.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubRS485Prefix),		(* pointer to string prefix for the mqtt publish topic *)
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)		(* pointer to MqttPublishQueue to send a new Mqtt event *)
-);
+(* No InitMqtt call for the SDM220 any more: FriendlyName is set at its
+   declaration in RS485Variables and the block wires itself from MqttVariables on
+   its first cyclic call, then announces its fourteen measurements to Home
+   Assistant. The SDM630 above has worked this way since it was added. *)
 
 RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
 	DataPollingInterval := T#3S,		(* Polling interval for data array *)
@@ -20591,6 +20916,7 @@ RS485Variables.FB_RS485_EASTRON_SDM220_1();
 RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME();
 RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();
 RS485Variables.FB_RS485_EASTRON_SDM630_1();
+RS485Variables.FB_RS485_EASTRON_SDM_POWER_1();
 </xhtml>
                       </ST>
                     </body>
@@ -21904,6 +22230,7 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
             <Object Name="BuildTransaction" ObjectId="b98afc2f-8c1b-4f6d-b5ff-e5bd448d6513" />
             <Object Name="OnStepResult" ObjectId="6d9261f6-e13f-45a5-83a1-9af44a48876c" />
             <Object Name="OnTransactionDone" ObjectId="af323132-f9ed-4118-b74e-cdcbed6f3a82" />
+            <Object Name="InitMqttDiscovery" ObjectId="2b812951-77fa-47eb-a147-95605afdc536" />
           </Object>
           <Object Name="FB_RS485_EASTRON_SDM_POWER_MQTT" ObjectId="5b97d20c-9882-4b30-9cdd-a5c215327154">
             <Object Name="InitRS485" ObjectId="7c95a3bf-1dc2-4b85-bd18-89aefa685445" />
@@ -21913,6 +22240,7 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
             <Object Name="BuildTransaction" ObjectId="d9adf96a-5ba7-442f-8661-aeebb3a7201d" />
             <Object Name="OnStepResult" ObjectId="5425caae-f78c-4317-9cc3-676375d16435" />
             <Object Name="OnTransactionDone" ObjectId="7c2b4713-f8ff-4503-8cb8-2c199a00193c" />
+            <Object Name="InitMqttDiscovery" ObjectId="0e2b6bf0-e083-4b9f-a573-714fea2f5fa9" />
           </Object>
           <Object Name="FB_RS485_ESERA_OWD_MQTT" ObjectId="3863af80-4cc0-4a7d-aa64-b1faa3d21fcc">
             <Object Name="HasWork" ObjectId="fe828a59-cc20-4394-bbeb-1515da82b0da" />
