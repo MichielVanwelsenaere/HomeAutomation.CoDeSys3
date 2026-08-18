@@ -52,6 +52,45 @@ Three blocks, each with one job:
 `PLC_PRG_RS485` wires them together in `RS485_INIT` and calls the controller in `RS485_RUN`. A
 worked example lives there.
 
+### **How fast the bus goes, and what actually decides it**
+
+The single biggest performance decision on this bus is **the `RS485` task's cycle
+time**, not the baud rate. It is set to **50 ms**.
+
+The reason is that one Modbus exchange costs a fixed number of task *cycles* -
+measured at roughly 6.5 to 8.5 per step - rather than a fixed amount of time.
+Sending, collecting, judging and the silence afterwards each need at least one
+cycle, and several need a cycle to reset a timer before they can start counting.
+So the whole exchange scales with the task period:
+
+| `RS485` task | per step | per transaction |
+|:--|--:|--:|
+| 200 ms | 1.30 s | 3.75 s |
+| **50 ms** | **0.42 s** | **0.53 s** |
+
+An SDM220 read is about 100 ms of actual wire time at 9600 baud, so even at 50 ms
+the bus spends most of its time waiting for the next cycle rather than for the
+slave. Lowering it further would keep paying, in smaller absolute amounts.
+[FB_RS485_TRANSPORT_RTU](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) has the full
+comparison, including what the transport itself contributes.
+
+Two things make a short interval safe here, and both are worth checking before
+copying the setting into an installation project:
+
+- **`RS485` runs at priority 15**, the lowest of the five tasks in this project -
+  below `MainTask` (4), `MqttCommunication` (5) and `HvacTask` (8). It yields to
+  all of them, so polling a meter faster cannot delay a light or a valve.
+- **Every task in this project has its watchdog disabled.** That is a pre-existing
+  convention rather than anything to do with the interval, but it is the reason
+  there is nothing to catch an overrun: a task that cannot keep up degrades
+  quietly. If the interval is ever pushed below 50 ms, enable the watchdog first
+  so the failure is loud.
+
+:bulb: **`StepsExecuted / Transactions` falling is the bus getting faster, not
+batching breaking.** It measures how many of a device's register blocks were due
+in the same grant, so a bus that keeps up with demand serves each one as it falls
+due and the ratio drops - 2.7 with a 200 ms task, 1.4 with a 50 ms one.
+
 ### **Why this project frames its own RTU rather than using a driver**
 
 Worth knowing before anyone tries to simplify it back.

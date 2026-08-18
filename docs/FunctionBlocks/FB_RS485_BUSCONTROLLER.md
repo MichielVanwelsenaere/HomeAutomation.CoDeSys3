@@ -49,6 +49,10 @@ stateDiagram-v2
 `Gap` is the inter-frame silence **inside** a transaction — the bus is not released there. That
 is the difference that makes read-after-write meaningful.
 
+Every one of those states costs at least one task cycle, which is why the `RS485` task's cycle
+time and not the baud rate is what sets throughput. See
+[How fast the bus goes](../RS485/UsingModbusRTU_CODESYS3S.md#how-fast-the-bus-goes-and-what-actually-decides-it).
+
 <!-- fb-interface:start -->
 ### **Block diagram**
 
@@ -76,7 +80,7 @@ is the difference that makes read-after-write meaningful.
 | `ActiveDevice` | INT | Index of the device currently holding the bus, `-1` when the bus is free. |
 | `Cursor` | INT | Where the next selection pass starts. Watching this move is how you see fairness working. |
 | `Transactions` | UDINT | Completed transactions since boot. |
-| `StepsExecuted` | UDINT | Steps attempted; always at least `Transactions`. |
+| `StepsExecuted` | UDINT | Steps attempted; always at least `Transactions`. Divided by `Transactions` it is the batching ratio - how many of a device's register blocks came due in the same grant. A **falling** ratio on a faster bus is the bus keeping up with demand, not batching breaking: 2.7 with a 200 ms task, 1.4 with a 50 ms one. |
 | `StepFailures` | UDINT | How many of those failed. |
 | `Watchdogs` | UDINT | Steps abandoned because the transport never answered. Should stay `0`. |
 
