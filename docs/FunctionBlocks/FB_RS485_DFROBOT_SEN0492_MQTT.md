@@ -44,16 +44,16 @@ and B fixed it, and the sweep then found the sensor on its **first** probe.
 ### **Block diagram**
 
 ```text
-      ┌──────────────────────────────────────────┐
-      │      FB_RS485_DFROBOT_SEN0492_MQTT       │
-      ├──────────────────────────────────────────┤
-INT ──┤ AvailabilityFailLimit           DISTANCE ├── UINT
-      │                             OUTPUT_STATE ├── BYTE
-      │                         MeasurementValid ├── BOOL
-      │                            DataAvailable ├── BOOL
-      │                                    Error ├── BOOL
-      │                              SuccessRate ├── USINT
-      └──────────────────────────────────────────┘
+       ┌──────────────────────────────────────────┐
+       │      FB_RS485_DFROBOT_SEN0492_MQTT       │
+       ├──────────────────────────────────────────┤
+TIME ──┤ PollIntervalOverride            DISTANCE ├── UINT
+ INT ──┤ AvailabilityFailLimit       OUTPUT_STATE ├── BYTE
+       │                         MeasurementValid ├── BOOL
+       │                            DataAvailable ├── BOOL
+       │                                    Error ├── BOOL
+       │                              SuccessRate ├── USINT
+       └──────────────────────────────────────────┘
 ```
 
 ### **Interface**
@@ -62,6 +62,7 @@ INT ──┤ AvailabilityFailLimit           DISTANCE ├── UINT
 
 | Pin | Type | Description |
 |:--|:--|:--|
+| `PollIntervalOverride` | TIME | The poll interval that can be changed **without the IDE**. Zero means use whatever `FB_init` was given; anything else wins, subject to the same 8 s floor. It exists because CODESYS stores an instance's `FB_init` arguments outside the declaration text, so no script can revise the constructor argument — see [CLAUDE.md](../../CLAUDE.md). Settable from `RS485_INIT` or online while the PLC runs, and applied on the next poll. |
 | `AvailabilityFailLimit` | INT | Consecutive failed transactions before the sensor is declared offline. Defaults to 3, so around half a minute at the 8 s minimum poll. Raise it on a bus that is busy or long; 1 would mean every transient shows up in Home Assistant as a disconnection. Recovery is immediate on the first good transaction regardless. |
 
 **Outputs**
@@ -247,9 +248,12 @@ with the sensor alone on the bus, nothing else registered:
 | 2 s | ~19 | ~4 | **~25%** |
 | 7 s | ~4 | ~4 | ~100% |
 | 10 s | 3 | 3 | ~100% |
+| 30 s | 1 | ~0.7 | ~70% |
 
 The sensor answers roughly **once every six or seven seconds however often it is asked**, and
-drops the requests in between. Asking faster changes nothing except the proportion that fail —
+drops the requests in between. The 30 s row is a later measurement on a rewired bench and shows
+where the ceiling actually is: slowing down past the floor buys nothing, because what remains is
+not a rate problem. Asking faster changes nothing except the proportion that fail —
 which is what made the Home Assistant connectivity sensor flap, because three consecutive
 misses is easy to reach at 2 s and hard at 8 s.
 
@@ -263,19 +267,28 @@ see [CLAUDE.md](../../CLAUDE.md) — so that argument cannot be corrected by any
 the IDE. The clamp exists partly because of that: a value that cannot be fixed automatically
 should not be able to break the device.
 
-:rotating_light: **A residual failure rate remains, and it looks electrical.** Even at the
-clamped rate a small number of replies still fail to frame. The captured bytes are the reason
-to suspect the wiring rather than the protocol: every failed frame has the shape
+:rotating_light: **A residual failure rate remains, it is specific to this sensor, and slowing
+the poll further does not help.** Raising the interval from 8 s to 30 s was tried and changed
+nothing: `/QUALITY` settled at **60–75%** either way. The poll rate mattered enormously at 2 s
+and is not the limiter beyond about 8 s.
+
+What the failed frames contain says why. Every one has the shape
 
 ```
-00 04 04 XX 00 00 crc crc      (XX varies: 82, 83, 84, 85, 86, 137, 151 ...)
+00 04 00 12 00 00 1A F3        expected: 50 03 04 00 12 00 00 crc crc
 ```
 
-— eight bytes where nine are expected, with a varying data byte and a **leading `00` where the
-slave address `16#50` should be**. A first byte losing its bits as the driver enables onto the
-pair is the classic symptom of a line with no termination and no bias, and this bus has neither
-fitted. The project's own wiring page already notes that terminators are required and are not
-shown in the drawing. Fit them before looking any further at the software.
+— eight bytes where nine are expected, carrying the sensor's real data (`00 12` is the 18 mm it
+was reporting at the time), with the first **two** bytes `50 03` collapsed into a single `00`.
+A byte is genuinely lost on the wire, so no amount of resynchronising in software can recover
+it: the CRC covers the address, and the address is what got destroyed.
+
+**The control is on the same bus.** An Eastron SDM220 sharing the pair runs at roughly 90%
+success with `CrcFail` barely moving, so this is not the wiring in general — it is something
+about how this sensor turns its driver on. The most likely candidate is turnaround timing: the
+SEN0492 answers very quickly, so its first byte can begin while the PLC's own driver is still
+enabled, where a slower meter would not collide. Termination and bias resistors are the standard
+remedy and this bus still has neither fitted, which remains the first thing to try.
 
 ### **Availability is debounced, and published on change**
 

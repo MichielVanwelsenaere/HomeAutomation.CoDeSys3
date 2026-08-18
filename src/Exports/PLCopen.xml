@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T10:04:51.3383253" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T10:00:21.6660384">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T10:44:59.4723958" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T10:37:27.695722">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -6527,7 +6527,7 @@ END_IF </xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="initDFRobotDevice" ObjectId="4f83d96e-35ae-4b58-8dfe-67d7e2e9d2a1">
+            <Method name="initDFRobotDevice" ObjectId="66acba07-0d4f-4587-b4cc-ebdf2ded258f">
               <interface>
                 <inputVars>
                   <variable name="name">
@@ -7494,6 +7494,27 @@ Initialised := TRUE;
             </variable>
           </localVars>
           <inputVars>
+            <variable name="PollIntervalOverride">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The poll interval that can actually be changed without the IDE.
+
+	   FB_init's DataPollingInterval is the default and it is the honest place
+	   for it, but CODESYS stores an instance's FB_init arguments outside the
+	   declaration text, so no script can revise one - see CLAUDE.md. That makes
+	   the constructor argument a one-way door for tooling, which is awkward for
+	   the one number on this block most likely to need tuning.
+
+	   So: zero means use whatever FB_init was given; anything else wins, subject
+	   to the same SEN0492_MIN_POLL floor. Settable from RS485_INIT, or online
+	   while the PLC runs. </xhtml>
+              </documentation>
+            </variable>
             <variable name="AvailabilityFailLimit">
               <type>
                 <INT />
@@ -7619,6 +7640,17 @@ IF FriendlyName &lt;&gt; '' THEN
 
 END_IF
 
+(* Applied every cycle rather than once, so the interval can be changed online
+   and take effect on the next poll. Below the floor is raised to it, exactly as
+   FB_init does - a limit worth enforcing is worth enforcing on both routes in. *)
+IF PollIntervalOverride &gt; T#0S THEN
+	IF PollIntervalOverride &lt; SEN0492_MIN_POLL THEN
+		timerData.PT := SEN0492_MIN_POLL;
+	ELSE
+		timerData.PT := PollIntervalOverride;
+	END_IF
+END_IF
+
 timerData();
 
 (* The state goes out on every poll and the distance only when the sensor called
@@ -7645,7 +7677,7 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RequestConfigWrite" ObjectId="a9832bfc-a54f-43d6-af3b-9f4a08c65632">
+            <Method name="RequestConfigWrite" ObjectId="ee05a191-af1b-4405-bfee-5810853813c8">
               <interface>
                 <returnType>
                   <BOOL />
@@ -7705,7 +7737,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnTransactionDone" ObjectId="48abd0ec-0cda-4737-98ad-9e741a8b72eb">
+            <Method name="OnTransactionDone" ObjectId="1be80d87-5415-4f6f-8950-2e1654c8ab9e">
               <interface>
                 <inputVars>
                   <variable name="StepsRun">
@@ -7814,7 +7846,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnStepResult" ObjectId="8dd882d9-fc25-4f15-a232-125b402e046b">
+            <Method name="OnStepResult" ObjectId="4c99f7de-f219-4660-bd50-4992b63f12f2">
               <interface>
                 <inputVars>
                   <variable name="StepIndex">
@@ -7876,7 +7908,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="BuildTransaction" ObjectId="c89fbcd1-51fe-4fff-a458-9275a3577546">
+            <Method name="BuildTransaction" ObjectId="f6590c90-4c63-4413-af65-1abc8dcf46d6">
               <interface>
                 <returnType>
                   <INT />
@@ -7916,7 +7948,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="HasWork" ObjectId="77f38c94-06d2-4260-b1dd-b3027483e701">
+            <Method name="HasWork" ObjectId="b573e789-f437-4344-a3ec-43ce16a79345">
               <interface>
                 <returnType>
                   <derived name="RS485_WorkLevel" />
@@ -7940,7 +7972,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="7784e7d6-752f-4d30-bf29-c9d32b2f7417">
+            <Method name="InitMqttDiscovery" ObjectId="be556ef7-b79d-4835-8aa5-e27b1e48711b">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -8038,7 +8070,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PubMqttMessage" ObjectId="b0f77285-acb9-4e45-b392-d5d0682afbf8">
+            <Method name="PubMqttMessage" ObjectId="786ee904-3bde-4127-b890-0e236b160a59">
               <interface>
                 <inputVars>
                   <variable name="Suffix">
@@ -8070,7 +8102,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="47033255-be9f-452e-9385-23621b19e22d">
+            <Method name="InitMqtt" ObjectId="bba81534-aa28-40b0-8bf7-6943be67821a">
               <interface>
                 <inputVars>
                   <variable name="MQTTPublishPrefix">
@@ -8108,7 +8140,7 @@ SUPER^.InitBaseMqtt();
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="FB_init" ObjectId="5c07e072-d4b8-4742-922f-3db6909c79a8">
+            <Method name="FB_init" ObjectId="fdd3a7bb-d722-409d-a6e8-1c757d36f1e5">
               <interface>
                 <returnType>
                   <BOOL />
@@ -22522,6 +22554,11 @@ RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM6
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_1);
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_SEN0492_1);
 
+(* Thirty seconds, to see what the failure rate does when the sensor is given
+   far more room than its measured floor of eight. Set here rather than in the
+   declaration because an FB_init argument cannot be revised by tooling. *)
+RS485Variables.FB_RS485_SEN0492_1.PollIntervalOverride := T#30S;
+
 (* INIT RS485 DEVICE STUFF.
    Nothing to do for the three Eastron meters. Modbus address, poll rate and -
    for the SDM_POWER block - the meter model all reach them through FB_init at
@@ -24008,7 +24045,7 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
         <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
         <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
         <Object Name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" ObjectId="88157962-75ef-47ae-bd1a-543d8dd22c58">
-          <Object Name="initDFRobotDevice" ObjectId="4f83d96e-35ae-4b58-8dfe-67d7e2e9d2a1" />
+          <Object Name="initDFRobotDevice" ObjectId="66acba07-0d4f-4587-b4cc-ebdf2ded258f" />
         </Object>
         <Object Name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" ObjectId="83ba608b-36e7-4e0d-bc48-e72f8108c8bd">
           <Object Name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1" />
@@ -24020,15 +24057,15 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
           <Object Name="Init" ObjectId="1f5ff39a-3d06-4841-a742-9ba51e7243e2" />
         </Object>
         <Object Name="FB_RS485_DFROBOT_SEN0492_MQTT" ObjectId="64f1d9ac-10e3-430e-9ae8-cc98d25585ed">
-          <Object Name="RequestConfigWrite" ObjectId="a9832bfc-a54f-43d6-af3b-9f4a08c65632" />
-          <Object Name="OnTransactionDone" ObjectId="48abd0ec-0cda-4737-98ad-9e741a8b72eb" />
-          <Object Name="OnStepResult" ObjectId="8dd882d9-fc25-4f15-a232-125b402e046b" />
-          <Object Name="BuildTransaction" ObjectId="c89fbcd1-51fe-4fff-a458-9275a3577546" />
-          <Object Name="HasWork" ObjectId="77f38c94-06d2-4260-b1dd-b3027483e701" />
-          <Object Name="InitMqttDiscovery" ObjectId="7784e7d6-752f-4d30-bf29-c9d32b2f7417" />
-          <Object Name="PubMqttMessage" ObjectId="b0f77285-acb9-4e45-b392-d5d0682afbf8" />
-          <Object Name="InitMqtt" ObjectId="47033255-be9f-452e-9385-23621b19e22d" />
-          <Object Name="FB_init" ObjectId="5c07e072-d4b8-4742-922f-3db6909c79a8" />
+          <Object Name="RequestConfigWrite" ObjectId="ee05a191-af1b-4405-bfee-5810853813c8" />
+          <Object Name="OnTransactionDone" ObjectId="1be80d87-5415-4f6f-8950-2e1654c8ab9e" />
+          <Object Name="OnStepResult" ObjectId="4c99f7de-f219-4660-bd50-4992b63f12f2" />
+          <Object Name="BuildTransaction" ObjectId="f6590c90-4c63-4413-af65-1abc8dcf46d6" />
+          <Object Name="HasWork" ObjectId="b573e789-f437-4344-a3ec-43ce16a79345" />
+          <Object Name="InitMqttDiscovery" ObjectId="be556ef7-b79d-4835-8aa5-e27b1e48711b" />
+          <Object Name="PubMqttMessage" ObjectId="786ee904-3bde-4127-b890-0e236b160a59" />
+          <Object Name="InitMqtt" ObjectId="bba81534-aa28-40b0-8bf7-6943be67821a" />
+          <Object Name="FB_init" ObjectId="fdd3a7bb-d722-409d-a6e8-1c757d36f1e5" />
         </Object>
         <Object Name="FB_RS485_EASTRON_SDM630_MQTT" ObjectId="af59857b-6616-4cd6-a053-847b3c89d96f">
           <Object Name="HasWork" ObjectId="aebc6851-9dee-4d6c-8c39-27331d94fc01" />
