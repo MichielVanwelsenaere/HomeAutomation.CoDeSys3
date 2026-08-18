@@ -111,6 +111,10 @@ on this hardware, not a fault.**
    │          LastException ├── BYTE
    │              LeadNulls ├── UDINT
    │             TrailNulls ├── UDINT
+   │            LastFailLen ├── UDINT
+   │           LastFailAddr ├── BYTE
+   │           LastFailFunc ├── BYTE
+   │          LastFailBytes ├── STRING(120)
    └────────────────────────┘
 ```
 
@@ -133,6 +137,10 @@ on this hardware, not a fault.**
 | `LastException` | BYTE | Modbus exception code from the most recent exception reply. |
 | `LeadNulls` | UDINT | Replies that arrived with leading glitch bytes. Tracks `Ok` on this hardware; not a fault. |
 | `TrailNulls` | UDINT | Replies that arrived with trailing glitch bytes. Tracks `Ok` on this hardware; not a fault. |
+| `LastFailLen` | UDINT | How many bytes were in the buffer of the most recent reply that would not frame. Zero here with `CrcFail` climbing would be a contradiction; a small number is a truncated reply, a large one is two replies collected together. |
+| `LastFailAddr` | BYTE | Slave address the failed exchange was addressed to. Without it the captured bytes are unattributable — a frame that looks like another device's traffic is exactly the case worth telling apart from a mangled reply. |
+| `LastFailFunc` | BYTE | Function code of that exchange, for the same reason. |
+| `LastFailBytes` | STRING(120) | The first 24 bytes as decimal numbers. A counter can say a reply did not check out; only the bytes can say whether it was half a reply, two replies, an echo of the request, or a mangled address — and those want different fixes. Published to `.../RS485/BUS_COUNTERS` by `PLC_PRG_RS485`, because reading it over an online session means having a working online session. |
 
 ### **Methods**
 

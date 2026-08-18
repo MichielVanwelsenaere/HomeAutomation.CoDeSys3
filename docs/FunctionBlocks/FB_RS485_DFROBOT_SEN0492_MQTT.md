@@ -214,6 +214,41 @@ Publishing the state always and the distance only when it is good is what lets a
 held reading from a fresh one. A sensor pointed at nothing, or at something beyond 4 m, reports
 a state other than `0` and its distance simply stops updating.
 
+### **It cannot be polled quickly, and the interval is clamped**
+
+`FB_init` refuses an interval below **8 seconds** and quietly substitutes it. That is a
+hardware limit rather than a preference, and it was measured rather than assumed — on a PFC200
+with the sensor alone on the bus, nothing else registered:
+
+| Poll interval | Requests / 30 s | Answered | Success |
+|:--|--:|--:|--:|
+| 2 s | ~19 | ~4 | **~25%** |
+| 7 s | ~4 | ~4 | ~100% |
+| 10 s | 3 | 3 | ~100% |
+
+The sensor answers roughly **once every six or seven seconds however often it is asked**, and
+drops the requests in between. Asking faster changes nothing except the proportion that fail —
+which is what made the Home Assistant connectivity sensor flap, because three consecutive
+misses is easy to reach at 2 s and hard at 8 s.
+
+A caller who asks for something the device cannot sustain gets a working sensor and a slower
+one. The alternative is a reading that is right a quarter of the time and an entity that keeps
+going unavailable, which is worse in every way that matters.
+
+:rotating_light: **A residual failure rate remains, and it looks electrical.** Even at the
+clamped rate a small number of replies still fail to frame. The captured bytes are the reason
+to suspect the wiring rather than the protocol: every failed frame has the shape
+
+```
+00 04 04 XX 00 00 crc crc      (XX varies: 82, 83, 84, 85, 86, 137, 151 ...)
+```
+
+— eight bytes where nine are expected, with a varying data byte and a **leading `00` where the
+slave address `16#50` should be**. A first byte losing its bits as the driver enables onto the
+pair is the classic symptom of a line with no termination and no bias, and this bus has neither
+fitted. The project's own wiring page already notes that terminators are required and are not
+shown in the drawing. Fit them before looking any further at the software.
+
 ### **Availability is debounced, and published on change**
 
 `/availability` is deliberately not a per-transaction verdict, because that is not what a

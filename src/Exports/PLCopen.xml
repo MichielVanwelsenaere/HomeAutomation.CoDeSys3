@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T07:45:02.5465069" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T07:38:19.4665084">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T09:31:22.6161846" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T09:22:34.6812116">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -6509,7 +6509,7 @@ END_IF </xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="initDFRobotDevice" ObjectId="63d94afc-e28b-4d47-aada-4712fc10fa54">
+            <Method name="initDFRobotDevice" ObjectId="eedc18e7-680b-4641-a101-5bbb6b30e3db">
               <interface>
                 <inputVars>
                   <variable name="name">
@@ -7302,6 +7302,21 @@ Initialised := TRUE;
       </pou>
       <pou name="FB_RS485_DFROBOT_SEN0492_MQTT" pouType="functionBlock">
         <interface>
+          <localVars constant="true">
+            <variable name="SEN0492_MIN_POLL">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#8s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Measured floor for this sensor, not a guess: it answers about once every
+	   six to seven seconds however often it is asked, so anything faster only
+	   raises the proportion of requests that fail. See FB_init. </xhtml>
+              </documentation>
+            </variable>
+          </localVars>
           <localVars>
             <variable name="InstancePath">
               <type>
@@ -7547,7 +7562,7 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RequestConfigWrite" ObjectId="ceab81d3-bb96-496a-8727-bf3042b9f937">
+            <Method name="RequestConfigWrite" ObjectId="c98c2d85-1da2-407e-84c4-4102f0c81095">
               <interface>
                 <returnType>
                   <BOOL />
@@ -7607,7 +7622,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnTransactionDone" ObjectId="613da3a3-c01d-440f-84fc-0b50af94b9e5">
+            <Method name="OnTransactionDone" ObjectId="20701ac8-0513-4ebd-8c59-b5043cbe2128">
               <interface>
                 <inputVars>
                   <variable name="StepsRun">
@@ -7677,7 +7692,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnStepResult" ObjectId="e4d9879a-f360-4eb4-a295-98f650e8ec2d">
+            <Method name="OnStepResult" ObjectId="7425b12c-2aec-43c1-a613-6342d63fc477">
               <interface>
                 <inputVars>
                   <variable name="StepIndex">
@@ -7739,7 +7754,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="BuildTransaction" ObjectId="3025a0dc-fb25-420d-b95f-1701a5eb64e8">
+            <Method name="BuildTransaction" ObjectId="be289757-5986-4c4d-9582-5ef711dbee2c">
               <interface>
                 <returnType>
                   <INT />
@@ -7779,7 +7794,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="HasWork" ObjectId="0f60fff3-6fbb-49e7-b5c8-15e27a63a1f8">
+            <Method name="HasWork" ObjectId="2b3fe7ce-d635-4a30-b661-8a631b7a038c">
               <interface>
                 <returnType>
                   <derived name="RS485_WorkLevel" />
@@ -7803,7 +7818,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="612ae89f-a1ea-434f-a1c1-06f1c03932c0">
+            <Method name="InitMqttDiscovery" ObjectId="6815b1cf-e9a0-4902-877f-fd3594e8dcba">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -7890,7 +7905,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PubMqttMessage" ObjectId="6d813e6b-2a06-4181-b1bb-b2511b34b9d3">
+            <Method name="PubMqttMessage" ObjectId="ec4c14f2-203e-44b3-932f-3cb4f3f7b565">
               <interface>
                 <inputVars>
                   <variable name="Suffix">
@@ -7922,7 +7937,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="3a0c8d29-7309-40fc-a37a-2b633c77bbf7">
+            <Method name="InitMqtt" ObjectId="b2157167-0179-4cfa-a10b-c36a7951670f">
               <interface>
                 <inputVars>
                   <variable name="MQTTPublishPrefix">
@@ -7960,7 +7975,7 @@ SUPER^.InitBaseMqtt();
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="FB_init" ObjectId="d2e4481d-f442-485e-9045-4d1e31f535fd">
+            <Method name="FB_init" ObjectId="7e75b38f-8b38-4492-b5bc-5882548de5b7">
               <interface>
                 <returnType>
                   <BOOL />
@@ -8019,7 +8034,29 @@ THIS^.Step.FunctionCode	:= 3;
 THIS^.Step.Address		:= 16#34;
 THIS^.Step.Quantity		:= 2;
 
-THIS^.timerData.PT := DataPollingInterval;
+(* --- the poll rate is a hardware limit, not a preference --------------------
+   This sensor will not be read every two seconds. Measured on a PFC200 with the
+   sensor alone on the bus, nothing else registered:
+
+     poll every 2 s   ~19 requests per 30 s, ~4 answered   - 25% success
+     poll every 7 s   ~4 requests per 30 s, ~4 answered    - 100%
+     poll every 10 s  3 requests per 30 s, 3 answered      - 100%, zero failures
+
+   It answers roughly once every six or seven seconds however often it is asked,
+   and the requests in between are simply dropped. Ask faster and the only thing
+   that changes is the proportion that fail, which is what made the Home
+   Assistant connectivity sensor flap: three consecutive misses is easy to reach
+   at 2 s and impossible at 10 s.
+
+   So the interval is clamped rather than trusted. A caller asking for something
+   this device cannot sustain gets a working sensor and a slower one, which is
+   the better failure: the alternative is a reading that is right a quarter of
+   the time and an entity that keeps going unavailable. *)
+IF DataPollingInterval &lt; SEN0492_MIN_POLL THEN
+	THIS^.timerData.PT := SEN0492_MIN_POLL;
+ELSE
+	THIS^.timerData.PT := DataPollingInterval;
+END_IF
 THIS^.timerData.IN := TRUE;
 
 FB_init := TRUE;
@@ -9160,6 +9197,32 @@ END_IF
                 <UDINT />
               </type>
             </variable>
+            <variable name="LastFailLen">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The bytes of the most recent frame that would not check out, and how many
+	   there were. A counter can say a reply did not frame; only the bytes can
+	   say whether it was half a reply, two replies, an echo of the request, or
+	   noise - and those want different fixes. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="LastFailAddr">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+            <variable name="LastFailFunc">
+              <type>
+                <BYTE />
+              </type>
+            </variable>
+            <variable name="LastFailBytes">
+              <type>
+                <string length="120" />
+              </type>
+            </variable>
           </outputVars>
           <localVars>
             <variable name="Configured">
@@ -9682,6 +9745,37 @@ ELSIF (count - first) &lt; 5 THEN
 ELSIF NOT gotFrame THEN
 	CrcFail := CrcFail + 1;
 
+	(* Capture what actually arrived. Two theories about these failures have now
+	   been wrong - leading glitch bytes, then a framer that could not
+	   resynchronise - and both were argued from counters rather than from
+	   bytes. A counter says a frame did not check out; it cannot say whether
+	   what arrived was half a reply, two replies, an echo, or noise. Decimal
+	   rather than hex because there is no hex helper in scope and the point is
+	   to read it off an MQTT topic, not to look pretty. *)
+	LastFailLen := RxCount;
+
+	(* Whose window this landed in. Without it the bytes are unattributable, and
+	   a frame that looks like somebody else's request is exactly the case that
+	   needs telling apart from a mangled reply. *)
+	LastFailAddr := Step.DeviceId;
+	LastFailFunc := Step.FunctionCode;
+
+	LastFailBytes := '';
+	FOR i := 0 TO count - 1 DO
+		IF i &gt;= 24 THEN
+			EXIT;
+		END_IF
+		LastFailBytes := CONCAT(LastFailBytes, BYTE_TO_STRING(Rx[i]));
+		LastFailBytes := CONCAT(LastFailBytes, ' ');
+	END_FOR
+	FOR i := 0 TO count - 1 DO
+		IF i &gt;= 24 THEN
+			EXIT;
+		END_IF
+		LastFailBytes := CONCAT(LastFailBytes, BYTE_TO_STRING(Rx[i]));
+		LastFailBytes := CONCAT(LastFailBytes, ' ');
+	END_FOR
+
 ELSIF Rx[first] &lt;&gt; Step.DeviceId THEN
 	(* Well formed, intact, and not ours. On a shared bus that is somebody
 	   else's traffic; on this one it means the reply was mis-framed. *)
@@ -9784,35 +9878,79 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Find the frame inside what has been collected: trim the leading glitch bytes,
-   then ask the CRC where it ends. Sets `first` and `last`, and returns whether
-   the bytes between them check out.
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Find the frame inside what has been collected. Sets `first` and `last`, and
+   returns whether the bytes between them check out.
 
    Counts nothing, changes no state beyond those two indices, and is safe to
    call every cycle - which is the point. Service uses it to notice that a frame
    is already complete instead of waiting out the silence, and Judge uses it to
-   decide what it is looking at. *)
-first := 0;
-WHILE first &lt; count AND Rx[first] = 0 DO
-	first := first + 1;
-END_WHILE
+   decide what it is looking at.
 
-(* Trailing bytes are removed by asking the CRC rather than by assuming a
-   trailing 00 is noise. It usually is - but a frame whose CRC high byte is
-   genuinely 00 turns up about once in 256, and blindly trimming it turned a
-   perfectly good reply into a CRC failure. *)
-last	:= count;
-tries	:= 0;
+   This RESYNCHRONISES rather than merely trimming a leading run of nulls, and
+   that distinction is the whole reason it was rewritten. Trimming nulls handles
+   the driver-enable glitch this hardware produces, and nothing else: put any
+   non-zero byte in front of the reply and every CRC trial fails, because the
+   window always started at that byte. Measured on a DFRobot SEN0492, one reply
+   in three was being thrown away that way - bytes present, LeadNulls climbing,
+   CrcFail climbing, and the sensor answering perfectly well the whole time.
+
+   Three things put a non-zero byte in front of a reply, and all of them are
+   ordinary rather than exotic:
+     - a slave that echoes the request before answering, which is documented
+       behaviour for the SEN0492 and reported for others;
+     - a byte left over from the previous exchange that arrived after Start
+       flushed the port;
+     - two replies collected into one window, when a slave answers late enough
+       to land inside the next poll.
+   All three are cured by asking "does a valid frame start HERE?" at every
+   plausible offset instead of assuming the answer is offset zero.
+
+   The search is anchored on the slave address rather than sweeping blindly,
+   which keeps the number of CRC trials small and, more importantly, keeps the
+   chance of a coincidental CRC match negligible. *)
 Frame	:= FALSE;
+first	:= 0;
 
-WHILE NOT Frame AND tries &lt; 4 AND (last - first) &gt;= 5 DO
-	IF THIS^.Crc16(pBuf := ADR(Rx[first]), Len := last - first) = 0 THEN
-		Frame := TRUE;
-	ELSE
-		last	:= last - 1;
-		tries	:= tries + 1;
+WHILE NOT Frame AND first &lt;= (count - 5) DO
+
+	(* Only a byte that could be this slave's reply is worth testing. *)
+	IF Rx[first] = Step.DeviceId THEN
+
+		(* Trailing bytes are removed by asking the CRC rather than by assuming
+		   a trailing 00 is noise. It usually is - but a frame whose CRC high
+		   byte is genuinely 00 turns up about once in 256, and blindly trimming
+		   it turned a perfectly good reply into a CRC failure. *)
+		last	:= count;
+		tries	:= 0;
+
+		WHILE NOT Frame AND tries &lt; 4 AND (last - first) &gt;= 5 DO
+			IF THIS^.Crc16(pBuf := ADR(Rx[first]), Len := last - first) = 0 THEN
+				Frame := TRUE;
+			ELSE
+				last	:= last - 1;
+				tries	:= tries + 1;
+			END_IF
+		END_WHILE
+
 	END_IF
+
+	IF NOT Frame THEN
+		first := first + 1;
+	END_IF
+
 END_WHILE
+
+(* Nothing framed. Leave `first` and `last` describing the buffer the way the
+   old null-trimming did, because Judge classifies the failure from them: a
+   `first` left pointing near the end would turn a CRC failure into a reported
+   short frame, which is a worse diagnosis than the one it replaces. *)
+IF NOT Frame THEN
+	first := 0;
+	WHILE first &lt; count AND Rx[first] = 0 DO
+		first := first + 1;
+	END_WHILE
+	last := count;
+END_IF
 </xhtml>
                 </ST>
               </body>
@@ -22164,8 +22302,18 @@ FB_BURNER_GAS(
                     </variable>
                     <variable name="CommissionReport">
                       <type>
-                        <string length="200" />
+                        <string length="400" />
                       </type>
+                    </variable>
+                    <variable name="DiagTimer">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Thirty-second heartbeat for the bus health topic. The transport's counters
+	   are the only instrument this bus has; publishing them beats reading them
+	   over an online session that this runtime keeps dropping. </xhtml>
+                      </documentation>
                     </variable>
                   </localVars>
                   <addData>
@@ -22484,6 +22632,58 @@ END_CASE
    there is nothing to do here but call it. *)
 IF CommissionState = 99 THEN
 	RS485BusController();
+END_IF
+
+(* --- bus health, published where it can actually be read -----------------------
+   The transport's counters are the only instrument this bus has, and reading
+   them has meant an online debug session - the least reliable thing in the
+   chain on this hardware. Published every thirty seconds instead, retained, so
+   the answer to "is the bus healthy" is a topic rather than an expedition.
+
+   The pair that matters is CrcFail against NoReply. Bytes that arrive and never
+   frame are a different fault from no bytes at all: the first is framing or
+   noise, the second is a device that did not answer. Everything else here is
+   context for those two. *)
+DiagTimer(IN := NOT DiagTimer.Q, PT := T#30S);
+IF DiagTimer.Q THEN
+	CommissionReport := CONCAT('ok=', UDINT_TO_STRING(RS485Transport.Ok));
+	CommissionReport := CONCAT(CommissionReport, ' noreply=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.NoReply));
+	CommissionReport := CONCAT(CommissionReport, ' crc=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.CrcFail));
+	CommissionReport := CONCAT(CommissionReport, ' short=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.ShortFrame));
+	CommissionReport := CONCAT(CommissionReport, ' badaddr=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.BadAddress));
+	CommissionReport := CONCAT(CommissionReport, ' badfunc=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.BadFunction));
+	CommissionReport := CONCAT(CommissionReport, ' exc=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.Exceptions));
+	CommissionReport := CONCAT(CommissionReport, ' lead=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.LeadNulls));
+	CommissionReport := CONCAT(CommissionReport, ' trail=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.TrailNulls));
+	CommissionReport := CONCAT(CommissionReport, ' tx=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485BusController.Transactions));
+	CommissionReport := CONCAT(CommissionReport, ' steps=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485BusController.StepsExecuted));
+	CommissionReport := CONCAT(CommissionReport, ' fail=');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485BusController.StepFailures));
+	CommissionReport := CONCAT(CommissionReport, ' lastfail=dev');
+	CommissionReport := CONCAT(CommissionReport, BYTE_TO_STRING(RS485Transport.LastFailAddr));
+	CommissionReport := CONCAT(CommissionReport, '/fc');
+	CommissionReport := CONCAT(CommissionReport, BYTE_TO_STRING(RS485Transport.LastFailFunc));
+	CommissionReport := CONCAT(CommissionReport, '/n');
+	CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(RS485Transport.LastFailLen));
+	CommissionReport := CONCAT(CommissionReport, ' [');
+	CommissionReport := CONCAT(CommissionReport, RS485Transport.LastFailBytes);
+	CommissionReport := CONCAT(CommissionReport, ']');
+
+	MqttVariables.fbMqttPublishQueue.AddMessage(
+		Payload := CommissionReport,
+		Topic := CONCAT(MqttVariables.MqttPubRS485Prefix, 'BUS_COUNTERS'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE);
 END_IF
 
 (* RS485 devices. Called even while commissioning runs: their bodies only
@@ -23650,7 +23850,7 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
         <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
         <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
         <Object Name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" ObjectId="88157962-75ef-47ae-bd1a-543d8dd22c58">
-          <Object Name="initDFRobotDevice" ObjectId="63d94afc-e28b-4d47-aada-4712fc10fa54" />
+          <Object Name="initDFRobotDevice" ObjectId="eedc18e7-680b-4641-a101-5bbb6b30e3db" />
         </Object>
         <Object Name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" ObjectId="83ba608b-36e7-4e0d-bc48-e72f8108c8bd">
           <Object Name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1" />
@@ -23662,15 +23862,15 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
           <Object Name="Init" ObjectId="1f5ff39a-3d06-4841-a742-9ba51e7243e2" />
         </Object>
         <Object Name="FB_RS485_DFROBOT_SEN0492_MQTT" ObjectId="64f1d9ac-10e3-430e-9ae8-cc98d25585ed">
-          <Object Name="RequestConfigWrite" ObjectId="ceab81d3-bb96-496a-8727-bf3042b9f937" />
-          <Object Name="OnTransactionDone" ObjectId="613da3a3-c01d-440f-84fc-0b50af94b9e5" />
-          <Object Name="OnStepResult" ObjectId="e4d9879a-f360-4eb4-a295-98f650e8ec2d" />
-          <Object Name="BuildTransaction" ObjectId="3025a0dc-fb25-420d-b95f-1701a5eb64e8" />
-          <Object Name="HasWork" ObjectId="0f60fff3-6fbb-49e7-b5c8-15e27a63a1f8" />
-          <Object Name="InitMqttDiscovery" ObjectId="612ae89f-a1ea-434f-a1c1-06f1c03932c0" />
-          <Object Name="PubMqttMessage" ObjectId="6d813e6b-2a06-4181-b1bb-b2511b34b9d3" />
-          <Object Name="InitMqtt" ObjectId="3a0c8d29-7309-40fc-a37a-2b633c77bbf7" />
-          <Object Name="FB_init" ObjectId="d2e4481d-f442-485e-9045-4d1e31f535fd" />
+          <Object Name="RequestConfigWrite" ObjectId="c98c2d85-1da2-407e-84c4-4102f0c81095" />
+          <Object Name="OnTransactionDone" ObjectId="20701ac8-0513-4ebd-8c59-b5043cbe2128" />
+          <Object Name="OnStepResult" ObjectId="7425b12c-2aec-43c1-a613-6342d63fc477" />
+          <Object Name="BuildTransaction" ObjectId="be289757-5986-4c4d-9582-5ef711dbee2c" />
+          <Object Name="HasWork" ObjectId="2b3fe7ce-d635-4a30-b661-8a631b7a038c" />
+          <Object Name="InitMqttDiscovery" ObjectId="6815b1cf-e9a0-4902-877f-fd3594e8dcba" />
+          <Object Name="PubMqttMessage" ObjectId="ec4c14f2-203e-44b3-932f-3cb4f3f7b565" />
+          <Object Name="InitMqtt" ObjectId="b2157167-0179-4cfa-a10b-c36a7951670f" />
+          <Object Name="FB_init" ObjectId="7e75b38f-8b38-4492-b5bc-5882548de5b7" />
         </Object>
         <Object Name="FB_RS485_EASTRON_SDM630_MQTT" ObjectId="af59857b-6616-4cd6-a053-847b3c89d96f">
           <Object Name="HasWork" ObjectId="aebc6851-9dee-4d6c-8c39-27331d94fc01" />
