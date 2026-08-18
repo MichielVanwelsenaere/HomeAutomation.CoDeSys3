@@ -101,6 +101,12 @@ has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/Usi
 
 ### **Methods**
 
+**`BuildTransaction`** — Called once after this device has been granted the bus. Fills in every step it wants executed and returns how many; they then run back to back with the bus held. Returning 0 withdraws.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `pSteps` | POINTER TO RS485_StepList |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
+
 **`FB_init`** — CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.
 
 | Parameter | Type | Default | Description |
@@ -108,7 +114,7 @@ has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/Usi
 | `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
 | `DataPollingInterval` | TIME |  | How often this block polls the device. |
 
-**`GetRtuQuery`** — `RS485Device` interface method. See the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+**`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
 **`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
 
@@ -126,14 +132,21 @@ has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/Usi
 | `Model` | STRING(20) | `'SDM630'` | Model shown on the Home Assistant device page. One discovery device serves the whole SDM family, so the model is set per instance. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
 
-**`ProcessDataArray`** — `RS485Device` interface method. See the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+**`OnStepResult`** — Called once per executed step, in order, while the bus is still held. A step skipped by an `AbortOnError` predecessor is never reported.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Error` | POINTER TO BOOL |  | Pointer to the bus error flag for the RTU query. |
-| `Data` | POINTER TO ARRAY [0..124] OF WORD |  | Pointer to the response data returned by the RTU query. |
+| `StepIndex` | INT |  | Which step of the transaction this answers, indexed as `BuildTransaction` filled them. |
+| `Failed` | BOOL |  | No reply, a bad frame, or a Modbus exception. `pData` holds nothing meaningful. |
+| `pData` | POINTER TO RS485_ReadBuffer |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
+| `Count` | INT |  | How many registers `pData` actually holds. Trusting this rather than the quantity requested is what stops a short reply being read past the end of. |
 
-**`RequestBusTime`** — `RS485Device` interface method. See the [RS485Device interface docs](../RS485/RS485Device_Interface.md).
+**`OnTransactionDone`** — Called once, after the last `OnStepResult`, as the bus is released. The one place to publish `/availability` and clear a pending command.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `StepsRun` | INT |  | Steps actually executed. Fewer than requested means an `AbortOnError` step failed. |
+| `Failures` | INT |  | How many of those failed. Zero is the only wholly good outcome. |
 <!-- fb-interface:end -->
 
 ### **MQTT publish behavior**

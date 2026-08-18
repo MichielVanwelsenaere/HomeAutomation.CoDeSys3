@@ -59,8 +59,17 @@ To translate the byte array received by the Modbus device to their actual value 
 - [FB_RS485_DUCO_DUCOBOX_MQTT](./docs/FunctionBlocks/FB_RS485_DUCO_DUCOBOX_MQTT.md)
 - [FB_RS485_ESERA_OWD_MQTT](./docs/FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)
 
-In addition to the above a bus controller function block ([FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md))
-is used to control access to the RS485 bus between multiple RS485 device function blocks.
+Each of them implements the [RS485Device interface](./docs/RS485/RS485Device_Interface.md), which
+is what lets one bus be shared between many of them.
+
+Two more blocks sit underneath:
+
+- [FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md) decides whose turn it
+  is, and runs one device's whole transaction — several reads, or a write and the read that
+  confirms it — with the bus held throughout.
+- [FB_RS485_TRANSPORT_RTU](./docs/FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) speaks Modbus RTU over
+  the serial port. It sits behind an interface, so a different Modbus implementation can be
+  substituted without touching any device block.
 
 ## DALI
 Control DALI drivers using the WAGO DALI modules (753-647). Requires a G2 PFC device, and is therefore not part of the reference project — it is kept as a standalone export that can be imported into a G2 project.

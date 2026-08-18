@@ -1916,6 +1916,369 @@ def do_device(cfg, result):
         safe(lambda: proj.close())
 
 
+# ------------------------------------------------------------------ libraries
+#
+# The library manager was the last part of a project the harness could not
+# reach. It matters for the same reason everything else here does: a reference
+# nothing uses still appears in the Library Manager, still resolves, and still
+# reads to the next person as a supported dependency.
+
+REFERENCE_RE = re.compile(
+    r"^\s*(?P<name>.+?)\s*,\s*(?P<version>[0-9][0-9.]*|\*)\s*\((?P<company>[^)]*)\)\s*$")
+
+
+def parse_reference(text):
+    """Split "IoDrvModbus, 4.5.0.0 (CODESYS)" into name, version and company.
+
+    A reference carries its version inside its display name - there is no
+    separate version property anywhere on the API - so this is the only way to
+    compare one against what is installed.
+    """
+    match = REFERENCE_RE.match(u(text or u""))
+    if not match:
+        return None
+    return {"name": u(match.group("name")),
+            "version": u(match.group("version")),
+            "company": u(match.group("company"))}
+
+
+def version_key(text):
+    """Sortable form of "4.5.0.0". Unparseable parts sort below numeric ones."""
+    parts = []
+    for chunk in u(text or u"").split("."):
+        try:
+            parts.append(int(chunk))
+        except ValueError:
+            parts.append(-1)
+    while len(parts) < 4:
+        parts.append(0)
+    return tuple(parts[:4])
+
+
+def scripting_namespaces():
+    """Every namespace the ScriptEngine might have injected its globals into."""
+    spaces = [globals()]
+    for mod in ("__builtin__", "builtins"):
+        try:
+            spaces.append(vars(__import__(mod)))
+        except Exception:
+            pass
+    return spaces
+
+
+def repository_manager(seen=None):
+    """The global library repository object, whatever this build calls it.
+
+    Named lookup first, then discovery by capability. The name is not reliable:
+    the shipped stub calls it `library_manager`, and on this install that name
+    does not resolve even though `projects` and `system` do from the same
+    scope. Rather than guess again next time, find the object that answers
+    get_all_libraries and report which name it was under.
+    """
+    # `librarymanager` is what this install actually calls it. The shipped
+    # stub says `library_manager`, with the underscore, and that name does not
+    # resolve - the same class of stub-versus-reality gap as export_xml's
+    # argument order. The discovery pass below is the guard against it moving
+    # again.
+    for name in ("librarymanager", "library_manager", "libraries",
+                 "library_repository", "libmanager"):
+        try:
+            obj = eval(name)  # noqa: S307 - injected scripting global
+        except Exception:
+            continue
+        if obj is not None and hasattr(obj, "get_all_libraries"):
+            return u(name), obj
+
+    for space in scripting_namespaces():
+        for key in sorted(space.keys()):
+            if key.startswith("_"):
+                continue
+            if seen is not None:
+                seen.append(u(key))
+            try:
+                obj = space[key]
+            except Exception:
+                continue
+            if hasattr(obj, "get_all_libraries"):
+                return u(key), obj
+    return None, None
+
+
+def installed_versions(result=None):
+    """Every library version present in the local repositories, by display name.
+
+    The limit is worth stating plainly, because the whole point of the function
+    is to answer "is there a newer one?": it reports what is INSTALLED, not what
+    the CODESYS Store has. A library nobody has downloaded is invisible here.
+    "Nothing newer" from this means "none on this machine", never "none exists".
+
+    Failures are recorded rather than swallowed. An empty result that looks like
+    a clean answer is the worst thing this could return - it would report every
+    reference in the project as missing from the repository, which is exactly
+    what a real problem looks like.
+    """
+    tried = []
+    seen = []
+    name, manager = repository_manager(seen)
+    if manager is None:
+        if result is not None:
+            # Name the candidates that WERE visible: the next person to hit this
+            # should not have to run the search a second time to find out.
+            result["library_repository_error"] = (
+                "no object answering get_all_libraries is reachable. Names in "
+                "scope: %s" % (", ".join(sorted(set(seen))[:40]) or "none"))
+        return {}
+
+    libs = None
+    for call in (lambda: list(manager.get_all_libraries()),
+                 lambda: list(manager.get_all_libraries(True)),
+                 lambda: list(manager.get_all_libraries(False))):
+        try:
+            libs = call()
+            break
+        except Exception:
+            tried.append(u(traceback.format_exc().strip().splitlines()[-1]))
+
+    if libs is None:
+        # One repository at a time: the argument-less overload is not offered by
+        # every build, but the per-repository one always is.
+        libs = []
+        try:
+            for repo in list(manager.repositories):
+                try:
+                    libs.extend(list(manager.get_all_libraries(repo)))
+                except Exception:
+                    tried.append(u(traceback.format_exc().strip().splitlines()[-1]))
+        except Exception:
+            tried.append(u(traceback.format_exc().strip().splitlines()[-1]))
+
+    out = {}
+    for lib in libs or []:
+        # displayname is the full "Name, 4.5.0.0 (CODESYS)" string, the same
+        # form a reference uses - NOT a bare library name. Grouping on it
+        # directly gives one entry per version, which then matches nothing.
+        display = u(safe(lambda: lib.displayname, u""))
+        parsed = parse_reference(display)
+        if parsed:
+            name, version, company = parsed["name"], parsed["version"], parsed["company"]
+        else:
+            name = u(safe(lambda: lib.title, u"")) or display
+            version = u(safe(lambda: str(lib.version), u""))
+            company = u(safe(lambda: lib.company, u""))
+        if not name:
+            continue
+        entry = out.setdefault(name, {"company": company, "versions": []})
+        if version and version not in entry["versions"]:
+            entry["versions"].append(version)
+    for entry in out.values():
+        entry["versions"].sort(key=version_key)
+        entry["latest"] = entry["versions"][-1] if entry["versions"] else None
+
+    if not out and result is not None:
+        result["library_repository_error"] = (
+            "%s returned no libraries. Tried: %s" % (name, "; ".join(tried) or "no exception"))
+    log("libs: repository %s reported %d library/libraries" % (name, len(out)))
+    return out
+
+
+def libmans(proj):
+    return [c for c in list(safe(lambda: proj.get_children(True), []) or [])
+            if safe(lambda: c.is_libman, False)]
+
+
+def reference_report(proj, installed):
+    """Every reference in every library manager, measured against the repository."""
+    out = []
+    for man in libmans(proj):
+        manager = object_path(man)
+        for ref in list(safe(lambda: list(man.references), []) or []):
+            item = {
+                "manager": manager,
+                "name": u(safe(lambda: ref.name, u"?")),
+                "namespace": u(safe(lambda: ref.namespace, u"")),
+                "is_placeholder": bool(safe(lambda: ref.is_placeholder, False)),
+                "system": bool(safe(lambda: ref.system_library, False)),
+            }
+            resolution = item["name"]
+            if item["is_placeholder"]:
+                item["placeholder"] = u(safe(lambda: ref.placeholder_name, u""))
+                item["default_resolution"] = u(safe(lambda: ref.default_resolution, u""))
+                item["effective_resolution"] = u(safe(lambda: ref.effective_resolution, u""))
+                item["is_redirected"] = bool(safe(lambda: ref.is_redirected, False))
+                # The EFFECTIVE resolution is what the compiler uses. A default
+                # with no effective resolution behind it means the placeholder
+                # is not resolved in this project at all - several of the
+                # visualisation ones are like that - and calling such a
+                # reference "outdated" would send somebody after a version
+                # nothing is using.
+                item["unresolved"] = not item["effective_resolution"]
+                resolution = item["effective_resolution"] or item["default_resolution"]
+            parsed = parse_reference(resolution)
+            if parsed:
+                item["library"] = parsed["name"]
+                item["version"] = parsed["version"]
+                # Repository keys come from displaynames and references from the
+                # project; the two disagree on case (`visuinputs` against
+                # `VisuInputs`), so match without it.
+                known = installed.get(parsed["name"])
+                if known is None:
+                    folded = parsed["name"].lower()
+                    for key, entry in installed.items():
+                        if key.lower() == folded:
+                            known = entry
+                            break
+                if not known:
+                    item["not_in_repository"] = True
+                else:
+                    item["installed_versions"] = known["versions"]
+                    item["latest_installed"] = known["latest"]
+                    if parsed["version"] == u"*":
+                        # A floating reference already resolves to the newest
+                        # installed version, so it cannot be behind one.
+                        item["floating"] = True
+                    elif item.get("unresolved"):
+                        pass
+                    elif known["latest"] and version_key(known["latest"]) > version_key(parsed["version"]):
+                        item["outdated"] = True
+            out.append(item)
+    out.sort(key=lambda r: (r["manager"], r["name"].lower()))
+    return out
+
+
+def do_libs(cfg, result):
+    """Report and edit a project's library references.
+
+    Read-only unless remove/add/update is asked for. When it does write, it
+    behaves like `apply`: build first, refuse to save if the build fails.
+    Dropping a reference something still uses is exactly the kind of change
+    that either compiles or does not, with nothing in between - so the guard
+    means a wrong guess costs a run, not a project.
+    """
+    remove = [u(x) for x in (cfg.get("lib_remove") or [])]
+    add = [u(x) for x in (cfg.get("lib_add") or [])]
+    update = [u(x) for x in (cfg.get("lib_update") or [])]
+    mutating = bool(remove or add or update)
+
+    proj = projects.open(cfg["project"], allow_readonly=not mutating)  # noqa: F821
+    try:
+        installed = installed_versions(result)
+        refs = reference_report(proj, installed)
+        result["library_references"] = refs
+
+        # Installed versions for anything referenced, plus anything the caller
+        # asked about by name. The whole repository is several hundred entries
+        # and nobody wants that in a report.
+        wanted = set(r.get("library") for r in refs if r.get("library"))
+        needle = u(cfg.get("lib_filter") or u"").lower()
+        shown = {}
+        for name, entry in installed.items():
+            if name in wanted or (needle and needle in name.lower()):
+                shown[name] = entry
+        result["installed_libraries"] = shown
+
+        if not mutating:
+            log("libs: %d reference(s), %d library/libraries reported" % (len(refs), len(shown)))
+            return
+
+        managers = libmans(proj)
+        if not managers:
+            result["errors"].append("no library manager in %s" % cfg["project"])
+            return
+
+        # -UpdateLib is the only action that needs to know what is installed.
+        # Reporting and removing do not, so a repository that will not answer
+        # degrades the report rather than failing the run.
+        if update and result.get("library_repository_error"):
+            result["errors"].append(
+                "cannot update a placeholder without the repository: %s"
+                % result["library_repository_error"])
+            return
+
+        changed = []
+
+        for name in remove:
+            gone = False
+            for man in managers:
+                try:
+                    man.remove_library(name)
+                    changed.append(u"removed %s from %s" % (name, object_path(man)))
+                    gone = True
+                except Exception:
+                    continue
+            if not gone:
+                result["errors"].append(
+                    "no library reference named %r - the name must match the "
+                    "Library Manager exactly, placeholders included" % name)
+
+        for name in add:
+            try:
+                managers[0].add_library(name)
+                changed.append(u"added %s to %s" % (name, object_path(managers[0])))
+            except Exception:
+                result["errors"].append("could not add %r:\n%s" % (name, traceback.format_exc()))
+
+        for name in update:
+            target = None
+            for man in managers:
+                for ref in list(safe(lambda: list(man.references), []) or []):
+                    if not safe(lambda: ref.is_placeholder, False):
+                        continue
+                    if u(safe(lambda: ref.placeholder_name, u"")).lower() == name.lower():
+                        target = ref
+                        break
+                if target is not None:
+                    break
+            if target is None:
+                result["errors"].append(
+                    "no placeholder named %r. Only a placeholder can be "
+                    "repointed; a fixed reference is removed and re-added." % name)
+                continue
+            current = (parse_reference(safe(lambda: target.effective_resolution, u""))
+                       or parse_reference(safe(lambda: target.default_resolution, u"")))
+            if not current:
+                result["errors"].append("cannot parse the current resolution of %r" % name)
+                continue
+            known = installed.get(current["name"])
+            if not known or not known["latest"]:
+                result["errors"].append(
+                    "%r is not in any local repository, so there is no version "
+                    "here to move it to" % current["name"])
+                continue
+            if current["version"] == u"*":
+                changed.append(u"%s already floats on newest (*)" % name)
+                continue
+            if version_key(known["latest"]) <= version_key(current["version"]):
+                changed.append(u"%s already at %s, the newest installed" % (name, current["version"]))
+                continue
+            newer = u"%s, %s (%s)" % (current["name"], known["latest"],
+                                      known["company"] or current["company"])
+            target.default_resolution = newer
+            changed.append(u"%s: %s -> %s" % (name, current["version"], known["latest"]))
+
+        result["library_changes"] = changed
+
+        build_and_collect(proj, result)
+        blocking = [m for m in result["messages"] if m["severity"] in BAD_SEVERITIES]
+        if blocking and not result["errors"] and clear_precompile_cache(cfg, result):
+            del result["messages"][:]
+            log("build failed; precompile cache cleared, rebuilding once")
+            build_and_collect(proj, result)
+            blocking = [m for m in result["messages"] if m["severity"] in BAD_SEVERITIES]
+            result["precompile_cache_cleared"] = True
+        if blocking or result["errors"]:
+            result["saved"] = False
+            result["errors"].append(
+                "project NOT saved: it does not build with these library references")
+            return
+        proj.save()
+        result["saved"] = True
+        # Re-read, so the report describes what was saved rather than what was
+        # asked for.
+        result["library_references"] = reference_report(proj, installed)
+    finally:
+        safe(lambda: proj.close())
+
+
 TASKS = {
     "compare": do_compare,
     "info": do_info,
@@ -1928,6 +2291,7 @@ TASKS = {
     "verify": do_verify,
     "apply": do_apply,
     "probe": do_probe,
+    "libs": do_libs,
 }
 
 

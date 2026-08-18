@@ -90,6 +90,8 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 | `./tools/ai/codesys.ps1 probe` | Dump real .NET signatures of the scripting API. |
 | `./tools/ai/codesys.ps1 info` | Read-only: IDE version, libraries, devices, and a hash of every object's code. |
 | `./tools/ai/codesys.ps1 compare -Project A -Against B` | CODESYS's own object-level diff between two projects. |
+| `./tools/ai/codesys.ps1 libs` | Read-only: every library reference against every version installed on this machine. |
+| `./tools/ai/codesys.ps1 libs -RemoveLib '#Name'` | Drop a library reference. Builds first, refuses to save if it does not build. |
 
 ### Working on another project
 
@@ -281,6 +283,54 @@ Any candidate block named in these files is counted as covered and drops out of
 `not_instantiated`. Note the programs here keep their logic in **actions**, so a
 program's own body is often empty and exposes no implementation; the harness
 falls back to the first action that has one and reports it as `impl_host`.
+
+## Library references
+
+`libs` is the way in and out of the Library Manager, which is otherwise only
+reachable from the IDE.
+
+```powershell
+./tools/ai/codesys.ps1 libs                        # what is referenced, and what is installed
+./tools/ai/codesys.ps1 libs -LibFilter modbus      # also: every installed Modbus library
+./tools/ai/codesys.ps1 libs -RemoveLib '#IoDrvModbus'
+./tools/ai/codesys.ps1 libs -AddLib 'SysCom, 3.5.17.0 (System)'
+./tools/ai/codesys.ps1 libs -UpdateLib 'PRO_JSON'  # repoint a PLACEHOLDER at the newest installed
+```
+
+Read-only without `-RemoveLib` / `-AddLib` / `-UpdateLib`. With any of them it
+behaves like `apply`: it builds first and **refuses to save a project that does
+not build**, which is what makes "is anything still using this?" a question you
+can answer by trying it.
+
+Four things about the report are worth knowing before acting on it:
+
+- **`-LibFilter` only sees this machine.** The repository query lists what is
+  *installed*, not what the CODESYS Store has. "Nothing newer" means "none
+  here", never "none exists" — installing a newer library is still an IDE job.
+- **A `*` version floats.** `PRO_JSON, * (Pro Electric)` already resolves to the
+  newest installed version, so it is never reported as behind one. What pins it
+  to something older is a *redirection*, which the report shows separately.
+- **`(not resolved in this project)` is not `outdated`.** Several visualisation
+  placeholders carry a default resolution but resolve to nothing, because
+  nothing uses them. Reporting those as outdated would send you after a version
+  no build is reading.
+- **Names must match the Library Manager exactly**, `#` included for a
+  placeholder. `libs` with no arguments prints the exact strings.
+
+`-UpdateLib` takes a **placeholder** name only. A fixed reference carries its
+version inside its name, so moving one means `-RemoveLib` then `-AddLib`.
+
+### The repository global is called `librarymanager`
+
+Not `library_manager`, which is what the shipped `.pyi` stub says and what does
+not resolve — the same class of stub-versus-reality gap as `export_xml`'s
+argument order and `insert()`'s parameter order. `repository_manager()` in
+`codesys_task.py` tries the names and then falls back to finding whatever object
+answers `get_all_libraries`, so this should not need rediscovering.
+
+Also: a repository entry's `displayname` is the **full** `"IoDrvModbus, 4.5.0.0
+(CODESYS)"` string, not a bare name. Grouping on it directly yields one entry
+per version and matches nothing.
 
 ## A clean build does not always mean checked
 

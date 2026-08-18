@@ -126,7 +126,7 @@ lost its discovery config.
 
 ---
 
-# The three suites
+# The four suites
 
 ## 1. Lights — binary and bistable outputs
 
@@ -303,6 +303,102 @@ pump.
 - **The eight valve topics all exist**, even for unwired circuits — the collector
   publishes all eight on startup. Losing `VALVE_3..8` from the broker would mean the
   startup publish loop broke.
+
+## 4. RS485 — the Modbus bus
+
+The only suite where the *bus* is the thing under test rather than a device on it.
+It needs no MQTT at all for the interesting parts, because the bus controller and
+the transport both publish their state as ordinary outputs.
+
+### The counters are the instrument
+
+There is no scope on this bench. `FB_RS485_TRANSPORT_RTU`'s outputs are what you
+have instead, and every completed step lands in exactly one of them, so they sum
+to the number of steps attempted:
+
+| Counter | Reading it |
+|:--|:--|
+| `Ok` | Climbing steadily is the whole point. |
+| `LeadNulls`, `TrailNulls` | **Should track `Ok` almost exactly.** This hardware wraps every reply in glitch bytes; that is normal, not a fault. See `docs/RS485/UsingModbusRTU_CODESYS3S.md`. |
+| `CrcFail` | Should be 0. Non-zero with `Ok` also climbing means marginal wiring, not a code bug. |
+| `NoReply` | The slave is absent, at the wrong address, or A/B are swapped. |
+| `BadAddress` | A well-formed frame from somebody else, or a mis-framed reply. |
+| `BadEcho` | A write was acknowledged with the wrong address or value. Never treated as success. |
+| `Exceptions` + `LastException` | The slave answered and refused. That is a register-map problem, not a wiring one. |
+
+And on `FB_RS485_BUSCONTROLLER`:
+
+| Output | Reading it |
+|:--|:--|
+| `Transactions` | Completed transactions. |
+| `StepsExecuted` / `Transactions` | **The batching ratio.** Above 1 when a multi-block device like the SDM220 is registered. Exactly 1.0 means batching is not happening — but a *falling* ratio on a faster bus is normal, not a regression: batching only has something to batch when several of a device's blocks come due in the same grant. Measured 2.7 with a 200 ms task, 1.4 with a 50 ms one. |
+| `Cursor` | Must move. Frozen means selection is not advancing. |
+| `Watchdogs` | Should stay 0. Non-zero means the transport stopped answering. |
+| `ActiveDevice` | `-1` when the bus is free. Stuck on one index means a transaction never completed. |
+
+### The contention fixture — proving fairness with one meter
+
+Fairness cannot be seen on a bench with a single slave, because nothing ever
+competes. Register the **same physical meter several times as different logical
+devices with different polling intervals**:
+
+```
+FB_RS485_EASTRON_SDM220_BUSTEST_A : FB_RS485_EASTRON_SDM220_MQTT;   // 2s
+FB_RS485_EASTRON_SDM220_BUSTEST_B : FB_RS485_EASTRON_SDM220_MQTT;   // 7s
+FB_RS485_EASTRON_SDM220_BUSTEST_C : FB_RS485_EASTRON_SDM220_MQTT;   // 11s
+```
+
+all with `DeviceAddress := 1`, registered **after** the real devices, called
+cyclically in `RS485_RUN`, and given **no `FriendlyName` and no `InitMqtt` call**
+— so they load the bus and publish nothing, which keeps Home Assistant out of it.
+
+Total demand then lands close to the bus's capacity, which is the condition under
+which unfairness actually shows. The assertion that matters:
+
+> **every instance has `DataAvailable1/2/3` TRUE and a plausible `VOLTAGE`.**
+
+The one registered *last* is the one the pre-cursor `FOR 0 TO count-1` loop
+starved, so `BUSTEST_C` is the interesting row.
+
+`.ai/rs485tx/bench-edits.json` and `bench-spec.json` in the branch that introduced
+this are the worked example, with `cleanup-edits.json` as its exact inverse.
+**Strip the fixture before shipping** — it is a test harness, not project content.
+
+The same fixture plus `bench-throughput.json` is how bus throughput gets measured:
+sample the counters at two known times and divide. Watch the *difference* between
+two windows rather than the totals, because the first window includes the startup
+delay. What it has shown so far, five contending devices over the same 30 s:
+
+| | 200 ms task, waiting for silence | 200 ms task | 50 ms task |
+|:--|--:|--:|--:|
+| per step | 1.87 s | 1.30 s | 0.42 s |
+| per transaction | 5.00 s | 3.75 s | 0.53 s |
+
+The cost is a fixed number of task cycles per exchange - about 6.5 to 8.5 - so the
+task period, not the baud rate, is what moves it.
+
+### Read-after-write
+
+Only testable against a device with a writable register; the Ducobox is the one
+this project has, and it is not on the bench. The shape of the assertion:
+
+1. Publish a command to `Devices/PLC/Lab/In/RS485/<device>/<node>/write/<reg>`.
+2. `StepsExecuted` rises by **2**, not 1 — the write and its read-back.
+3. The value published back is read from the device, so setting a register to a
+   value the device clamps or rejects must publish the *clamped* value.
+4. With the slave disconnected, the write fails, `AbortOnError` skips the
+   read-back, and **nothing is published**. That is the case worth proving: the
+   old code published the payload it had sent as though sending were proof.
+
+### Bench gotchas, both of which look like your bug and are not
+
+- **Port 11740 closed while ping succeeds** — the runtime is down, which on this
+  unit almost always means the two-hour demo licence expired. It needs a restart.
+  Not credentials, not the network.
+- **`serialmode RS485` is per controller.** Set from the CODESYS PLC shell, it
+  reboots the device and survives reboots. Until it is done the bus is silent with
+  nothing in any counter to show for it — `NoReply` climbing and everything else
+  at zero. Set it explicitly even if it already reports RS485.
 
 ---
 
