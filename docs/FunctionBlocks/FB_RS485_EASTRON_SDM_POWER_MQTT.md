@@ -57,6 +57,14 @@ Eastron SDM630 datasheet:
 |:--|:--|:--|:--|
 | `pSteps` | POINTER TO RS485_StepList |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
 
+**`FB_init`** — CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
+| `DeviceType` | RS485_EASTRON_SDM_Devices |  | Which Eastron SDM model is connected, from `RS485_EASTRON_SDM_Devices`. It decides which register active power is read from — `30013` on the SDM120 and SDM220, `30053` on the SDM630 — and is also the model announced to Home Assistant. |
+| `DataPollingInterval` | TIME |  | How often this block polls the device. |
+
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
 **`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
@@ -74,14 +82,6 @@ Eastron SDM630 datasheet:
 | `DeviceName` | STRING(50) |  | Name of that Home Assistant device. The self-wiring prologue passes `FriendlyName`. |
 | `Model` | STRING(20) | `''` | Model shown on the Home Assistant device page. Empty means derive it from `DeviceType`, which is what the self-wiring prologue relies on; pass a string to overrule that. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-
-**`InitRS485`** — Configures the Modbus RTU device address and the execution/polling interval for the Modbus read command.
-
-| Parameter | Type | Default | Description |
-|:--|:--|:--|:--|
-| `DataPollingInterval` | TIME |  | How often this block polls the device. |
-| `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
-| `DeviceType` | RS485_EASTRON_SDM_Devices |  | Which Eastron SDM model is connected, from `RS485_EASTRON_SDM_Devices`. |
 
 **`OnStepResult`** — Called once per executed step, in order, while the bus is still held. A step skipped by an `AbortOnError` predecessor is never reported.
 
@@ -117,24 +117,22 @@ MQTT publish topic is a concatenation of the publish prefix, the function block 
 
 ### **Code example**
 
-`FriendlyName` is what turns the MQTT and Home Assistant wiring on:
+The declaration is the whole configuration. `FB_init` takes the Modbus address, **which meter
+this is**, and the poll rate; the initialiser takes the Home Assistant name:
 
 ```
-FB_RS485_EASTRON_SDM_POWER_001 : FB_RS485_EASTRON_SDM_POWER_MQTT
+FB_RS485_EASTRON_SDM_POWER_001 : FB_RS485_EASTRON_SDM_POWER_MQTT(1, RS485_EASTRON_SDM_Devices.SDM630, T#15S)
                                := (FriendlyName := 'Car charger');
 ```
 
-`InitRS485` carries the address, the poll rate and — unlike the other two Eastron blocks —
-**which meter this is**, because one block serves the whole family and the register it reads
-depends on the answer. Put it in `RS485_INIT` with the registration:
+`DeviceType` is the parameter the other two Eastron blocks do not need: one block serves the
+SDM120, SDM220 and SDM630, and the register it reads depends on the answer — `30013` on the
+single-phase meters, `30053` on the SDM630. It is also the model this block announces itself to
+Home Assistant as.
+
+Register it with the bus controller once at startup, in `RS485_INIT`:
 
 ```
-RS485Variables.FB_RS485_EASTRON_SDM_POWER_001.InitRS485(
-	DataPollingInterval := T#15S,
-	DeviceAddress := 1,
-	DeviceType := RS485_EASTRON_SDM_Devices.SDM630
-);
-
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_001);
 ```
 
@@ -144,15 +142,10 @@ and call it cyclically, in `RS485_RUN`:
 RS485Variables.FB_RS485_EASTRON_SDM_POWER_001();
 ```
 
-No `InitMqtt` or `InitMqttDiscovery` call is needed: the block wires itself from
+No `InitRS485`, no `InitMqtt`, no `InitMqttDiscovery`: the block wires itself from
 `MqttVariables` on its first cyclic call. **A block wired this way must be called cyclically** —
 an instance whose body never runs stays unwired and never appears in Home Assistant, and nothing
 warns about it.
-
-:bulb: **Discovery waits for `InitRS485`, not just for a name.** The model this meter announces
-itself as is derived from `DeviceType`, so the prologue holds off until `InitRS485` has run.
-Give it a `FriendlyName` and no `InitRS485` and it will publish its topics but never announce
-itself — which is the same state it would be in if it had no address to poll either.
 
 ### **The standing cross-check**
 

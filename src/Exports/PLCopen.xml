@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T03:46:43.1993293" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T03:42:47.5010699">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T04:11:59.9027852" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T04:11:08.3459826">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -15756,14 +15756,6 @@ END_IF
                 <simpleValue value="TRUE" />
               </initialValue>
             </variable>
-            <variable name="InitRS485Done">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
-            </variable>
             <variable name="timerData">
               <type>
                 <derived name="TON" />
@@ -15789,8 +15781,8 @@ END_IF
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Active power sits at a different input register on the single-phase
 	   meters than on the SDM630, so the step to send depends on DeviceType.
-	   Both are filled by InitRS485 in code - a declaration initialiser here
-	   could not be revised by a script afterwards. </xhtml>
+	   Both are filled by FB_init in code - a declaration initialiser here could
+	   not be revised by a script afterwards. </xhtml>
               </documentation>
             </variable>
             <variable name="StepSDM630">
@@ -15863,10 +15855,9 @@ END_IF
    and reads the reflection instance path, and doing that during initialisation
    would rely on an ordering nothing enforces and the compiler cannot check.
 
-   Discovery additionally waits for InitRS485Done, because the model this meter
-   announces itself as is derived from DeviceType and DeviceType is not known
-   until InitRS485 has run. Announcing an SDM120 as an SDM220 would be a wrong
-   answer published once and retained; waiting a cycle costs nothing.
+   The model this meter announces itself as is derived from DeviceType, which
+   FB_init settles before the first cycle - so unlike the earlier InitRS485
+   arrangement there is nothing here to wait for.
 
    Dormant while FriendlyName is empty, so existing projects and existing call
    sites keep working untouched. A block wired this way MUST be called
@@ -15879,7 +15870,7 @@ IF FriendlyName &lt;&gt; '' THEN
 			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
 	END_IF
 
-	IF InitMqttDone AND InitRS485Done AND NOT initMqttDiscoveryDone THEN
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
 			Device := ADR(THIS^.MqttDiscoveryDevice),
 			DeviceName := FriendlyName);
@@ -15899,13 +15890,27 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitRS485" ObjectId="7c95a3bf-1dc2-4b85-bd18-89aefa685445">
+            <Method name="FB_init" ObjectId="4e934c8d-f237-4f33-9520-e913b2be3b77">
               <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
                 <inputVars>
-                  <variable name="DataPollingInterval">
+                  <variable name="bInitRetains">
                     <type>
-                      <TIME />
+                      <BOOL />
                     </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the instance will be copied to the copy code afterward (online change)</xhtml>
+                    </documentation>
                   </variable>
                   <variable name="DeviceAddress">
                     <type>
@@ -15917,12 +15922,26 @@ END_IF
                       <derived name="RS485_EASTRON_SDM_Devices" />
                     </type>
                   </variable>
+                  <variable name="DataPollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.timerData.PT := DataPollingInterval;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Modbus address, meter model and poll rate all describe the wiring rather than
+   a mode, so they are fixed for the life of the instance and belong here rather
+   than in a runtime setter. Note the consequence: changing any of them
+   afterwards means editing the declaration in the IDE - CODESYS stores an
+   instance's FB_init arguments beside the declaration text, where no script can
+   reach them.
 
+   DeviceType decides which register is read, and it is also the model this block
+   announces itself to Home Assistant as. Setting it here means both are settled
+   before the first cycle, so the discovery config cannot be published against a
+   model that has not been chosen yet. *)
 THIS^.StepSmallMeter.DeviceId		:= DeviceAddress;
 THIS^.StepSmallMeter.FunctionCode	:= 4;
 THIS^.StepSmallMeter.Address		:= 12;	(* SDM120 / SDM220 active power *)
@@ -15933,10 +15952,12 @@ THIS^.StepSDM630.FunctionCode	:= 4;
 THIS^.StepSDM630.Address		:= 52;	(* SDM630 total active power *)
 THIS^.StepSDM630.Quantity		:= 2;
 
-THIS^.timerData.IN := TRUE;
 THIS^.DeviceType := DeviceType;
 
-THIS^.InitRS485Done := TRUE;
+THIS^.timerData.PT := DataPollingInterval;
+THIS^.timerData.IN := TRUE;
+
+FB_init := TRUE;
 </xhtml>
                 </ST>
               </body>
@@ -16020,9 +16041,9 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT InitRS485Done THEN
-	HasWork := RS485_WorkLevel.NONE;
-ELSIF timerData.Q THEN
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Predicate only - the scheduler calls this on every device every cycle, and
+   twice when it is looking for commands first. Nothing here may change state. *)
+IF timerData.Q THEN
 	HasWork := RS485_WorkLevel.POLL;
 ELSE
 	HasWork := RS485_WorkLevel.NONE;
@@ -16289,14 +16310,6 @@ END_IF
                 <simpleValue value="TRUE" />
               </initialValue>
             </variable>
-            <variable name="InitRS485Done">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
-            </variable>
             <variable name="Steps">
               <type>
                 <array>
@@ -16307,8 +16320,8 @@ END_IF
                 </array>
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The three register blocks this meter is read in. Filled by InitRS485 in
-	   code rather than by a declaration initialiser: a value inside an existing
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The three register blocks this meter is read in. Filled by FB_init in code
+	   rather than by a declaration initialiser: a value inside an existing
 	   structured initialiser cannot be changed from a script afterwards - the
 	   compiler goes on reading the stored structValue - and a register map is
 	   exactly the sort of thing somebody will want to change. </xhtml>
@@ -16325,10 +16338,21 @@ END_IF
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Which block each step of the current transaction was built from. The
-	   scheduler hands StepIndex back; only this block knows that when timer 2
-	   alone was due, step 0 is the frequency block and not the voltage block.
-	   This replaces the old ActiveRtuQuery tag, which had to be set in
+	   scheduler hands StepIndex back and nothing else, so this is what tells
+	   OnStepResult that step 1 is the frequency block and not the voltage
+	   block. It replaces the old ActiveRtuQuery tag, which had to be set in
 	   GetRtuQuery and cleared in ProcessDataArray to mean anything. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="timerData">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> One timer for the whole meter. There used to be three, one per register
+	   block, which put a technicality of the SDM220's 40-register reply limit
+	   into the caller's hands: three intervals to choose, for one meter that is
+	   read all at once. </xhtml>
               </documentation>
             </variable>
             <variable name="Update1">
@@ -16339,11 +16363,6 @@ END_IF
                 <simpleValue value="FALSE" />
               </initialValue>
             </variable>
-            <variable name="timerData1">
-              <type>
-                <derived name="TON" />
-              </type>
-            </variable>
             <variable name="Update2">
               <type>
                 <BOOL />
@@ -16352,11 +16371,6 @@ END_IF
                 <simpleValue value="FALSE" />
               </initialValue>
             </variable>
-            <variable name="timerData2">
-              <type>
-                <derived name="TON" />
-              </type>
-            </variable>
             <variable name="Update3">
               <type>
                 <BOOL />
@@ -16364,11 +16378,6 @@ END_IF
               <initialValue>
                 <simpleValue value="FALSE" />
               </initialValue>
-            </variable>
-            <variable name="timerData3">
-              <type>
-                <derived name="TON" />
-              </type>
             </variable>
           </localVars>
           <outputVars>
@@ -16592,9 +16601,7 @@ IF FriendlyName &lt;&gt; '' THEN
 
 END_IF
 
-timerData1();
-timerData2();
-timerData3();
+timerData();
 
 (* Published through PubMqttMessage rather than by building each topic inline.
    The inline form concatenated the prefix and suffix at every one of these
@@ -16636,67 +16643,6 @@ END_IF
           </ST>
         </body>
         <addData>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitRS485" ObjectId="cb1c3154-a9a3-4f58-8b8d-929c296a8104">
-              <interface>
-                <inputVars>
-                  <variable name="Data1PollingInterval">
-                    <type>
-                      <TIME />
-                    </type>
-                  </variable>
-                  <variable name="Data2PollingInterval">
-                    <type>
-                      <TIME />
-                    </type>
-                  </variable>
-                  <variable name="Data3PollingInterval">
-                    <type>
-                      <TIME />
-                    </type>
-                  </variable>
-                  <variable name="DeviceAddress">
-                    <type>
-                      <BYTE />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.timerData1.PT := Data1PollingInterval;
-THIS^.timerData2.PT := Data2PollingInterval;
-THIS^.timerData3.PT := Data3PollingInterval;
-
-(* SDM220 input registers, function 4. Addresses are the decimal register
-   numbers the Eastron manual gives, and each value is a big-endian IEEE float
-   across two consecutive words. *)
-THIS^.Steps[0].DeviceId		:= DeviceAddress;
-THIS^.Steps[0].FunctionCode	:= 4;
-THIS^.Steps[0].Address		:= 0;	(* voltage through phase angle *)
-THIS^.Steps[0].Quantity		:= 40;
-
-THIS^.Steps[1].DeviceId		:= DeviceAddress;
-THIS^.Steps[1].FunctionCode	:= 4;
-THIS^.Steps[1].Address		:= 70;	(* frequency, import and export energy *)
-THIS^.Steps[1].Quantity		:= 10;
-
-THIS^.Steps[2].DeviceId		:= DeviceAddress;
-THIS^.Steps[2].FunctionCode	:= 4;
-THIS^.Steps[2].Address		:= 342;	(* totals *)
-THIS^.Steps[2].Quantity		:= 4;
-
-THIS^.timerData1.IN := TRUE;
-THIS^.timerData2.IN := TRUE;
-THIS^.timerData3.IN := TRUE;
-
-THIS^.InitRS485Done := TRUE;
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
             <Method name="InitMqtt" ObjectId="531fd49a-3de4-4190-bade-7b48ee517bb6">
               <interface>
@@ -16776,9 +16722,7 @@ END_IF</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Predicate only - the scheduler calls this on every device every cycle, and
    twice when it is looking for commands first. Nothing here may change state. *)
-IF NOT InitRS485Done THEN
-	HasWork := RS485_WorkLevel.NONE;
-ELSIF timerData1.Q OR timerData2.Q OR timerData3.Q THEN
+IF timerData.Q THEN
 	HasWork := RS485_WorkLevel.POLL;
 ELSE
 	HasWork := RS485_WorkLevel.NONE;
@@ -16806,43 +16750,27 @@ END_IF
                     </type>
                   </variable>
                 </inputVars>
-                <localVars>
-                  <variable name="n">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Everything that is due goes out together. Three register blocks used to mean
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The whole meter in one grant of the bus. Three register blocks used to mean
    winning the bus three separate times, with every other device's traffic in
-   between; now it is one grant. *)
-n := 0;
+   between; and while they were separately timed, which of the three were due
+   varied from round to round. They now always go together.
 
-IF timerData1.Q THEN
-	pSteps^[n]		:= Steps[0];
-	StepMap[n]		:= 1;
-	timerData1.IN	:= FALSE;
-	n				:= n + 1;
+   StepMap records which block each step came from, because OnStepResult is told
+   the step index and nothing else. *)
+IF timerData.Q THEN
+	timerData.IN := FALSE;
+
+	pSteps^[0] := Steps[0];		StepMap[0] := 1;
+	pSteps^[1] := Steps[1];		StepMap[1] := 2;
+	pSteps^[2] := Steps[2];		StepMap[2] := 3;
+
+	BuildTransaction := 3;
+ELSE
+	BuildTransaction := 0;
 END_IF
-
-IF timerData2.Q THEN
-	pSteps^[n]		:= Steps[1];
-	StepMap[n]		:= 2;
-	timerData2.IN	:= FALSE;
-	n				:= n + 1;
-END_IF
-
-IF timerData3.Q THEN
-	pSteps^[n]		:= Steps[2];
-	StepMap[n]		:= 3;
-	timerData3.IN	:= FALSE;
-	n				:= n + 1;
-END_IF
-
-BuildTransaction := n;
 </xhtml>
                 </ST>
               </body>
@@ -16886,11 +16814,11 @@ BuildTransaction := n;
 END_IF
 
 (* Count is what actually came back, not what was asked for, so a short reply
-   cannot be read past the end of. *)
+   cannot be read past the end of. The timer is not re-armed here - see
+   OnTransactionDone. *)
 CASE StepMap[StepIndex] OF
 
 1:	THIS^.Error1 := Failed;
-	THIS^.timerData1.IN := TRUE;
 	IF NOT Failed AND Count &gt;= 38 THEN
 		THIS^.VOLTAGE			:= SwapWordsToReal(pData^[0], pData^[1]);
 		THIS^.CURRENT			:= SwapWordsToReal(pData^[6], pData^[7]);
@@ -16903,7 +16831,6 @@ CASE StepMap[StepIndex] OF
 	END_IF
 
 2:	THIS^.Error2 := Failed;
-	THIS^.timerData2.IN := TRUE;
 	IF NOT Failed AND Count &gt;= 10 THEN
 		THIS^.FREQUENCY					:= SwapWordsToReal(pData^[0], pData^[1]);
 		THIS^.IMPORT_ACTIVE_ENERGY		:= SwapWordsToReal(pData^[2], pData^[3]);
@@ -16914,7 +16841,6 @@ CASE StepMap[StepIndex] OF
 	END_IF
 
 3:	THIS^.Error3 := Failed;
-	THIS^.timerData3.IN := TRUE;
 	IF NOT Failed AND Count &gt;= 4 THEN
 		THIS^.TOTAL_ACTIVE_ENERGY	:= SwapWordsToReal(pData^[0], pData^[1]);
 		THIS^.TOTAL_REACTIVE_ENERGY	:= SwapWordsToReal(pData^[2], pData^[3]);
@@ -16946,9 +16872,13 @@ END_CASE
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One announcement per transaction. This used to go out once per register
-   block, so a healthy meter republished its availability three times a round
-   for no benefit to anyone. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One announcement per transaction, and one re-arm of the timer.
+
+   The re-arm belongs here rather than in OnStepResult because a step skipped by
+   an AbortOnError predecessor is never reported, and a meter that has stopped
+   answering must still be retried. OnTransactionDone always runs. *)
+timerData.IN := TRUE;
+
 IF StepsRun &gt; 0 AND Failures &gt;= StepsRun THEN
 	PubMqttMessage(Suffix := '/availability', Data := 'offline');
 ELSIF StepsRun &gt; 0 THEN
@@ -17149,6 +17079,79 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 
 	initMqttDiscoveryDone := TRUE;
 END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init" ObjectId="b76f1a9e-50a6-45f5-97da-89054295b89b">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE: the instance will be copied to the copy code afterward (online change)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DeviceAddress">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="DataPollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Modbus address and poll rate describe the wiring, not a mode, so they are
+   fixed for the life of the instance and belong here rather than in a runtime
+   setter. Note the consequence: changing either afterwards means editing the
+   declaration in the IDE - CODESYS stores an instance's FB_init arguments beside
+   the declaration text, where no script can reach them.
+
+   ONE interval covers the whole meter. The SDM220 will not return more than 40
+   registers in a reply and its measurements are not in one contiguous run, so
+   reading it takes three requests - but that is a property of the meter, not a
+   decision a caller should be asked to make. All three go out together as a
+   single transaction, so they cost one turn of the bus rather than three. *)
+THIS^.Steps[0].DeviceId		:= DeviceAddress;
+THIS^.Steps[0].FunctionCode	:= 4;
+THIS^.Steps[0].Address		:= 0;	(* voltage through phase angle *)
+THIS^.Steps[0].Quantity		:= 40;
+
+THIS^.Steps[1].DeviceId		:= DeviceAddress;
+THIS^.Steps[1].FunctionCode	:= 4;
+THIS^.Steps[1].Address		:= 70;	(* frequency, import and export energy *)
+THIS^.Steps[1].Quantity		:= 10;
+
+THIS^.Steps[2].DeviceId		:= DeviceAddress;
+THIS^.Steps[2].FunctionCode	:= 4;
+THIS^.Steps[2].Address		:= 342;	(* totals *)
+THIS^.Steps[2].Quantity		:= 4;
+
+THIS^.timerData.PT := DataPollingInterval;
+THIS^.timerData.IN := TRUE;
+
+FB_init := TRUE;
 </xhtml>
                 </ST>
               </body>
@@ -18953,6 +18956,18 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                   </value>
                 </structValue>
               </initialValue>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                  <InputAssignments>
+                    <InputAssignment>
+                      <Value>1</Value>
+                    </InputAssignment>
+                    <InputAssignment>
+                      <Value>TIME#5s0ms</Value>
+                    </InputAssignment>
+                  </InputAssignments>
+                </data>
+              </addData>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> RS485 </xhtml>
               </documentation>
@@ -19021,6 +19036,21 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                   </value>
                 </structValue>
               </initialValue>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                  <InputAssignments>
+                    <InputAssignment>
+                      <Value>1</Value>
+                    </InputAssignment>
+                    <InputAssignment>
+                      <Value>RS485_EASTRON_SDM_Devices.SDM220</Value>
+                    </InputAssignment>
+                    <InputAssignment>
+                      <Value>TIME#5s0ms</Value>
+                    </InputAssignment>
+                  </InputAssignments>
+                </data>
+              </addData>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Registered on the bus and pointed at the SAME meter as
 	   FB_RS485_EASTRON_SDM220_1 above (Modbus address 1), declared as an SDM220.
@@ -20862,32 +20892,11 @@ RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM6
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01);
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_1);
 
-(* INIT RS485 DEVICE STUFF *)
-RS485Variables.FB_RS485_EASTRON_SDM220_1.InitRS485(
-	Data1PollingInterval := T#5S,		(* Polling interval for data array 1 *)
-	Data2PollingInterval := T#5S,		(* Polling interval for data array 2 *)
-	Data3PollingInterval := T#5S,		(* Polling interval for data array 3 *)
-	DeviceAddress := 1					(* Device address of the modbus device *)
-);
-
-(* No InitMqtt call for the SDM220 any more: FriendlyName is set at its
-   declaration in RS485Variables and the block wires itself from MqttVariables on
-   its first cyclic call, then announces its fourteen measurements to Home
-   Assistant. The SDM630 above has worked this way since it was added. *)
-
-(* Deliberately pointed at the SAME meter as the SDM220 above, as a standing
-   check on the generic single-value block: it decodes active power out of the
-   same register (30013), so the two publish the same number and any drift
-   between them is a real regression in one of them. It is also the only way
-   this block gets exercised at all - there is no SDM120 or SDM630 here.
-
-   DeviceType is what selects the register, and it is also what the block
-   announces itself to Home Assistant as, so it has to be right. *)
-RS485Variables.FB_RS485_EASTRON_SDM_POWER_1.InitRS485(
-	DataPollingInterval := T#5S,
-	DeviceAddress := 1,
-	DeviceType := RS485_EASTRON_SDM_Devices.SDM220
-);
+(* INIT RS485 DEVICE STUFF.
+   Nothing to do for the three Eastron meters. Modbus address, poll rate and -
+   for the SDM_POWER block - the meter model all reach them through FB_init at
+   their declaration in RS485Variables, and FriendlyName wires up MQTT and Home
+   Assistant on the first cyclic call. Registration above is the whole of it. *)
 
 RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
 	DataPollingInterval := T#3S,		(* Polling interval for data array *)
@@ -22254,7 +22263,6 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
             <Object Name="GetStep" ObjectId="c9f7a275-0892-44b6-86a6-6e9ee1c21aeb" />
           </Object>
           <Object Name="FB_RS485_EASTRON_SDM220_MQTT" ObjectId="eab637e3-d8f7-4186-b929-5498800ef92e">
-            <Object Name="InitRS485" ObjectId="cb1c3154-a9a3-4f58-8b8d-929c296a8104" />
             <Object Name="InitMqtt" ObjectId="531fd49a-3de4-4190-bade-7b48ee517bb6" />
             <Object Name="PubMqttMessage" ObjectId="19e0794e-0e49-4730-8df0-7271857917db" />
             <Object Name="HasWork" ObjectId="0059e32f-586d-4c3a-acb7-8ef1872e19d2" />
@@ -22262,9 +22270,10 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
             <Object Name="OnStepResult" ObjectId="6d9261f6-e13f-45a5-83a1-9af44a48876c" />
             <Object Name="OnTransactionDone" ObjectId="af323132-f9ed-4118-b74e-cdcbed6f3a82" />
             <Object Name="InitMqttDiscovery" ObjectId="2b812951-77fa-47eb-a147-95605afdc536" />
+            <Object Name="FB_init" ObjectId="b76f1a9e-50a6-45f5-97da-89054295b89b" />
           </Object>
           <Object Name="FB_RS485_EASTRON_SDM_POWER_MQTT" ObjectId="5b97d20c-9882-4b30-9cdd-a5c215327154">
-            <Object Name="InitRS485" ObjectId="7c95a3bf-1dc2-4b85-bd18-89aefa685445" />
+            <Object Name="FB_init" ObjectId="4e934c8d-f237-4f33-9520-e913b2be3b77" />
             <Object Name="InitMqtt" ObjectId="a941d94d-2765-487f-9a67-499a2d32034f" />
             <Object Name="PubMqttMessage" ObjectId="40014dea-bf7b-40cc-ade9-b54d88d15508" />
             <Object Name="HasWork" ObjectId="8ddd6968-fb9a-470d-87ea-0369e7c95c19" />

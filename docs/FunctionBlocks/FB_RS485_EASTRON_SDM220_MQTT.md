@@ -86,6 +86,13 @@ Eastron SDM220 datasheets:
 |:--|:--|:--|:--|
 | `pSteps` | POINTER TO RS485_StepList |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
 
+**`FB_init`** — CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
+| `DataPollingInterval` | TIME |  | How often this block polls the device. |
+
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
 **`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
@@ -103,15 +110,6 @@ Eastron SDM220 datasheets:
 | `DeviceName` | STRING(50) |  | Name of that Home Assistant device. The self-wiring prologue passes `FriendlyName`. |
 | `Model` | STRING(20) | `'SDM220'` | Model shown on the Home Assistant device page. This block reads the SDM220 register map, so the default is right unless you are pointing it at a meter that shares that map. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-
-**`InitRS485`** — Configures the Modbus RTU device address and the execution/polling interval for the multiple Modbus read commands.
-
-| Parameter | Type | Default | Description |
-|:--|:--|:--|:--|
-| `Data1PollingInterval` | TIME |  | How often Modbus read command 1 runs (voltage, current, power, power factor, phase angle). |
-| `Data2PollingInterval` | TIME |  | How often Modbus read command 2 runs (frequency, import/export energy). |
-| `Data3PollingInterval` | TIME |  | How often Modbus read command 3 runs (total active and reactive energy). |
-| `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
 
 **`OnStepResult`** — Called once per executed step, in order, while the bus is still held. A step skipped by an `AbortOnError` predecessor is never reported.
 
@@ -160,24 +158,17 @@ MQTT publish topic is a concatenation of the publish prefix, the function block 
 
 ### **Code example**
 
-`FriendlyName` is what turns the MQTT and Home Assistant wiring on:
+The declaration is the whole configuration — Modbus address and polling interval through
+`FB_init`, the Home Assistant name through the initialiser:
 
 ```
-FB_RS485_EASTRON_SDM220_001 : FB_RS485_EASTRON_SDM220_MQTT
+FB_RS485_EASTRON_SDM220_001 : FB_RS485_EASTRON_SDM220_MQTT(1, T#5S)
                             := (FriendlyName := 'Garage energy meter');
 ```
 
-The Modbus address and the three polling intervals are still a method call, because this
-block has no `FB_init` — put it in `RS485_INIT` alongside the registration:
+Register it with the bus controller once at startup, in `RS485_INIT`:
 
 ```
-RS485Variables.FB_RS485_EASTRON_SDM220_001.InitRS485(
-	Data1PollingInterval := T#5S,       (* volts, amps, powers, PF, phase angle *)
-	Data2PollingInterval := T#5S,       (* frequency and the four energy counters *)
-	Data3PollingInterval := T#30S,      (* the two totals *)
-	DeviceAddress := 1
-);
-
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM220_001);
 ```
 
@@ -187,11 +178,17 @@ and call it cyclically, in `RS485_RUN`:
 RS485Variables.FB_RS485_EASTRON_SDM220_001();
 ```
 
-No `InitMqtt` or `InitMqttDiscovery` call is needed: the block wires itself from
-`MqttVariables` on its first cyclic call. The publish topic becomes
-`Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001` — the `MqttPubRS485Prefix` plus
-the instance name. **A block wired this way must be called cyclically** — an instance whose
-body never runs stays unwired and never appears in Home Assistant, and nothing warns about it.
+That is all of it. No `InitRS485`, no `InitMqtt`, no `InitMqttDiscovery`: the block wires itself
+from `MqttVariables` on its first cyclic call. The publish topic becomes
+`Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_001` — the `MqttPubRS485Prefix` plus the
+instance name. **A block wired this way must be called cyclically** — an instance whose body
+never runs stays unwired and never appears in Home Assistant, and nothing warns about it.
+
+:bulb: **One interval, three reads.** The SDM220 will not return more than 40 registers in a
+reply and its measurements are not in one contiguous run, so reading it takes three requests.
+That is a property of the meter, not a decision worth passing to a caller, so there is a single
+`DataPollingInterval` — the three requests go out together as one transaction and cost one turn
+of the bus, not three. The block used to take three separate intervals; nothing was gained by it.
 
 ### **Wago PFC wiring diagram**
 Wire the device as below in order to establish communication between a Wago PFC device and an Eastron SDM220:

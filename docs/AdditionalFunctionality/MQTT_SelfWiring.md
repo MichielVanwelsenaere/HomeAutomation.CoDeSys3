@@ -170,11 +170,19 @@ Giving them discovery is the worthwhile follow-up, and the three Eastron meter b
 are the worked examples of what that looks like for an RS485 block. Until then their
 call sites are untouched and keep working exactly as before.
 
-`FB_RS485_EASTRON_SDM_POWER_MQTT` is worth a look before writing the next one: its
-prologue waits for `InitRS485` as well as for a name, because the model it announces
-itself as is derived from `DeviceType` and a name alone does not describe it. A block
-whose discovery depends on more than `FriendlyName` does not have to give up
-self-wiring — it has to wait for the rest.
+All three Eastron meters now take their Modbus address, poll rate and — for the
+SDM_POWER block — the meter model through `FB_init`, so their whole configuration
+is the declaration and `RS485_INIT` does nothing for them but register them on the
+bus. That is the shape to copy: a value that describes the wiring rather than a
+mode belongs in `FB_init`, where it is settled before the first cycle and cannot
+be forgotten at a call site.
+
+`FB_RS485_EASTRON_SDM_POWER_MQTT` shows why that matters for discovery. The model
+it announces itself as is derived from `DeviceType`, so a name alone does not
+describe it — and because `FB_init` settles `DeviceType` before the first cyclic
+call, the prologue has nothing to wait for. Configuration through `FB_init` and
+self-wiring through `FriendlyName` are complementary: together they remove the
+whole init sequence rather than half of it.
 
 `FB_MQTT_LOG` extends the base and could self-wire, but it has no call site
 anywhere in the reference project and there is no log topic prefix in

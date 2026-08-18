@@ -284,6 +284,20 @@ Any candidate block named in these files is counted as covered and drops out of
 program's own body is often empty and exposes no implementation; the harness
 falls back to the first action that has one and reports it as `impl_host`.
 
+**Delete them when the work they supported is finished.** They are gitignored and
+machine-local, they are injected into *every* `verify` from then on, and nothing
+reports that they exist. Two ways that bites:
+
+- **`verify` compiles more than the project does.** A harness left over from an
+  old refactor keeps an otherwise-unreferenced block compiled on your machine
+  only. Your `verify` is green, a colleague's or CI's is green for a different
+  reason, and the shipped project never compiles that block at all. `apply`
+  injects no harness, so it is the honest answer to "is this block compiled?"
+- **They break the next refactor and blame the wrong thing.** A leftover harness
+  calling `InitRS485(...)` failed a run that had just moved that configuration
+  into `FB_init` - four errors pointing at a program nobody had touched, in code
+  that is not in the repository.
+
 ## Library references
 
 `libs` is the way in and out of the Library Manager, which is otherwise only

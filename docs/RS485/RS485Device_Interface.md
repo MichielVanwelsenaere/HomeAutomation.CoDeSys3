@@ -106,7 +106,7 @@ A step is either a read or a write, never both, which is why there is one `Addre
 a separate read and write pair. That is also what makes a read-after-write two ordinary steps
 instead of one overloaded structure.
 
-**Fill steps in `InitRS485` or `FB_init` as code, never as a declaration initialiser.** CODESYS
+**Fill steps in `FB_init` as code, never as a declaration initialiser.** CODESYS
 stores a structured initialiser beside the declaration text and reads *that*, so a value inside
 one cannot be changed by a script afterwards — the declaration will say one thing and the PLC
 will run another. [CLAUDE.md](../../CLAUDE.md) has the full account.
@@ -188,8 +188,10 @@ be another; see [#181](https://github.com/MichielVanwelsenaere/HomeAutomation.Co
 2. Declare an `RS485_Step` per register block, and a `StepMap : ARRAY[0..n] OF INT` if the block
    has more than one — the controller gives you a step index, and only your block knows what
    step 0 of *this* transaction was for.
-3. Fill the steps in `InitRS485` (or `FB_init` if address and poll rate describe the wiring
-   rather than a mode).
+3. Fill the steps in `FB_init`. Modbus address, register map and poll rate describe the
+   wiring rather than a mode, so they are fixed for the life of the instance and belong in the
+   constructor — which also means the caller cannot forget to configure the block. Reserve a
+   runtime setter for something that genuinely changes while running.
 4. Implement the four methods. [`FB_RS485_EASTRON_SDM220_MQTT`](../FunctionBlocks/FB_RS485_EASTRON_SDM220_MQTT.md)
    is the worked example for several register blocks;
    [`FB_RS485_EASTRON_SDM630_MQTT`](../FunctionBlocks/FB_RS485_EASTRON_SDM630_MQTT.md) for a
