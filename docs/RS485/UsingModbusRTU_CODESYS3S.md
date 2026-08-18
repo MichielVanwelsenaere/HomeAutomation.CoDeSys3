@@ -91,6 +91,58 @@ batching breaking.** It measures how many of a device's register blocks were due
 in the same grant, so a bus that keeps up with demand serves each one as it falls
 due and the ratio drops - 2.7 with a 200 ms task, 1.4 with a 50 ms one.
 
+### **A device that ships on the wrong baud rate**
+
+One bus has one baud rate, and not every device agrees to it out of the box. The DFRobot
+SEN0492 rangefinder ships at **115200** with no switch to change it; this bus runs at 9600.
+Until the sensor is moved, the two cannot talk at all — the sensor is not slow to answer, it
+is inaudible.
+
+The settings that matter live in ordinary holding registers, so they can be written over
+Modbus like anything else. The catch is the chicken-and-egg: to tell a device to change its
+baud rate you have to talk to it at the rate it is on now.
+
+**The transport can be re-opened at a different rate at runtime**, which is what makes this
+solvable from the PLC.
+[`FB_RS485_TRANSPORT_RTU.Init`](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) re-opens the
+port when it is already open, so a startup sequence can drop the bus to the device's speed,
+write the new setting, and bring it back:
+
+```mermaid
+flowchart LR
+  A["bus at 9600<br/>probe 16#50"] -->|answers| E["done<br/>nothing to change"]
+  A -->|silent| B["re-open at the next rate<br/>probe again"]
+  B -->|silent| B
+  B -->|answers| C["write 9600 into<br/>the device's baud register"]
+  C --> D["re-open at 9600"]
+  D --> E
+```
+
+`PLC_PRG_RS485` does exactly this in `RS485_RUN`, before it lets the bus controller start.
+Three things about it are deliberate:
+
+- **It scans rather than assumes.** The first version wrote the new baud rate blind at the
+  documented factory speed. When the device stayed silent afterwards there was no way to tell
+  whether the write had missed or had landed and moved the device somewhere unexpected —
+  which is a worse position than before. It now probes first and writes only to a device that
+  has actually answered.
+- **It tries the bus speed first.** A device that is already commissioned answers on the first
+  probe and the sequence ends there, costing one Modbus exchange.
+- **It holds the bus controller off.** At any speed but 9600 nothing else on the bus can be
+  addressed either, so nothing is polled until it finishes.
+
+:rotating_light: **The reply to a baud-rate write cannot be heard.** The device changes speed
+the moment it accepts the write, so its acknowledgement comes back at the new rate and the
+old one is deaf to it. A failed write is therefore the *expected* result of a successful one,
+and nothing may retry on it — a retry loop here spins forever on a device that already obeyed.
+
+**When a scan finds nothing, the byte count is the diagnostic.** A bus with nothing on it
+returns zero bytes at every rate. A device that is present but being read at the wrong speed
+or the wrong framing returns *something* — noise, partial characters, the leading null this
+hardware produces as a driver enables. `CommissionMaxRx` and `CommissionMaxRxBaud` record the
+largest byte count seen and where, which is what separates *wired wrong* from *configured
+wrong*. `LeadNulls` climbing while `Ok` stays at zero says the same thing.
+
 ### **Why this project frames its own RTU rather than using a driver**
 
 Worth knowing before anyone tries to simplify it back.

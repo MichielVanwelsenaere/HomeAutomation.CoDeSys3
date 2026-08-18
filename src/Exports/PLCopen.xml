@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T04:11:59.9027852" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T04:11:08.3459826">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T06:35:36.7155396" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T06:31:59.0092766">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -6476,6 +6476,138 @@ END_IF </xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="Manufacturer">
+              <type>
+                <string />
+              </type>
+              <initialValue>
+                <simpleValue value="'DFRobot'" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Fixed for this block - every sensor it serves is a DFRobot one. The model
+	   varies (SEN0492 today, and the rest of the RS485 range would fit here), so
+	   it is passed in per instance instead. Same shape as
+	   FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE. </xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_BASE_MQTT_DISCOVERY_DEVICE</Extends>
+              </Inheritance>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="initDFRobotDevice" ObjectId="5f1a7500-b99e-4c97-80ee-f0a453c85977">
+              <interface>
+                <inputVars>
+                  <variable name="name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Model">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'unknown'" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Model shown on the Home Assistant device page. One discovery device serves the whole DFRobot RS485 range, so the model is set per instance.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="availabilityTopic1">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="availabilityTopic2">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="availabilityOnline">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="availabilityOffline">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="MqttDiscoveryPrefix">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="MqttDiagnosticTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Announces the sensor itself as a Home Assistant device, so its measurements
+   group under one card instead of scattering across the PLC device. *)
+IF xInit THEN
+	xInit := FALSE;
+
+	SUPER^.initBaseDevice(
+		Name := name,
+		Identifiers := id,
+		Manufacturer := THIS^.Manufacturer,
+		Model := Model,
+		availabilityTopic := availabilityTopic1,
+		availabilityTopic2 := availabilityTopic2,
+		availabilityOnline := availabilityOnline,
+		availabilityOffline := availabilityOffline,
+		MqttDiscoveryPrefix := MqttDiscoveryPrefix,
+		MqttDiagnosticTopic := MqttDiagnosticTopic,
+		pMqttPublishQueue := pMqttPublishQueue);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>88157962-75ef-47ae-bd1a-543d8dd22c58</ObjectId>
+          </data>
+        </addData>
+      </pou>
       <pou name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" pouType="functionBlock">
         <interface>
           <localVars>
@@ -7165,6 +7297,664 @@ Initialised := TRUE;
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>78495725-4a33-4565-949d-be98f9fefe52</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_RS485_DFROBOT_SEN0492_MQTT" pouType="functionBlock">
+        <interface>
+          <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="noinit" />
+                    <Attribute Name="instance-path" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Step">
+              <type>
+                <derived name="RS485_Step" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The one register block this sensor is read in: distance and output state
+	   are adjacent, so one request gets both and they are guaranteed to describe
+	   the same measurement. Filled by FB_init in code rather than by a
+	   declaration initialiser - a value inside an existing structured
+	   initialiser cannot be changed from a script afterwards. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="ConfigStep">
+              <type>
+                <derived name="RS485_Step" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A pending configuration write. The sensor's settings live in ordinary
+	   holding registers, so changing one is an FC6 step like any other - it just
+	   has to jump the polling queue, which is what RS485_WorkLevel.COMMAND is
+	   for. See RequestConfigWrite. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="ConfigPending">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="timerData">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="isDataUpdated">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="isStateUpdated">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="MqttDiscoveryDevice">
+              <type>
+                <derived name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The sensor announced to Home Assistant as a device of its own. One per
+	   sensor and its lifetime is the sensor's, so it lives here rather than in a
+	   GVL - the Eastron meters do the same. </xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <outputVars>
+            <variable name="DISTANCE">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Millimetres, straight from the sensor - it reports an integer and there is
+	   no scaling to undo. Only updated while OUTPUT_STATE says the reading is
+	   good, so a failed measurement holds the last trustworthy distance rather
+	   than replacing it with a plausible-looking wrong one. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="OUTPUT_STATE">
+              <type>
+                <BYTE />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 = valid; 1 sigma fail, 2 signal fail, 3 min range fail, 4 phase fail,
+	   5 hardware fail, 7 no update. Published on every poll whatever it says,
+	   because it is the only thing that explains a distance that stopped moving. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="MeasurementValid">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="DataAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="Error">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </outputVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+                <Implements>RS485Device</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from MqttVariables on its
+   first cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check.
+
+   Dormant while FriendlyName is empty, so a call site that wires the block by
+   hand keeps working untouched. A block wired this way MUST be called
+   cyclically, and nothing warns if it is not. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT InitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(MqttVariables.MqttPubRS485Prefix),
+			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+	END_IF
+
+	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(THIS^.MqttDiscoveryDevice),
+			DeviceName := FriendlyName);
+	END_IF
+
+END_IF
+
+timerData();
+
+(* The state goes out on every poll and the distance only when the sensor called
+   it valid, so a reader can always tell a held reading from a fresh one. *)
+IF isStateUpdated THEN
+	isStateUpdated := FALSE;
+	PubMqttMessage(Suffix := '/STATE', Data := BYTE_TO_STRING(OUTPUT_STATE));
+END_IF
+
+IF isDataUpdated THEN
+	isDataUpdated := FALSE;
+	PubMqttMessage(Suffix := '/DIST', Data := UINT_TO_STRING(DISTANCE));
+END_IF
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init" ObjectId="1e8ae2a6-71ad-473b-bed1-35a73f71781d">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the instance will be copied to the copy code afterward (online change)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DeviceAddress">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Modbus slave address of the sensor. Factory default is 16#50.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DataPollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">How often the sensor is read. One read covers distance and measurement state.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Modbus address and poll rate describe the wiring, not a mode, so they are
+   fixed for the life of the instance and belong here rather than in a runtime
+   setter. Note the consequence: changing either afterwards means editing the
+   declaration in the IDE - CODESYS stores an instance's FB_init arguments beside
+   the declaration text, where no script can reach them.
+
+   16#34 is the measurement data register and 16#35 the output state; they are
+   adjacent, so reading two registers gets both from one reply and they describe
+   the same measurement rather than two moments a poll apart.
+
+   Function 3, not 4: this sensor exposes everything - readings and settings
+   alike - as holding registers. *)
+THIS^.Step.DeviceId		:= DeviceAddress;
+THIS^.Step.FunctionCode	:= 3;
+THIS^.Step.Address		:= 16#34;
+THIS^.Step.Quantity		:= 2;
+
+THIS^.timerData.PT := DataPollingInterval;
+THIS^.timerData.IN := TRUE;
+
+FB_init := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt" ObjectId="3b57da72-7c72-40f8-8bdb-a7a0c8190643">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PubMqttMessage" ObjectId="5b2fb373-c516-4b54-844c-8a2339e67171">
+              <interface>
+                <inputVars>
+                  <variable name="Suffix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := Data,
+			Topic := CONCAT(THIS^.MQTTPublishTopic, Suffix),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="c5635523-b0a3-4425-8570-deedd66a9f3e">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="DeviceName">
+                    <type>
+                      <string length="50" />
+                    </type>
+                  </variable>
+                  <variable name="Model">
+                    <type>
+                      <string length="20" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'SEN0492'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Announces the sensor as a device of its own, then one entity per thing it
+   reports. Distance carries no StateClass: it is a position, not a quantity
+   worth averaging or totalling, and Home Assistant's long-term statistics on it
+   would be meaningless. *)
+IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+
+	id := SUPER^.ResolveEntityId(overruleId := overruleId);
+
+	Device^.initDFRobotDevice(
+		name := DeviceName,
+		id := id,
+		Model := Model,
+		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic2 := CONCAT(THIS^.MQTTPublishTopic, '/availability'),
+		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
+		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
+		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+
+	Device^.CreateSensorEntity(
+		Name := 'Distance',
+		Id := CONCAT(id, '_DIST'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/DIST'),
+		DeviceClass := 'distance',
+		UnitOfMeasurement := 'mm');
+
+	(* Diagnostic rather than a headline reading: it is what you look at when the
+	   distance stops making sense, not something to put on a dashboard. *)
+	Device^.CreateDiagnosticSensorEntity(
+		Name := 'Measurement state',
+		Id := CONCAT(id, '_STATE'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/STATE'));
+
+	initMqttDiscoveryDone := TRUE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="HasWork" ObjectId="dbfa16f2-2250-4b7d-b0be-95fa40f58f42">
+              <interface>
+                <returnType>
+                  <derived name="RS485_WorkLevel" />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Predicate only - the scheduler calls this on every device every cycle, and
+   twice when it is looking for commands first. Nothing here may change state. *)
+IF ConfigPending THEN
+	HasWork := RS485_WorkLevel.COMMAND;
+ELSIF timerData.Q THEN
+	HasWork := RS485_WorkLevel.POLL;
+ELSE
+	HasWork := RS485_WorkLevel.NONE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="BuildTransaction" ObjectId="f13b53a7-6ce9-4605-9564-0284088be40e">
+              <interface>
+                <returnType>
+                  <INT />
+                </returnType>
+                <inputVars>
+                  <variable name="pSteps">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="RS485_StepList" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* A configuration write goes alone and goes first. It is not batched with the
+   read because several of these registers change how the sensor talks - the
+   baud rate register is the obvious one - and a read queued behind such a write
+   would be sent into a sensor that has already stopped listening at this speed. *)
+IF ConfigPending THEN
+	pSteps^[0]			:= ConfigStep;
+	BuildTransaction	:= 1;
+ELSIF timerData.Q THEN
+	timerData.IN		:= FALSE;
+	pSteps^[0]			:= Step;
+	BuildTransaction	:= 1;
+ELSE
+	BuildTransaction	:= 0;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnStepResult" ObjectId="08728007-e8b5-46da-8952-6f88da3e1c1b">
+              <interface>
+                <inputVars>
+                  <variable name="StepIndex">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="Failed">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="RS485_ReadBuffer" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Count">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* A configuration write echoes the request back rather than returning data; the
+   transport has already checked that echo, so there is nothing to decode here. *)
+IF ConfigPending THEN
+	RETURN;
+END_IF
+
+THIS^.Error := Failed;
+
+(* Count is what actually came back, not what was asked for, so a short reply
+   cannot be read past the end of. *)
+IF NOT Failed AND Count &gt;= 2 THEN
+	THIS^.OUTPUT_STATE		:= WORD_TO_BYTE(pData^[1] AND 16#00FF);
+	THIS^.MeasurementValid	:= (THIS^.OUTPUT_STATE = 0);
+	THIS^.isStateUpdated	:= TRUE;
+
+	(* Hold the last good distance rather than publishing one the sensor has
+	   just told us not to trust. A stale reading is visibly stale next to a
+	   state that is not 'valid'; a wrong one is not visible at all. *)
+	IF THIS^.MeasurementValid THEN
+		THIS^.DISTANCE		:= WORD_TO_UINT(pData^[0]);
+		THIS^.DataAvailable	:= TRUE;
+		THIS^.isDataUpdated	:= TRUE;
+	END_IF
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnTransactionDone" ObjectId="c72fae3b-2966-47d5-a4ba-bec81d647f62">
+              <interface>
+                <inputVars>
+                  <variable name="StepsRun">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="Failures">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One announcement per transaction, and one re-arm of the timer.
+
+   The re-arm belongs here rather than in OnStepResult because a step skipped by
+   an AbortOnError predecessor is never reported, and a sensor that has stopped
+   answering must still be retried. OnTransactionDone always runs. *)
+timerData.IN := TRUE;
+
+(* A configuration write is finished either way. It is deliberately not retried:
+   the write that changes the baud rate cannot be confirmed at the old baud rate,
+   so a retry loop here would spin forever on a sensor that had in fact obeyed. *)
+IF ConfigPending THEN
+	ConfigPending := FALSE;
+	RETURN;
+END_IF
+
+IF StepsRun &gt; 0 AND Failures &gt;= StepsRun THEN
+	PubMqttMessage(Suffix := '/availability', Data := 'offline');
+ELSIF StepsRun &gt; 0 THEN
+	PubMqttMessage(Suffix := '/availability', Data := 'online');
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestConfigWrite" ObjectId="87b9c24f-0850-40a9-8eb8-6425052ebb56">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Register">
+                    <type>
+                      <UINT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Holding register to write. 16#04 baud rate, 16#1A slave id, 16#08 measurement interval, 16#36 measurement mode, 16#00 factory reset.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Value">
+                    <type>
+                      <WORD />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Value to write. For the baud rate register, 0..9 selects 2400 through 921600; 2 is 9600.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Queues a single-register write for the next time this device is granted the
+   bus. HasWork reports COMMAND while one is pending, so it goes ahead of routine
+   polling on this and every other device.
+
+   Registers worth knowing, from the DFRobot reference:
+     16#04  baud rate    0..9 = 2400, 4800, 9600, 19200, 38400, 57600,
+                         115200, 230400, 460800, 921600
+     16#1A  slave id     16#00..16#FE
+     16#08  measurement interval, 1..1000 ms
+     16#36  measurement mode  1 = up to 1.3 m, 2 = up to 3 m, 3 = up to 4 m
+     16#00  write 1 to restore factory settings
+
+   Writing the baud rate takes effect immediately, so the sensor answers - if at
+   all - at the NEW rate and this end will not hear it. That is expected and is
+   why OnTransactionDone does not retry. *)
+IF NOT ConfigPending THEN
+	ConfigStep.DeviceId		:= Step.DeviceId;
+	ConfigStep.FunctionCode	:= 6;
+	ConfigStep.Address		:= Register;
+	ConfigStep.Quantity		:= 1;
+	ConfigStep.Data[0]		:= Value;
+	ConfigStep.AbortOnError	:= FALSE;
+	ConfigPending			:= TRUE;
+	RequestConfigWrite		:= TRUE;
+ELSE
+	RequestConfigWrite		:= FALSE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>64f1d9ac-10e3-430e-9ae8-cc98d25585ed</ObjectId>
           </data>
         </addData>
       </pou>
@@ -19068,6 +19858,66 @@ SwapWordsToReal := pt_REAL^;</xhtml>
 	   block is exercised at all. </xhtml>
               </documentation>
             </variable>
+            <variable name="FB_RS485_SEN0492_1">
+              <type>
+                <derived name="FB_RS485_DFROBOT_SEN0492_MQTT" />
+              </type>
+              <initialValue>
+                <structValue>
+                  <value member="FriendlyName">
+                    <simpleValue value="'Lab PLC rangefinder'" />
+                  </value>
+                </structValue>
+              </initialValue>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                  <InputAssignments>
+                    <InputAssignment>
+                      <Value>16#50</Value>
+                    </InputAssignment>
+                    <InputAssignment>
+                      <Value>TIME#2s0ms</Value>
+                    </InputAssignment>
+                  </InputAssignments>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> DFRobot SEN0492 laser rangefinder, 4 cm to 4 m over RS485.
+
+	   Left at its factory slave address 16#50, which collides with nothing on
+	   this bus - the Eastron meters sit at 1 and 4. Only the baud rate has to be
+	   changed, and PLC_PRG_RS485 does that on startup; see RS485_RUN. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="SEN0492_COMMISSION_ON_BOOT">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Spend a second at 115200 on every startup to tell a factory-fresh SEN0492
+	   to move to 9600. Harmless once the sensor has moved - the write goes out
+	   at a speed it is no longer listening at - and it repairs a sensor somebody
+	   has factory-reset. Costs about two seconds of startup, once per boot, and
+	   nothing after that. Set FALSE on a bus with no SEN0492 on it: the sequence
+	   holds the bus controller off while it runs, so nothing is polled until it
+	   finishes. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="SEN0492_BUS_BAUD_CODE">
+              <type>
+                <WORD />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> What register 16#04 takes: a code, not a rate. 0..9 select 2400, 4800,
+	   9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600. </xhtml>
+              </documentation>
+            </variable>
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                 <Attributes>
@@ -19076,6 +19926,197 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
               <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
                 <ObjectId>f7e3dd4d-4c8f-481d-88fd-3fc4761009f1</ObjectId>
+              </data>
+              <data name="http://www.3s-software.com/plcopenxml/mixedattrsvarlist" handleUnknown="implementation">
+                <MixedAttrsVarList>
+                  <globalVars name="RS485Variables">
+                    <variable name="FB_RS485_EASTRON_SDM220_1">
+                      <type>
+                        <derived name="FB_RS485_EASTRON_SDM220_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC SDM220 energy meter'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                          <InputAssignments>
+                            <InputAssignment>
+                              <Value>1</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Value>TIME#5s0ms</Value>
+                            </InputAssignment>
+                          </InputAssignments>
+                        </data>
+                      </addData>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> RS485 </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="FB_RS485_DUCO_DUCOBOX_HOME">
+                      <type>
+                        <derived name="FB_RS485_DUCO_DUCOBOX_MQTT" />
+                      </type>
+                    </variable>
+                    <variable name="FB_RS485_1WIRE_MULTISENSOR_01">
+                      <type>
+                        <derived name="FB_RS485_ESERA_OWD_MQTT" />
+                      </type>
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                          <InputAssignments>
+                            <InputAssignment>
+                              <Value>2</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Value>1</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Value>TIME#30s0ms</Value>
+                            </InputAssignment>
+                          </InputAssignments>
+                        </data>
+                      </addData>
+                    </variable>
+                    <variable name="FB_RS485_EASTRON_SDM630_1">
+                      <type>
+                        <derived name="FB_RS485_EASTRON_SDM630_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC energy meter'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                          <InputAssignments>
+                            <InputAssignment>
+                              <Value>4</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Value>TIME#10s0ms</Value>
+                            </InputAssignment>
+                          </InputAssignments>
+                        </data>
+                      </addData>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Self-wiring: FriendlyName is what turns the MQTT and discovery wiring on,
+	   so this needs no Init call in RS485_INIT - only registration on the bus. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="FB_RS485_EASTRON_SDM_POWER_1">
+                      <type>
+                        <derived name="FB_RS485_EASTRON_SDM_POWER_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC SDM power meter'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                          <InputAssignments>
+                            <InputAssignment>
+                              <Value>1</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Value>RS485_EASTRON_SDM_Devices.SDM220</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Value>TIME#5s0ms</Value>
+                            </InputAssignment>
+                          </InputAssignments>
+                        </data>
+                      </addData>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Registered on the bus and pointed at the SAME meter as
+	   FB_RS485_EASTRON_SDM220_1 above (Modbus address 1), declared as an SDM220.
+	   That is deliberate on two counts.
+
+	   It is the only call site this block has, and an unreferenced POU is never
+	   compiled - without an instance somewhere in the application a broken edit to
+	   it would pass verify with a clean build.
+
+	   And because both blocks decode active power out of the same register
+	   (30013), the two publish the same number continuously: a persistent
+	   difference between .../FB_RS485_EASTRON_SDM_POWER_1/ACTP and
+	   .../FB_RS485_EASTRON_SDM220_1/ACTP means one of them has stopped decoding
+	   correctly. There is no SDM120 or SDM630 here, so this is the only way the
+	   block is exercised at all. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="FB_RS485_SEN0492_1">
+                      <type>
+                        <derived name="FB_RS485_DFROBOT_SEN0492_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC rangefinder'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                          <InputAssignments>
+                            <InputAssignment>
+                              <Value>16#50</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Value>TIME#2s0ms</Value>
+                            </InputAssignment>
+                          </InputAssignments>
+                        </data>
+                      </addData>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> DFRobot SEN0492 laser rangefinder, 4 cm to 4 m over RS485.
+
+	   Left at its factory slave address 16#50, which collides with nothing on
+	   this bus - the Eastron meters sit at 1 and 4. Only the baud rate has to be
+	   changed, and PLC_PRG_RS485 does that on startup; see RS485_RUN. </xhtml>
+                      </documentation>
+                    </variable>
+                  </globalVars>
+                  <globalVars name="RS485Variables" constant="true">
+                    <variable name="SEN0492_COMMISSION_ON_BOOT">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TRUE" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Spend a second at 115200 on every startup to tell a factory-fresh SEN0492
+	   to move to 9600. Harmless once the sensor has moved - the write goes out
+	   at a speed it is no longer listening at - and it repairs a sensor somebody
+	   has factory-reset. Costs about two seconds of startup, once per boot, and
+	   nothing after that. Set FALSE on a bus with no SEN0492 on it: the sequence
+	   holds the bus controller off while it runs, so nothing is polled until it
+	   finishes. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="SEN0492_BUS_BAUD_CODE">
+                      <type>
+                        <WORD />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="2" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> What register 16#04 takes: a code, not a rate. 0..9 select 2400, 4800,
+	   9600, 19200, 38400, 57600, 115200, 230400, 460800, 921600. </xhtml>
+                      </documentation>
+                    </variable>
+                  </globalVars>
+                </MixedAttrsVarList>
               </data>
             </addData>
           </globalVars>
@@ -20360,6 +21401,14 @@ END_IF</xhtml>
                           </InputAssignments>
                         </data>
                       </addData>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> These timings protect real hardware: a pump that short-cycles wears out, and a
+	   valve needs time to open before there is any point pushing water at it. Do not
+	   shorten them here to speed up a test - it does not even work, because changing
+	   an FB_init argument from a script updates the declaration text while the
+	   compiler keeps reading the old InputAssignments (see CLAUDE.md). Write the
+	   members at runtime instead, as the test-plc-logic skill does. </xhtml>
+                      </documentation>
                     </variable>
                     <variable name="FB_THERMOSTAT_2">
                       <type>
@@ -20431,6 +21480,9 @@ END_IF</xhtml>
                           </InputAssignments>
                         </data>
                       </addData>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Valve travel: the pump waits this long after heat is first requested. </xhtml>
+                      </documentation>
                     </variable>
                     <variable name="CollectorValveNames">
                       <type>
@@ -20844,6 +21896,114 @@ FB_BURNER_GAS(
                         <derived name="FB_RS485_BUSCONTROLLER" />
                       </type>
                     </variable>
+                    <variable name="CommissionState">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- one-shot commissioning of a factory-fresh SEN0492 --------------------
+	   The sensor leaves the factory at 115200 baud and there is no switch on it.
+	   This bus runs at 9600, so out of the box the two cannot talk at all: the
+	   sensor is not slow to answer, it is inaudible.
+
+	   The sequence scans for the sensor rather than assuming where it is. It
+	   tries the bus speed first, and if the sensor answers there it stops
+	   immediately - which is the normal case after the first successful run, and
+	   costs one Modbus exchange. Only if that fails does it walk the other rates,
+	   and only if it finds the sensor does it write the new baud rate. Nothing is
+	   written into a bus whose contents have not been confirmed.
+
+	   Guessing was tried first and is why this scans: a blind write at 115200
+	   left the sensor silent at both speeds, with no way to tell whether the
+	   write had missed or had landed and moved the sensor somewhere unexpected.
+
+	   The bus controller is held off throughout - at any speed but 9600 nothing
+	   else on this bus can be addressed either - so its own StartupDelay begins
+	   afterwards. Normal case adds well under a second; a full unsuccessful scan
+	   adds about seven. Once per boot, and nothing after that.
+
+	   Set RS485Variables.SEN0492_COMMISSION_ON_BOOT to FALSE to skip it. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="CommissionDelay">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                    </variable>
+                    <variable name="CommissionStep">
+                      <type>
+                        <derived name="RS485_Step" />
+                      </type>
+                    </variable>
+                    <variable name="CommissionBauds">
+                      <type>
+                        <array>
+                          <dimension lower="0" upper="9" />
+                          <baseType>
+                            <UDINT />
+                          </baseType>
+                        </array>
+                      </type>
+                    </variable>
+                    <variable name="CommissionIndex">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="CommissionFoundBaud">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Diagnostics, and the reason this is worth reading online rather than
+	   guessing from the outside.
+
+	   CommissionMaxRx is the one to look at when nothing is found. A silent bus
+	   returns zero bytes at every rate; a sensor that is present but being read
+	   at the wrong speed or the wrong framing returns SOMETHING, and the rate
+	   where the most bytes arrived is the best guess at where it actually is.
+	   That distinction - wired wrong versus configured wrong - is otherwise
+	   invisible from this end. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="CommissionProbe">
+                      <type>
+                        <derived name="RS485_StepState" />
+                      </type>
+                    </variable>
+                    <variable name="CommissionWritten">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="FALSE" />
+                      </initialValue>
+                    </variable>
+                    <variable name="CommissionMaxRx">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="CommissionMaxRxBaud">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
                   </localVars>
                   <addData>
                     <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -20891,6 +22051,7 @@ RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM6
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME);
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01);
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_1);
+RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_SEN0492_1);
 
 (* INIT RS485 DEVICE STUFF.
    Nothing to do for the three Eastron meters. Modbus address, poll rate and -
@@ -20946,17 +22107,172 @@ END_IF
                   <action name="RS485_RUN">
                     <body>
                       <ST>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The bus controller drives the transport - it calls Service every cycle, which
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Commissioning owns the port while it runs, so the bus controller is held off
+   until it is finished. See the declaration for why this exists at all. *)
+CASE CommissionState OF
+
+0:	(* The rates to try, in the order worth trying them: the bus speed first, so
+	   an already-commissioned sensor costs one exchange and nothing more, then
+	   the factory speed, then the rest of what register 16#04 can select. Filled
+	   here in code rather than by a declaration initialiser, for the same reason
+	   every other table in this project is. *)
+	CommissionBauds[0] := 9600;		(* what this bus runs at *)
+	CommissionBauds[1] := 115200;	(* SEN0492 factory default *)
+	CommissionBauds[2] := 19200;
+	CommissionBauds[3] := 38400;
+	CommissionBauds[4] := 57600;
+	CommissionBauds[5] := 4800;
+	CommissionBauds[6] := 2400;
+	CommissionBauds[7] := 230400;
+	CommissionBauds[8] := 460800;
+	CommissionBauds[9] := 921600;
+	CommissionIndex := 0;
+	CommissionFoundBaud := 0;
+	CommissionMaxRx := 0;
+	CommissionMaxRxBaud := 0;
+
+	IF RS485Variables.SEN0492_COMMISSION_ON_BOOT THEN
+		CommissionState := 1;
+	ELSE
+		CommissionState := 99;
+	END_IF
+
+1:	(* Bring the port up at the rate under test. Init re-opens a port that is
+	   already open, which is what makes a scan possible without touching the
+	   transport. *)
+	RS485Transport.Init(
+		Port			:= SysCom.SYS_COM_PORTS.SYS_COMPORT1,
+		Baudrate		:= CommissionBauds[CommissionIndex],
+		Parity			:= SysCom.SYS_COM_PARITY.SYS_NOPARITY,
+		StopBits		:= SysCom.SYS_COM_STOPBITS.SYS_ONESTOPBIT,
+		ReplyTimeout	:= T#300MS,
+		GapTime			:= T#20MS
+	);
+	CommissionDelay(IN := FALSE);
+	CommissionState := 2;
+
+2:	(* Let Service actually re-open the port before anything is sent into it. *)
+	CommissionDelay(IN := TRUE, PT := T#300MS);
+	RS485Transport.Service();
+	IF CommissionDelay.Q THEN
+		CommissionDelay(IN := FALSE);
+		CommissionState := 3;
+	END_IF
+
+3:	(* Ask the sensor for its measurement registers. A reply of any kind at this
+	   rate is what identifies where the sensor actually is - the point is not
+	   the distance, it is that something answered. *)
+	CommissionStep.DeviceId		:= 16#50;	(* factory slave address *)
+	CommissionStep.FunctionCode	:= 3;
+	CommissionStep.Address		:= 16#34;
+	CommissionStep.Quantity		:= 2;
+	CommissionStep.AbortOnError	:= FALSE;
+
+	CommissionDelay(IN := TRUE, PT := T#2S);
+	IF RS485Transport.Start(pStep := ADR(CommissionStep)) THEN
+		CommissionDelay(IN := FALSE);
+		CommissionState := 4;
+	ELSIF CommissionDelay.Q THEN
+		(* Port never opened at this rate. Treat it as a miss and move on. *)
+		CommissionDelay(IN := FALSE);
+		CommissionState := 5;
+	END_IF
+
+4:	CommissionProbe := RS485Transport.Service();
+	IF CommissionProbe &lt;&gt; RS485_StepState.BUSY THEN
+		(* Bytes arriving at all is the useful signal when none of them frame:
+		   it separates a sensor that is present and mis-configured from a bus
+		   with nothing on it. *)
+		IF RS485Transport.RxCount &gt; CommissionMaxRx THEN
+			CommissionMaxRx		:= RS485Transport.RxCount;
+			CommissionMaxRxBaud	:= CommissionBauds[CommissionIndex];
+		END_IF
+		IF CommissionProbe = RS485_StepState.OK THEN
+			CommissionFoundBaud := CommissionBauds[CommissionIndex];
+			CommissionState := 6;
+		ELSE
+			CommissionState := 5;
+		END_IF
+	END_IF
+
+5:	(* Next rate, or give up and put the bus back the way it was. *)
+	IF CommissionIndex &lt; DINT_TO_INT(UPPER_BOUND(CommissionBauds, 1)) THEN
+		CommissionIndex := CommissionIndex + 1;
+		CommissionState := 1;
+	ELSE
+		CommissionState := 9;
+	END_IF
+
+6:	(* Found it. If it is already where it belongs there is nothing to write. *)
+	IF CommissionFoundBaud = 9600 THEN
+		CommissionState := 9;
+	ELSE
+		CommissionState := 7;
+	END_IF
+
+7:	(* Write 9600 into the baud rate register. Register 16#04 takes a code, not a
+	   rate: 0..9 select 2400 through 921600, and 2 is 9600. *)
+	CommissionStep.DeviceId		:= 16#50;
+	CommissionStep.FunctionCode	:= 6;
+	CommissionStep.Address		:= 16#04;
+	CommissionStep.Quantity		:= 1;
+	CommissionStep.Data[0]		:= RS485Variables.SEN0492_BUS_BAUD_CODE;
+	CommissionStep.AbortOnError	:= FALSE;
+
+	CommissionDelay(IN := TRUE, PT := T#2S);
+	IF RS485Transport.Start(pStep := ADR(CommissionStep)) THEN
+		CommissionDelay(IN := FALSE);
+		CommissionWritten := TRUE;
+		CommissionState := 8;
+	ELSIF CommissionDelay.Q THEN
+		CommissionDelay(IN := FALSE);
+		CommissionState := 9;
+	END_IF
+
+8:	(* The reply, if the sensor sends one, comes back at the NEW rate and this
+	   end will not hear it - so the outcome is deliberately ignored. A failure
+	   here is the expected result of success. *)
+	IF RS485Transport.Service() &lt;&gt; RS485_StepState.BUSY THEN
+		CommissionState := 9;
+	END_IF
+
+9:	(* Back to the settings the rest of the bus uses, whatever happened above. *)
+	RS485Transport.Init(
+		Port			:= SysCom.SYS_COM_PORTS.SYS_COMPORT1,
+		Baudrate		:= 9600,
+		Parity			:= SysCom.SYS_COM_PARITY.SYS_NOPARITY,
+		StopBits		:= SysCom.SYS_COM_STOPBITS.SYS_ONESTOPBIT,
+		ReplyTimeout	:= T#1S,
+		GapTime			:= T#50MS
+	);
+	CommissionDelay(IN := FALSE);
+	CommissionState := 10;
+
+10:	CommissionDelay(IN := TRUE, PT := T#500MS);
+	RS485Transport.Service();
+	IF CommissionDelay.Q THEN
+		CommissionDelay(IN := FALSE);
+		CommissionState := 99;
+	END_IF
+
+END_CASE
+
+(* The bus controller drives the transport - it calls Service every cycle, which
    is what opens and re-opens the serial port as well as carrying frames - so
    there is nothing to do here but call it. *)
-RS485BusController();
+IF CommissionState = 99 THEN
+	RS485BusController();
+END_IF
 
-(* RS485 devices *)
+(* RS485 devices. Called even while commissioning runs: their bodies only
+   publish and self-wire, and the scheduler is the only thing that talks to the
+   bus on their behalf. *)
 RS485Variables.FB_RS485_EASTRON_SDM220_1();
 RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME();
 RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();
 RS485Variables.FB_RS485_EASTRON_SDM630_1();
 RS485Variables.FB_RS485_EASTRON_SDM_POWER_1();
+RS485Variables.FB_RS485_SEN0492_1();
 </xhtml>
                       </ST>
                     </body>
@@ -22111,6 +23427,9 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
         </Folder>
         <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
         <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
+        <Object Name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" ObjectId="88157962-75ef-47ae-bd1a-543d8dd22c58">
+          <Object Name="initDFRobotDevice" ObjectId="5f1a7500-b99e-4c97-80ee-f0a453c85977" />
+        </Object>
         <Object Name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" ObjectId="83ba608b-36e7-4e0d-bc48-e72f8108c8bd">
           <Object Name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1" />
         </Object>
@@ -22119,6 +23438,17 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
           <Object Name="SelectNext" ObjectId="b067461d-5119-4662-95d9-eb4f1a4856f9" />
           <Object Name="RegisterDevice" ObjectId="aea290ad-a2b0-481c-af0a-b2031733b789" />
           <Object Name="Init" ObjectId="1f5ff39a-3d06-4841-a742-9ba51e7243e2" />
+        </Object>
+        <Object Name="FB_RS485_DFROBOT_SEN0492_MQTT" ObjectId="64f1d9ac-10e3-430e-9ae8-cc98d25585ed">
+          <Object Name="FB_init" ObjectId="1e8ae2a6-71ad-473b-bed1-35a73f71781d" />
+          <Object Name="InitMqtt" ObjectId="3b57da72-7c72-40f8-8bdb-a7a0c8190643" />
+          <Object Name="PubMqttMessage" ObjectId="5b2fb373-c516-4b54-844c-8a2339e67171" />
+          <Object Name="InitMqttDiscovery" ObjectId="c5635523-b0a3-4425-8570-deedd66a9f3e" />
+          <Object Name="HasWork" ObjectId="dbfa16f2-2250-4b7d-b0be-95fa40f58f42" />
+          <Object Name="BuildTransaction" ObjectId="f13b53a7-6ce9-4605-9564-0284088be40e" />
+          <Object Name="OnStepResult" ObjectId="08728007-e8b5-46da-8952-6f88da3e1c1b" />
+          <Object Name="OnTransactionDone" ObjectId="c72fae3b-2966-47d5-a4ba-bec81d647f62" />
+          <Object Name="RequestConfigWrite" ObjectId="87b9c24f-0850-40a9-8eb8-6425052ebb56" />
         </Object>
         <Object Name="FB_RS485_EASTRON_SDM630_MQTT" ObjectId="af59857b-6616-4cd6-a053-847b3c89d96f">
           <Object Name="HasWork" ObjectId="aebc6851-9dee-4d6c-8c39-27331d94fc01" />
