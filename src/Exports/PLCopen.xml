@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T09:31:22.6161846" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T09:22:34.6812116">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T09:54:56.096972" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T09:50:57.5216992">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -6509,7 +6509,7 @@ END_IF </xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="initDFRobotDevice" ObjectId="eedc18e7-680b-4641-a101-5bbb6b30e3db">
+            <Method name="initDFRobotDevice" ObjectId="dabdf36f-cd19-479e-8832-3e37aa783b83">
               <interface>
                 <inputVars>
                   <variable name="name">
@@ -7420,6 +7420,50 @@ Initialised := TRUE;
                 <simpleValue value="FALSE" />
               </initialValue>
             </variable>
+            <variable name="QualityWindow">
+              <type>
+                <array>
+                  <dimension lower="0" upper="15" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Quality, which is a different question from availability and needs a
+	   different answer. Availability is binary and has to be debounced or it
+	   reports noise; that same debounce means a sensor answering two polls in
+	   three still reads 'online', which is true and useless. This is the signal
+	   that says how well it is working rather than whether it is: the share of
+	   the last sixteen transactions that succeeded, as a percentage. A sensor
+	   degrading - a loose pair, a failing driver, a bus getting busier - shows
+	   up here long before it shows up as a disconnection. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="QualityIdx">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="QualitySeen">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="isQualityUpdated">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
             <variable name="MqttDiscoveryDevice">
               <type>
                 <derived name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" />
@@ -7499,6 +7543,19 @@ Initialised := TRUE;
                 <simpleValue value="FALSE" />
               </initialValue>
             </variable>
+            <variable name="SuccessRate">
+              <type>
+                <USINT />
+              </type>
+              <initialValue>
+                <simpleValue value="100" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Percentage of the last sixteen transactions that succeeded. 100 is a
+	   healthy sensor; anything settling below that is worth looking at even
+	   while availability still reads online. </xhtml>
+              </documentation>
+            </variable>
           </outputVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
@@ -7557,12 +7614,20 @@ IF isDataUpdated THEN
 	isDataUpdated := FALSE;
 	PubMqttMessage(Suffix := '/DIST', Data := UINT_TO_STRING(DISTANCE));
 END_IF
+
+(* Published on every transaction, unlike availability: a slowly falling number
+   is exactly the signal this exists to carry, and suppressing the unchanged
+   values would hide a sensor sitting steadily at 60%. *)
+IF isQualityUpdated THEN
+	isQualityUpdated := FALSE;
+	PubMqttMessage(Suffix := '/QUALITY', Data := USINT_TO_STRING(SuccessRate));
+END_IF
 </xhtml>
           </ST>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RequestConfigWrite" ObjectId="c98c2d85-1da2-407e-84c4-4102f0c81095">
+            <Method name="RequestConfigWrite" ObjectId="7b52bdaf-1cf1-4189-adee-76db69634128">
               <interface>
                 <returnType>
                   <BOOL />
@@ -7622,7 +7687,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnTransactionDone" ObjectId="20701ac8-0513-4ebd-8c59-b5043cbe2128">
+            <Method name="OnTransactionDone" ObjectId="be10a842-1dfa-49c7-a1f2-f8b9975e6bfb">
               <interface>
                 <inputVars>
                   <variable name="StepsRun">
@@ -7636,6 +7701,18 @@ END_IF
                     </type>
                   </variable>
                 </inputVars>
+                <localVars>
+                  <variable name="qualityOk">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="qualityI">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </localVars>
               </interface>
               <body>
                 <ST>
@@ -7660,12 +7737,39 @@ IF StepsRun = 0 THEN
 	RETURN;
 END_IF
 
+(* Two independent verdicts on the same transaction, because they answer
+   different questions. AvailFailures decides whether the sensor is reachable at
+   all and needs hysteresis to be worth reading. The quality window records how
+   well it is doing and deliberately has none - the whole point is to move while
+   availability is still, so that a sensor which is degrading rather than
+   disconnected is visible. *)
 IF Failures &gt;= StepsRun THEN
 	IF AvailFailures &lt; AvailabilityFailLimit THEN
 		AvailFailures := AvailFailures + 1;
 	END_IF
+	QualityWindow[QualityIdx] := FALSE;
 ELSE
 	AvailFailures := 0;
+	QualityWindow[QualityIdx] := TRUE;
+END_IF
+
+QualityIdx := (QualityIdx + 1) MOD (DINT_TO_INT(UPPER_BOUND(QualityWindow, 1)) + 1);
+IF QualitySeen &lt;= DINT_TO_INT(UPPER_BOUND(QualityWindow, 1)) THEN
+	QualitySeen := QualitySeen + 1;
+END_IF
+
+(* Only over what has actually been observed, so the figure is honest from the
+   first transaction rather than starting at a flattering 100 for sixteen. *)
+qualityOk := 0;
+FOR qualityI := 0 TO QualitySeen - 1 DO
+	IF QualityWindow[qualityI] THEN
+		qualityOk := qualityOk + 1;
+	END_IF
+END_FOR
+
+IF QualitySeen &gt; 0 THEN
+	SuccessRate := INT_TO_USINT((qualityOk * 100) / QualitySeen);
+	isQualityUpdated := TRUE;
 END_IF
 
 (* Published only when the verdict changes, and once at startup so a retained
@@ -7692,7 +7796,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnStepResult" ObjectId="7425b12c-2aec-43c1-a613-6342d63fc477">
+            <Method name="OnStepResult" ObjectId="d6e3f646-f0c3-4e9f-ba98-79ba01d2e6ed">
               <interface>
                 <inputVars>
                   <variable name="StepIndex">
@@ -7754,7 +7858,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="BuildTransaction" ObjectId="be289757-5986-4c4d-9582-5ef711dbee2c">
+            <Method name="BuildTransaction" ObjectId="b5a6321e-2cd5-4274-92fe-896f020ec138">
               <interface>
                 <returnType>
                   <INT />
@@ -7794,7 +7898,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="HasWork" ObjectId="2b3fe7ce-d635-4a30-b661-8a631b7a038c">
+            <Method name="HasWork" ObjectId="265b325b-09de-468d-9acd-014b81ba3573">
               <interface>
                 <returnType>
                   <derived name="RS485_WorkLevel" />
@@ -7818,7 +7922,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="6815b1cf-e9a0-4902-877f-fd3594e8dcba">
+            <Method name="InitMqttDiscovery" ObjectId="8c152fc5-bed4-4317-a117-b36b7d293cbf">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -7896,6 +8000,18 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		Id := CONCAT(id, '_STATE'),
 		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/STATE'));
 
+	(* Diagnostic, with a unit and a state class so Home Assistant will graph it
+	   and keep statistics. This is the entity to put an automation on: a sensor
+	   that starts answering nine polls in ten instead of ten shows up here
+	   while availability is still reporting a cheerful 'online'. *)
+	Device^.CreateSensorEntity(
+		Name := 'Link quality',
+		Id := CONCAT(id, '_QUALITY'),
+		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/QUALITY'),
+		DeviceClass := '',
+		StateClass := 'measurement',
+		UnitOfMeasurement := '%');
+
 	initMqttDiscoveryDone := TRUE;
 END_IF
 </xhtml>
@@ -7905,7 +8021,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PubMqttMessage" ObjectId="ec4c14f2-203e-44b3-932f-3cb4f3f7b565">
+            <Method name="PubMqttMessage" ObjectId="875897ef-62d5-43d7-9b08-9b3c1b976ab0">
               <interface>
                 <inputVars>
                   <variable name="Suffix">
@@ -7937,7 +8053,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="b2157167-0179-4cfa-a10b-c36a7951670f">
+            <Method name="InitMqtt" ObjectId="3971886e-d96c-40a1-be95-7f85ae37bae6">
               <interface>
                 <inputVars>
                   <variable name="MQTTPublishPrefix">
@@ -7975,7 +8091,7 @@ SUPER^.InitBaseMqtt();
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="FB_init" ObjectId="7e75b38f-8b38-4492-b5bc-5882548de5b7">
+            <Method name="FB_init" ObjectId="5f435e5f-5ff6-4554-abbd-cd15e5bc94c4">
               <interface>
                 <returnType>
                   <BOOL />
@@ -23850,7 +23966,7 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
         <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
         <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
         <Object Name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" ObjectId="88157962-75ef-47ae-bd1a-543d8dd22c58">
-          <Object Name="initDFRobotDevice" ObjectId="eedc18e7-680b-4641-a101-5bbb6b30e3db" />
+          <Object Name="initDFRobotDevice" ObjectId="dabdf36f-cd19-479e-8832-3e37aa783b83" />
         </Object>
         <Object Name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" ObjectId="83ba608b-36e7-4e0d-bc48-e72f8108c8bd">
           <Object Name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1" />
@@ -23862,15 +23978,15 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
           <Object Name="Init" ObjectId="1f5ff39a-3d06-4841-a742-9ba51e7243e2" />
         </Object>
         <Object Name="FB_RS485_DFROBOT_SEN0492_MQTT" ObjectId="64f1d9ac-10e3-430e-9ae8-cc98d25585ed">
-          <Object Name="RequestConfigWrite" ObjectId="c98c2d85-1da2-407e-84c4-4102f0c81095" />
-          <Object Name="OnTransactionDone" ObjectId="20701ac8-0513-4ebd-8c59-b5043cbe2128" />
-          <Object Name="OnStepResult" ObjectId="7425b12c-2aec-43c1-a613-6342d63fc477" />
-          <Object Name="BuildTransaction" ObjectId="be289757-5986-4c4d-9582-5ef711dbee2c" />
-          <Object Name="HasWork" ObjectId="2b3fe7ce-d635-4a30-b661-8a631b7a038c" />
-          <Object Name="InitMqttDiscovery" ObjectId="6815b1cf-e9a0-4902-877f-fd3594e8dcba" />
-          <Object Name="PubMqttMessage" ObjectId="ec4c14f2-203e-44b3-932f-3cb4f3f7b565" />
-          <Object Name="InitMqtt" ObjectId="b2157167-0179-4cfa-a10b-c36a7951670f" />
-          <Object Name="FB_init" ObjectId="7e75b38f-8b38-4492-b5bc-5882548de5b7" />
+          <Object Name="RequestConfigWrite" ObjectId="7b52bdaf-1cf1-4189-adee-76db69634128" />
+          <Object Name="OnTransactionDone" ObjectId="be10a842-1dfa-49c7-a1f2-f8b9975e6bfb" />
+          <Object Name="OnStepResult" ObjectId="d6e3f646-f0c3-4e9f-ba98-79ba01d2e6ed" />
+          <Object Name="BuildTransaction" ObjectId="b5a6321e-2cd5-4274-92fe-896f020ec138" />
+          <Object Name="HasWork" ObjectId="265b325b-09de-468d-9acd-014b81ba3573" />
+          <Object Name="InitMqttDiscovery" ObjectId="8c152fc5-bed4-4317-a117-b36b7d293cbf" />
+          <Object Name="PubMqttMessage" ObjectId="875897ef-62d5-43d7-9b08-9b3c1b976ab0" />
+          <Object Name="InitMqtt" ObjectId="3971886e-d96c-40a1-be95-7f85ae37bae6" />
+          <Object Name="FB_init" ObjectId="5f435e5f-5ff6-4554-abbd-cd15e5bc94c4" />
         </Object>
         <Object Name="FB_RS485_EASTRON_SDM630_MQTT" ObjectId="af59857b-6616-4cd6-a053-847b3c89d96f">
           <Object Name="HasWork" ObjectId="aebc6851-9dee-4d6c-8c39-27331d94fc01" />

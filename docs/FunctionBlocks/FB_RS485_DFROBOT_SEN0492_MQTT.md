@@ -52,6 +52,7 @@ INT ──┤ AvailabilityFailLimit           DISTANCE ├── UINT
       │                         MeasurementValid ├── BOOL
       │                            DataAvailable ├── BOOL
       │                                    Error ├── BOOL
+      │                              SuccessRate ├── USINT
       └──────────────────────────────────────────┘
 ```
 
@@ -61,7 +62,7 @@ INT ──┤ AvailabilityFailLimit           DISTANCE ├── UINT
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `AvailabilityFailLimit` | INT | Consecutive failed transactions before the sensor is declared offline. Defaults to 3, about six seconds at the default two-second poll. Raise it on a bus that is busy or long; 1 would mean every transient shows up in Home Assistant as a disconnection. Recovery is immediate on the first good transaction regardless. |
+| `AvailabilityFailLimit` | INT | Consecutive failed transactions before the sensor is declared offline. Defaults to 3, so around half a minute at the 8 s minimum poll. Raise it on a bus that is busy or long; 1 would mean every transient shows up in Home Assistant as a disconnection. Recovery is immediate on the first good transaction regardless. |
 
 **Outputs**
 
@@ -72,6 +73,7 @@ INT ──┤ AvailabilityFailLimit           DISTANCE ├── UINT
 | `MeasurementValid` | BOOL | `OUTPUT_STATE = 0`, as a flag. FALSE means `DISTANCE` is being held, not refreshed. |
 | `DataAvailable` | BOOL | High once the block has completed a successful read. Low only at startup. |
 | `Error` | BOOL | High when an error occurred while executing the Modbus read command. |
+| `SuccessRate` | USINT | Percentage of the last sixteen transactions that succeeded, published to `/QUALITY`. 100 is a healthy sensor. This is the signal that says how well the device is working rather than whether it is reachable at all — it moves while `/availability` is still `online`, which is the point. |
 
 ### **Methods**
 
@@ -86,7 +88,7 @@ INT ──┤ AvailabilityFailLimit           DISTANCE ├── UINT
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
-| `DataPollingInterval` | TIME |  | How often this block polls the device. |
+| `DataPollingInterval` | TIME |  | How often this block polls the device. **Anything below 8 s is silently raised to 8 s** — the sensor cannot answer faster and asking only produces failures. See *It cannot be polled quickly* below. |
 
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
@@ -136,7 +138,7 @@ The declaration is the whole configuration — Modbus address and polling interv
 `FB_init`, the Home Assistant name through the initialiser:
 
 ```
-FB_RS485_SEN0492_1 : FB_RS485_DFROBOT_SEN0492_MQTT(16#50, T#2S)
+FB_RS485_SEN0492_1 : FB_RS485_DFROBOT_SEN0492_MQTT(16#50, T#10S)
                    := (FriendlyName := 'Cistern level');
 ```
 
@@ -214,6 +216,26 @@ Publishing the state always and the distance only when it is good is what lets a
 held reading from a fresh one. A sensor pointed at nothing, or at something beyond 4 m, reports
 a state other than `0` and its distance simply stops updating.
 
+### **Telling "unreachable" apart from "getting worse"**
+
+Two signals, because they answer different questions and one cannot do both jobs.
+
+| | `/availability` | `/QUALITY` |
+|:--|:--|:--|
+| answers | can it be reached at all | how well is it working |
+| shape | binary, debounced, published on change | percentage, no hysteresis, published every transaction |
+| moves when | the sensor stops answering entirely | the sensor starts missing some polls |
+
+`/availability` has to be debounced or it reports noise — a single missed reply on a shared
+RS485 bus is ordinary. But that same debounce means a sensor answering two polls in three still
+reads `online`, which is true and useless if what you want to know is whether it is degrading.
+
+`/QUALITY` is that second signal: the share of the last sixteen transactions that succeeded.
+**It is the entity to put an automation on.** A sensor that starts answering nine polls in ten
+instead of ten shows up there immediately, while availability is still reporting a cheerful
+`online`; a loose pair, a failing driver or a bus getting busier all appear as a number settling
+below 100 long before anything disconnects.
+
 ### **It cannot be polled quickly, and the interval is clamped**
 
 `FB_init` refuses an interval below **8 seconds** and quietly substitutes it. That is a
@@ -234,6 +256,12 @@ misses is easy to reach at 2 s and hard at 8 s.
 A caller who asks for something the device cannot sustain gets a working sensor and a slower
 one. The alternative is a reading that is right a quarter of the time and an entity that keeps
 going unavailable, which is worse in every way that matters.
+
+:bulb: **The shipped instance in `RS485Variables` still declares `T#2S`.** The clamp is what
+holds it at 8 s. CODESYS stores an instance's `FB_init` arguments outside the declaration text —
+see [CLAUDE.md](../../CLAUDE.md) — so that argument cannot be corrected by any script, only in
+the IDE. The clamp exists partly because of that: a value that cannot be fixed automatically
+should not be able to break the device.
 
 :rotating_light: **A residual failure rate remains, and it looks electrical.** Even at the
 clamped rate a small number of replies still fail to frame. The captured bytes are the reason
