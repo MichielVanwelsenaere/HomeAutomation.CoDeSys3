@@ -109,8 +109,13 @@ Spec shape (see `tools/ai/codesys_task.py` `run_steps`):
 ```
 
 **`expect` compares typed literals.** `read_value` returns `UDINT#0`, `INT#8`,
-`TIME#20s`, `'a string'` — not `0`, `8`, `20s`. Write the expectation the way the
-PLC spells it, or the step fails for the wrong reason.
+`TIME#20s`, `BYTE#1`, `'a string'` — not `0`, `8`, `20s`, `16#01`. Write the
+expectation the way the PLC spells it, or the step fails for the wrong reason.
+
+Two that catch people: a `BYTE` comes back **decimal** (`BYTE#1`), not as the hex
+you probably wrote it as in the declaration; and an enum comes back fully
+qualified (`RS485_EASTRON_SDM_Devices.SDM220`). When in doubt put the variable in
+`read` first, run once, and copy the spelling out of the report into `expect`.
 
 Finish with a diff, which catches damage you were not looking for:
 
