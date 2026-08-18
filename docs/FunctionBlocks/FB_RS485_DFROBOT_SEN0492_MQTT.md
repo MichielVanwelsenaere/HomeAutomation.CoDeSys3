@@ -44,18 +44,24 @@ and B fixed it, and the sweep then found the sensor on its **first** probe.
 ### **Block diagram**
 
 ```text
-   ┌───────────────────────────────┐
-   │ FB_RS485_DFROBOT_SEN0492_MQTT │
-   ├───────────────────────────────┤
-   │                      DISTANCE ├── UINT
-   │                  OUTPUT_STATE ├── BYTE
-   │              MeasurementValid ├── BOOL
-   │                 DataAvailable ├── BOOL
-   │                         Error ├── BOOL
-   └───────────────────────────────┘
+      ┌──────────────────────────────────────────┐
+      │      FB_RS485_DFROBOT_SEN0492_MQTT       │
+      ├──────────────────────────────────────────┤
+INT ──┤ AvailabilityFailLimit           DISTANCE ├── UINT
+      │                             OUTPUT_STATE ├── BYTE
+      │                         MeasurementValid ├── BOOL
+      │                            DataAvailable ├── BOOL
+      │                                    Error ├── BOOL
+      └──────────────────────────────────────────┘
 ```
 
 ### **Interface**
+
+**Inputs**
+
+| Pin | Type | Description |
+|:--|:--|:--|
+| `AvailabilityFailLimit` | INT | Consecutive failed transactions before the sensor is declared offline. Defaults to 3, about six seconds at the default two-second poll. Raise it on a bus that is busy or long; 1 would mean every transient shows up in Home Assistant as a disconnection. Recovery is immediate on the first good transaction regardless. |
 
 **Outputs**
 
@@ -202,11 +208,33 @@ Set `FriendlyName` at the declaration and the block wires itself; see the code e
 |:--|:--|:--|:--|
 | `OUTPUT_STATE` | `/STATE` | — | every poll |
 | `DISTANCE` | `/DIST` | mm | only while the measurement is valid |
-| — | `/availability` | `online` / `offline` | once per transaction |
+| — | `/availability` | `online` / `offline` | **only when it changes** |
 
 Publishing the state always and the distance only when it is good is what lets a reader tell a
 held reading from a fresh one. A sensor pointed at nothing, or at something beyond 4 m, reports
 a state other than `0` and its distance simply stops updating.
+
+### **Availability is debounced, and published on change**
+
+`/availability` is deliberately not a per-transaction verdict, because that is not what a
+connectivity sensor is for.
+
+**One missed reply does not mean offline.** On a shared RS485 bus a single failure is ordinary —
+a slave that was mid-measurement, a collision with another device's turnaround, a round in which
+three non-responding devices each held the bus for their reply timeout. Declaring the sensor
+down on the strength of one of those makes the Home Assistant connectivity sensor flap between
+two states that are both wrong. `AvailabilityFailLimit` consecutive failures are required
+instead; recovery is immediate on the first good transaction. Slow to distrust, quick to
+forgive, because the cost of a false `offline` is an entity that looks broken.
+
+**And it is published only when the verdict changes**, plus once at startup so a retained value
+exists before anything has gone wrong. Republishing `online` every couple of seconds for the
+life of the PLC tells nobody anything, and on this block it was the majority of the MQTT traffic.
+
+:bulb: **The other RS485 blocks in this project still publish availability on every
+transaction.** `FB_RS485_EASTRON_SDM220_MQTT`, `FB_RS485_EASTRON_SDM630_MQTT` and
+`FB_RS485_EASTRON_SDM_POWER_MQTT` all carry the older idiom, so a meter that is absent or
+intermittent produces the same flapping this block used to. Worth propagating.
 
 ### **Home Assistant**
 

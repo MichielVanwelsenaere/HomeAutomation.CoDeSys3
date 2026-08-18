@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T07:09:34.9565941" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T07:05:06.302281">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T07:45:02.5465069" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T07:38:19.4665084">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -6509,7 +6509,7 @@ END_IF </xhtml>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="initDFRobotDevice" ObjectId="5f1a7500-b99e-4c97-80ee-f0a453c85977">
+            <Method name="initDFRobotDevice" ObjectId="63d94afc-e28b-4d47-aada-4712fc10fa54">
               <interface>
                 <inputVars>
                   <variable name="name">
@@ -7371,6 +7371,40 @@ Initialised := TRUE;
                 <simpleValue value="FALSE" />
               </initialValue>
             </variable>
+            <variable name="AvailFailures">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Availability is a judgement, not a reading. One missed reply on a shared
+	   RS485 bus is ordinary - a slave that was mid-measurement, a collision with
+	   another device's turnaround - and publishing 'offline' on the strength of
+	   it makes the Home Assistant connectivity sensor flap between states that
+	   are both wrong. So failures have to accumulate before the device is
+	   declared down, and recovery is immediate on the first good transaction:
+	   being slow to trust and quick to forgive is the right asymmetry when the
+	   cost of a false 'offline' is an entity that looks broken. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="AvailOnline">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="AvailKnown">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
             <variable name="MqttDiscoveryDevice">
               <type>
                 <derived name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" />
@@ -7382,6 +7416,22 @@ Initialised := TRUE;
               </documentation>
             </variable>
           </localVars>
+          <inputVars>
+            <variable name="AvailabilityFailLimit">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="3" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Consecutive failed transactions before this device is declared offline.
+	   Three is about six seconds at the default two-second poll. Raise it on a
+	   bus that is busy or long; one would mean every transient shows up in Home
+	   Assistant as a disconnection. </xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
           <outputVars>
             <variable name="DISTANCE">
               <type>
@@ -7497,138 +7547,58 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="FB_init" ObjectId="1e8ae2a6-71ad-473b-bed1-35a73f71781d">
+            <Method name="RequestConfigWrite" ObjectId="ceab81d3-bb96-496a-8727-bf3042b9f937">
               <interface>
                 <returnType>
                   <BOOL />
                 </returnType>
                 <inputVars>
-                  <variable name="bInitRetains">
+                  <variable name="Register">
                     <type>
-                      <BOOL />
+                      <UINT />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Holding register to write. 16#04 baud rate, 16#1A slave id, 16#08 measurement interval, 16#36 measurement mode, 16#00 factory reset.</xhtml>
                     </documentation>
                   </variable>
-                  <variable name="bInCopyCode">
+                  <variable name="Value">
                     <type>
-                      <BOOL />
+                      <WORD />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the instance will be copied to the copy code afterward (online change)</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="DeviceAddress">
-                    <type>
-                      <BYTE />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Modbus slave address of the sensor. Factory default is 16#50.</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="DataPollingInterval">
-                    <type>
-                      <TIME />
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">How often the sensor is read. One read covers distance and measurement state.</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Value to write. For the baud rate register, 0..9 selects 2400 through 921600; 2 is 9600.</xhtml>
                     </documentation>
                   </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Modbus address and poll rate describe the wiring, not a mode, so they are
-   fixed for the life of the instance and belong here rather than in a runtime
-   setter. Note the consequence: changing either afterwards means editing the
-   declaration in the IDE - CODESYS stores an instance's FB_init arguments beside
-   the declaration text, where no script can reach them.
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Queues a single-register write for the next time this device is granted the
+   bus. HasWork reports COMMAND while one is pending, so it goes ahead of routine
+   polling on this and every other device.
 
-   16#34 is the measurement data register and 16#35 the output state; they are
-   adjacent, so reading two registers gets both from one reply and they describe
-   the same measurement rather than two moments a poll apart.
+   Registers worth knowing, from the DFRobot reference:
+     16#04  baud rate    0..9 = 2400, 4800, 9600, 19200, 38400, 57600,
+                         115200, 230400, 460800, 921600
+     16#1A  slave id     16#00..16#FE
+     16#08  measurement interval, 1..1000 ms
+     16#36  measurement mode  1 = up to 1.3 m, 2 = up to 3 m, 3 = up to 4 m
+     16#00  write 1 to restore factory settings
 
-   Function 3, not 4: this sensor exposes everything - readings and settings
-   alike - as holding registers. *)
-THIS^.Step.DeviceId		:= DeviceAddress;
-THIS^.Step.FunctionCode	:= 3;
-THIS^.Step.Address		:= 16#34;
-THIS^.Step.Quantity		:= 2;
-
-THIS^.timerData.PT := DataPollingInterval;
-THIS^.timerData.IN := TRUE;
-
-FB_init := TRUE;
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="3b57da72-7c72-40f8-8bdb-a7a0c8190643">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-SUPER^.InitBaseMqtt();
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PubMqttMessage" ObjectId="5b2fb373-c516-4b54-844c-8a2339e67171">
-              <interface>
-                <inputVars>
-                  <variable name="Suffix">
-                    <type>
-                      <string length="100" />
-                    </type>
-                  </variable>
-                  <variable name="Data">
-                    <type>
-                      <string length="100" />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
-			Payload := Data,
-			Topic := CONCAT(THIS^.MQTTPublishTopic, Suffix),
-			Qos := MQTT.QoS.ExactlyOnce,
-			MqttRetain := FALSE
-		);
+   Writing the baud rate takes effect immediately, so the sensor answers - if at
+   all - at the NEW rate and this end will not hear it. That is expected and is
+   why OnTransactionDone does not retry. *)
+IF NOT ConfigPending THEN
+	ConfigStep.DeviceId		:= Step.DeviceId;
+	ConfigStep.FunctionCode	:= 6;
+	ConfigStep.Address		:= Register;
+	ConfigStep.Quantity		:= 1;
+	ConfigStep.Data[0]		:= Value;
+	ConfigStep.AbortOnError	:= FALSE;
+	ConfigPending			:= TRUE;
+	RequestConfigWrite		:= TRUE;
+ELSE
+	RequestConfigWrite		:= FALSE;
 END_IF
 </xhtml>
                 </ST>
@@ -7637,7 +7607,203 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="c5635523-b0a3-4425-8570-deedd66a9f3e">
+            <Method name="OnTransactionDone" ObjectId="613da3a3-c01d-440f-84fc-0b50af94b9e5">
+              <interface>
+                <inputVars>
+                  <variable name="StepsRun">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="Failures">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One decision per transaction, and one re-arm of the timer.
+
+   The re-arm belongs here rather than in OnStepResult because a step skipped by
+   an AbortOnError predecessor is never reported, and a sensor that has stopped
+   answering must still be retried. OnTransactionDone always runs. *)
+timerData.IN := TRUE;
+
+(* A configuration write is finished either way. It is deliberately not retried:
+   the write that changes the baud rate cannot be confirmed at the old baud rate,
+   so a retry loop here would spin forever on a sensor that had in fact obeyed.
+   It also says nothing about availability - a write that cannot be acknowledged
+   is not evidence the sensor has gone away. *)
+IF ConfigPending THEN
+	ConfigPending := FALSE;
+	RETURN;
+END_IF
+
+IF StepsRun = 0 THEN
+	RETURN;
+END_IF
+
+IF Failures &gt;= StepsRun THEN
+	IF AvailFailures &lt; AvailabilityFailLimit THEN
+		AvailFailures := AvailFailures + 1;
+	END_IF
+ELSE
+	AvailFailures := 0;
+END_IF
+
+(* Published only when the verdict changes, and once at startup so a retained
+   value exists before anything has gone wrong. Republishing 'online' every two
+   seconds for the life of the PLC tells nobody anything and is most of the
+   traffic this block would otherwise generate. *)
+IF AvailFailures &gt;= AvailabilityFailLimit THEN
+	IF AvailOnline OR NOT AvailKnown THEN
+		AvailOnline := FALSE;
+		AvailKnown := TRUE;
+		PubMqttMessage(Suffix := '/availability', Data := 'offline');
+	END_IF
+ELSIF AvailFailures = 0 THEN
+	IF NOT AvailOnline OR NOT AvailKnown THEN
+		AvailOnline := TRUE;
+		AvailKnown := TRUE;
+		PubMqttMessage(Suffix := '/availability', Data := 'online');
+	END_IF
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnStepResult" ObjectId="e4d9879a-f360-4eb4-a295-98f650e8ec2d">
+              <interface>
+                <inputVars>
+                  <variable name="StepIndex">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="Failed">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="RS485_ReadBuffer" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Count">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* A configuration write echoes the request back rather than returning data; the
+   transport has already checked that echo, so there is nothing to decode here. *)
+IF ConfigPending THEN
+	RETURN;
+END_IF
+
+THIS^.Error := Failed;
+
+(* Count is what actually came back, not what was asked for, so a short reply
+   cannot be read past the end of. *)
+IF NOT Failed AND Count &gt;= 2 THEN
+	THIS^.OUTPUT_STATE		:= WORD_TO_BYTE(pData^[1] AND 16#00FF);
+	THIS^.MeasurementValid	:= (THIS^.OUTPUT_STATE = 0);
+	THIS^.isStateUpdated	:= TRUE;
+
+	(* Hold the last good distance rather than publishing one the sensor has
+	   just told us not to trust. A stale reading is visibly stale next to a
+	   state that is not 'valid'; a wrong one is not visible at all. *)
+	IF THIS^.MeasurementValid THEN
+		THIS^.DISTANCE		:= WORD_TO_UINT(pData^[0]);
+		THIS^.DataAvailable	:= TRUE;
+		THIS^.isDataUpdated	:= TRUE;
+	END_IF
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="BuildTransaction" ObjectId="3025a0dc-fb25-420d-b95f-1701a5eb64e8">
+              <interface>
+                <returnType>
+                  <INT />
+                </returnType>
+                <inputVars>
+                  <variable name="pSteps">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="RS485_StepList" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* A configuration write goes alone and goes first. It is not batched with the
+   read because several of these registers change how the sensor talks - the
+   baud rate register is the obvious one - and a read queued behind such a write
+   would be sent into a sensor that has already stopped listening at this speed. *)
+IF ConfigPending THEN
+	pSteps^[0]			:= ConfigStep;
+	BuildTransaction	:= 1;
+ELSIF timerData.Q THEN
+	timerData.IN		:= FALSE;
+	pSteps^[0]			:= Step;
+	BuildTransaction	:= 1;
+ELSE
+	BuildTransaction	:= 0;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="HasWork" ObjectId="0f60fff3-6fbb-49e7-b5c8-15e27a63a1f8">
+              <interface>
+                <returnType>
+                  <derived name="RS485_WorkLevel" />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Predicate only - the scheduler calls this on every device every cycle, and
+   twice when it is looking for commands first. Nothing here may change state. *)
+IF ConfigPending THEN
+	HasWork := RS485_WorkLevel.COMMAND;
+ELSIF timerData.Q THEN
+	HasWork := RS485_WorkLevel.POLL;
+ELSE
+	HasWork := RS485_WorkLevel.NONE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="612ae89f-a1ea-434f-a1c1-06f1c03932c0">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -7724,22 +7890,30 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="HasWork" ObjectId="dbfa16f2-2250-4b7d-b0be-95fa40f58f42">
+            <Method name="PubMqttMessage" ObjectId="6d813e6b-2a06-4181-b1bb-b2511b34b9d3">
               <interface>
-                <returnType>
-                  <derived name="RS485_WorkLevel" />
-                </returnType>
+                <inputVars>
+                  <variable name="Suffix">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="Data">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Predicate only - the scheduler calls this on every device every cycle, and
-   twice when it is looking for commands first. Nothing here may change state. *)
-IF ConfigPending THEN
-	HasWork := RS485_WorkLevel.COMMAND;
-ELSIF timerData.Q THEN
-	HasWork := RS485_WorkLevel.POLL;
-ELSE
-	HasWork := RS485_WorkLevel.NONE;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := Data,
+			Topic := CONCAT(THIS^.MQTTPublishTopic, Suffix),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := FALSE
+		);
 END_IF
 </xhtml>
                 </ST>
@@ -7748,17 +7922,23 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="BuildTransaction" ObjectId="f13b53a7-6ce9-4605-9564-0284088be40e">
+            <Method name="InitMqtt" ObjectId="3a0c8d29-7309-40fc-a37a-2b633c77bbf7">
               <interface>
-                <returnType>
-                  <INT />
-                </returnType>
                 <inputVars>
-                  <variable name="pSteps">
+                  <variable name="MQTTPublishPrefix">
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_StepList" />
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
                         </baseType>
                       </pointer>
                     </type>
@@ -7767,20 +7947,12 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* A configuration write goes alone and goes first. It is not batched with the
-   read because several of these registers change how the sensor talks - the
-   baud rate register is the obvious one - and a read queued behind such a write
-   would be sent into a sensor that has already stopped listening at this speed. *)
-IF ConfigPending THEN
-	pSteps^[0]			:= ConfigStep;
-	BuildTransaction	:= 1;
-ELSIF timerData.Q THEN
-	timerData.IN		:= FALSE;
-	pSteps^[0]			:= Step;
-	BuildTransaction	:= 1;
-ELSE
-	BuildTransaction	:= 0;
-END_IF
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
 </xhtml>
                 </ST>
               </body>
@@ -7788,165 +7960,69 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnStepResult" ObjectId="08728007-e8b5-46da-8952-6f88da3e1c1b">
-              <interface>
-                <inputVars>
-                  <variable name="StepIndex">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                  <variable name="Failed">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
-                  <variable name="pData">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="RS485_ReadBuffer" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="Count">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* A configuration write echoes the request back rather than returning data; the
-   transport has already checked that echo, so there is nothing to decode here. *)
-IF ConfigPending THEN
-	RETURN;
-END_IF
-
-THIS^.Error := Failed;
-
-(* Count is what actually came back, not what was asked for, so a short reply
-   cannot be read past the end of. *)
-IF NOT Failed AND Count &gt;= 2 THEN
-	THIS^.OUTPUT_STATE		:= WORD_TO_BYTE(pData^[1] AND 16#00FF);
-	THIS^.MeasurementValid	:= (THIS^.OUTPUT_STATE = 0);
-	THIS^.isStateUpdated	:= TRUE;
-
-	(* Hold the last good distance rather than publishing one the sensor has
-	   just told us not to trust. A stale reading is visibly stale next to a
-	   state that is not 'valid'; a wrong one is not visible at all. *)
-	IF THIS^.MeasurementValid THEN
-		THIS^.DISTANCE		:= WORD_TO_UINT(pData^[0]);
-		THIS^.DataAvailable	:= TRUE;
-		THIS^.isDataUpdated	:= TRUE;
-	END_IF
-END_IF
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="OnTransactionDone" ObjectId="c72fae3b-2966-47d5-a4ba-bec81d647f62">
-              <interface>
-                <inputVars>
-                  <variable name="StepsRun">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                  <variable name="Failures">
-                    <type>
-                      <INT />
-                    </type>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One announcement per transaction, and one re-arm of the timer.
-
-   The re-arm belongs here rather than in OnStepResult because a step skipped by
-   an AbortOnError predecessor is never reported, and a sensor that has stopped
-   answering must still be retried. OnTransactionDone always runs. *)
-timerData.IN := TRUE;
-
-(* A configuration write is finished either way. It is deliberately not retried:
-   the write that changes the baud rate cannot be confirmed at the old baud rate,
-   so a retry loop here would spin forever on a sensor that had in fact obeyed. *)
-IF ConfigPending THEN
-	ConfigPending := FALSE;
-	RETURN;
-END_IF
-
-IF StepsRun &gt; 0 AND Failures &gt;= StepsRun THEN
-	PubMqttMessage(Suffix := '/availability', Data := 'offline');
-ELSIF StepsRun &gt; 0 THEN
-	PubMqttMessage(Suffix := '/availability', Data := 'online');
-END_IF
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="RequestConfigWrite" ObjectId="87b9c24f-0850-40a9-8eb8-6425052ebb56">
+            <Method name="FB_init" ObjectId="d2e4481d-f442-485e-9045-4d1e31f535fd">
               <interface>
                 <returnType>
                   <BOOL />
                 </returnType>
                 <inputVars>
-                  <variable name="Register">
+                  <variable name="bInitRetains">
                     <type>
-                      <UINT />
+                      <BOOL />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Holding register to write. 16#04 baud rate, 16#1A slave id, 16#08 measurement interval, 16#36 measurement mode, 16#00 factory reset.</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
                     </documentation>
                   </variable>
-                  <variable name="Value">
+                  <variable name="bInCopyCode">
                     <type>
-                      <WORD />
+                      <BOOL />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Value to write. For the baud rate register, 0..9 selects 2400 through 921600; 2 is 9600.</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the instance will be copied to the copy code afterward (online change)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DeviceAddress">
+                    <type>
+                      <BYTE />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Modbus slave address of the sensor. Factory default is 16#50.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DataPollingInterval">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">How often the sensor is read. One read covers distance and measurement state.</xhtml>
                     </documentation>
                   </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Queues a single-register write for the next time this device is granted the
-   bus. HasWork reports COMMAND while one is pending, so it goes ahead of routine
-   polling on this and every other device.
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Modbus address and poll rate describe the wiring, not a mode, so they are
+   fixed for the life of the instance and belong here rather than in a runtime
+   setter. Note the consequence: changing either afterwards means editing the
+   declaration in the IDE - CODESYS stores an instance's FB_init arguments beside
+   the declaration text, where no script can reach them.
 
-   Registers worth knowing, from the DFRobot reference:
-     16#04  baud rate    0..9 = 2400, 4800, 9600, 19200, 38400, 57600,
-                         115200, 230400, 460800, 921600
-     16#1A  slave id     16#00..16#FE
-     16#08  measurement interval, 1..1000 ms
-     16#36  measurement mode  1 = up to 1.3 m, 2 = up to 3 m, 3 = up to 4 m
-     16#00  write 1 to restore factory settings
+   16#34 is the measurement data register and 16#35 the output state; they are
+   adjacent, so reading two registers gets both from one reply and they describe
+   the same measurement rather than two moments a poll apart.
 
-   Writing the baud rate takes effect immediately, so the sensor answers - if at
-   all - at the NEW rate and this end will not hear it. That is expected and is
-   why OnTransactionDone does not retry. *)
-IF NOT ConfigPending THEN
-	ConfigStep.DeviceId		:= Step.DeviceId;
-	ConfigStep.FunctionCode	:= 6;
-	ConfigStep.Address		:= Register;
-	ConfigStep.Quantity		:= 1;
-	ConfigStep.Data[0]		:= Value;
-	ConfigStep.AbortOnError	:= FALSE;
-	ConfigPending			:= TRUE;
-	RequestConfigWrite		:= TRUE;
-ELSE
-	RequestConfigWrite		:= FALSE;
-END_IF
+   Function 3, not 4: this sensor exposes everything - readings and settings
+   alike - as holding registers. *)
+THIS^.Step.DeviceId		:= DeviceAddress;
+THIS^.Step.FunctionCode	:= 3;
+THIS^.Step.Address		:= 16#34;
+THIS^.Step.Quantity		:= 2;
+
+THIS^.timerData.PT := DataPollingInterval;
+THIS^.timerData.IN := TRUE;
+
+FB_init := TRUE;
 </xhtml>
                 </ST>
               </body>
@@ -23574,7 +23650,7 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
         <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
         <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
         <Object Name="FB_DFROBOT_MQTT_DISCOVERY_DEVICE" ObjectId="88157962-75ef-47ae-bd1a-543d8dd22c58">
-          <Object Name="initDFRobotDevice" ObjectId="5f1a7500-b99e-4c97-80ee-f0a453c85977" />
+          <Object Name="initDFRobotDevice" ObjectId="63d94afc-e28b-4d47-aada-4712fc10fa54" />
         </Object>
         <Object Name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" ObjectId="83ba608b-36e7-4e0d-bc48-e72f8108c8bd">
           <Object Name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1" />
@@ -23586,15 +23662,15 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
           <Object Name="Init" ObjectId="1f5ff39a-3d06-4841-a742-9ba51e7243e2" />
         </Object>
         <Object Name="FB_RS485_DFROBOT_SEN0492_MQTT" ObjectId="64f1d9ac-10e3-430e-9ae8-cc98d25585ed">
-          <Object Name="FB_init" ObjectId="1e8ae2a6-71ad-473b-bed1-35a73f71781d" />
-          <Object Name="InitMqtt" ObjectId="3b57da72-7c72-40f8-8bdb-a7a0c8190643" />
-          <Object Name="PubMqttMessage" ObjectId="5b2fb373-c516-4b54-844c-8a2339e67171" />
-          <Object Name="InitMqttDiscovery" ObjectId="c5635523-b0a3-4425-8570-deedd66a9f3e" />
-          <Object Name="HasWork" ObjectId="dbfa16f2-2250-4b7d-b0be-95fa40f58f42" />
-          <Object Name="BuildTransaction" ObjectId="f13b53a7-6ce9-4605-9564-0284088be40e" />
-          <Object Name="OnStepResult" ObjectId="08728007-e8b5-46da-8952-6f88da3e1c1b" />
-          <Object Name="OnTransactionDone" ObjectId="c72fae3b-2966-47d5-a4ba-bec81d647f62" />
-          <Object Name="RequestConfigWrite" ObjectId="87b9c24f-0850-40a9-8eb8-6425052ebb56" />
+          <Object Name="RequestConfigWrite" ObjectId="ceab81d3-bb96-496a-8727-bf3042b9f937" />
+          <Object Name="OnTransactionDone" ObjectId="613da3a3-c01d-440f-84fc-0b50af94b9e5" />
+          <Object Name="OnStepResult" ObjectId="e4d9879a-f360-4eb4-a295-98f650e8ec2d" />
+          <Object Name="BuildTransaction" ObjectId="3025a0dc-fb25-420d-b95f-1701a5eb64e8" />
+          <Object Name="HasWork" ObjectId="0f60fff3-6fbb-49e7-b5c8-15e27a63a1f8" />
+          <Object Name="InitMqttDiscovery" ObjectId="612ae89f-a1ea-434f-a1c1-06f1c03932c0" />
+          <Object Name="PubMqttMessage" ObjectId="6d813e6b-2a06-4181-b1bb-b2511b34b9d3" />
+          <Object Name="InitMqtt" ObjectId="3a0c8d29-7309-40fc-a37a-2b633c77bbf7" />
+          <Object Name="FB_init" ObjectId="d2e4481d-f442-485e-9045-4d1e31f535fd" />
         </Object>
         <Object Name="FB_RS485_EASTRON_SDM630_MQTT" ObjectId="af59857b-6616-4cd6-a053-847b3c89d96f">
           <Object Name="HasWork" ObjectId="aebc6851-9dee-4d6c-8c39-27331d94fc01" />
