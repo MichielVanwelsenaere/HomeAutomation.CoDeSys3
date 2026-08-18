@@ -219,17 +219,19 @@ PLC device.
 | Frequency | `frequency` | `measurement` | Hz |
 | Import Active Energy | `energy` | `total_increasing` | kWh |
 | Export Active Energy | `energy` | `total_increasing` | kWh |
-| Import Reactive Energy | — | `total_increasing` | kvarh |
-| Export Reactive Energy | — | `total_increasing` | kvarh |
+| Import Reactive Energy | `reactive_energy` | `total_increasing` | kvarh |
+| Export Reactive Energy | `reactive_energy` | `total_increasing` | kvarh |
 | Total Active Energy | `energy` | `total_increasing` | kWh |
-| Total Reactive Energy | — | `total_increasing` | kvarh |
+| Total Reactive Energy | `reactive_energy` | `total_increasing` | kvarh |
 
-`state_class: total_increasing` on the four kWh counters is what makes them selectable in the
+`state_class: total_increasing` on the three kWh counters is what makes them selectable in the
 **energy dashboard**. Power factor and phase angle carry no state class, because neither is
 meaningful to sum or average over time.
 
-:bulb: **The four reactive-energy entities carry no `device_class` on purpose.** Home Assistant
-gained `reactive_energy` only recently, and an unrecognised device class makes it reject the
-whole discovery config — the entity disappears rather than degrading. Leaving it empty keeps
-the entity, its unit and its long-term statistics. If your Home Assistant is new enough, adding
-`DeviceClass := 'reactive_energy'` to those four `CreateSensorEntity` calls is a one-word change.
+:rotating_light: **The three kvarh counters need Home Assistant 2025.9 or newer.** They carry
+`device_class: reactive_energy`, which is a recent addition. An older Home Assistant does not
+merely ignore a device class it does not know — it **rejects the whole discovery config**, so
+those three entities would not appear at all. The symptom is a missing entity rather than a
+wrong one, which is worth knowing because nothing on the PLC side looks any different. On an
+older install, set `DeviceClass := ''` on those three `CreateSensorEntity` calls; the entities
+come back with their units and their statistics, just without the classification.

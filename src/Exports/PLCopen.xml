@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T03:24:50.9703907" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T03:23:36.6374635">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T03:46:43.1993293" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T03:42:47.5010699">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -17009,7 +17009,12 @@ END_IF
    measurement. StateClass is what puts the energy totals into the Home
    Assistant energy dashboard; the instantaneous values are 'measurement', and
    power factor and phase angle carry none because neither is meaningful to
-   sum or average over time. *)
+   sum or average over time.
+
+   The three kvarh counters use DeviceClass 'reactive_energy', which Home
+   Assistant gained in 2025.9. On an older Home Assistant an unrecognised device
+   class makes it reject the whole discovery config, so those three entities
+   would not appear at all - the symptom is a missing entity, not a wrong one. *)
 IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 
 	id := SUPER^.ResolveEntityId(overruleId := overruleId);
@@ -17112,7 +17117,7 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		Name := 'Import Reactive Energy',
 		Id := CONCAT(id, '_IMRE'),
 		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/IMRE'),
-		DeviceClass := '',
+		DeviceClass := 'reactive_energy',
 		StateClass := 'total_increasing',
 		UnitOfMeasurement := 'kvarh');
 
@@ -17120,7 +17125,7 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		Name := 'Export Reactive Energy',
 		Id := CONCAT(id, '_EXRE'),
 		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/EXRE'),
-		DeviceClass := '',
+		DeviceClass := 'reactive_energy',
 		StateClass := 'total_increasing',
 		UnitOfMeasurement := 'kvarh');
 
@@ -17138,7 +17143,7 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		Name := 'Total Reactive Energy',
 		Id := CONCAT(id, '_TOTRE'),
 		StateTopic := CONCAT(THIS^.MQTTPublishTopic, '/TOTRE'),
-		DeviceClass := '',
+		DeviceClass := 'reactive_energy',
 		StateClass := 'total_increasing',
 		UnitOfMeasurement := 'kvarh');
 
@@ -19009,16 +19014,28 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               <type>
                 <derived name="FB_RS485_EASTRON_SDM_POWER_MQTT" />
               </type>
+              <initialValue>
+                <structValue>
+                  <value member="FriendlyName">
+                    <simpleValue value="'Lab PLC SDM power meter'" />
+                  </value>
+                </structValue>
+              </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Declared but not registered with the bus controller and given no
-	   FriendlyName, so it neither talks to the bus nor announces itself - the
-	   same dormant shape as FB_RS485_DUCO_DUCOBOX_HOME and the 1-Wire sensorhub
-	   above, whose RegisterDevice calls are likewise commented out.
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Registered on the bus and pointed at the SAME meter as
+	   FB_RS485_EASTRON_SDM220_1 above (Modbus address 1), declared as an SDM220.
+	   That is deliberate on two counts.
 
-	   It is here because an unreferenced POU is never compiled: without an
-	   instance somewhere in the application, this block's code is not checked by
-	   any build and a broken edit to it would pass verify. To actually use it,
-	   give it a FriendlyName and call InitRS485 - see the block's page. </xhtml>
+	   It is the only call site this block has, and an unreferenced POU is never
+	   compiled - without an instance somewhere in the application a broken edit to
+	   it would pass verify with a clean build.
+
+	   And because both blocks decode active power out of the same register
+	   (30013), the two publish the same number continuously: a persistent
+	   difference between .../FB_RS485_EASTRON_SDM_POWER_1/ACTP and
+	   .../FB_RS485_EASTRON_SDM220_1/ACTP means one of them has stopped decoding
+	   correctly. There is no SDM120 or SDM630 here, so this is the only way the
+	   block is exercised at all. </xhtml>
               </documentation>
             </variable>
             <addData>
@@ -20843,7 +20860,7 @@ RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM2
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM630_1);
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME);
 //RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01);
-//RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_1);
+RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_1);
 
 (* INIT RS485 DEVICE STUFF *)
 RS485Variables.FB_RS485_EASTRON_SDM220_1.InitRS485(
@@ -20857,6 +20874,20 @@ RS485Variables.FB_RS485_EASTRON_SDM220_1.InitRS485(
    declaration in RS485Variables and the block wires itself from MqttVariables on
    its first cyclic call, then announces its fourteen measurements to Home
    Assistant. The SDM630 above has worked this way since it was added. *)
+
+(* Deliberately pointed at the SAME meter as the SDM220 above, as a standing
+   check on the generic single-value block: it decodes active power out of the
+   same register (30013), so the two publish the same number and any drift
+   between them is a real regression in one of them. It is also the only way
+   this block gets exercised at all - there is no SDM120 or SDM630 here.
+
+   DeviceType is what selects the register, and it is also what the block
+   announces itself to Home Assistant as, so it has to be right. *)
+RS485Variables.FB_RS485_EASTRON_SDM_POWER_1.InitRS485(
+	DataPollingInterval := T#5S,
+	DeviceAddress := 1,
+	DeviceType := RS485_EASTRON_SDM_Devices.SDM220
+);
 
 RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
 	DataPollingInterval := T#3S,		(* Polling interval for data array *)

@@ -20,7 +20,7 @@ Eastron SDM630 datasheet:
 
 ----------------------------
 
-:white_check_mark: **The SDM220 branch is verified on hardware.** Pointed at a real SDM220 it read active power from register 30013 and agreed, reading for reading, with [FB_RS485_EASTRON_SDM220_MQTT](FB_RS485_EASTRON_SDM220_MQTT.md) reading the same register of the same meter.
+:white_check_mark: **The SDM220 branch is verified on hardware, and stays verified.** The reference project registers an instance of this block on the **same meter** as [FB_RS485_EASTRON_SDM220_MQTT](FB_RS485_EASTRON_SDM220_MQTT.md), declared as an `SDM220`. Both decode active power out of register 30013, so the two publish the same number continuously and any drift between them is a real regression in one of them. It is also the only way this block is exercised at all — see [the standing cross-check](#the-standing-cross-check) below.
 
 :rotating_light: **The SDM120 and SDM630 branches are compile-verified only.** Neither meter has been on a bench with a CODESYS runtime. The SDM120 shares the SDM220's register (`30013`) so it is likely right; the SDM630 uses a different one (`30053`) and nothing has checked it.
 
@@ -153,6 +153,27 @@ warns about it.
 itself as is derived from `DeviceType`, so the prologue holds off until `InitRS485` has run.
 Give it a `FriendlyName` and no `InitRS485` and it will publish its topics but never announce
 itself — which is the same state it would be in if it had no address to poll either.
+
+### **The standing cross-check**
+
+`RS485Variables.FB_RS485_EASTRON_SDM_POWER_1` is wired in `PLC_PRG_RS485` against the lab
+SDM220 at address 1 — the same meter `FB_RS485_EASTRON_SDM220_1` reads. That is deliberate
+and it is not redundant instrumentation:
+
+- **It is the only call site this block has.** An unreferenced POU is never compiled, so
+  without an instance somewhere a broken edit here passes `verify` with a clean build.
+- **It gives the decoding a continuous witness.** Both blocks read register `30013` of the
+  same meter, so `.../FB_RS485_EASTRON_SDM_POWER_1/ACTP` and
+  `.../FB_RS485_EASTRON_SDM220_1/ACTP` should track each other. They will not be
+  bit-identical every time — each block polls on its own timer and the meter updates
+  between reads — but a persistent difference means one of them has stopped decoding
+  correctly.
+
+:bulb: **Both will publish an exact `0.0` from time to time and neither is broken.** A meter
+carrying a few watts reports zero for some updates. The control that settles it is a
+different value out of the *same* frame: the SDM220 block reads current and power factor
+from the same 40-register reply as active power, and those hold steady on the cycles where
+active power reads 0.
 
 ### **Home Assistant**
 

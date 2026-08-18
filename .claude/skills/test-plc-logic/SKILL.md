@@ -429,18 +429,22 @@ Read the **GONE** section before the NEW one. A discovery config that was retain
 before and is absent now is an entity Home Assistant still shows and nothing
 publishes to any more.
 
-### Two meters' worth of block on one meter
+### Two blocks on one meter — a cross-check that is already wired
 
 To check that a device block decodes a register correctly, point a *second* block
-at the same register of the same meter and compare readings. That is how
-`FB_RS485_EASTRON_SDM_POWER_MQTT` was verified: declared as an `SDM220` at address
-1, alongside `FB_RS485_EASTRON_SDM220_1` reading the same meter, both publishing
-`/ACTP`.
+at the same register of the same meter and compare readings.
+
+**This one is permanent, not a fixture you have to build.**
+`RS485Variables.FB_RS485_EASTRON_SDM_POWER_1` is registered on the bus against the
+lab SDM220 at address 1, declared as an `SDM220`, alongside
+`FB_RS485_EASTRON_SDM220_1` reading the same meter. Both publish `/ACTP` from
+register `30013`, so the comparison is available on the broker at any time without
+touching the project:
 
 ```powershell
 ./tools/ai/Mqtt-Snapshot.ps1 -Watch -Seconds 60 `
   -Topics 'Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_1/ACTP',
-          'Devices/PLC/Lab/Out/RS485/FB_RS485_SDM_POWER_BENCH/ACTP'
+          'Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM_POWER_1/ACTP'
 ```
 
 :bulb: **A near-idle meter publishes exact zeros, and it is not your decode.** On
