@@ -331,7 +331,7 @@ And on `FB_RS485_BUSCONTROLLER`:
 | Output | Reading it |
 |:--|:--|
 | `Transactions` | Completed transactions. |
-| `StepsExecuted` / `Transactions` | **The batching ratio.** Should be well above 1 when a multi-block device like the SDM220 is registered — that ratio *is* the one-grant-all-the-work property. Exactly 1.0 means batching is not happening. |
+| `StepsExecuted` / `Transactions` | **The batching ratio.** Above 1 when a multi-block device like the SDM220 is registered. Exactly 1.0 means batching is not happening — but a *falling* ratio on a faster bus is normal, not a regression: batching only has something to batch when several of a device's blocks come due in the same grant. Measured 2.7 with a 200 ms task, 1.4 with a 50 ms one. |
 | `Cursor` | Must move. Frozen means selection is not advancing. |
 | `Watchdogs` | Should stay 0. Non-zero means the transport stopped answering. |
 | `ActiveDevice` | `-1` when the bus is free. Stuck on one index means a transaction never completed. |
@@ -361,8 +361,21 @@ The one registered *last* is the one the pre-cursor `FOR 0 TO count-1` loop
 starved, so `BUSTEST_C` is the interesting row.
 
 `.ai/rs485tx/bench-edits.json` and `bench-spec.json` in the branch that introduced
-this are the worked example. **Strip the fixture before shipping** — it is a test
-harness, not project content.
+this are the worked example, with `cleanup-edits.json` as its exact inverse.
+**Strip the fixture before shipping** — it is a test harness, not project content.
+
+The same fixture plus `bench-throughput.json` is how bus throughput gets measured:
+sample the counters at two known times and divide. Watch the *difference* between
+two windows rather than the totals, because the first window includes the startup
+delay. What it has shown so far, five contending devices over the same 30 s:
+
+| | 200 ms task, waiting for silence | 200 ms task | 50 ms task |
+|:--|--:|--:|--:|
+| per step | 1.87 s | 1.30 s | 0.42 s |
+| per transaction | 5.00 s | 3.75 s | 0.53 s |
+
+The cost is a fixed number of task cycles per exchange - about 6.5 to 8.5 - so the
+task period, not the baud rate, is what moves it.
 
 ### Read-after-write
 

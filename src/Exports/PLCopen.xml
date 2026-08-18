@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-17T23:35:54.6825867" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-17T23:35:06.7574096">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T02:17:15.5845454" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T02:13:44.3513906">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -17728,7 +17728,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
             </addData>
           </task>
-          <task name="RS485" interval="PT0.2S" priority="15">
+          <task name="RS485" interval="PT0.05S" priority="15">
             <pouInstance name="PLC_PRG_RS485" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
@@ -17736,7 +17736,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </pouInstance>
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
-                <TaskSettings KindOfTask="Cyclic" Interval="200" IntervalUnit="ms" ExternalEvent="LocalBusCycleEvent" WithinSPSTimeSlicing="true">
+                <TaskSettings KindOfTask="Cyclic" Interval="50" IntervalUnit="ms" ExternalEvent="LocalBusCycleEvent" WithinSPSTimeSlicing="true">
                   <Watchdog Enabled="false" TimeUnit="ms" Sensitivity="1" />
                 </TaskSettings>
               </data>

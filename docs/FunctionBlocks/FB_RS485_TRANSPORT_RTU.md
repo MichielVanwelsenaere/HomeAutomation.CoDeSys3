@@ -51,20 +51,29 @@ the moment step 2 succeeds rather than waiting for `GapTime` to expire. The sile
 as the fallback for everything that does not frame cleanly — a partial reply, a burst of noise,
 a slave that answers with something unparseable.
 
-This is not a micro-optimisation. The `RS485` task runs at 200 ms, and every timer handshake
-costs a whole cycle, so waiting out a 50 ms gap costs cycles whatever the baud rate. Measured on
-the bench over the same 30-second window, five contending devices, one physical meter:
+This is not a micro-optimisation. Every timer handshake costs a whole task cycle, so waiting out
+a 50 ms gap costs several cycles whatever the baud rate. Measured on the bench over the same
+30-second window, five contending devices, one physical meter:
 
-| | before | after |
-|:--|--:|--:|
-| per step | 1.87 s | **1.30 s** |
-| per transaction | 5.00 s | **3.75 s** |
-| steps completed | 16 | **23** |
+| | 200 ms task, waiting for silence | 200 ms task | **50 ms task** |
+|:--|--:|--:|--:|
+| per step | 1.87 s | 1.30 s | **0.42 s** |
+| per transaction | 5.00 s | 3.75 s | **0.53 s** |
+| steps completed | 16 | 23 | **71** |
 
-An SDM220 read is about 100 ms of actual wire time at 9600 baud, so what remains — roughly six
-task cycles per step — is still **task-period bound, not bus bound**. Lowering the `RS485` task
-interval is the next lever and is tracked separately; it is a task-configuration change rather
-than a code one.
+Two levers, and they multiply: not waiting out the silence took roughly a third off, and the task
+interval took two thirds off what was left.
+
+**The cost is a fixed number of task cycles, not a fixed time.** Per step it is about 6.5 cycles
+at 200 ms and 8.4 at 50 ms — near enough the same handful of cycles either way, which is what
+identifies the task period rather than the wire as the thing to change. An SDM220 read is about
+100 ms of actual wire time at 9600 baud, so even at 50 ms there is still headroom in principle;
+the returns are just smaller in absolute terms from here.
+
+One consequence worth expecting rather than diagnosing: `StepsExecuted / Transactions` **falls**
+when the bus gets faster — 2.7 at 200 ms, 1.4 at 50 ms. That is not batching breaking. Batching
+only has something to batch when several of a device's register blocks come due in the same
+grant, and a bus that keeps up with demand serves each one as it falls due instead.
 
 ### **The counters are the instrument**
 
