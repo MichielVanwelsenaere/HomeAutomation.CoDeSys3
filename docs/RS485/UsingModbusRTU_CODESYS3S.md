@@ -136,12 +136,34 @@ the moment it accepts the write, so its acknowledgement comes back at the new ra
 old one is deaf to it. A failed write is therefore the *expected* result of a successful one,
 and nothing may retry on it — a retry loop here spins forever on a device that already obeyed.
 
-**When a scan finds nothing, the byte count is the diagnostic.** A bus with nothing on it
-returns zero bytes at every rate. A device that is present but being read at the wrong speed
-or the wrong framing returns *something* — noise, partial characters, the leading null this
-hardware produces as a driver enables. `CommissionMaxRx` and `CommissionMaxRxBaud` record the
-largest byte count seen and where, which is what separates *wired wrong* from *configured
-wrong*. `LeadNulls` climbing while `Ok` stays at zero says the same thing.
+The sweep covers **framing as well as rate**, because those are the two things that silence a
+device on a working pair. Stop bits are set through
+[`FB_RS485_TRANSPORT_RTU.SetStopBitsRaw`](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) using the
+numeric SysCom code rather than the `SYS_COM_STOPBITS` enumerators, because the enumerator names
+are not portable across runtimes and a hunt has to be able to try codes it cannot name.
+
+The result is published **retained** to `.../RS485/SEN0492_COMMISSION`:
+
+```
+probes=1 found=9600/255 maxrx=9 at=9600/255 written=FALSE
+```
+
+That channel matters more than it looks. The obvious place to read a commissioning result is an
+online debug session, and on this bench that is the least reliable thing in the chain — the
+runtime drops the session long before it drops MQTT. A result nobody can read is not a result.
+
+:rotating_light: **When a sweep finds nothing, suspect the wiring before the settings — and the
+byte count tells you which.** A bus with nothing on it returns zero bytes at every setting. A
+device that is present but unreadable returns *something*: noise, partial characters, the
+leading null this hardware produces as a driver enables. `CommissionMaxRx` and
+`CommissionMaxRxBaud` record the largest byte count and where, and `LeadNulls` climbing while
+`Ok` stays at zero says the same thing.
+
+That is exactly how the SEN0492 was diagnosed. It was silent through a sweep of every rate the
+register can select, while `LeadNulls` moved — so it was powered and talking, and only the
+polarity of the pair could turn that into nothing framable. **A and B were swapped.** Once
+reversed, the sweep found it on the first probe, at 9600 with ordinary framing, and `maxrx`
+became 9 — exactly the length of the reply it had been trying to send all along.
 
 ### **Why this project frames its own RTU rather than using a driver**
 

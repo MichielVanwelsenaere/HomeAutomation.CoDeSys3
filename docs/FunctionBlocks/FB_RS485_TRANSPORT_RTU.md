@@ -155,6 +155,12 @@ on this hardware, not a fault.**
 
 **`Service`** — Call every cycle. Drives the port and the exchange in flight, and returns `IDLE` / `BUSY` / `OK` / `FAILED`. `OK` and `FAILED` are each returned for exactly one cycle. The bus controller does this for you.
 
+**`SetStopBitsRaw`** — Forces the raw SysCom stop-bit code, for a device whose framing the `SYS_COM_STOPBITS` enumeration does not name conveniently on this runtime. `Init` takes the enumeration and is the right way in for anything normal; this exists because framing is one of exactly two things that silence a device on a working pair — the other being the baud rate — so a routine that hunts for a device has to be able to sweep it, and the numeric codes are portable where the enumerator names are not. Takes effect on the next `Reopen` or `Init`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Raw` | BYTE |  | The SysCom stop-bit code to force. Numeric rather than an enumerator so a sweep can try codes it cannot name. |
+
 **`Start`** — Begins one exchange. Returns FALSE if the port is down, an exchange is already in flight, or the function code is not one this transport implements.
 
 | Parameter | Type | Default | Description |

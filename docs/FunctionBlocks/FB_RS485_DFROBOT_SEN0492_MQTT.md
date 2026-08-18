@@ -28,11 +28,15 @@ works and why it scans rather than assuming.
 
 ----------------------------
 
-:rotating_light: **Not yet confirmed against hardware.** The block compiles, instantiates,
-wires itself and announces itself to Home Assistant — all verified on a PFC200 — but no SEN0492
-has yet answered on the bench, so the register decoding is unproven. A ten-rate scan at address
-`16#50` found nothing, while the transport's `LeadNulls` counter moved: something is on the wire
-but nothing framed. Wiring is the first thing to rule out.
+:white_check_mark: **Verified on hardware.** Runs on a CODESYS 3 PFC200 against a real SEN0492:
+distance reads and tracks, `OUTPUT_STATE` reads `0`, and both entities appear in Home Assistant.
+
+:bulb: **If it answers nothing at all, check A and B before anything else.** This sensor was
+silent through a sweep of every baud rate at address `16#50` — and the cause was the pair being
+the wrong way round, not any Modbus setting. What said so was the transport's `LeadNulls`
+counter moving while `Ok` stayed at zero: bytes were reaching the receiver, so the device was
+powered and talking, and only the polarity could turn that into nothing framable. Swapping A
+and B fixed it, and the sweep then found the sensor on its **first** probe.
 
 ----------------------------
 
@@ -131,8 +135,8 @@ FB_RS485_SEN0492_1 : FB_RS485_DFROBOT_SEN0492_MQTT(16#50, T#2S)
 ```
 
 `16#50` is the factory slave address and collides with nothing else on this bus, so there is no
-need to change it — only the baud rate has to move. Register it with the bus controller once in
-`RS485_INIT`:
+need to change it — only the baud rate has to move, and `PLC_PRG_RS485` does that once at
+startup. Register it with the bus controller in `RS485_INIT`:
 
 ```
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_SEN0492_1);
@@ -148,6 +152,26 @@ No `InitMqtt` or `InitMqttDiscovery` call is needed: the block wires itself from
 on its first cyclic call. **A block wired this way must be called cyclically** — an instance
 whose body never runs stays unwired and never appears in Home Assistant, and nothing warns
 about it.
+
+### **What commissioning found**
+
+The startup sweep publishes its result retained to `.../RS485/SEN0492_COMMISSION`, so it can be
+read off the broker without an online debug session:
+
+```
+probes=1 found=9600/255 maxrx=9 at=9600/255 written=FALSE
+```
+
+Read that as: the sensor answered on the **first** probe, at 9600 with `255` — the sentinel for
+the ordinary framing — so **one stop bit is fine**, despite forum reports of 8N2. `maxrx=9` is
+exactly the length of a two-register function 3 reply. `written=FALSE` because it was already at
+9600: an earlier sweep had moved it, and **that setting survived several PLC restarts**, so the
+baud rate is stored in the sensor rather than held in RAM.
+
+:rotating_light: **Whether it survives the sensor's own power cycle has not been tested** — the
+bench never lost power to it. If a sensor comes back at 115200 after a power interruption, the
+sweep will simply find it and move it again on the next PLC start, which is why it runs every
+boot rather than once.
 
 ### **Changing the sensor's settings from the PLC**
 

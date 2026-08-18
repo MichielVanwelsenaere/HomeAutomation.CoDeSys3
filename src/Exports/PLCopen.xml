@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T06:35:36.7155396" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T06:31:59.0092766">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-18T07:09:34.9565941" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-18T07:05:06.302281">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -9932,6 +9932,36 @@ ReopenRequest := PortOpen;
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">Registers := RegCount;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetStopBitsRaw" ObjectId="47be120c-ba1f-4541-8d28-fdc422b9580a">
+              <interface>
+                <inputVars>
+                  <variable name="Raw">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Force the raw SysCom stop-bit code, for a device whose framing the
+   SYS_COM_STOPBITS enumeration does not name conveniently on this runtime.
+
+   Init takes the enumeration and that is the right way in for anything normal.
+   This exists because framing is one of exactly two things that silence a device
+   on a working pair - the other being the baud rate - so a routine that hunts
+   for a device has to be able to sweep it, and the numeric codes are portable
+   where the enumerator names are not.
+
+   Takes effect on the next Reopen or Init. *)
+Settings.byStopBits := Raw;
 </xhtml>
                 </ST>
               </body>
@@ -22004,6 +22034,63 @@ FB_BURNER_GAS(
                         <simpleValue value="0" />
                       </initialValue>
                     </variable>
+                    <variable name="CommissionStopBits">
+                      <type>
+                        <array>
+                          <dimension lower="0" upper="3" />
+                          <baseType>
+                            <BYTE />
+                          </baseType>
+                        </array>
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Raw SysCom stop-bit codes rather than the SYS_COM_STOPBITS enumerators.
+	   Framing is swept as well as rate because those are the two things that
+	   silence a device on a working pair, and the SEN0492's own forum traffic
+	   reports two stop bits where every other device on this bus uses one.
+	   255 means leave whatever Init set from the enumeration; 1..3 force the
+	   raw code through FB_RS485_TRANSPORT_RTU.SetStopBitsRaw, which is how two
+	   stop bits is reached without depending on an enumerator name this
+	   runtime may spell differently. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="CommissionStopIdx">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="CommissionFoundStop">
+                      <type>
+                        <BYTE />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="CommissionMaxRxStop">
+                      <type>
+                        <BYTE />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="CommissionProbes">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="CommissionReport">
+                      <type>
+                        <string length="200" />
+                      </type>
+                    </variable>
                   </localVars>
                   <addData>
                     <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -22126,10 +22213,24 @@ CASE CommissionState OF
 	CommissionBauds[7] := 230400;
 	CommissionBauds[8] := 460800;
 	CommissionBauds[9] := 921600;
-	CommissionIndex := 0;
-	CommissionFoundBaud := 0;
-	CommissionMaxRx := 0;
-	CommissionMaxRxBaud := 0;
+
+	(* Framing codes. 255 means leave whatever Init set from the enumeration -
+	   the ordinary case, tried first - and 1..3 force the raw SysCom code, which
+	   is how two stop bits gets reached without depending on an enumerator name
+	   this runtime may spell differently. *)
+	CommissionStopBits[0] := 255;
+	CommissionStopBits[1] := 1;
+	CommissionStopBits[2] := 2;
+	CommissionStopBits[3] := 3;
+
+	CommissionIndex		:= 0;
+	CommissionStopIdx	:= 0;
+	CommissionFoundBaud	:= 0;
+	CommissionFoundStop	:= 0;
+	CommissionMaxRx		:= 0;
+	CommissionMaxRxBaud	:= 0;
+	CommissionMaxRxStop	:= 0;
+	CommissionProbes	:= 0;
 
 	IF RS485Variables.SEN0492_COMMISSION_ON_BOOT THEN
 		CommissionState := 1;
@@ -22137,22 +22238,30 @@ CASE CommissionState OF
 		CommissionState := 99;
 	END_IF
 
-1:	(* Bring the port up at the rate under test. Init re-opens a port that is
-	   already open, which is what makes a scan possible without touching the
-	   transport. *)
+1:	(* Bring the port up at the setting under test. Init re-opens a port that is
+	   already open, which is what makes a sweep possible without touching the
+	   transport at all. *)
 	RS485Transport.Init(
 		Port			:= SysCom.SYS_COM_PORTS.SYS_COMPORT1,
 		Baudrate		:= CommissionBauds[CommissionIndex],
 		Parity			:= SysCom.SYS_COM_PARITY.SYS_NOPARITY,
 		StopBits		:= SysCom.SYS_COM_STOPBITS.SYS_ONESTOPBIT,
-		ReplyTimeout	:= T#300MS,
+		ReplyTimeout	:= T#200MS,
 		GapTime			:= T#20MS
 	);
+
+	(* Anything but the sentinel forces the framing; Init has already applied the
+	   enumeration's own value, so 255 simply leaves it alone. *)
+	IF CommissionStopBits[CommissionStopIdx] &lt;&gt; 255 THEN
+		RS485Transport.SetStopBitsRaw(Raw := CommissionStopBits[CommissionStopIdx]);
+		RS485Transport.Reopen();
+	END_IF
+
 	CommissionDelay(IN := FALSE);
 	CommissionState := 2;
 
 2:	(* Let Service actually re-open the port before anything is sent into it. *)
-	CommissionDelay(IN := TRUE, PT := T#300MS);
+	CommissionDelay(IN := TRUE, PT := T#200MS);
 	RS485Transport.Service();
 	IF CommissionDelay.Q THEN
 		CommissionDelay(IN := FALSE);
@@ -22160,7 +22269,7 @@ CASE CommissionState OF
 	END_IF
 
 3:	(* Ask the sensor for its measurement registers. A reply of any kind at this
-	   rate is what identifies where the sensor actually is - the point is not
+	   setting is what identifies where the sensor actually is - the point is not
 	   the distance, it is that something answered. *)
 	CommissionStep.DeviceId		:= 16#50;	(* factory slave address *)
 	CommissionStep.FunctionCode	:= 3;
@@ -22171,9 +22280,10 @@ CASE CommissionState OF
 	CommissionDelay(IN := TRUE, PT := T#2S);
 	IF RS485Transport.Start(pStep := ADR(CommissionStep)) THEN
 		CommissionDelay(IN := FALSE);
+		CommissionProbes := CommissionProbes + 1;
 		CommissionState := 4;
 	ELSIF CommissionDelay.Q THEN
-		(* Port never opened at this rate. Treat it as a miss and move on. *)
+		(* Port never opened at this setting. Treat it as a miss and move on. *)
 		CommissionDelay(IN := FALSE);
 		CommissionState := 5;
 	END_IF
@@ -22186,18 +22296,25 @@ CASE CommissionState OF
 		IF RS485Transport.RxCount &gt; CommissionMaxRx THEN
 			CommissionMaxRx		:= RS485Transport.RxCount;
 			CommissionMaxRxBaud	:= CommissionBauds[CommissionIndex];
+			CommissionMaxRxStop	:= CommissionStopBits[CommissionStopIdx];
 		END_IF
 		IF CommissionProbe = RS485_StepState.OK THEN
 			CommissionFoundBaud := CommissionBauds[CommissionIndex];
+			CommissionFoundStop := CommissionStopBits[CommissionStopIdx];
 			CommissionState := 6;
 		ELSE
 			CommissionState := 5;
 		END_IF
 	END_IF
 
-5:	(* Next rate, or give up and put the bus back the way it was. *)
+5:	(* Next rate; when the rates run out, the next framing; when both run out,
+	   give up and put the bus back the way it was. *)
 	IF CommissionIndex &lt; DINT_TO_INT(UPPER_BOUND(CommissionBauds, 1)) THEN
 		CommissionIndex := CommissionIndex + 1;
+		CommissionState := 1;
+	ELSIF CommissionStopIdx &lt; DINT_TO_INT(UPPER_BOUND(CommissionStopBits, 1)) THEN
+		CommissionIndex := 0;
+		CommissionStopIdx := CommissionStopIdx + 1;
 		CommissionState := 1;
 	ELSE
 		CommissionState := 9;
@@ -22252,6 +22369,35 @@ CASE CommissionState OF
 	RS485Transport.Service();
 	IF CommissionDelay.Q THEN
 		CommissionDelay(IN := FALSE);
+
+		(* Publish the outcome, retained, so it can be read off the broker at any
+		   time. The alternative is an online debug session, and on this bench that
+		   is the least reliable thing in the chain - the runtime drops the session
+		   long before it drops MQTT. A commissioning result nobody can read is not
+		   a result.
+
+		   Built up a piece at a time rather than nested: CONCAT takes exactly two
+		   arguments, and a seven-deep nest of it is unreadable even when correct. *)
+		CommissionReport := CONCAT('probes=', UDINT_TO_STRING(CommissionProbes));
+		CommissionReport := CONCAT(CommissionReport, ' found=');
+		CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(CommissionFoundBaud));
+		CommissionReport := CONCAT(CommissionReport, '/');
+		CommissionReport := CONCAT(CommissionReport, BYTE_TO_STRING(CommissionFoundStop));
+		CommissionReport := CONCAT(CommissionReport, ' maxrx=');
+		CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(CommissionMaxRx));
+		CommissionReport := CONCAT(CommissionReport, ' at=');
+		CommissionReport := CONCAT(CommissionReport, UDINT_TO_STRING(CommissionMaxRxBaud));
+		CommissionReport := CONCAT(CommissionReport, '/');
+		CommissionReport := CONCAT(CommissionReport, BYTE_TO_STRING(CommissionMaxRxStop));
+		CommissionReport := CONCAT(CommissionReport, ' written=');
+		CommissionReport := CONCAT(CommissionReport, BOOL_TO_STRING(CommissionWritten));
+
+		MqttVariables.fbMqttPublishQueue.AddMessage(
+			Payload := CommissionReport,
+			Topic := CONCAT(MqttVariables.MqttPubRS485Prefix, 'SEN0492_COMMISSION'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE);
+
 		CommissionState := 99;
 	END_IF
 
@@ -23470,6 +23616,7 @@ an unsupported code is refused rather than framed as a guess.</xhtml>
           <Object Name="Reopen" ObjectId="6ca5823f-ffb2-4ea5-9443-c5e68482c03b" />
           <Object Name="Init" ObjectId="e5184745-6c55-495a-a5f2-9e6ca88049d8" />
           <Object Name="Registers" ObjectId="1fa2accf-45de-4244-8cd9-9d1713696df5" />
+          <Object Name="SetStopBitsRaw" ObjectId="47be120c-ba1f-4541-8d28-fdc422b9580a" />
         </Object>
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
