@@ -193,10 +193,3 @@ climbing in step with `Ok` is the **normal healthy picture** on this hardware, n
 Whether `ModbusFB.ClientSerial` tolerates the same bytes has not been established — that is
 [#181](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/issues/181). Because the
 protocol sits behind `RS485Transport`, adopting it would be an adapter rather than a redesign.
-
-### **e!COCKPIT**
-
-This project is CODESYS-first, and the e!COCKPIT-specific code that used to sit commented out in
-`PLC_PRG_RS485` has been removed rather than lost: `WagoAppPlcModbus.FbMbMasterSerial` belongs
-behind the same `RS485Transport` interface, as a second implementation. Every RS485 device
-function block in this project is independent of which one is in use.

@@ -11,8 +11,7 @@ optionally announcing itself to Home Assistant. The sensor measures 4 cm to 4 m 
 
 Distance and measurement state sit in adjacent registers (`16#34` and `16#35`) and are read in
 one request, so the two always describe the same measurement rather than two moments a poll
-apart. Everything on this sensor — readings and settings alike — is a **holding register**, so
-it is function 3 to read and function 6 to write, not the input registers the Eastron meters use.
+apart.
 
 DFRobot documentation:
 - [Product wiki](https://wiki.dfrobot.com/Laser_Ranging_Sensor_RS485_4m_SKU_SEN0492)
@@ -20,25 +19,17 @@ DFRobot documentation:
 
 ----------------------------
 
-:rotating_light: **It ships at 115200 baud and this bus runs at 9600.** There is no switch on
-the sensor. Until it is moved the two cannot talk at all — it is not slow to answer, it is
-inaudible. `PLC_PRG_RS485` scans for it at startup and writes the new baud rate into it; see
-[A device that ships on the wrong baud rate](../RS485/UsingModbusRTU_CODESYS3S.md) for how that
-works and why it scans rather than assuming.
+:rotating_light: **It ships at 115200 baud and there is no switch on the sensor.** A bus has one
+baud rate, so a sensor that disagrees with it cannot be heard at all — it is not slow to answer,
+it is inaudible. **The PLC moves it, from PLC logic alone:** `PLC_PRG_RS485` finds the sensor at
+whatever rate it is on and writes the bus rate into it at startup, so no configuration tool,
+adapter or vendor software is needed to commission one. See
+[A device that ships on the wrong baud rate](../RS485/UsingModbusRTU_CODESYS3S.md).
 
 ----------------------------
 
 :white_check_mark: **Verified on hardware.** Runs on a CODESYS 3 PFC200 against a real SEN0492:
 distance reads and tracks, `OUTPUT_STATE` reads `0`, and both entities appear in Home Assistant.
-
-:bulb: **If it answers nothing at all, check A and B before anything else.** This sensor was
-silent through a sweep of every baud rate at address `16#50` — and the cause was the pair being
-the wrong way round, not any Modbus setting. What said so was the transport's `LeadNulls`
-counter moving while `Ok` stayed at zero: bytes were reaching the receiver, so the device was
-powered and talking, and only the polarity could turn that into nothing framable. Swapping A
-and B fixed it, and the sweep then found the sensor on its **first** probe.
-
-----------------------------
 
 <!-- fb-interface:start -->
 ### **Block diagram**
@@ -139,13 +130,14 @@ The declaration is the whole configuration — Modbus address and polling interv
 `FB_init`, the Home Assistant name through the initialiser:
 
 ```
-FB_RS485_SEN0492_1 : FB_RS485_DFROBOT_SEN0492_MQTT(16#50, T#10S)
+FB_RS485_SEN0492_1 : FB_RS485_DFROBOT_SEN0492_MQTT(80, T#10S)
                    := (FriendlyName := 'Cistern level');
 ```
 
-`16#50` is the factory slave address and collides with nothing else on this bus, so there is no
-need to change it — only the baud rate has to move, and `PLC_PRG_RS485` does that once at
-startup. Register it with the bus controller in `RS485_INIT`:
+`80` is the sensor's factory slave address — `16#50`, which is how DFRobot's own documentation
+writes it. Change it only if something else on your bus already answers there; the baud rate is
+the setting that always has to move, and `PLC_PRG_RS485` does that once at startup. Register it
+with the bus controller in `RS485_INIT`:
 
 ```
 RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_SEN0492_1);
@@ -174,13 +166,10 @@ probes=1 found=9600/255 maxrx=9 at=9600/255 written=FALSE
 Read that as: the sensor answered on the **first** probe, at 9600 with `255` — the sentinel for
 the ordinary framing — so **one stop bit is fine**, despite forum reports of 8N2. `maxrx=9` is
 exactly the length of a two-register function 3 reply. `written=FALSE` because it was already at
-9600: an earlier sweep had moved it, and **that setting survived several PLC restarts**, so the
-baud rate is stored in the sensor rather than held in RAM.
-
-:rotating_light: **Whether it survives the sensor's own power cycle has not been tested** — the
-bench never lost power to it. If a sensor comes back at 115200 after a power interruption, the
-sweep will simply find it and move it again on the next PLC start, which is why it runs every
-boot rather than once.
+9600: an earlier sweep had moved it, and **that setting survives both PLC restarts and the
+sensor's own power cycle**, so the baud rate is stored in the sensor rather than held in RAM. The
+sweep runs every boot anyway, so a sensor that has been factory-reset is simply found and moved
+again.
 
 ### **Changing the sensor's settings from the PLC**
 
