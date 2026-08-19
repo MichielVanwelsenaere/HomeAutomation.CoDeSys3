@@ -111,6 +111,10 @@ on this hardware, not a fault.**
    │          LastException ├── BYTE
    │              LeadNulls ├── UDINT
    │             TrailNulls ├── UDINT
+   │            LastFailLen ├── UDINT
+   │           LastFailAddr ├── BYTE
+   │           LastFailFunc ├── BYTE
+   │          LastFailBytes ├── STRING(120)
    └────────────────────────┘
 ```
 
@@ -133,6 +137,10 @@ on this hardware, not a fault.**
 | `LastException` | BYTE | Modbus exception code from the most recent exception reply. |
 | `LeadNulls` | UDINT | Replies that arrived with leading glitch bytes. Tracks `Ok` on this hardware; not a fault. |
 | `TrailNulls` | UDINT | Replies that arrived with trailing glitch bytes. Tracks `Ok` on this hardware; not a fault. |
+| `LastFailLen` | UDINT | How many bytes were in the buffer of the most recent reply that would not frame. Zero here with `CrcFail` climbing would be a contradiction; a small number is a truncated reply, a large one is two replies collected together. |
+| `LastFailAddr` | BYTE | Slave address the failed exchange was addressed to. Without it the captured bytes are unattributable — a frame that looks like another device's traffic is exactly the case worth telling apart from a mangled reply. |
+| `LastFailFunc` | BYTE | Function code of that exchange, for the same reason. |
+| `LastFailBytes` | STRING(120) | The first 24 bytes as decimal numbers. A counter can say a reply did not check out; only the bytes can say whether it was half a reply, two replies, an echo of the request, or a mangled address — and those want different fixes. Published to `.../RS485/BUS_COUNTERS` by `PLC_PRG_RS485`, because reading it over an online session means having a working online session. |
 
 ### **Methods**
 
@@ -147,11 +155,24 @@ on this hardware, not a fault.**
 | `ReplyTimeout` | TIME |  | Nothing at all by now means no reply. Zero keeps the default of one second. |
 | `GapTime` | TIME |  | Line quiet for this long ends a frame. Zero keeps the default of 50 ms. |
 
+**`LastRxCount`** — Bytes in the last receive window, framed or not. The counter that matters when a device answers nothing at all: zero bytes at every setting is a bus with nothing on it, while bytes that arrive and never frame are a device that is present and being read wrongly — or a pair that is the wrong way round.
+
 **`ReadBuffer`** — Where a read step’s registers landed. Valid only in the cycle `Service` returns `OK`.
 
 **`Registers`** — How many words of `ReadBuffer` the last `OK` step filled. Zero after a write.
 
 **`Reopen`** — Closes and re-opens the port on the next `Service`, clearing `PortError` — so a port that failed to open at boot can be retried from an online session without a download.
+
+**`RestoreTuning`** — Puts the port back to exactly what `Init` configured, however far a sweep wandered. Saved rather than re-derived, so a caller does not have to remember what it passed to `Init` — and a sweep that fails part-way still leaves a bus the other devices can use.
+
+**`Retune`** — Re-opens the port at a different setting, keeping everything `Init` configured that is not named here. This is what makes commissioning possible: a device that ships on the wrong baud rate has to be hunted for at rates the bus does not use. Returns FALSE from a transport that cannot be re-tuned, so a sweep gives up rather than probing at a setting it only believes it applied. Takes effect on the next `Service`, like `Reopen`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Baudrate` | UDINT |  | Rate to re-open at. **0 keeps the configured rate.** |
+| `StopBitsRaw` | BYTE |  | Raw SysCom stop-bit code, because the `SYS_COM_STOPBITS` enumerator names are not portable across runtimes and a sweep has to try codes it cannot name. **255 keeps the configured framing.** |
+| `ReplyTimeout` | TIME |  | Shorter while probing: a probe that is going to fail should fail quickly, and most of them do. **T#0S keeps the configured timeout.** |
+| `GapTime` | TIME |  | Same, for the silence that ends a frame. **T#0S keeps the configured gap.** |
 
 **`Service`** — Call every cycle. Drives the port and the exchange in flight, and returns `IDLE` / `BUSY` / `OK` / `FAILED`. `OK` and `FAILED` are each returned for exactly one cycle. The bus controller does this for you.
 

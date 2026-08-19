@@ -58,6 +58,7 @@ To translate the byte array received by the Modbus device to their actual value 
 - [FB_RS485_EASTRON_SDM630_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM630_MQTT.md)
 - [FB_RS485_DUCO_DUCOBOX_MQTT](./docs/FunctionBlocks/FB_RS485_DUCO_DUCOBOX_MQTT.md)
 - [FB_RS485_ESERA_OWD_MQTT](./docs/FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)
+- [FB_RS485_DFROBOT_SEN0492_MQTT](./docs/FunctionBlocks/FB_RS485_DFROBOT_SEN0492_MQTT.md)
 
 Each of them implements the [RS485Device interface](./docs/RS485/RS485Device_Interface.md), which
 is what lets one bus be shared between many of them.
@@ -67,11 +68,15 @@ give the instance a `FriendlyName` and it appears as a device of its own with it
 measurements underneath, no YAML and no init calls. See
 [MQTT self-wiring](./docs/AdditionalFunctionality/MQTT_SelfWiring.md).
 
-Two more blocks sit underneath:
+Three more blocks sit underneath:
 
 - [FB_RS485_BUSCONTROLLER](./docs/FunctionBlocks/FB_RS485_BUSCONTROLLER.md) decides whose turn it
   is, and runs one device's whole transaction — several reads, or a write and the read that
   confirms it — with the bus held throughout.
+- [FB_RS485_COMMISSIONER](./docs/FunctionBlocks/FB_RS485_COMMISSIONER.md) puts devices onto the
+  bus before any of them is polled. It asks each registered device whether it needs something
+  written into it first — a device that ships on a baud rate this bus does not use is inaudible,
+  not slow — and knows nothing about any device beyond that answer.
 - [FB_RS485_TRANSPORT_RTU](./docs/FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) speaks Modbus RTU over
   the serial port. It sits behind an interface, so a different Modbus implementation can be
   substituted without touching any device block.

@@ -1,0 +1,20 @@
+{
+  "_comment": [
+    "Config for gaurav-nelson/github-action-markdown-link-check, the dead-link",
+    "check in .github/workflows/pull-request.yml.",
+    "",
+    "duco.eu answers 301 from a browser and from a developer machine, but hangs",
+    "up on GitHub's runners ('Status: 0 Error: socket hang up'), which fails the",
+    "check on every pull request regardless of what it changed. The link is not",
+    "broken and is worth keeping on the Ducobox page, so the host is ignored",
+    "here rather than the link removed. Revisit if DUCO stops refusing",
+    "datacentre traffic."
+  ],
+  "ignorePatterns": [
+    { "pattern": "^https://www\\.duco\\.eu/" }
+  ],
+  "aliveStatusCodes": [200, 206, 301, 302, 303, 307, 308],
+  "retryOn429": true,
+  "retryCount": 3,
+  "fallbackRetryDelay": "30s"
+}

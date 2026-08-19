@@ -48,7 +48,7 @@ The protocol lives behind a second interface, [`RS485Transport`](#the-rs485trans
 so the controller never sees a CRC, a function code or a serial handle — and so a different
 Modbus implementation can be substituted without touching a single device block.
 
-### **The four methods**
+### **The four methods every device implements**
 
 #### `HasWork : RS485_WorkLevel`
 
@@ -86,6 +86,27 @@ Called once per executed step, in order, while the bus is still held.
 
 Called once, after the last `OnStepResult`, as the bus is released. The one place to publish
 `/availability` and to clear a pending command.
+
+### **And a fifth, asked once at startup**
+
+#### `GetCommissioning(BusBaudrate, pRequest) : BOOL`
+
+Does this device need something written into it before it can be spoken to *at all*? A device
+that ships at 115200 on a bus running at 9600 is not slow to answer — it is inaudible, and no
+amount of polling will reach it.
+
+Return FALSE, which is what a device configured by switches or by its own display should do, and
+nothing happens. Return TRUE and fill `pRequest^` — the address to probe, the register to write,
+the value that puts the device on this bus, and the rates worth trying — and
+[`FB_RS485_COMMISSIONER`](../FunctionBlocks/FB_RS485_COMMISSIONER.md) sweeps the bus for it
+before the scheduler is allowed to start.
+
+**The value is the device's to encode**, because only the device knows whether its register takes
+a rate, a code or an index. That is the whole reason this is a method on the device rather than a
+table in the program that owns the bus: the sweep is generic, the register is not.
+
+Asked once, at startup, by the commissioner — never by the scheduler. It has no bearing on
+polling and is not called again.
 
 ### **The step**
 
@@ -178,6 +199,15 @@ replaceable:
 | `ReadBuffer() : POINTER TO RS485_ReadBuffer` | Where a read step's registers landed. |
 | `Registers() : INT` | How many words of it the last `OK` step filled. |
 
+and three more that exist for commissioning, because a bus that has to be swept has to be
+re-tunable and has to be able to say whether anything arrived:
+
+| Method | |
+|:--|:--|
+| `Retune(Baudrate, StopBitsRaw, ReplyTimeout, GapTime) : BOOL` | Re-open at a different setting, keeping everything `Init` configured that is not named. `0` and `255` mean "leave alone". FALSE from a transport that cannot be re-tuned, so a sweep gives up rather than probing at a setting it only believes it applied. |
+| `RestoreTuning()` | Back to exactly what `Init` configured, however far a sweep wandered. |
+| `LastRxCount() : UDINT` | Bytes in the last receive window, framed or not — the difference between a bus with nothing on it and a device that is present and being read wrongly. |
+
 [`FB_RS485_TRANSPORT_RTU`](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) is the implementation
 this project ships. A WAGO `FbMbMasterSerial` or a CODESYS `ModbusFB.ClientSerial` adapter would
 be another; see [#181](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/issues/181).
@@ -196,7 +226,11 @@ be another; see [#181](https://github.com/MichielVanwelsenaere/HomeAutomation.Co
    is the worked example for several register blocks;
    [`FB_RS485_EASTRON_SDM630_MQTT`](../FunctionBlocks/FB_RS485_EASTRON_SDM630_MQTT.md) for a
    single one.
-5. Register it in `RS485_INIT` with `RegisterDevice`.
+5. Implement `GetCommissioning` as `GetCommissioning := FALSE;` unless the device genuinely
+   cannot be reached as shipped. Only
+   [`FB_RS485_DFROBOT_SEN0492_MQTT`](../FunctionBlocks/FB_RS485_DFROBOT_SEN0492_MQTT.md) needs
+   more than that line.
+6. Register it in `RS485_INIT` with `RegisterDevice`.
 
 Registration order does not affect service order — see
 [`FB_RS485_BUSCONTROLLER`](../FunctionBlocks/FB_RS485_BUSCONTROLLER.md).
