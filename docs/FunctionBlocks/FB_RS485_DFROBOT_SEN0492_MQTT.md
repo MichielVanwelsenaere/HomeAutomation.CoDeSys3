@@ -234,11 +234,6 @@ instead of ten shows up there immediately, while availability is still reporting
 `online`; a loose pair, a failing driver or a bus getting busier all appear as a number settling
 below 100 long before anything disconnects.
 
-:bulb: **The other RS485 blocks in this project still publish availability on every
-transaction.** `FB_RS485_EASTRON_SDM220_MQTT`, `FB_RS485_EASTRON_SDM630_MQTT` and
-`FB_RS485_EASTRON_SDM_POWER_MQTT` all carry the older idiom, so a meter that is absent or
-intermittent produces the same flapping this block used to. Worth propagating.
-
 ### **It cannot be polled quickly, and the interval is clamped**
 
 `FB_init` refuses an interval below **8 seconds** and quietly substitutes it. That is a
