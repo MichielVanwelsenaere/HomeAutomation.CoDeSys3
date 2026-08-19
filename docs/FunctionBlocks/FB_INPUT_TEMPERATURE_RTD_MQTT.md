@@ -39,6 +39,7 @@ module, not something IEC code can reach in this project's device configuration.
  INT ──┤ Raw                   Temperature ├── REAL
 REAL ──┤ PublishDeadband             Valid ├── BOOL
 TIME ──┤ HeartbeatInterval           Fault ├── BOOL
+TIME ──┤ StaleTimeout                Stuck ├── BOOL
        │                     DataAvailable ├── BOOL
        └───────────────────────────────────┘
 ```
@@ -52,14 +53,16 @@ TIME ──┤ HeartbeatInterval           Fault ├── BOOL
 | `Raw` | INT | The mapped channel word of the RTD module, in tenths of a degree Celsius. Wire it to the channel variable — `Raw := RTD_001` — and nothing else is needed to make the block work. |
 | `PublishDeadband` | REAL | Degrees Celsius of change required before the value is published again. Defaults to 0.2. The last digit of an RTD channel jitters continuously, and nobody wants 0.1 °C of noise in their history; zero publishes every change. |
 | `HeartbeatInterval` | TIME | Republish even when nothing changed, so a reader can tell a steady temperature from a PLC that has stopped. Defaults to 5 minutes, and the discovery config's `expire_after` is set to three of these — so changing it changes both, but only for entities announced after the change. |
+| `StaleTimeout` | TIME | How long the channel word may go without changing by even one digit before the reading is called into question. Defaults to 15 minutes; zero disables the check. See *[a wrong number that holds still](#a-wrong-number-that-holds-still)* — this is not a theoretical safeguard, it is what the bench module needed. |
 
 **Outputs**
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `Temperature` | REAL | Degrees Celsius. **Held** at the last trustworthy reading while `Fault` is set, rather than following the channel into whatever it reports for a broken wire. |
+| `Temperature` | REAL | Degrees Celsius. **Held** at the last in-range reading while the channel is out of range, rather than following it into whatever the module reports for a broken wire. A *stuck* channel keeps updating it — the number may be right; what is in doubt is whether anything measured it. |
 | `Valid` | BOOL | The channel is reading a real sensor, within the range this sensor type can measure. |
-| `Fault` | BOOL | Open circuit, short, or a reading outside what a platinum RTD can produce. The usual cause is a wire that has come out of a terminal; the second most usual is a channel configured for a different sensor type than the one connected. |
+| `Fault` | BOOL | **Do not trust this reading.** Set when the value is outside what a platinum RTD can produce — usually a wire out of a terminal — and when the channel has stopped moving. This is what `/FAULT` publishes. |
+| `Stuck` | BOOL | The channel has not moved a digit for `StaleTimeout`. Kept separate from `Fault` so a debugger can tell *impossible number* from *not measuring*; both raise `/FAULT`. |
 | `DataAvailable` | BOOL | High once a plausible reading has been seen. Low only at startup — and it stays low on a channel that has never been wired. |
 
 ### **Methods**
@@ -107,7 +110,7 @@ it.
 
 | output | MQTT topic suffix | Unit | Published |
 |:--|:--|:--|:--|
-| `Temperature` | `/TEMP` | °C | on a change beyond `PublishDeadband`, on the heartbeat, and once at startup — **never while `Fault` is set** |
+| `Temperature` | `/TEMP` | °C | on a change beyond `PublishDeadband`, on the heartbeat, and once at startup — **never while the value is out of range**, but a stuck channel keeps publishing |
 | `Fault` | `/FAULT` | — | `ON` / `OFF`, **only when it changes**, plus once at startup so a retained value exists |
 
 One decimal, always, formatted from the integer rather than through `REAL_TO_STRING` — which
@@ -134,11 +137,38 @@ What follows from that:
 - `/FAULT` goes `ON` immediately, as a **diagnostic** `problem` entity. A wire out of a terminal
   is a maintenance fact, not something for a dashboard.
 
-:bulb: **A channel that reads a plausible but wrong temperature is the one case this cannot
-catch.** Configure a channel for Pt100 and connect a Pt1000 and the reading is not out of range,
-it is simply wrong — roughly 2.6 times the true value in the middle of the scale. Compare
-against a second thermometer once, at commissioning; after that the fault flag covers what can
-be covered automatically.
+### **A wrong number that holds still**
+
+The range check above catches a number no sensor could produce. It does not catch the worse case,
+and this block was **wrong about that on its first run on real hardware**: a plausible number
+that is not a measurement at all.
+
+The bench's own 750-463 sat at exactly `1500` — a confident 150.0 °C, published to Home Assistant
+with `dev_cla: temperature` and a fault flag reading `OFF`. Seven samples over seventy seconds:
+`1500` every time, not one digit of movement. The module had been configured for something other
+than the sensor plugged into it, and nothing in the process image said so.
+
+What says so is that **a real channel is never still.** The last digit of an RTD reading dithers
+continuously; 0.1 °C is far below the noise floor of any room. So a channel that has not moved a
+single digit in `StaleTimeout` — fifteen minutes by default — is not trusted, whatever it is
+holding:
+
+- `Stuck` and `Fault` go TRUE, and `/FAULT` publishes `ON`, so Home Assistant shows a problem on
+  that channel.
+- **The value keeps being published.** It may be perfectly correct; what is in doubt is whether
+  anything is measuring it. Silence would claim more than is known.
+
+Verified on hardware against the misconfigured channel, with `StaleTimeout` written down to 30 s
+for the test: `Stuck=TRUE`, `Fault=TRUE`, `/FAULT ON`, and `/TEMP` still carrying `150.0`.
+
+:bulb: **A slow-moving process can be genuinely still for minutes** — a large water buffer, a
+cellar. Fifteen minutes of *zero* movement is still implausible on a 0.1 °C channel, but if a
+process really is that quiet, raise `StaleTimeout` rather than living with a false problem flag.
+
+:bulb: **The remaining blind spot is a wrong sensor type that still moves.** Configure a channel
+for Pt100, connect a Pt1000, and the reading tracks the temperature while being roughly 2.6 times
+too high in the middle of the scale — in range, and moving. Compare against a second thermometer
+once, at commissioning; after that the two flags cover what can be covered automatically.
 
 ### **Home Assistant**
 

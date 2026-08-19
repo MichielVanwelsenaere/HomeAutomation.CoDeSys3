@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-19T22:07:37.5481329" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-19T22:06:51.5847106">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-19T22:33:55.0119596" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-19T22:33:19.1067976">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2913,6 +2913,26 @@ END_IF		</xhtml>
  expire_after, which is set to three of these.</xhtml>
               </documentation>
             </variable>
+            <variable name="StaleTimeout">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#15m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long the channel word may go without changing by even one digit before
+ the reading is called into question.
+
+ A channel that is really measuring dithers in its last digit continuously -
+ 0.1 C is well inside the noise of any real installation. One that has not
+ moved a single digit in a quarter of an hour is not measuring: it is
+ switched off, configured for a fixed substitute value, or reporting a
+ constant of the module's own. That is not a hypothetical - it is what the
+ bench module did, and what cost an afternoon to spot, because a wrong number
+ that holds still looks exactly like a good one. Zero disables the check.</xhtml>
+              </documentation>
+            </variable>
           </inputVars>
           <outputVars>
             <variable name="Temperature">
@@ -2938,8 +2958,18 @@ END_IF		</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Open circuit, short, or a reading outside what the sensor type can produce.
- The usual cause is a wire that has come out of the terminal.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Do not trust this reading. Set when the value is outside what the sensor
+ type can physically produce, and when the channel has gone StaleTimeout
+ without moving a digit. This is what /FAULT publishes.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Stuck">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The specific reason, when the reason is that nothing is moving. Kept apart
+ from Fault so a debugger can tell "impossible number" from "not measuring".</xhtml>
               </documentation>
             </variable>
             <variable name="DataAvailable">
@@ -2995,6 +3025,29 @@ END_IF		</xhtml>
               </type>
             </variable>
             <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="InRange">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="LastRaw">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="StaleTimer">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="FirstSample">
               <type>
                 <BOOL />
               </type>
@@ -3088,14 +3141,43 @@ END_IF
    how it was configured. Rather than hard-code a fault code, this asks the only
    question that has a stable answer: could a platinum RTD produce this reading
    at all? *)
-Valid := (Raw &gt;= RTD_MIN_RAW) AND (Raw &lt;= RTD_MAX_RAW);
-Fault := NOT Valid;
+InRange := (Raw &gt;= RTD_MIN_RAW) AND (Raw &lt;= RTD_MAX_RAW);
+Valid := InRange;
 
-IF Valid THEN
+IF InRange THEN
 	(* Tenths of a degree, so the scaling is exact rather than a calibration. *)
 	Temperature := INT_TO_REAL(Raw) / 10.0;
 	DataAvailable := TRUE;
 END_IF
+
+(* --- and is it moving? -------------------------------------------------------
+   The range check above catches a number no sensor could produce. It does not
+   catch the worse case: a plausible number that is not a measurement at all.
+   This bench's own module sat at exactly 1500 - a confident 150.0 C - for as
+   long as anyone cared to watch, because it had been configured for something
+   other than the sensor plugged into it.
+
+   Nothing in the process image says so. What says so is that a real channel is
+   never still: the last digit of an RTD reading dithers continuously, and 0.1 C
+   is far below the noise floor of any room. So a channel that has not moved a
+   single digit in StaleTimeout is not trusted, whatever value it is holding.
+
+   Deliberately not a range check, and deliberately not fatal to the reading:
+   the number may well be right, so it keeps being published while the fault
+   flag says not to lean on it. *)
+IF FirstSample THEN
+	LastRaw := Raw;
+	FirstSample := FALSE;
+END_IF
+
+IF Raw &lt;&gt; LastRaw THEN
+	LastRaw := Raw;
+	StaleTimer(IN := FALSE, PT := StaleTimeout);
+END_IF
+StaleTimer(IN := StaleTimeout &gt; TIME#0s, PT := StaleTimeout);
+Stuck := StaleTimer.Q;
+
+Fault := (NOT InRange) OR Stuck;
 
 (* Self-restarting, so the heartbeat is a floor on how often the value is
    published rather than a timer anything has to remember to reset. *)
@@ -3105,12 +3187,16 @@ Heartbeat(IN := NOT Heartbeat.Q, PT := HeartbeatInterval);
    Three reasons to publish and no others: the value moved by more than the
    deadband, the heartbeat elapsed, or this is the first reading.
 
-   While Fault is set, nothing is published, deliberately. Temperature holds the
-   last trustworthy reading, and the discovery config's expire_after lets Home
-   Assistant retire the entity on its own if the silence lasts - which is a truer
-   signal than publishing a made-up number, or the module's fault code dressed up
-   as a temperature. *)
-IF InitMqttDone AND Valid THEN
+   While the value is out of range nothing is published, deliberately: Temperature
+   holds the last trustworthy reading, and the discovery config's expire_after lets
+   Home Assistant retire the entity on its own if the silence lasts - a truer signal
+   than publishing a made-up number, or the module's fault code dressed up as a
+   temperature.
+
+   A stuck channel is different and keeps publishing. Its number may be perfectly
+   correct; what is in doubt is whether anything is measuring it, and /FAULT is
+   where that doubt belongs. *)
+IF InitMqttDone AND InRange THEN
 	IF NOT PublishedValid
 		OR Heartbeat.Q
 		OR ABS(Temperature - Published) &gt;= PublishDeadband
@@ -3163,54 +3249,7 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="2627aaf6-6d81-4314-bbe5-8179dec6c491">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically.</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the shared MQTT queue that carries messages to the broker.</xhtml>
-                    </documentation>
-                  </variable>
-                </inputVars>
-                <documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Enables MQTT on the function block. Call once at startup. Not needed when FriendlyName is set at the declaration: the block then wires itself.</xhtml>
-                </documentation>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-SUPER^.InitBaseMqtt();
-</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="56ff0d31-6da8-4f50-b393-8619abce401f">
+            <Method name="InitMqttDiscovery" ObjectId="7cf4a90a-7970-438c-8a8c-033ff281761b">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -3305,6 +3344,53 @@ SUPER^.InitBaseMqtt();
 
 	initMqttDiscoveryDone := TRUE;
 END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt" ObjectId="d7b6786b-bd5c-4eb9-b8df-6c3c8446c516">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the shared MQTT queue that carries messages to the broker.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Enables MQTT on the function block. Call once at startup. Not needed when FriendlyName is set at the declaration: the block then wires itself.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
 </xhtml>
                 </ST>
               </body>
@@ -25535,8 +25621,8 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           </Object>
           <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
           <Object Name="FB_INPUT_TEMPERATURE_RTD_MQTT" ObjectId="3af25b21-6767-4e0d-b506-bf4ea9ee5d42">
-            <Object Name="InitMqtt" ObjectId="2627aaf6-6d81-4314-bbe5-8179dec6c491" />
-            <Object Name="InitMqttDiscovery" ObjectId="56ff0d31-6da8-4f50-b393-8619abce401f" />
+            <Object Name="InitMqttDiscovery" ObjectId="7cf4a90a-7970-438c-8a8c-033ff281761b" />
+            <Object Name="InitMqtt" ObjectId="d7b6786b-bd5c-4eb9-b8df-6c3c8446c516" />
           </Object>
         </Folder>
         <Folder Name="DMX">

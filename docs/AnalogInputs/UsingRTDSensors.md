@@ -57,6 +57,12 @@ code in this project can perform:
 So: a factory-default 750-463 with a Pt1000 is plug-and-play. Anything else is a WAGO-I/O-CHECK
 job at a laptop, and the symptom that says so is described below.
 
+:rotating_light: **The reference bench's own module is not factory default, and this is what that
+looks like.** Channel 0, with a Pt1000 connected, reads exactly `1500` — 150.0 °C — and has never
+moved a digit. The other three channels read `0` rather than an over-range value. Both facts point
+the same way: the channels are not measuring what is connected to them. See
+[what the readings said](#what-the-readings-actually-said).
+
 ### **Mapping the channel in CODESYS**
 
 Each channel needs a variable name in the module's **I/O mapping** tab before any code can read
@@ -92,15 +98,52 @@ fault flag to Home Assistant. See
 ### **Commissioning: what the reading tells you**
 
 Read the channel word — online, or on the `/TEMP` topic — and compare against a room thermometer.
+**Watch it for a minute**: whether it moves matters as much as what it says.
 
 | Reading | Means |
 |:--|:--|
-| ≈ ambient, one decimal, drifting slightly | Correct. The last digit always moves; that is what `PublishDeadband` is for. |
-| Far out of range, `Fault` set | Open circuit. A lead is not in the terminal, or is in the wrong channel's terminal. |
-| ≈ 0.0 °C and immovable | A short across the terminals, or a channel measuring resistance rather than temperature. |
-| Plausible but wrong, roughly 2.6× the true value | **The channel is configured for Pt100 and a Pt1000 is connected.** This is the failure the block cannot detect for you — a wrong sensor type produces a believable number. WAGO-I/O-CHECK, or use the module variant that matches the sensor. |
-| ≈ 0.26× the true value | The reverse: a Pt100 on a channel set to Pt1000. |
+| ≈ ambient, one decimal, **dithering in the last digit** | Correct. A real channel is never still; that jitter is what `PublishDeadband` exists to absorb. |
+| Far out of range, `Fault` set | Open circuit, on a module that reports over-range. A lead is not in the terminal, or is in the wrong channel's. |
+| **Any value, dead still for minutes** | The channel is not measuring: switched off, configured for a fixed value, or clamped at the end of a range that has nothing to do with the sensor. `Stuck` and `/FAULT` catch this; the value itself will look perfectly reasonable. |
+| Plausible, moving, but roughly 2.6× the true value | The channel is set for Pt100 and a Pt1000 is connected. **Nothing automatic catches this** — it is in range and it tracks. Compare against a thermometer once. |
+| ≈ 0.26× the true value, moving | The reverse: a Pt100 on a channel set to Pt1000. |
 
-:bulb: **An unwired channel is a free reference.** On a 4-channel module with one sensor, the
-other three channels sit at whatever the module reports for an open circuit — which tells you
-exactly what a broken wire looks like on your hardware, without breaking anything.
+### **What the readings actually said**
+
+Measured on the reference bench, PFC200 + 750-463, one Pt1000 on channel 0:
+
+```
+RTD_001   1500  1500  1500  1500  1500  1500  1500      seven samples, 70 seconds
+RTD_002      0    RTD_003  0    RTD_004  0               unwired channels
+AI_001       0    AI_002   0                             the 0-10 V module, unwired
+input image  %IW1 = 1500, every other word 0
+```
+
+Three things worth keeping from that:
+
+- **The mapping is right and the module is not.** `%IW1` carries the channel, the value reaches
+  `RTD_001` intact, and it is a constant. A misconfigured module produces a confident number, not
+  an error.
+- **An unwired channel here reads `0`, not over-range.** So on this hardware a disconnected sensor
+  cannot be told from a genuine 0.0 °C by value alone — which is exactly why the block's second
+  check is *movement* rather than range. Do not assume the over-range behaviour some data sheets
+  describe; measure what your module does, on a channel you have deliberately left empty.
+- **`0` is also what an unused 0-10 V channel reads**, so `0` on this bus means "nothing here"
+  more often than it means zero.
+
+### **Two 30-second tests before reaching for a laptop**
+
+Both change the sensor's electrical situation and ask whether the number follows. A channel that
+is really measuring cannot ignore either.
+
+1. **Move the sensor to another channel.** If only one channel was reconfigured, a neighbour may
+   be untouched and will simply work — and the answer arrives without any tooling. Change the
+   call to `Raw := RTD_002` to match.
+2. **Short the terminals**, briefly, with a bit of wire. A measuring channel drops to the bottom
+   of its scale immediately. A channel that stays where it was is not looking at its terminals at
+   all, which is conclusive.
+
+If neither moves the number, the module needs **WAGO-I/O-CHECK** over the service interface: set
+the channel to Pt1000, 0.1 °C, 2-conductor, and make sure the channel is enabled. There is no way
+round it from IEC code as this project is configured — the module's control/status byte is not in
+the process image, so there is no mailbox to write registers through.
