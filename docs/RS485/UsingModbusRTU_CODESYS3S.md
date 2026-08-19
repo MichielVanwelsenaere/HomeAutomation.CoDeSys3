@@ -93,56 +93,61 @@ due and the ratio drops - 2.7 with a 200 ms task, 1.4 with a 50 ms one.
 
 ### **A device that ships on the wrong baud rate**
 
-One bus has one baud rate, and not every device agrees to it out of the box. The DFRobot
-SEN0492 rangefinder ships at **115200** with no switch to change it; this bus runs at 9600.
-Until the sensor is moved, the two cannot talk at all — the sensor is not slow to answer, it
-is inaudible.
+One bus has one baud rate, and not every device agrees to it out of the box. A device that
+disagrees is not slow to answer — it is inaudible, and no amount of polling will reach it. The
+DFRobot SEN0492 rangefinder is the example in this project: it ships at **115200** with no switch
+to change it.
 
-The settings that matter live in ordinary holding registers, so they can be written over
-Modbus like anything else. The catch is the chicken-and-egg: to tell a device to change its
-baud rate you have to talk to it at the rate it is on now.
+**This is fixable from PLC logic alone**, with no configuration tool, no USB adapter and no vendor
+software. The settings that matter live in ordinary holding registers, so they can be written over
+Modbus like anything else; the catch is the chicken-and-egg, because to tell a device to change its
+baud rate you have to talk to it at the rate it is on now. Two things solve that:
 
-**The transport can be re-opened at a different rate at runtime**, which is what makes this
-solvable from the PLC.
-[`FB_RS485_TRANSPORT_RTU.Init`](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) re-opens the
-port when it is already open, so a startup sequence can drop the bus to the device's speed,
-write the new setting, and bring it back:
+- [`FB_RS485_TRANSPORT_RTU.Retune`](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) re-opens the port
+  at a different rate or framing at runtime, and `RestoreTuning` puts it back — so the bus can be
+  dropped to the device's speed and brought home again without the caller knowing anything about
+  ports or parity.
+- [`FB_RS485_COMMISSIONER`](../FunctionBlocks/FB_RS485_COMMISSIONER.md) drives that sweep, and
+  **knows nothing about any device.** It asks each registered device one question and acts on the
+  answer.
 
 ```mermaid
 flowchart LR
-  A["bus at 9600<br/>probe 16#50"] -->|answers| E["done<br/>nothing to change"]
-  A -->|silent| B["re-open at the next rate<br/>probe again"]
-  B -->|silent| B
-  B -->|answers| C["write 9600 into<br/>the device's baud register"]
-  C --> D["re-open at 9600"]
-  D --> E
+  A["ask device:<br/>GetCommissioning"] -->|FALSE| Z["next device"]
+  A -->|"TRUE + what to probe,<br/>what to write"| B["retune to the<br/>next setting"]
+  B --> C["probe the<br/>device"]
+  C -->|silent| B
+  C -->|answers at<br/>the bus rate| Y["nothing to write"]
+  C -->|answers elsewhere| D["write the value<br/>the device asked for"]
+  D --> Y
+  Y --> E["RestoreTuning<br/>publish the result"] --> Z
 ```
 
-`PLC_PRG_RS485` does exactly this in `RS485_RUN`, before it lets the bus controller start.
-Three things about it are deliberate:
+`PLC_PRG_RS485` calls the commissioner in `RS485_RUN` and holds the bus controller off until it
+reports `Done`. Four things about it are deliberate:
 
+- **The device decides, not the program.** What to probe, which register to write and what value
+  to put in it come back from `RS485Device.GetCommissioning`; the program that owns the bus names
+  no device and no register. Before this the sweep lived here as two hundred lines that knew one
+  sensor's slave address — which is exactly the kind of thing that stops a bus being reusable.
 - **It scans rather than assumes.** The first version wrote the new baud rate blind at the
   documented factory speed. When the device stayed silent afterwards there was no way to tell
-  whether the write had missed or had landed and moved the device somewhere unexpected —
-  which is a worse position than before. It now probes first and writes only to a device that
-  has actually answered.
-- **It tries the bus speed first.** A device that is already commissioned answers on the first
+  whether the write had missed or had landed and moved the device somewhere unexpected — a worse
+  position than before. Nothing is written now into a bus whose contents have not been confirmed.
+- **It tries the bus rate first.** A device that is already commissioned answers on the first
   probe and the sequence ends there, costing one Modbus exchange.
-- **It holds the bus controller off.** At any speed but 9600 nothing else on the bus can be
-  addressed either, so nothing is polled until it finishes.
+- **It sweeps framing as well as rate**, because those are the two things that silence a device on
+  a working pair. Stop bits go in as the numeric SysCom code rather than a `SYS_COM_STOPBITS`
+  enumerator, because the enumerator names are not portable across runtimes and a hunt has to be
+  able to try codes it cannot name.
 
-:rotating_light: **The reply to a baud-rate write cannot be heard.** The device changes speed
-the moment it accepts the write, so its acknowledgement comes back at the new rate and the
-old one is deaf to it. A failed write is therefore the *expected* result of a successful one,
-and nothing may retry on it — a retry loop here spins forever on a device that already obeyed.
+:rotating_light: **The reply to a baud-rate write cannot be heard.** The device changes speed the
+moment it accepts the write, so its acknowledgement comes back at the new rate and the old one is
+deaf to it. A failed write is therefore the *expected* result of a successful one, and nothing may
+retry on it — a retry loop here spins forever on a device that already obeyed.
 
-The sweep covers **framing as well as rate**, because those are the two things that silence a
-device on a working pair. Stop bits are set through
-[`FB_RS485_TRANSPORT_RTU.SetStopBitsRaw`](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) using the
-numeric SysCom code rather than the `SYS_COM_STOPBITS` enumerators, because the enumerator names
-are not portable across runtimes and a hunt has to be able to try codes it cannot name.
-
-The result is published **retained** to `.../RS485/SEN0492_COMMISSION`:
+The result is published **retained**, one message per device that asked for commissioning, under
+the bus prefix at the topic the device named:
 
 ```
 probes=1 found=9600/255 maxrx=9 at=9600/255 written=FALSE
@@ -154,16 +159,15 @@ runtime drops the session long before it drops MQTT. A result nobody can read is
 
 :rotating_light: **When a sweep finds nothing, suspect the wiring before the settings — and the
 byte count tells you which.** A bus with nothing on it returns zero bytes at every setting. A
-device that is present but unreadable returns *something*: noise, partial characters, the
-leading null this hardware produces as a driver enables. `CommissionMaxRx` and
-`CommissionMaxRxBaud` record the largest byte count and where, and `LeadNulls` climbing while
-`Ok` stays at zero says the same thing.
+device that is present but unreadable returns *something*: noise, partial characters, the leading
+null this hardware produces as a driver enables. `maxrx` records the largest byte count and where,
+and `LeadNulls` climbing while `Ok` stays at zero says the same thing.
 
-That is exactly how the SEN0492 was diagnosed. It was silent through a sweep of every rate the
-register can select, while `LeadNulls` moved — so it was powered and talking, and only the
-polarity of the pair could turn that into nothing framable. **A and B were swapped.** Once
-reversed, the sweep found it on the first probe, at 9600 with ordinary framing, and `maxrx`
-became 9 — exactly the length of the reply it had been trying to send all along.
+That is exactly how the SEN0492 was diagnosed. It was silent through a sweep of every rate its own
+register can select, while `LeadNulls` moved — so it was powered and talking, and only the polarity
+of the pair could turn that into nothing framable. **A and B were swapped.** Once reversed, the
+sweep found it on the first probe, at 9600 with ordinary framing, and `maxrx` became 9 — exactly
+the length of the reply it had been trying to send all along.
 
 ### **Why this project frames its own RTU rather than using a driver**
 

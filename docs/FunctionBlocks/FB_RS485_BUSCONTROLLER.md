@@ -86,6 +86,14 @@ time and not the baud rate is what sets throughput. See
 
 ### **Methods**
 
+**`DeviceCount`** — How many devices are registered on this bus. Exists so commissioning can walk the same list the scheduler serves, rather than being handed a second list to keep in step with this one.
+
+**`GetDevice`** — The registered device at `Index`, counted from zero. Read-only access to the list, for anything that has to ask every device on the bus a question — commissioning is the one that does.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Index` | INT |  | Position in the registration list, from zero. Outside the registered range returns nothing rather than whatever is left in the array. |
+
 **`Init`** — Configures the bus controller, an overview of the parameters:
 
 | Parameter | Type | Default | Description |

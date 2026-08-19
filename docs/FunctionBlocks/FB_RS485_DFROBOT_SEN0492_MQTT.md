@@ -21,10 +21,11 @@ DFRobot documentation:
 
 :rotating_light: **It ships at 115200 baud and there is no switch on the sensor.** A bus has one
 baud rate, so a sensor that disagrees with it cannot be heard at all — it is not slow to answer,
-it is inaudible. **The PLC moves it, from PLC logic alone:** `PLC_PRG_RS485` finds the sensor at
-whatever rate it is on and writes the bus rate into it at startup, so no configuration tool,
-adapter or vendor software is needed to commission one. See
-[A device that ships on the wrong baud rate](../RS485/UsingModbusRTU_CODESYS3S.md).
+it is inaudible. **The PLC moves it, from PLC logic alone:** the block's `GetCommissioning` says
+which register holds the rate and what code that register wants, and
+[`FB_RS485_COMMISSIONER`](FB_RS485_COMMISSIONER.md) finds the sensor at whatever rate it is on and
+writes the bus rate into it at startup. No configuration tool, adapter or vendor software is
+needed to commission one.
 
 ----------------------------
 
@@ -53,7 +54,7 @@ TIME ──┤ PollIntervalOverride            DISTANCE ├── UINT
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `PollIntervalOverride` | TIME | The poll interval that can be changed **without the IDE**. Zero means use whatever `FB_init` was given; anything else wins, subject to the same 8 s floor. It exists because CODESYS stores an instance's `FB_init` arguments outside the declaration text, so no script can revise the constructor argument — see [CLAUDE.md](../../CLAUDE.md). Settable from `RS485_INIT` or online while the PLC runs, and applied on the next poll. |
+| `PollIntervalOverride` | TIME | The poll interval that can be changed **without the IDE**. Zero means use whatever `FB_init` was given, which is what the shipped instance does; anything else wins, subject to the same 8 s floor. It exists because CODESYS stores an instance's `FB_init` arguments outside the declaration text, so no script can revise the constructor argument — see [CLAUDE.md](../../CLAUDE.md). Settable from `RS485_INIT` or online while the PLC runs, and applied on the next poll. |
 | `AvailabilityFailLimit` | INT | Consecutive failed transactions before the sensor is declared offline. Defaults to 3, so around half a minute at the 8 s minimum poll. Raise it on a bus that is busy or long; 1 would mean every transient shows up in Home Assistant as a disconnection. Recovery is immediate on the first good transaction regardless. |
 
 **Outputs**
@@ -81,6 +82,13 @@ TIME ──┤ PollIntervalOverride            DISTANCE ├── UINT
 |:--|:--|:--|:--|
 | `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
 | `DataPollingInterval` | TIME |  | How often this block polls the device. **Anything below 8 s is silently raised to 8 s** — the sensor cannot answer faster and asking only produces failures. See *It cannot be polled quickly* below. |
+
+**`GetCommissioning`** — Answers **yes**, and is the only block in this project that does. Hands the commissioner this sensor's slave address, the measurement read to probe with, register `16#04` to write, and the code that register wants for the bus rate — the code being the index into the block's own table of the ten rates the register can select, so one table answers both "which rates" and "what value". Withdraws if the bus runs at a rate the register cannot express, because moving the sensor somewhere it still cannot be heard is worse than leaving it where it is.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `BusBaudrate` | UDINT |  | What the bus runs at, so a device can encode that rate the way its own register expects - and can withdraw if it cannot be told to use it. |
+| `pRequest` | POINTER TO RS485_CommissionRequest |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
 
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
@@ -249,14 +257,6 @@ misses is easy to reach at 2 s and hard at 8 s.
 A caller who asks for something the device cannot sustain gets a working sensor and a slower
 one. The alternative is a reading that is right a quarter of the time and an entity that keeps
 going unavailable, which is worse in every way that matters.
-
-:bulb: **The shipped instance in `RS485Variables` still declares `T#2S`, and does not run at
-it.** Two things stop it: the clamp would hold it at 8 s on its own, and `RS485_INIT` sets
-`PollIntervalOverride := T#10S` on top of that, which is the rate this project actually polls
-the sensor at. The declaration is wrong and stays wrong because CODESYS stores an instance's
-`FB_init` arguments outside the declaration text — see [CLAUDE.md](../../CLAUDE.md) — so that
-argument cannot be corrected by any script, only in the IDE. The clamp exists partly because of
-that: a value that cannot be fixed automatically should not be able to break the device.
 
 :rotating_light: **A residual failure rate remains, it is specific to this sensor, and slowing
 the poll further does not help.** Raising the interval from 8 s to 30 s was tried and changed

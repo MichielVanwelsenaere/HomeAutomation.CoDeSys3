@@ -155,19 +155,26 @@ on this hardware, not a fault.**
 | `ReplyTimeout` | TIME |  | Nothing at all by now means no reply. Zero keeps the default of one second. |
 | `GapTime` | TIME |  | Line quiet for this long ends a frame. Zero keeps the default of 50 ms. |
 
+**`LastRxCount`** — Bytes in the last receive window, framed or not. The counter that matters when a device answers nothing at all: zero bytes at every setting is a bus with nothing on it, while bytes that arrive and never frame are a device that is present and being read wrongly — or a pair that is the wrong way round.
+
 **`ReadBuffer`** — Where a read step’s registers landed. Valid only in the cycle `Service` returns `OK`.
 
 **`Registers`** — How many words of `ReadBuffer` the last `OK` step filled. Zero after a write.
 
 **`Reopen`** — Closes and re-opens the port on the next `Service`, clearing `PortError` — so a port that failed to open at boot can be retried from an online session without a download.
 
-**`Service`** — Call every cycle. Drives the port and the exchange in flight, and returns `IDLE` / `BUSY` / `OK` / `FAILED`. `OK` and `FAILED` are each returned for exactly one cycle. The bus controller does this for you.
+**`RestoreTuning`** — Puts the port back to exactly what `Init` configured, however far a sweep wandered. Saved rather than re-derived, so a caller does not have to remember what it passed to `Init` — and a sweep that fails part-way still leaves a bus the other devices can use.
 
-**`SetStopBitsRaw`** — Forces the raw SysCom stop-bit code, for a device whose framing the `SYS_COM_STOPBITS` enumeration does not name conveniently on this runtime. `Init` takes the enumeration and is the right way in for anything normal; this exists because framing is one of exactly two things that silence a device on a working pair — the other being the baud rate — so a routine that hunts for a device has to be able to sweep it, and the numeric codes are portable where the enumerator names are not. Takes effect on the next `Reopen` or `Init`.
+**`Retune`** — Re-opens the port at a different setting, keeping everything `Init` configured that is not named here. This is what makes commissioning possible: a device that ships on the wrong baud rate has to be hunted for at rates the bus does not use. Returns FALSE from a transport that cannot be re-tuned, so a sweep gives up rather than probing at a setting it only believes it applied. Takes effect on the next `Service`, like `Reopen`.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Raw` | BYTE |  | The SysCom stop-bit code to force. Numeric rather than an enumerator so a sweep can try codes it cannot name. |
+| `Baudrate` | UDINT |  | Rate to re-open at. **0 keeps the configured rate.** |
+| `StopBitsRaw` | BYTE |  | Raw SysCom stop-bit code, because the `SYS_COM_STOPBITS` enumerator names are not portable across runtimes and a sweep has to try codes it cannot name. **255 keeps the configured framing.** |
+| `ReplyTimeout` | TIME |  | Shorter while probing: a probe that is going to fail should fail quickly, and most of them do. **T#0S keeps the configured timeout.** |
+| `GapTime` | TIME |  | Same, for the silence that ends a frame. **T#0S keeps the configured gap.** |
+
+**`Service`** — Call every cycle. Drives the port and the exchange in flight, and returns `IDLE` / `BUSY` / `OK` / `FAILED`. `OK` and `FAILED` are each returned for exactly one cycle. The bus controller does this for you.
 
 **`Start`** — Begins one exchange. Returns FALSE if the port is down, an exchange is already in flight, or the function code is not one this transport implements.
 

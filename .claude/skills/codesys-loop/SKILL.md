@@ -194,6 +194,19 @@ Notes that cost real time to rediscover:
   it will report the same ambiguity and stop.
 - `insert()` takes the **offset first**, the reverse of the shipped stub. Same trap
   as `export_xml`.
+- **`create_method` works on an INTERFACE too**, which is how a method reaches
+  `RS485Device` or `RS485Transport` without hand-authoring interface XML: the
+  interface object owns text, so `create_method` plus `decl_replace` is the whole
+  job. Every implementer then needs the same method or the build fails by name —
+  which is the useful failure, and how the six RS485 device blocks were kept in
+  step when `GetCommissioning` was added.
+- **A `///` doc comment written by `decl_replace` does not reach the export.**
+  CODESYS only materialises `<documentation>` for a comment its own editor parsed,
+  so a method created from a script exports with its plaintext declaration intact
+  and no structured documentation — and `update-fb-docs` therefore shows it as
+  `_TODO: describe this._` however carefully the fragment was commented. Write the
+  description in the doc page, or in the generator's `GLOSSARY` when the method
+  means the same thing on every block.
 - `-Edits none` skips the spec, which is how you build the committed project
   standalone as a control. A `verify -Baseline` never applies edits.
 - Generating the fragments from a script (see `.ai/edits/gen.ps1` in history) beats
@@ -405,8 +418,15 @@ The spec format, for when it is usable — or as the model for a device-side tes
 ```
 
 Run with `./tools/ai/codesys.ps1 simulate -Spec path\to\spec.json`. Values are
-strings in both directions. A failed `expect` lands in `test_failures` and fails
-the run, distinct from a compiler error.
+strings in both directions, and `download -Spec` runs the same format against real
+hardware. A failed `expect` lands in `test_failures` and fails the run, distinct
+from a compiler error.
+
+**An `expect` is compared against the value as the runtime prints it, so it needs
+the type prefix and, for a string, the apostrophes:** `INT#4`, `UDINT#1`,
+`TIME#10s`, `'probes=1 found=9600/255'`. Writing `4` against an `INT` reports
+`expected 4, got INT#4`, which reads as a behavioural failure and is nothing of the
+kind — and each retry is a full download, so it costs three minutes to learn twice.
 
 ## Verifying runtime behaviour over MQTT
 

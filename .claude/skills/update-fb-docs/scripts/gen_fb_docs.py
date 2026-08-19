@@ -80,6 +80,18 @@ HIDDEN_METHODS = {
 # Key a parameter as "Method.param" to scope it, or "param" to apply anywhere.
 GLOSSARY = {
     # --- methods -----------------------------------------------------------
+    "GetCommissioning": "Asked once at startup, by `FB_RS485_COMMISSIONER`, whether "
+                        "this device needs something written into it before it can be "
+                        "spoken to at all - a device that ships on a baud rate the bus "
+                        "does not use, say. Returning FALSE, which is the ordinary "
+                        "case, means there is nothing to do.",
+    "GetCommissioning.BusBaudrate": "What the bus runs at, so a device can encode that "
+                                    "rate the way its own register expects - and can "
+                                    "withdraw if it cannot be told to use it.",
+    "GetCommissioning.pRequest": "Commissioner-owned scratch to fill when the answer is "
+                                 "TRUE: what to probe, which register to write, and the "
+                                 "rates worth trying. Only valid for the duration of the "
+                                 "call.",
     "InitMqtt": "Enables MQTT on the function block. Call once at startup.",
     "InitBaseMqtt": "Shared MQTT setup inherited from `FB_MQTT_BASE`.",
     "InitMqttDiscovery": "Publishes a Home Assistant MQTT discovery config so the "
