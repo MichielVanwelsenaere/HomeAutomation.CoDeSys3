@@ -48,7 +48,7 @@ VAR_GLOBAL
     MqttPubHVACPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'Out/HVAC/');
     MqttSubHVACPrefix : STRING(100) := CONCAT(MqttBaseTopic, 'In/HVAC/');
     MqttSubSwitchTopic : STRING(100) := CONCAT(MqttSubSwitchPrefix, '+');
-    MqttSubCoverTopic : STRING(100) := CONCAT(MqttSubCoverPrefix, '+');
+    MqttSubCoverTopic : STRING(100) := CONCAT(MqttSubCoverPrefix, '#');
     MqttSubDimmerTopic : STRING(100) := CONCAT(MqttSubDimmerPrefix, '#');
     MqttSubRS485Topic : STRING(100) := CONCAT(MqttSubRS485Prefix, '#');
     MqttSubHVACTopic : STRING(100) := CONCAT(MqttSubHVACPrefix, '#');
