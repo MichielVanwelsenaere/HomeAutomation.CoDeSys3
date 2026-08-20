@@ -41,6 +41,10 @@ Basic function blocks for basic IO events and operations.
 - [FB_OUTPUT_DIMMER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_MQTT.md)
 - [FB_OUTPUT_COVER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_MQTT.md)
 - [FB_OUTPUT_BISTABLE_MQTT](./docs/FunctionBlocks/FB_OUTPUT_BISTABLE_MQTT.md)
+- [FB_INPUT_TEMPERATURE_RTD_MQTT](./docs/FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md)
+
+A resistance temperature sensor - a Pt1000 on a WAGO 750-463 - needs the module wiring and
+one line of code; see [reading a temperature sensor](./docs/AnalogInputs/UsingRTDSensors.md).
 
 ## Modbus RTU over RS485
 With many PLCs having an onboard RS485 serial port it is a popular protocol to create a robust Modbus RTU sensor network.
