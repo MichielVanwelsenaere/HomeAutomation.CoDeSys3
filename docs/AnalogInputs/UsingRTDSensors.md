@@ -161,9 +161,36 @@ that means **WAGO-I/O-CHECK**. Two things to know before planning for it:
   [750-923](https://www.wago.com/global/accessories/configuration-cable/p/750-923/) (USB, 2.5 m)
   or 750-920 (serial). That interface exists for I/O-CHECK, I/O-PRO and firmware download.
 
-Then: stop the PLC application so the K-bus is free, connect the cable, let I/O-CHECK identify the
-node, select the 750-463, and set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**. Write
-the settings into the module, power-cycle the node, and start the application again.
+:rotating_light: **I/O-CHECK cannot reach a PFC200 over Ethernet. It is the cable or nothing.**
+Scanning the controller's IP returns *"the communication protocol is not supported by this device
+or it's deactivated in the device"*, and that message is accurate rather than a hint to go looking
+for a switch. WAGO's own firmware config for this family
+([pfc-firmware-sdk](https://github.com/WAGO/pfc-firmware-sdk/blob/master/configs/wago-pfcXXX/ptxconfig_generic))
+starts the service like this:
+
+```
+PTXCONF_IO_CHECK_RS232=y
+PTXCONF_IO_CHECK_RS232_STARTLINE="localhost:wago-serv-ser stream tcp nowait.3 root /usr/bin/iocheckd iocheckd serial"
+```
+
+`iocheckd` is an on-demand service **bound to localhost**, fed by the serial service interface.
+Nothing network-facing serves the I/O-Check protocol, so no WBM setting will make an Ethernet scan
+work.
+
+Then, with the cable in the 4-pin header:
+
+1. **Stop the PLC application.** The CODESYS runtime owns the K-bus — the firmware is built with
+   `PTXCONF_CDS3_IODRVKBUS=y` — and it does not share it. `codesys.ps1 download -Force -NoStart`
+   leaves the controller loaded but stopped; a normal `download` afterwards puts it back.
+2. Point I/O-CHECK at the **virtual COM port** the USB cable presents, not at an IP, and let it
+   identify the node.
+3. Select the 750-463 and set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**. Write the
+   settings into the module, power-cycle the node, and start the application again.
+
+:rotating_light: **Do not touch *Ports and Services → Serial Interface* in the WBM.** That page
+governs the onboard RS232/485 port, which on this bench carries the Modbus bus at 9600 and had to
+be assigned to the PLC runtime with `serialmode RS485` before any of the meters worked. The
+service interface under the flap is a different connector and needs nothing configured.
 
 There is no route to this from IEC code as this project is configured, and it is not a matter of
 enabling something: the CODESYS device description for `01CF_75x_463` offers a single layout of
