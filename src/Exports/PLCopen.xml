@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T15:39:15.0629441" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T15:32:56.7180876">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T17:23:02.8330502" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T17:20:12.3055764">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -532,7 +532,7 @@ build can catch that, because nothing in the PLC is wrong.</xhtml>
                 <derived name="JSONVAR" />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state closed</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> state closed	</xhtml>
               </documentation>
             </variable>
             <variable name="stat_closing">
@@ -549,42 +549,6 @@ build can catch that, because nothing in the PLC is wrong.</xhtml>
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> state stopped</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pos_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> position_topic - where the cover reports how far open it is,
- as a number between pos_clsd and pos_open. Null on a cover that
- only knows open, closed and moving.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="set_pos_t">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> set_position_topic - where Home Assistant asks for a position.
- Its presence is what puts a slider on the entity rather than
- three buttons.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pos_open">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> position_open - the number that means fully open, normally 100</xhtml>
-              </documentation>
-            </variable>
-            <variable name="pos_clsd">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> position_closed - the number that means fully closed, normally 0</xhtml>
               </documentation>
             </variable>
             <variable name="opt">
@@ -613,6 +577,56 @@ build can catch that, because nothing in the PLC is wrong.</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>dd6c0c75-adf8-471d-911e-f12786d0e736</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_COVER_POSITION">
+        <baseType>
+          <struct>
+            <variable name="pos_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">position_topic - where the cover reports how far open it is, as a number
+between pos_clsd and pos_open.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="set_pos_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">set_position_topic - where Home Assistant asks for a position. Its presence
+is what puts a slider on the entity rather than three buttons.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pos_open">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">position_open - the number that means fully open, normally 100</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pos_clsd">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">position_closed - the number that means fully closed, normally 0</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_COVER</Extends>
+            </Inheritance>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>da529542-8240-4724-b774-dd369f156566</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -5058,8 +5072,8 @@ THIS^.T_UD := T_UD;
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Manual up, e.g. straight from a pushbutton's long-press output. Held TRUE
  drives the motor up and releasing it stops and holds where it is, which is
- what a physical button should do - the position setpoint is abandoned
- rather than resumed.</xhtml>
+ what a physical button should do - the position it was travelling to is
+ abandoned rather than resumed.</xhtml>
               </documentation>
             </variable>
             <variable name="DN">
@@ -5067,9 +5081,8 @@ THIS^.T_UD := T_UD;
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Manual down, same contract as UP. Both held together is not a command: it
- is what the engine underneath calls automatic, and this block does that on
- its own when Home Assistant asks for a position.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Manual down, same contract as UP. Both at once is not a command and is
+ ignored, because there is no sane guess to make.</xhtml>
               </documentation>
             </variable>
             <variable name="PRIO_LOCK">
@@ -5092,12 +5105,12 @@ THIS^.T_UD := T_UD;
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long the cover takes to travel from fully closed to fully open, and
  back. These two are how the position is known at all: there is no encoder
- on a shutter motor, so the engine integrates run time against them.
+ on a shutter motor, so run time is integrated against them.
 
  Measure them rather than guessing, and measure both - a shutter usually
  falls faster than it climbs. Being 10% out shows up as a position that
  drifts from reality in the middle of the travel and snaps back at the end
- stops, where the engine recalibrates.</xhtml>
+ stops, where it recalibrates.</xhtml>
               </documentation>
             </variable>
             <variable name="T_TravelDown">
@@ -5107,6 +5120,45 @@ THIS^.T_UD := T_UD;
               <initialValue>
                 <simpleValue value="TIME#20s0ms" />
               </initialValue>
+            </variable>
+            <variable name="T_Lockout">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Dead time between a stop and starting the other direction, so a reversing
+ contactor is never asked to change its mind while the motor is still
+ turning.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="T_EndStop">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#2s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long to keep the motor running once an end stop is reached. This is
+ what keeps the estimate honest: every full journey ends against the stop,
+ so the position is measured there rather than integrated forever.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Tolerance">
+              <type>
+                <BYTE />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How close to the requested position counts as arrived, in percent. Below
+ about 2 the cover hunts, because a shutter cannot be positioned finer than
+ its own start and stop time.</xhtml>
+              </documentation>
             </variable>
             <variable name="PublishStep">
               <type>
@@ -5129,8 +5181,8 @@ THIS^.T_UD := T_UD;
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Motor contactors. Never both TRUE - the engine enforces a lockout between
- direction changes.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Motor contactors. Never both TRUE, and never switched straight from one to
+ the other - T_Lockout always passes between them.</xhtml>
               </documentation>
             </variable>
             <variable name="MD">
@@ -5143,8 +5195,7 @@ THIS^.T_UD := T_UD;
                 <BYTE />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How far open, 0 closed to 100 open, the way Home Assistant counts a cover.
- Converted from the engine's own 0..255.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How far open, 0 closed to 100 open, the way Home Assistant counts a cover.</xhtml>
               </documentation>
             </variable>
             <variable name="Moving">
@@ -5160,9 +5211,9 @@ THIS^.T_UD := T_UD;
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The engine has reached an end stop at least once since power-up, so the
- position is measured rather than assumed. FALSE means it is still guessing
- from the calibration run.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> An end stop has been reached since power-up, so the position is measured
+ rather than assumed. FALSE means the cover has not yet been anywhere it
+ could be sure of.</xhtml>
               </documentation>
             </variable>
           </outputVars>
@@ -5183,56 +5234,102 @@ THIS^.T_UD := T_UD;
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name</xhtml>
               </documentation>
             </variable>
-            <variable name="Blind">
+            <variable name="PositionReal">
               <type>
-                <derived name="OSCAT_BUILDING.BLIND_CONTROL_S" />
+                <REAL />
               </type>
-              <initialValue>
-                <structValue>
-                  <value member="T_LOCKOUT">
-                    <simpleValue value="TIME#1s0ms" />
-                  </value>
-                  <value member="T_EXT">
-                    <simpleValue value="TIME#2s0ms" />
-                  </value>
-                </structValue>
-              </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The position engine: OSCAT's own blind control, which this project already
-	   references. It integrates run time against T_UP and T_DN to keep a
-	   simulated position, extends the motor at the end stops so every full
-	   journey recalibrates, and holds a lockout on direction changes.
-
-	   T_LOCKOUT and T_EXT are VAR_INPUT CONSTANT on that block, so they can only
-	   be set here at the declaration - which is why they are not inputs of this
-	   one. One second between directions and two seconds of end-stop extension
-	   suit every shutter motor met so far; change them here if one does not. </xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- the position estimate ---
+	   Kept as a REAL: a 20 ms task tick against a 20 s travel is 0.1% per cycle,
+	   which would round to nothing in a BYTE and the cover would never appear to
+	   move at all. </xhtml>
               </documentation>
             </variable>
-            <variable name="Setpoint">
+            <variable name="Target">
               <type>
-                <BYTE />
+                <REAL />
               </type>
               <initialValue>
-                <simpleValue value="255" />
+                <simpleValue value="100.0" />
               </initialValue>
+            </variable>
+            <variable name="Driving">
+              <type>
+                <INT />
+              </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where the cover is being sent, in the engine's 0..255. 255 is fully open.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 0 stopped, 1 driving up, -1 driving down</xhtml>
               </documentation>
             </variable>
-            <variable name="AutoMode">
+            <variable name="DrivingLast">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> What Driving was last cycle, so a direction change can be caught</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ManualDrive">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A held button overrides the target entirely, and releasing it pins the
+ target to wherever the cover got to.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="tNow">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="tLast">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="tValid">
               <type>
                 <BOOL />
               </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE while a position is being regulated to, FALSE while a person holds a
- button or after a stop.</xhtml>
-              </documentation>
+            </variable>
+            <variable name="dtMs">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+            <variable name="TravelMs">
+              <type>
+                <UDINT />
+              </type>
+            </variable>
+            <variable name="Step">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="Lockout">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="EndStop">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="AtEnd">
+              <type>
+                <BOOL />
+              </type>
             </variable>
             <variable name="MqttRequestOpen">
               <type>
                 <BOOL />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- MQTT --- </xhtml>
+              </documentation>
             </variable>
             <variable name="MqttRequestClose">
               <type>
@@ -5282,15 +5379,6 @@ THIS^.T_UD := T_UD;
                 <simpleValue value="TRUE" />
               </initialValue>
             </variable>
-            <variable name="HasMoved">
-              <type>
-                <BOOL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A motor has run at least once since power-up, so an end stop reached from
- here is a measurement rather than the engine's opening assumption.</xhtml>
-              </documentation>
-            </variable>
             <variable name="Payload">
               <type>
                 <string length="20" />
@@ -5313,26 +5401,41 @@ THIS^.T_UD := T_UD;
             </variable>
           </localVars>
           <localVars constant="true">
-            <variable name="RAW_OPEN">
+            <variable name="DRIVE_STOP">
               <type>
-                <BYTE />
+                <INT />
               </type>
               <initialValue>
-                <simpleValue value="255" />
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="DRIVE_UP">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+            <variable name="DRIVE_DOWN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="MAX_TICK_MS">
+              <type>
+                <UDINT />
+              </type>
+              <initialValue>
+                <simpleValue value="500" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The engine's fully-open position. OSCAT counts 0 at the bottom and 255 at
- the top; Home Assistant counts 0 closed and 100 open. Every conversion in
- this block goes through these two so the arithmetic is in one place.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A cycle longer than this is a debugger breakpoint, a download, or a task
+ overrun - not travel. Integrating it would teleport the cover.</xhtml>
               </documentation>
-            </variable>
-            <variable name="PCT_OPEN">
-              <type>
-                <BYTE />
-              </type>
-              <initialValue>
-                <simpleValue value="100" />
-              </initialValue>
             </variable>
           </localVars>
           <addData>
@@ -5382,114 +5485,155 @@ IF FriendlyName &lt;&gt; '' THEN
 
 END_IF
 
-(* The two extra topics, built once the base has composed its own. Position is a
-   level below the state topic rather than a sibling of it, so one wildcard
-   subscription covers the command and the position command together. *)
 IF InitMqttDone AND (PositionTopic = '') THEN
 	PositionTopic := CONCAT(THIS^.MQTTPublishTopic, '/POSITION');
 	SetPositionTopic := CONCAT(THIS^.MQTTSubscribeTopic, '/POSITION');
 END_IF
 
-(* --- what has been asked of us -----------------------------------------------
-   A person holding a button beats anything Home Assistant asked for, and beats
-   it by abandoning the setpoint rather than queueing behind it: releasing the
-   button leaves the cover where it is. That is the behaviour a physical button
-   has to have, because the person is looking at the cover.
+(* --- how much time has passed -------------------------------------------------
+   The position is integrated from run time, so the length of a cycle is the one
+   measurement this block cannot do without. A tick longer than MAX_TICK_MS is a
+   download, a breakpoint or a task overrun rather than travel, and is dropped:
+   integrating it would teleport the cover. *)
+tNow := TIME();
+IF NOT tValid THEN
+	tValid := TRUE;
+	dtMs := 0;
+ELSE
+	dtMs := TIME_TO_UDINT(tNow) - TIME_TO_UDINT(tLast);
+	IF dtMs &gt; MAX_TICK_MS THEN
+		dtMs := 0;
+	END_IF
+END_IF
+tLast := tNow;
 
-   MQTT commands are latched by the callback and consumed here, so a command that
-   arrives mid-cycle is acted on exactly once. *)
-IF UP XOR DN THEN
-	AutoMode := FALSE;
+(* --- integrate ---------------------------------------------------------------
+   Whatever the motor did last cycle is what moved the cover, so the estimate is
+   advanced before this cycle's decision is taken. *)
+IF Driving = DRIVE_UP THEN
+	TravelMs := TIME_TO_UDINT(T_TravelUp);
+	IF TravelMs &gt; 0 THEN
+		Step := UDINT_TO_REAL(dtMs) * 100.0 / UDINT_TO_REAL(TravelMs);
+		PositionReal := PositionReal + Step;
+	END_IF
+ELSIF Driving = DRIVE_DOWN THEN
+	TravelMs := TIME_TO_UDINT(T_TravelDown);
+	IF TravelMs &gt; 0 THEN
+		Step := UDINT_TO_REAL(dtMs) * 100.0 / UDINT_TO_REAL(TravelMs);
+		PositionReal := PositionReal - Step;
+	END_IF
+END_IF
 
-ELSIF MqttRequestStop THEN
+IF PositionReal &gt; 100.0 THEN
+	PositionReal := 100.0;
+END_IF
+IF PositionReal &lt; 0.0 THEN
+	PositionReal := 0.0;
+END_IF
+
+(* --- a held button wins -------------------------------------------------------
+   A person watching the cover beats anything Home Assistant asked for, and beats
+   it by abandoning the target rather than queueing behind it: releasing the
+   button pins the target to wherever the cover got to, so nothing resumes.
+
+   Both buttons at once is not a command. There is no sane guess to make. *)
+IF UP AND NOT DN THEN
+	ManualDrive := DRIVE_UP;
+ELSIF DN AND NOT UP THEN
+	ManualDrive := DRIVE_DOWN;
+ELSE
+	IF ManualDrive &lt;&gt; DRIVE_STOP THEN
+		Target := PositionReal;
+	END_IF
+	ManualDrive := DRIVE_STOP;
+END_IF
+
+(* --- and what Home Assistant asked for ---------------------------------------
+   Latched by the callback, consumed here, so a command that arrives mid-cycle is
+   acted on exactly once. *)
+IF MqttRequestStop THEN
 	MqttRequestStop := FALSE;
-	(* Hold here. The setpoint has to be dragged to the present position or
-	   automatic mode would resume the interrupted journey the moment it is
-	   entered again - a stop that only pauses is not a stop. *)
-	Setpoint := Blind.POS;
-	AutoMode := FALSE;
-
+	(* Hold here. The target has to be dragged to the present position or the
+	   interrupted journey would resume on the next cycle - a stop that only
+	   pauses is not a stop. *)
+	Target := PositionReal;
 ELSIF MqttRequestOpen THEN
 	MqttRequestOpen := FALSE;
-	Setpoint := RAW_OPEN;
-	AutoMode := TRUE;
-
+	Target := 100.0;
 ELSIF MqttRequestClose THEN
 	MqttRequestClose := FALSE;
-	Setpoint := 0;
-	AutoMode := TRUE;
-
+	Target := 0.0;
 ELSIF MqttRequestPosition THEN
 	MqttRequestPosition := FALSE;
-	(* Percent to the engine's own scale, rounded rather than truncated: 50% of
-	   255 is 127.5, and a slider that reads 49 after being set to 50 looks
-	   broken. *)
-	IF MqttRequestPositionPct &gt;= PCT_OPEN THEN
-		Setpoint := RAW_OPEN;
-	ELSE
-		Setpoint := INT_TO_BYTE(((BYTE_TO_INT(MqttRequestPositionPct) * BYTE_TO_INT(RAW_OPEN))
-		+ (BYTE_TO_INT(PCT_OPEN) / 2)) / BYTE_TO_INT(PCT_OPEN));
-	END_IF
-	AutoMode := TRUE;
+	Target := BYTE_TO_REAL(MqttRequestPositionPct);
 END_IF
 
-(* --- drive --------------------------------------------------------------------
-   Both inputs TRUE is what the engine calls automatic: it regulates POS to PI on
-   its own, including the extension at the end stops that keeps the simulated
-   position honest. Both FALSE stops the motors and also suppresses the engine's
-   calibration run, which is why a stop holds rather than drifts.
+(* --- decide -------------------------------------------------------------------
+   An end stop is driven into rather than stopped at: the motor keeps running for
+   T_EndStop once the estimate reaches the limit, which is what makes the position
+   measured there rather than integrated forever, and what lets a cover that has
+   drifted find itself again. *)
+AtEnd := ((Target &gt;= 100.0) AND (PositionReal &gt;= 100.0))
+	OR ((Target &lt;= 0.0) AND (PositionReal &lt;= 0.0));
 
-   PRIO_LOCK is applied here rather than to the commands above, so a lock does
-   not lose what was asked for - it just refuses to move until it clears. *)
-IF PRIO_LOCK THEN
-	Blind(UP := FALSE, DN := FALSE, PI := Setpoint, T_UP := T_TravelUp, T_DN := T_TravelDown);
-ELSIF AutoMode THEN
-	Blind(UP := TRUE, DN := TRUE, PI := Setpoint, T_UP := T_TravelUp, T_DN := T_TravelDown);
-ELSE
-	Blind(UP := UP, DN := DN, PI := Setpoint, T_UP := T_TravelUp, T_DN := T_TravelDown);
-END_IF
+EndStop(IN := AtEnd AND (Driving &lt;&gt; DRIVE_STOP), PT := T_EndStop);
 
-MU := Blind.MU;
-MD := Blind.MD;
-Moving := Blind.MU OR Blind.MD;
-
-(* The engine's 0..255 to Home Assistant's 0..100, rounded the same way as the
-   setpoint conversion so that a position set to 50 reads back as 50. *)
-IF Blind.POS &gt;= RAW_OPEN THEN
-	Position := PCT_OPEN;
-ELSE
-	Position := INT_TO_BYTE(((BYTE_TO_INT(Blind.POS) * BYTE_TO_INT(PCT_OPEN))
-		+ (BYTE_TO_INT(RAW_OPEN) / 2)) / BYTE_TO_INT(RAW_OPEN));
-END_IF
-
-(* An end stop is the only place the position is measured rather than integrated,
-   so reaching one is what turns a guess into a fact - but only if something drove
-   there. The engine starts its simulated position at 0, which looks exactly like
-   a shutter resting closed and is in fact an assumption about a cover nobody has
-   moved yet. Requiring a motor to have run first is what keeps those two apart. *)
-IF Moving THEN
-	HasMoved := TRUE;
-END_IF
-IF HasMoved AND ((Blind.POS = 0) OR (Blind.POS &gt;= RAW_OPEN)) THEN
+IF ManualDrive &lt;&gt; DRIVE_STOP THEN
+	Driving := ManualDrive;
+ELSIF AtEnd AND EndStop.Q THEN
+	Driving := DRIVE_STOP;
 	PositionKnown := TRUE;
+ELSIF AtEnd AND (Driving &lt;&gt; DRIVE_STOP) THEN
+	(* Keep going, briefly, to reach the stop itself. *)
+	;
+ELSIF (Target - PositionReal) &gt; BYTE_TO_REAL(Tolerance) THEN
+	Driving := DRIVE_UP;
+ELSIF (PositionReal - Target) &gt; BYTE_TO_REAL(Tolerance) THEN
+	Driving := DRIVE_DOWN;
+ELSE
+	Driving := DRIVE_STOP;
 END_IF
+
+IF PRIO_LOCK THEN
+	Driving := DRIVE_STOP;
+END_IF
+
+(* --- lockout ------------------------------------------------------------------
+   A reversing contactor must never be asked to change direction while the motor
+   is still turning, so a direction change always passes through a stop of at
+   least T_Lockout. Starting from standstill is not delayed. *)
+IF (Driving &lt;&gt; DRIVE_STOP) AND (DrivingLast &lt;&gt; DRIVE_STOP) AND (Driving &lt;&gt; DrivingLast) THEN
+	Driving := DRIVE_STOP;
+END_IF
+
+Lockout(IN := (Driving = DRIVE_STOP), PT := T_Lockout);
+
+IF (Driving &lt;&gt; DRIVE_STOP) AND (DrivingLast = DRIVE_STOP) AND NOT Lockout.Q THEN
+	Driving := DRIVE_STOP;
+END_IF
+
+DrivingLast := Driving;
+
+MU := (Driving = DRIVE_UP);
+MD := (Driving = DRIVE_DOWN);
+Moving := MU OR MD;
+Position := REAL_TO_BYTE(PositionReal + 0.5);
 
 (* --- state -------------------------------------------------------------------
-   Moving beats resting, and an end stop beats the middle. Published on change
-   only, plus once at startup so a retained value exists before anything moves. *)
-IF Blind.MU THEN
+   Moving beats resting, and an end stop beats the middle. A cover that has not
+   reached a stop since power-up says STOPPED rather than guessing: the estimate
+   starts at 0, which looks exactly like a shutter resting closed and is in fact
+   an assumption. FB_OUTPUT_COVER_MQTT publishes STOPPED at boot for the same
+   reason. *)
+IF MU THEN
 	State := 'OPENING';
-ELSIF Blind.MD THEN
+ELSIF MD THEN
 	State := 'CLOSING';
 ELSIF NOT PositionKnown THEN
-	(* Nothing has driven to an end stop yet, so OPEN and CLOSED would both be
-	   guesses. 'STOPPED' is an honest "position unknown", and it is what
-	   FB_OUTPUT_COVER_MQTT publishes at boot for the same reason: a confidently
-	   wrong CLOSED misleads an automation more than no position does. *)
 	State := 'STOPPED';
-ELSIF Blind.POS &gt;= RAW_OPEN THEN
+ELSIF Position &gt;= 100 THEN
 	State := 'OPEN';
-ELSIF Blind.POS = 0 THEN
+ELSIF Position = 0 THEN
 	State := 'CLOSED';
 ELSE
 	State := 'STOPPED';
@@ -5528,9 +5672,7 @@ IF InitMqttDone THEN
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := TRUE);
 	END_IF
-END_IF
 
-IF InitMqttDone THEN
 	Startup := FALSE;
 END_IF
 </xhtml>
@@ -5538,7 +5680,7 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived" ObjectId="c469aad6-8c71-44bf-993e-848a6a42ac0b">
+            <Method name="PublishReceived" ObjectId="6b2b33f9-e652-445c-a90e-f2f7051454c0">
               <interface>
                 <returnType>
                   <BOOL />
@@ -5599,7 +5741,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="ce99be4c-f441-4698-9b1f-051c457b3a48">
+            <Method name="InitMqttDiscovery" ObjectId="a5a44a44-6ca5-4c45-b08c-12c7fe482f45">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -5676,12 +5818,12 @@ END_IF
 
 	id := SUPER^.ResolveEntityId(overruleId);
 
-	(* The position topics are what separate this entity from the one
-	   FB_OUTPUT_COVER_MQTT announces: supplying set_position_topic is what puts a
-	   slider in front of the user instead of three buttons. Everything else is
-	   deliberately identical, so swapping one block for the other keeps the same
-	   entity behaviour for open, close and stop. *)
-	Device^.CreateCoverEntity(
+	(* A different method, not extra arguments to the one FB_OUTPUT_COVER_MQTT uses:
+	   Home Assistant rejects position_topic and set_position_topic as null, so the
+	   two configs have to differ by which keys exist rather than by their values.
+	   Everything else is deliberately identical, so swapping one block for the
+	   other keeps the same behaviour for open, close and stop. *)
+	Device^.CreateCoverEntityWithPosition(
 		Name := name,
 		Id := id,
 		Meta := meta,
@@ -5710,7 +5852,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="748827b2-3346-495d-bca0-fdbf5dcfef45">
+            <Method name="InitMqtt" ObjectId="0bd79419-99a2-43dc-a20b-7371978ccd6b">
               <interface>
                 <inputVars>
                   <variable name="MQTTPublishPrefix">
@@ -10214,6 +10356,17 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Home Assistant fan platform</xhtml>
               </documentation>
             </variable>
+            <variable name="MqttDiscMsgCoverPos">
+              <type>
+                <derived name="MQTT_DISCOVERY_COVER_POSITION" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The position-capable cover's own config struct. A separate struct because
+	   Home Assistant rejects position_topic and set_position_topic as null, so a
+	   cover without a slider has to publish a config where those keys are absent
+	   rather than empty - see CreateCoverEntityWithPosition. </xhtml>
+              </documentation>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -11445,54 +11598,6 @@ CreateDiagnosticSensorEntity(
                       <string />
                     </type>
                   </variable>
-                  <variable name="PositionTopic">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where the cover reports how far open it is. Leave empty on a cover that
- only knows open, closed and moving - both position fields then publish
- null and Home Assistant shows the three buttons it always showed.</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="SetPositionTopic">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where Home Assistant asks for a position. **Supplying this is what puts a
- slider on the entity**, so a block that cannot honour an arbitrary
- position must leave it empty.</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="PositionOpen">
-                    <type>
-                      <INT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="100" />
-                    </initialValue>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> The numbers that mean fully open and fully closed. Home Assistant's own
- defaults, and there is no good reason to differ - a cover that counts
- some other way should convert before publishing rather than teach every
- reader a private scale.</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="PositionClosed">
-                    <type>
-                      <INT />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="0" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="EntityId">
@@ -11550,33 +11655,7 @@ MqttDiscMsgCover.stat_stopped.CharString := StateStopped;
 MqttDiscMsgCover.opt.Boolean := FALSE;
 MqttDiscMsgCover.dev_cla.CharString := Deviceclass;
 
-(* Position, or four nulls.
 
-   An empty topic has to publish null rather than an empty string: Home Assistant
-   validates a cover config as a whole and an empty position_topic loses the
-   entity rather than just the slider. Same reason dev_cla and the unit are
-   nulled elsewhere in this block.
-
-   The two numbers are nulled with the topics rather than published on their own,
-   so a cover without position support announces exactly what it did before these
-   fields existed - four nulls that Home Assistant reads as absent. *)
-IF PositionTopic &lt;&gt; '' THEN
-	MqttDiscMsgCover.pos_t.CharString := PositionTopic;
-ELSE
-	MqttDiscMsgCover.pos_t.Null := 'null';
-END_IF
-IF SetPositionTopic &lt;&gt; '' THEN
-	MqttDiscMsgCover.set_pos_t.CharString := SetPositionTopic;
-ELSE
-	MqttDiscMsgCover.set_pos_t.Null := 'null';
-END_IF
-IF (PositionTopic &lt;&gt; '') OR (SetPositionTopic &lt;&gt; '') THEN
-	MqttDiscMsgCover.pos_open.Integer := PositionOpen;
-	MqttDiscMsgCover.pos_clsd.Integer := PositionClosed;
-ELSE
-	MqttDiscMsgCover.pos_open.Null := 'null';
-	MqttDiscMsgCover.pos_clsd.Null := 'null';
-END_IF
 
 THIS^.PublishEntityConfig(
 	pStruct := ADR(MqttDiscMsgCover),
@@ -12816,6 +12895,216 @@ ELSIF NOT (MqttJSON = '') THEN
 	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := InstanceName);
 	PublishEntityConfig := TRUE;
 END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateCoverEntityWithPosition" ObjectId="d26dec3e-c63e-441c-b7ac-a2426fd3105d">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> default</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="CommandTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PayloadOpen">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="PayloadClose">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="PayloadStop">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateOpen">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateOpening">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateClosed">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateClosing">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="StateStopped">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Deviceclass">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="PositionTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where the cover reports how far open it is.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="SetPositionTopic">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where Home Assistant asks for a position. **Supplying this is what puts a
+ slider on the entity** rather than three buttons.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PositionOpen">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="100" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> The numbers that mean fully open and fully closed. Home Assistant's own
+ defaults, and there is no good reason to differ - a cover that counts some
+ other way should convert before publishing rather than teach every reader a
+ private scale.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PositionClosed">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="0" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'cover'" />
+                    </initialValue>
+                  </variable>
+                  <variable name="ComposeJSON">
+                    <type>
+                      <derived name="STRUCT_TO_JSON" />
+                    </type>
+                  </variable>
+                  <variable name="MqttJSON">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="MqttTopic">
+                    <type>
+                      <string length="100" />
+                    </type>
+                  </variable>
+                  <variable name="bStripJsonRootOk">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* A cover with a position slider, published from its own struct.
+
+   Deliberately a second method and a second struct rather than four optional
+   parameters on CreateCoverEntity, because Home Assistant will not accept the
+   fields as null. It validates set_position_topic and position_topic as strings,
+   and a null fails the whole config rather than just the slider:
+
+     Error 'string value is None for dictionary value @ data['set_position_topic']'
+     when processing MQTT discovery message topic:
+     'homeassistant/cover/..._FB_DO_COVER_001/config'
+
+   which cost a working cover entity for as long as the null was published. A key
+   that must not be there cannot be nulled; it has to be absent, and the way this
+   project makes a key absent is a struct without it. Same reason
+   MQTT_DISCOVERY_BINARY_SENSOR_ENT_CAT exists beside MQTT_DISCOVERY_BINARY_SENSOR
+   rather than the category being an optional field. *)
+THIS^.FillCommonFields(
+	pBase := ADR(MqttDiscMsgCoverPos),
+	EntityId := EntityId,
+	Name := name,
+	Id := Id,
+	Meta := meta);
+
+// Entity related: Specific
+MqttDiscMsgCoverPos.cmd_t.CharString := CommandTopic;
+MqttDiscMsgCoverPos.pl_open.CharString := PayloadOpen;
+MqttDiscMsgCoverPos.pl_cls.CharString := PayloadClose;
+MqttDiscMsgCoverPos.pl_stop.CharString := PayloadStop;
+MqttDiscMsgCoverPos.stat_t.CharString := StateTopic;
+MqttDiscMsgCoverPos.stat_open.CharString := StateOpen;
+MqttDiscMsgCoverPos.stat_opening.CharString := StateOpening;
+MqttDiscMsgCoverPos.stat_clsd.CharString := StateClosed;
+MqttDiscMsgCoverPos.stat_closing.CharString := StateClosing;
+MqttDiscMsgCoverPos.stat_stopped.CharString := StateStopped;
+MqttDiscMsgCoverPos.opt.Boolean := FALSE;
+MqttDiscMsgCoverPos.dev_cla.CharString := Deviceclass;
+
+// Position
+MqttDiscMsgCoverPos.pos_t.CharString := PositionTopic;
+MqttDiscMsgCoverPos.set_pos_t.CharString := SetPositionTopic;
+MqttDiscMsgCoverPos.pos_open.Integer := PositionOpen;
+MqttDiscMsgCoverPos.pos_clsd.Integer := PositionClosed;
+
+THIS^.PublishEntityConfig(
+	pStruct := ADR(MqttDiscMsgCoverPos),
+	StructSize := SIZEOF(MqttDiscMsgCoverPos),
+	EntityId := EntityId,
+	Id := Id);
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -22762,16 +23051,20 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                   <action name="MOVE_COVERS">
                     <body>
                       <ST>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml">FB_DO_COVER_001(
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* FB_DO_COVER_001 keeps the relays it always had. The position-capable block gets
+   DO_005 and DO_006, freed in HVAC_RUN for exactly this - two LEDs on the second
+   output module that can be watched while the cover is commanded from Home
+   Assistant, which is what makes the position logic verifiable at a glance.
+
+   One writer per coil, in one task. DO_005..DO_008 used to be written from
+   HvacTask, and a second writer here would have made both meaningless without the
+   compiler saying a word. *)
+FB_DO_COVER_001(
 	TOGGLE:=FB_DI_PB_001.P_LONG,
 	MU=&gt;DO_003,
-	MD=&gt;DO_004	
+	MD=&gt;DO_004
 );
 
-(* Position-capable sibling on the next pair of outputs. UP and DN are left
-   unwired for now: this instance is driven from Home Assistant, and a
-   pushbutton can be added by handing it P_LONG the way FB_DO_COVER_001 takes
-   TOGGLE. *)
 FB_DO_COVER_002(
 	T_TravelUp := T#20S,
 	T_TravelDown := T#20S,
@@ -24151,8 +24444,10 @@ END_IF
 // FLoorheating
 FB_THERMOSTAT_1(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
 FB_PUMP_1(
-	IN := FB_THERMOSTAT_1.OUT,
-	PUMP =&gt; DO_005
+	IN := FB_THERMOSTAT_1.OUT
+	(* Coil dropped: DO_005..DO_008 are the bench's spare LEDs now, and the
+	   cover block uses two of them. The pump logic and its MQTT entity are
+	   untouched - only the physical output is gone. *)
 );
 
 
@@ -24168,12 +24463,9 @@ FB_PUMP_2_COLLECTOR.THERMOSTAT[2] := FB_THERMOSTAT_3.OUT;
 
 FB_PUMP_2_COLLECTOR();
 
-DO_006 := FB_PUMP_2_COLLECTOR.VALVE[1];
-DO_007 := FB_PUMP_2_COLLECTOR.VALVE[2];
 
 FB_PUMP_2(
-	IN := FB_PUMP_2_COLLECTOR.PUMP,
-	PUMP =&gt; DO_008
+	IN := FB_PUMP_2_COLLECTOR.PUMP
 );
 
 // Heat source for both pumps
@@ -25927,9 +26219,9 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           </Object>
           <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
           <Object Name="FB_OUTPUT_COVER_POSITION_MQTT" ObjectId="92cee984-f36c-4945-afb6-94a21cf49a1e">
-            <Object Name="PublishReceived" ObjectId="c469aad6-8c71-44bf-993e-848a6a42ac0b" />
-            <Object Name="InitMqttDiscovery" ObjectId="ce99be4c-f441-4698-9b1f-051c457b3a48" />
-            <Object Name="InitMqtt" ObjectId="748827b2-3346-495d-bca0-fdbf5dcfef45" />
+            <Object Name="PublishReceived" ObjectId="6b2b33f9-e652-445c-a90e-f2f7051454c0" />
+            <Object Name="InitMqttDiscovery" ObjectId="a5a44a44-6ca5-4c45-b08c-12c7fe482f45" />
+            <Object Name="InitMqtt" ObjectId="0bd79419-99a2-43dc-a20b-7371978ccd6b" />
           </Object>
         </Folder>
         <Folder Name="DMX">
@@ -26013,6 +26305,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="CreateFanEntity" ObjectId="42111fdd-8268-497d-baba-e53bf1098874" />
             <Object Name="FillCommonFields" ObjectId="def60523-6479-4453-92db-f3019ef2d61a" />
             <Object Name="PublishEntityConfig" ObjectId="d5e9838e-75b1-4870-af63-4249d4044e89" />
+            <Object Name="CreateCoverEntityWithPosition" ObjectId="d26dec3e-c63e-441c-b7ac-a2426fd3105d" />
           </Object>
           <Object Name="FB_PLC_MQTT_DISCOVERY_DEVICE" ObjectId="293181e9-7da9-47da-a441-3d6d4f05045c">
             <Object Name="FB_init" ObjectId="0f05dfeb-28e6-4f3a-a8d1-4516d94b21ba" />
@@ -26038,6 +26331,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="MQTT_MESSAGE" ObjectId="95eff7e5-06f8-4be2-b096-62409f4cd51d" />
             <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
             <Object Name="MQTT_DISCOVERY_FAN" ObjectId="fb3fe26d-fe23-4358-87c1-ffeea777d962" />
+            <Object Name="MQTT_DISCOVERY_COVER_POSITION" ObjectId="da529542-8240-4724-b774-dd369f156566" />
           </Folder>
           <Folder Name="FUNCTION">
             <Object Name="FC_StripJsonRoot" ObjectId="b4e04fa1-7370-47e1-a5b3-eb4645c8d421" />

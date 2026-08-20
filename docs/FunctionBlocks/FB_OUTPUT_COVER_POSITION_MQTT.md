@@ -14,17 +14,14 @@ has nothing but two relays and no idea where it is; use this one when the travel
 which is nearly always.
 
 **Where the position comes from.** There is no encoder on a shutter motor, so the position is
-*integrated from run time* against `T_TravelUp` and `T_TravelDown` by
-`OSCAT_BUILDING.BLIND_CONTROL_S` — a library this project already references. That block keeps a
-simulated 0..255 position, extends the motor briefly at each end stop so every full journey
-recalibrates, and enforces a lockout between direction changes. This block is the translation
-layer around it: percent to and from 0..255, Home Assistant's payloads and topics, and the state
-machine that decides what a stop means.
+*integrated from run time* against `T_TravelUp` and `T_TravelDown`: every cycle, however long it
+lasted is added to or subtracted from the estimate. Reaching an end stop is the only place the
+position is ever *measured*, so the motor is deliberately driven into the stop for `T_EndStop`
+before it is trusted — which is also what lets a cover that has drifted find itself again.
 
-:bulb: **It drives `BLIND_CONTROL_S` directly, not through OSCAT's `BLIND_INPUT` stage.**
-Pushbutton handling in this project belongs to
-[`FB_INPUT_PUSHBUTTON_MQTT`](FB_INPUT_PUSHBUTTON_MQTT.md), and using OSCAT's input stage as well
-would put two state machines in charge of one shutter.
+Everything is in percent, and the only library types used are `TON` and `TIME()`. **The block
+depends on nothing but the standard library**, which was not the first plan — see
+*[why the position engine is ours](#why-the-position-engine-is-ours)*.
 
 :bulb: **Measure both travel times.** A shutter usually falls faster than it climbs. Times that
 are 10% out show up as a position that drifts from reality mid-travel and snaps back at the end
@@ -48,6 +45,9 @@ BOOL ──┤ DN                         MD ├── BOOL
 BOOL ──┤ PRIO_LOCK            Position ├── BYTE
 TIME ──┤ T_TravelUp             Moving ├── BOOL
 TIME ──┤ T_TravelDown    PositionKnown ├── BOOL
+TIME ──┤ T_Lockout                     │
+TIME ──┤ T_EndStop                     │
+BYTE ──┤ Tolerance                     │
 BYTE ──┤ PublishStep                   │
        └───────────────────────────────┘
 ```
@@ -63,6 +63,9 @@ BYTE ──┤ PublishStep                   │
 | `PRIO_LOCK` | BOOL | Nothing may drive the motor while this is TRUE — a wind alarm, a service switch, an open window contact. Commands are still accepted and still remembered; they simply do not move anything until it clears. |
 | `T_TravelUp` | TIME | Time to travel from fully closed to fully open. Defaults to 20 s. This is how the position is known at all, so measure it. |
 | `T_TravelDown` | TIME | Time to travel from fully open to fully closed. Defaults to 20 s, and is usually the shorter of the two. |
+| `T_Lockout` | TIME | Dead time between a stop and starting the other direction, so a reversing contactor is never asked to change its mind while the motor is still turning. Defaults to 1 s. Every direction change passes through it; starting from standstill is not delayed. |
+| `T_EndStop` | TIME | How long the motor keeps running once the estimate has reached an end stop. Defaults to 2 s. This is what makes the position **measured** at the ends rather than integrated forever, and what lets a drifted cover find itself again — so it should be comfortably longer than the worst accumulated error. |
+| `Tolerance` | BYTE | How close to the requested position counts as arrived, in percent. Defaults to 2. Below about 2 the cover hunts, because a shutter cannot be positioned finer than its own start and stop time. |
 | `PublishStep` | BYTE | Percent of travel between position publishes **while moving**. Defaults to 5, which gives a slider that visibly tracks the shutter without putting twenty messages per journey on the broker. The exact position is always published once movement ends, whatever this is set to. |
 
 **Outputs**
@@ -143,20 +146,22 @@ topic sits one level below the cover's own topic, and `MqttSubCoverTopic` used t
 which would not have delivered it. The older cover block's topics still match, so nothing changed
 for it.
 
-:white_check_mark: **Verified on hardware.** Runs on a CODESYS 3 PFC200, commanded from the broker
-with nothing wired to the outputs - the position is simulated from run time, so the whole chain
-can be exercised without a motor:
+:white_check_mark: **Verified on hardware: the MQTT side.** Commands arrive, the topics and both
+discovery configs are right, position publishes in `PublishStep` increments while travelling and
+exactly once movement ends, and the older cover block sharing the same prefix and collector is
+undisturbed:
 
 ```
 set position 90 ->  50  OPENING  55 60 65 70 75 80 85 90  STOPPED
-OPEN           ->  90  OPENING  95 100                   OPEN
-CLOSE          -> 100  CLOSING  95 90 ... 10 5 0          CLOSED
+OPEN            ->  90  OPENING  95 100                   OPEN
+CLOSE           -> 100  CLOSING  95 90 ... 10 5 0         CLOSED
 ```
 
-The 5% steps are `PublishStep`; the exact value lands when movement ends. A request for 50% became
-a setpoint of 128 of 255 and stopped at a reported 50, which is the rounding behaving. `STOP` left
-`AutoMode` FALSE with the setpoint dragged to where the cover stood, and the older cover block on
-the same prefix and the same collector was undisturbed throughout.
+:rotating_light: **Not yet verified on hardware: the motor outputs and this block's own position
+engine.** Those traces were produced by the earlier OSCAT-based version, and the engine has since
+been replaced (below). The MQTT and discovery code is unchanged and still verified; the drive
+logic, the coils, the lockout and the end-stop recalibration are compile-checked only, and are
+waiting on a bench with a running runtime.
 
 ### **What a stop means**
 
@@ -184,3 +189,33 @@ which is the whole difference from the older cover block on the Home Assistant s
 `null` for each when they are empty — so
 [`FB_OUTPUT_COVER_MQTT`](FB_OUTPUT_COVER_MQTT.md)'s config gains four nulls and behaves exactly as
 it did.
+
+### **Why the position engine is ours**
+
+The first version of this block wrapped `OSCAT_BUILDING.BLIND_CONTROL_S`, which looked ideal: a
+documented blind controller, already referenced by this project, that integrates run time into a
+simulated 0..255 position and handles the lockout. Its manual describes an automatic mode where
+`UP` and `DN` held together make it regulate its position to the setpoint `PI`.
+
+On hardware it did keep a position — and never energised a motor. Sampled every 3 s across a full
+travel, `POS` climbed 0 → 23 → 80 → 138 → 195 → 254 → 255 with **`MU` and `MD` FALSE at every
+single sample**, and `STATUS` stuck at 125.
+
+125 is the default of `S_IN`, its "ESR compliant status input", and the manual explains the rest:
+
+> When there are no messages available each module passes the input adjacent S_IN status messages
+> on to the STATUS output. […] If a status message is present at the input it will overwrite the
+> own status messages.
+
+So the block, out of the box, believes an upstream module is in charge and stands down from
+driving. Writing `S_IN := 0` — "no message" — fixed that immediately: the coil came on and stayed
+on for the whole travel. But then `STATUS` settled at 128 and the next command was ignored, the
+motor held at the top: with `UP` and `DN` held together the block had entered its own click and
+scene logic rather than the automatic row the manual's table promises. Driving it standalone is
+not the arrangement it was built for; it expects `BLIND_INPUT` upstream, generating the status and
+mode transitions it reacts to.
+
+That is a lot of undocumented behaviour to inherit for something a shutter needs to do reliably,
+so the integration is done here instead: about fifty lines, every one of them inspectable, no
+0..255 conversion, and no dependency beyond `TON` and `TIME()`. The lesson is recorded rather than
+the workaround — if a future block needs OSCAT's blind chain, it should use the whole chain.
