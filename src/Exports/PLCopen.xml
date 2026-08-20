@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T18:45:39.324398" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T18:38:57.6563454">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T21:35:29.8671867" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T21:29:19.8185511">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -5142,9 +5142,17 @@ THIS^.T_UD := T_UD;
                 <simpleValue value="TIME#2s0ms" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long to keep the motor running once an end stop is reached. This is
- what keeps the estimate honest: every full journey ends against the stop,
- so the position is measured there rather than integrated forever.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long the motor keeps running once it should have reached an end stop.
+
+ A full OPEN or CLOSE does not trust the estimate at all: it runs for the
+ whole travel time plus this margin, from wherever the cover is thought to
+ be. That is what makes every full command a re-reference rather than a
+ journey computed from a number that may be wrong - an estimate cannot heal
+ itself if the length of the run is derived from it.
+
+ The cost is a motor that runs longer than strictly necessary. The shutter's
+ own end stops and the motor's thermal cutout are what make that safe, and
+ it is what FB_OUTPUT_COVER_MQTT has always done on every command.</xhtml>
               </documentation>
             </variable>
             <variable name="Tolerance">
@@ -5292,6 +5300,35 @@ THIS^.T_UD := T_UD;
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> A held button overrides the target entirely, and releasing it pins the
  target to wherever the cover got to.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Referencing">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A full-travel command is in progress: drive the whole travel time plus
+ T_EndStop and finish against the physical stop, whatever the estimate says.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="RefRun">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="RefTime">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="Reported">
+              <type>
+                <BYTE />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> What gets published, which is not always what is estimated: an unreferenced
+ cover never reports exactly 0 or 100, because Home Assistant treats those as
+ the limits and disables the button that would have re-referenced it.</xhtml>
               </documentation>
             </variable>
             <variable name="tNow">
@@ -5561,6 +5598,7 @@ ELSE
 	IF ManualDrive &lt;&gt; DRIVE_STOP THEN
 		Target := PositionReal;
 		Arrived := TRUE;
+		Referencing := FALSE;
 	END_IF
 	ManualDrive := DRIVE_STOP;
 END_IF
@@ -5575,18 +5613,24 @@ IF MqttRequestStop THEN
 	   pauses is not a stop. *)
 	Target := PositionReal;
 	Arrived := TRUE;
+	Referencing := FALSE;
 ELSIF MqttRequestOpen THEN
 	MqttRequestOpen := FALSE;
 	Target := 100.0;
 	Arrived := FALSE;
+	Referencing := TRUE;
 ELSIF MqttRequestClose THEN
 	MqttRequestClose := FALSE;
 	Target := 0.0;
 	Arrived := FALSE;
+	Referencing := TRUE;
 ELSIF MqttRequestPosition THEN
 	MqttRequestPosition := FALSE;
 	Target := BYTE_TO_REAL(MqttRequestPositionPct);
 	Arrived := FALSE;
+	(* A slider dragged to either extreme is a full-travel command like any other,
+	   and gets the same re-reference. *)
+	Referencing := (Target &gt;= 100.0) OR (Target &lt;= 0.0);
 END_IF
 
 (* --- decide -------------------------------------------------------------------
@@ -5594,40 +5638,48 @@ END_IF
    T_EndStop once the estimate reaches the limit, which is what makes the position
    measured there rather than integrated forever, and what lets a cover that has
    drifted find itself again. *)
-(* At the limit the cover was sent to, and still being driven there. This timer
-   runs on DrivingLast rather than on this cycle's decision, for the same reason
-   the lockout below does. *)
-AtEnd := ((Target &gt;= 100.0) AND (PositionReal &gt;= 100.0))
-	OR ((Target &lt;= 0.0) AND (PositionReal &lt;= 0.0));
+(* --- a full command re-references, and does not trust the estimate ------------
+   The run is timed from the whole travel time rather than from the distance the
+   estimate believes is left. That distinction is the difference between a cover
+   that heals and one that cannot: if the estimate reads 80 while the shutter is
+   at 20, a run of "the remaining 20%" ends nowhere near the stop and the error
+   survives. A run of the full travel always ends against it.
 
-EndStop(IN := AtEnd AND (DrivingLast &lt;&gt; DRIVE_STOP), PT := T_EndStop);
+   The timer only accumulates while a motor is actually turning, so a lockout
+   delay or a PRIO_LOCK pause does not eat into the travel - and a lock that
+   interrupts a run restarts it from the beginning, which is the safe direction to
+   fail in. *)
+IF Target &gt;= 100.0 THEN
+	RefTime := T_TravelUp + T_EndStop;
+ELSE
+	RefTime := T_TravelDown + T_EndStop;
+END_IF
+
+RefRun(IN := Referencing AND (DrivingLast &lt;&gt; DRIVE_STOP), PT := RefTime);
 
 IF ManualDrive &lt;&gt; DRIVE_STOP THEN
 	Driving := ManualDrive;
 
 ELSIF Arrived THEN
-	(* Nothing outstanding. Without this the motor restarts the moment the
-	   end-stop timer resets, and the cover hunts at the limit forever. *)
+	(* Nothing outstanding. Without this the motor restarts the moment a timer
+	   resets, and the cover hunts at the limit forever. *)
 	Driving := DRIVE_STOP;
 
-ELSIF Target &gt;= 100.0 THEN
-	(* Fully open is a place, not a number: the tolerance is deliberately not
-	   applied here. Stopping at 98% would leave the estimate uncalibrated and the
-	   entity reading STOPPED instead of OPEN, which is exactly what the first
-	   bench run did. Drive to the limit, then press into it for T_EndStop. *)
-	IF AtEnd AND EndStop.Q THEN
+ELSIF Referencing THEN
+	IF RefRun.Q THEN
+		(* Against the stop by the clock. This is the one moment the position is
+		   measured rather than integrated, so the estimate is set, not nudged. *)
 		Driving := DRIVE_STOP;
 		Arrived := TRUE;
+		Referencing := FALSE;
 		PositionKnown := TRUE;
-	ELSE
+		IF Target &gt;= 100.0 THEN
+			PositionReal := 100.0;
+		ELSE
+			PositionReal := 0.0;
+		END_IF
+	ELSIF Target &gt;= 100.0 THEN
 		Driving := DRIVE_UP;
-	END_IF
-
-ELSIF Target &lt;= 0.0 THEN
-	IF AtEnd AND EndStop.Q THEN
-		Driving := DRIVE_STOP;
-		Arrived := TRUE;
-		PositionKnown := TRUE;
 	ELSE
 		Driving := DRIVE_DOWN;
 	END_IF
@@ -5640,7 +5692,9 @@ ELSIF (PositionReal - Target) &gt; BYTE_TO_REAL(Tolerance) THEN
 
 ELSE
 	(* Close enough. A shutter cannot be positioned finer than its own start and
-	   stop time, so this is where a mid-range journey ends. *)
+	   stop time, so this is where a mid-range journey ends - and a mid-range
+	   journey is the one case that cannot re-reference, because it does not go
+	   anywhere the position is known. *)
 	Driving := DRIVE_STOP;
 	Arrived := TRUE;
 END_IF
@@ -5677,6 +5731,25 @@ MD := (Driving = DRIVE_DOWN);
 Moving := MU OR MD;
 Position := REAL_TO_BYTE(PositionReal + 0.5);
 
+(* --- what to tell Home Assistant ---------------------------------------------
+   Position is the estimate, and the estimate is a guess until something has
+   driven to an end stop. Publishing that guess as exactly 0 or 100 is worse than
+   imprecise: Home Assistant reads those as the limits and disables the button in
+   that direction, which is precisely the command that would have re-referenced
+   the cover. So an unreferenced cover reports 1 or 99 instead, the slider keeps
+   both ends reachable, and one full command puts the matter to rest.
+
+   The Position output is deliberately left alone - logic on the PLC side should
+   see the estimate, not a number bent for a user interface. *)
+Reported := Position;
+IF NOT PositionKnown THEN
+	IF Reported &gt;= 100 THEN
+		Reported := 99;
+	ELSIF Reported = 0 THEN
+		Reported := 1;
+	END_IF
+END_IF
+
 (* --- state -------------------------------------------------------------------
    Moving beats resting, and an end stop beats the middle. A cover that has not
    reached a stop since power-up says STOPPED rather than guessing: the estimate
@@ -5711,19 +5784,19 @@ END_IF
    without flooding the broker. When movement ends, the exact value, because that
    is the number somebody will read off a dashboard for the next hour. *)
 IF InitMqttDone THEN
-	Diff := BYTE_TO_INT(Position) - BYTE_TO_INT(PublishedPosition);
+	Diff := BYTE_TO_INT(Reported) - BYTE_TO_INT(PublishedPosition);
 	IF Diff &lt; 0 THEN
 		Diff := -Diff;
 	END_IF
 
 	IF Startup
 		OR NOT PositionPublished
-		OR (NOT Moving AND (Position &lt;&gt; PublishedPosition))
+		OR (NOT Moving AND (Reported &lt;&gt; PublishedPosition))
 		OR (Diff &gt;= BYTE_TO_INT(PublishStep))
 	THEN
-		PublishedPosition := Position;
+		PublishedPosition := Reported;
 		PositionPublished := TRUE;
-		Payload := BYTE_TO_STRING(Position);
+		Payload := BYTE_TO_STRING(Reported);
 		pMqttPublishQueue^.AddMessage(
 			Payload := Payload,
 			Topic := PositionTopic,
@@ -5738,7 +5811,7 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived" ObjectId="5b3b27ee-d9ae-419b-80da-92e18fc85162">
+            <Method name="PublishReceived" ObjectId="7660e274-cedc-4962-a02f-fe20c8879450">
               <interface>
                 <returnType>
                   <BOOL />
@@ -5799,7 +5872,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="16c345f0-344e-4ec6-8086-47bbdecd664f">
+            <Method name="InitMqttDiscovery" ObjectId="786503f0-f9eb-490e-adc0-b29811e12890">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -5910,7 +5983,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="3627ed6e-7275-4b12-a6d1-5bed9c23c6f2">
+            <Method name="InitMqtt" ObjectId="4ebaeee1-77a3-4a44-9453-83e6e27c497e">
               <interface>
                 <inputVars>
                   <variable name="MQTTPublishPrefix">
@@ -26277,9 +26350,9 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           </Object>
           <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
           <Object Name="FB_OUTPUT_COVER_POSITION_MQTT" ObjectId="92cee984-f36c-4945-afb6-94a21cf49a1e">
-            <Object Name="PublishReceived" ObjectId="5b3b27ee-d9ae-419b-80da-92e18fc85162" />
-            <Object Name="InitMqttDiscovery" ObjectId="16c345f0-344e-4ec6-8086-47bbdecd664f" />
-            <Object Name="InitMqtt" ObjectId="3627ed6e-7275-4b12-a6d1-5bed9c23c6f2" />
+            <Object Name="PublishReceived" ObjectId="7660e274-cedc-4962-a02f-fe20c8879450" />
+            <Object Name="InitMqttDiscovery" ObjectId="786503f0-f9eb-490e-adc0-b29811e12890" />
+            <Object Name="InitMqtt" ObjectId="4ebaeee1-77a3-4a44-9453-83e6e27c497e" />
           </Object>
         </Folder>
         <Folder Name="DMX">

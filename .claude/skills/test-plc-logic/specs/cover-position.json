@@ -1,33 +1,41 @@
 {
-  "_what": "Proves FB_OUTPUT_COVER_POSITION_MQTT drives its coils, tracks position, and stops where it was told - on the bench instance FB_DO_COVER_002, whose MU and MD are wired to DO_005 and DO_006 on the second 750-540. Reads the coils as well as the block outputs, because the two disagreeing is the interesting failure: a block that thinks it is driving while nothing reaches the module.",
+  "_what": "Proves FB_OUTPUT_COVER_POSITION_MQTT drives its coils, tracks position, stops where it was told, and - the part worth having - re-references itself when its estimate has drifted. Runs on the bench instance FB_DO_COVER_002, whose MU and MD are wired to DO_005 and DO_006 on the second 750-540. Reads the coils as well as the block outputs, because the two disagreeing is the interesting failure: a block that thinks it is driving while nothing reaches the module.",
   "_then": "The MQTT side cannot be driven from a download spec. Publish to the broker instead and watch the cover's own topics:\n  mosquitto_pub -h 10.101.1.11 -t Devices/PLC/Lab/In/Covers/FB_DO_COVER_002/POSITION -m 35 -q 2\n  mosquitto_sub -h 10.101.1.11 -v -t 'Devices/PLC/Lab/Out/Covers/FB_DO_COVER_002/#' -W 22\nExpect the state topic to go CLOSING then STOPPED, and /POSITION to step down in PublishStep increments and land on the exact value.",
   "_warning": "No motor is attached on the bench and the position is integrated from run time, so this proves the logic and the outputs, never the mechanics. Travel times are whatever the call site passes (20 s here); against a real shutter they have to be measured or every position is wrong in the middle of the travel.",
   "_note": "An expect is compared against the value as the runtime prints it: INT#4, BYTE#0, TIME#10s, and a STRING with its apostrophes - 'STOPPED', not STOPPED. Three bench runs were lost to that before it was written down.",
   "steps": [
     {
-      "label": "at rest after the download: nothing has asked for anything, so nothing moves",
+      "label": "at rest after the download: nothing has asked for anything, so nothing moves - and the position published is 1, not 0, because an unreferenced 0 makes Home Assistant disable the close button",
       "delay_ms": 8000,
       "read": [
-        "DO_005", "DO_006",
-        "PLC_PRG_MAIN.FB_DO_COVER_002.MU", "PLC_PRG_MAIN.FB_DO_COVER_002.MD",
+        "DO_005",
+        "DO_006",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.MU",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.MD",
         "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
         "PLC_PRG_MAIN.FB_DO_COVER_002.State",
-        "PLC_PRG_MAIN.FB_DO_COVER_002.PositionKnown"
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PositionKnown",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PublishedPosition"
       ],
       "expect": {
         "DO_005": "FALSE",
         "DO_006": "FALSE",
         "PLC_PRG_MAIN.FB_DO_COVER_002.State": "'STOPPED'",
-        "PLC_PRG_MAIN.FB_DO_COVER_002.PositionKnown": "FALSE"
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PositionKnown": "FALSE",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PublishedPosition": "BYTE#1"
       }
     },
     {
       "label": "OPEN, sampled 3 s in: the up coil is energised and the LED is on",
-      "write": { "PLC_PRG_MAIN.FB_DO_COVER_002.MqttRequestOpen": "TRUE" },
+      "write": {
+        "PLC_PRG_MAIN.FB_DO_COVER_002.MqttRequestOpen": "TRUE"
+      },
       "delay_ms": 3000,
       "read": [
-        "DO_005", "DO_006",
-        "PLC_PRG_MAIN.FB_DO_COVER_002.MU", "PLC_PRG_MAIN.FB_DO_COVER_002.MD",
+        "DO_005",
+        "DO_006",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.MU",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.MD",
         "PLC_PRG_MAIN.FB_DO_COVER_002.Position"
       ],
       "expect": {
@@ -40,14 +48,21 @@
     {
       "label": "still climbing four seconds later",
       "delay_ms": 4000,
-      "read": ["DO_005", "PLC_PRG_MAIN.FB_DO_COVER_002.Position", "PLC_PRG_MAIN.FB_DO_COVER_002.State"]
+      "read": [
+        "DO_005",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.State"
+      ]
     },
     {
       "label": "STOP mid-travel: both coils drop and the position is held, not resumed",
-      "write": { "PLC_PRG_MAIN.FB_DO_COVER_002.MqttRequestStop": "TRUE" },
+      "write": {
+        "PLC_PRG_MAIN.FB_DO_COVER_002.MqttRequestStop": "TRUE"
+      },
       "delay_ms": 2000,
       "read": [
-        "DO_005", "DO_006",
+        "DO_005",
+        "DO_006",
         "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
         "PLC_PRG_MAIN.FB_DO_COVER_002.Moving"
       ],
@@ -59,10 +74,13 @@
     },
     {
       "label": "CLOSE, sampled 3 s in: now the other coil, and only the other coil",
-      "write": { "PLC_PRG_MAIN.FB_DO_COVER_002.MqttRequestClose": "TRUE" },
+      "write": {
+        "PLC_PRG_MAIN.FB_DO_COVER_002.MqttRequestClose": "TRUE"
+      },
       "delay_ms": 3000,
       "read": [
-        "DO_005", "DO_006",
+        "DO_005",
+        "DO_006",
         "PLC_PRG_MAIN.FB_DO_COVER_002.MD",
         "PLC_PRG_MAIN.FB_DO_COVER_002.Position"
       ],
@@ -77,7 +95,8 @@
       "label": "let it reach the bottom: an end stop is the only place the position is measured",
       "delay_ms": 22000,
       "read": [
-        "DO_005", "DO_006",
+        "DO_005",
+        "DO_006",
         "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
         "PLC_PRG_MAIN.FB_DO_COVER_002.PositionKnown",
         "PLC_PRG_MAIN.FB_DO_COVER_002.State"
@@ -97,7 +116,8 @@
       },
       "delay_ms": 6000,
       "read": [
-        "DO_005", "DO_006",
+        "DO_005",
+        "DO_006",
         "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
         "PLC_PRG_MAIN.FB_DO_COVER_002.State"
       ],
@@ -110,7 +130,8 @@
       "label": "and let it arrive: it stops itself inside Tolerance, without being told to",
       "delay_ms": 9000,
       "read": [
-        "DO_005", "DO_006",
+        "DO_005",
+        "DO_006",
         "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
         "PLC_PRG_MAIN.FB_DO_COVER_002.State"
       ],
@@ -121,9 +142,82 @@
       }
     },
     {
+      "label": "lie to it: the estimate now says 80 while the cover is actually at the bottom, which is the drift case a time-based cover cannot detect for itself",
+      "write": {
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PositionReal": "80.0"
+      },
+      "delay_ms": 1500,
+      "read": [
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PositionKnown",
+        "DO_005",
+        "DO_006"
+      ],
+      "expect": {
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Position": "BYTE#80",
+        "DO_005": "FALSE",
+        "DO_006": "FALSE"
+      }
+    },
+    {
+      "label": "close it, and look 8 s in: the run is timed from the FULL travel, so it is still driving - a run computed from the estimate would have thought it had 80% to go and be nearly done",
+      "write": {
+        "PLC_PRG_MAIN.FB_DO_COVER_002.MqttRequestClose": "TRUE"
+      },
+      "delay_ms": 8000,
+      "read": [
+        "DO_005",
+        "DO_006",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Referencing",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.State"
+      ],
+      "expect": {
+        "DO_006": "TRUE",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Referencing": "TRUE",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.State": "'CLOSING'"
+      }
+    },
+    {
+      "label": "at 16 s the estimate has hit 0 and it is STILL driving, pressing into the stop for the rest of the full travel plus T_EndStop",
+      "delay_ms": 8000,
+      "read": [
+        "DO_006",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Referencing"
+      ],
+      "expect": {
+        "DO_006": "TRUE",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Position": "BYTE#0"
+      }
+    },
+    {
+      "label": "and when the clock says the travel is done, it stops referenced: 0, known, CLOSED - the lie is gone",
+      "delay_ms": 8000,
+      "read": [
+        "DO_005",
+        "DO_006",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Position",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PositionKnown",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PublishedPosition",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.State"
+      ],
+      "expect": {
+        "DO_005": "FALSE",
+        "DO_006": "FALSE",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.Position": "BYTE#0",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PositionKnown": "TRUE",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.PublishedPosition": "BYTE#0",
+        "PLC_PRG_MAIN.FB_DO_COVER_002.State": "'CLOSED'"
+      }
+    },
+    {
       "label": "nothing else on the bench was driven: the older cover's relays and the two coils HVAC gave up",
       "read": [
-        "DO_003", "DO_004", "DO_007", "DO_008",
+        "DO_003",
+        "DO_004",
+        "DO_007",
+        "DO_008",
         "PLC_PRG_MAIN.FB_DO_COVER_001.initMqttDiscoveryDone"
       ],
       "expect": {

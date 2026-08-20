@@ -219,6 +219,19 @@ the module. That has happened here twice, once because two tasks were writing th
 same coil and once because a library block was simulating a position without ever
 energising an output.
 
+The last four steps are the ones worth keeping: they **lie to the block** — write
+`PositionReal := 80.0` while the cover sits at the bottom — and then assert that a
+full `CLOSE` still drives for the whole travel time and finishes referenced at 0.
+That is the drift case a time-based cover cannot detect for itself, and the reason
+a full command must ignore the estimate: a run computed from a wrong estimate ends
+in the wrong place and leaves the estimate wrong. Healing only `T_EndStop / T_Travel`
+per command — 10% at the defaults — is what the block did before, and it looked
+fine on every test that did not lie to it first.
+
+Step one also asserts `PublishedPosition = BYTE#1` at rest, not 0: an unreferenced
+0 makes Home Assistant disable the close button, which is the command that would
+have re-referenced the cover.
+
 Three specific traps in this block, all of which produced a *plausible* cover:
 
 - **A restart must move nothing.** If the first read shows a coil on or a position
