@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T17:23:02.8330502" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T17:20:12.3055764">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T18:45:39.324398" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T18:38:57.6563454">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -5249,9 +5249,25 @@ THIS^.T_UD := T_UD;
               <type>
                 <REAL />
               </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where the cover has been asked to go, in percent. Zero at power-up, which
+ together with Arrived means "stay put" rather than "close" - see below.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Arrived">
+              <type>
+                <BOOL />
+              </type>
               <initialValue>
-                <simpleValue value="100.0" />
+                <simpleValue value="TRUE" />
               </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The current target has been satisfied, so nothing should move until
+ something asks again. TRUE at power-up, and that is the whole reason a
+ restart does not send every cover in the building somewhere: a target of 0
+ with Arrived FALSE would have been read as "close", and a target of 100 as
+ "open", and one of those was in fact what the first bench run did.</xhtml>
+              </documentation>
             </variable>
             <variable name="Driving">
               <type>
@@ -5544,6 +5560,7 @@ ELSIF DN AND NOT UP THEN
 ELSE
 	IF ManualDrive &lt;&gt; DRIVE_STOP THEN
 		Target := PositionReal;
+		Arrived := TRUE;
 	END_IF
 	ManualDrive := DRIVE_STOP;
 END_IF
@@ -5557,15 +5574,19 @@ IF MqttRequestStop THEN
 	   interrupted journey would resume on the next cycle - a stop that only
 	   pauses is not a stop. *)
 	Target := PositionReal;
+	Arrived := TRUE;
 ELSIF MqttRequestOpen THEN
 	MqttRequestOpen := FALSE;
 	Target := 100.0;
+	Arrived := FALSE;
 ELSIF MqttRequestClose THEN
 	MqttRequestClose := FALSE;
 	Target := 0.0;
+	Arrived := FALSE;
 ELSIF MqttRequestPosition THEN
 	MqttRequestPosition := FALSE;
 	Target := BYTE_TO_REAL(MqttRequestPositionPct);
+	Arrived := FALSE;
 END_IF
 
 (* --- decide -------------------------------------------------------------------
@@ -5573,25 +5594,55 @@ END_IF
    T_EndStop once the estimate reaches the limit, which is what makes the position
    measured there rather than integrated forever, and what lets a cover that has
    drifted find itself again. *)
+(* At the limit the cover was sent to, and still being driven there. This timer
+   runs on DrivingLast rather than on this cycle's decision, for the same reason
+   the lockout below does. *)
 AtEnd := ((Target &gt;= 100.0) AND (PositionReal &gt;= 100.0))
 	OR ((Target &lt;= 0.0) AND (PositionReal &lt;= 0.0));
 
-EndStop(IN := AtEnd AND (Driving &lt;&gt; DRIVE_STOP), PT := T_EndStop);
+EndStop(IN := AtEnd AND (DrivingLast &lt;&gt; DRIVE_STOP), PT := T_EndStop);
 
 IF ManualDrive &lt;&gt; DRIVE_STOP THEN
 	Driving := ManualDrive;
-ELSIF AtEnd AND EndStop.Q THEN
+
+ELSIF Arrived THEN
+	(* Nothing outstanding. Without this the motor restarts the moment the
+	   end-stop timer resets, and the cover hunts at the limit forever. *)
 	Driving := DRIVE_STOP;
-	PositionKnown := TRUE;
-ELSIF AtEnd AND (Driving &lt;&gt; DRIVE_STOP) THEN
-	(* Keep going, briefly, to reach the stop itself. *)
-	;
+
+ELSIF Target &gt;= 100.0 THEN
+	(* Fully open is a place, not a number: the tolerance is deliberately not
+	   applied here. Stopping at 98% would leave the estimate uncalibrated and the
+	   entity reading STOPPED instead of OPEN, which is exactly what the first
+	   bench run did. Drive to the limit, then press into it for T_EndStop. *)
+	IF AtEnd AND EndStop.Q THEN
+		Driving := DRIVE_STOP;
+		Arrived := TRUE;
+		PositionKnown := TRUE;
+	ELSE
+		Driving := DRIVE_UP;
+	END_IF
+
+ELSIF Target &lt;= 0.0 THEN
+	IF AtEnd AND EndStop.Q THEN
+		Driving := DRIVE_STOP;
+		Arrived := TRUE;
+		PositionKnown := TRUE;
+	ELSE
+		Driving := DRIVE_DOWN;
+	END_IF
+
 ELSIF (Target - PositionReal) &gt; BYTE_TO_REAL(Tolerance) THEN
 	Driving := DRIVE_UP;
+
 ELSIF (PositionReal - Target) &gt; BYTE_TO_REAL(Tolerance) THEN
 	Driving := DRIVE_DOWN;
+
 ELSE
+	(* Close enough. A shutter cannot be positioned finer than its own start and
+	   stop time, so this is where a mid-range journey ends. *)
 	Driving := DRIVE_STOP;
+	Arrived := TRUE;
 END_IF
 
 IF PRIO_LOCK THEN
@@ -5606,9 +5657,16 @@ IF (Driving &lt;&gt; DRIVE_STOP) AND (DrivingLast &lt;&gt; DRIVE_STOP) AND (Driv
 	Driving := DRIVE_STOP;
 END_IF
 
-Lockout(IN := (Driving = DRIVE_STOP), PT := T_Lockout);
+(* The timer runs on where the cover WAS, not on what has just been decided.
+   Feeding it the decision deadlocks the block: asking to move makes IN FALSE,
+   which resets the very timer that would have permitted moving, so the request
+   is refused again on the next cycle and forever after. That cost a bench run,
+   and the symptom was a cover that reported STOPPED at 0% no matter what was
+   asked of it. *)
+Lockout(IN := (DrivingLast = DRIVE_STOP), PT := T_Lockout);
 
 IF (Driving &lt;&gt; DRIVE_STOP) AND (DrivingLast = DRIVE_STOP) AND NOT Lockout.Q THEN
+	(* Stopped too recently to start again - the contactor gets its dead time. *)
 	Driving := DRIVE_STOP;
 END_IF
 
@@ -5680,7 +5738,7 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived" ObjectId="6b2b33f9-e652-445c-a90e-f2f7051454c0">
+            <Method name="PublishReceived" ObjectId="5b3b27ee-d9ae-419b-80da-92e18fc85162">
               <interface>
                 <returnType>
                   <BOOL />
@@ -5741,7 +5799,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="a5a44a44-6ca5-4c45-b08c-12c7fe482f45">
+            <Method name="InitMqttDiscovery" ObjectId="16c345f0-344e-4ec6-8086-47bbdecd664f">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -5852,7 +5910,7 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="0bd79419-99a2-43dc-a20b-7371978ccd6b">
+            <Method name="InitMqtt" ObjectId="3627ed6e-7275-4b12-a6d1-5bed9c23c6f2">
               <interface>
                 <inputVars>
                   <variable name="MQTTPublishPrefix">
@@ -26219,9 +26277,9 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           </Object>
           <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
           <Object Name="FB_OUTPUT_COVER_POSITION_MQTT" ObjectId="92cee984-f36c-4945-afb6-94a21cf49a1e">
-            <Object Name="PublishReceived" ObjectId="6b2b33f9-e652-445c-a90e-f2f7051454c0" />
-            <Object Name="InitMqttDiscovery" ObjectId="a5a44a44-6ca5-4c45-b08c-12c7fe482f45" />
-            <Object Name="InitMqtt" ObjectId="0bd79419-99a2-43dc-a20b-7371978ccd6b" />
+            <Object Name="PublishReceived" ObjectId="5b3b27ee-d9ae-419b-80da-92e18fc85162" />
+            <Object Name="InitMqttDiscovery" ObjectId="16c345f0-344e-4ec6-8086-47bbdecd664f" />
+            <Object Name="InitMqtt" ObjectId="3627ed6e-7275-4b12-a6d1-5bed9c23c6f2" />
           </Object>
         </Folder>
         <Folder Name="DMX">
