@@ -68,6 +68,8 @@ function Cmd($topic, $payload) { & $mp -h $B -t "Devices/PLC/Lab/In/$topic" -m $
 | Binary light | `DigitalOutputs/FB_DO_BIN_001` | `TRUE` / `FALSE` | `DigitalOutputs/FB_DO_BIN_001` |
 | Bistable light | `DigitalOutputs/FB_DO_BISTABLE_001` | `TRUE` / `FALSE` | `DigitalOutputs/FB_DO_BISTABLE_001` |
 | Cover | `Covers/FB_DO_COVER_001` | `OPEN` / `STOP` / `CLOSE` | `Covers/FB_DO_COVER_001` |
+| Cover with position | `Covers/FB_DO_COVER_002` | `OPEN` / `STOP` / `CLOSE` | `Covers/FB_DO_COVER_002` |
+| ... its position | `Covers/FB_DO_COVER_002/POSITION` | `0`..`100` | `Covers/FB_DO_COVER_002/POSITION` |
 | Dimmer | `Dimmers/FB_AO_DIMMER_001/...` | see the block's page | `Dimmers/FB_AO_DIMMER_001/OUT`, `/Q` |
 | Thermostat mode | `HVAC/FB_THERMOSTAT_2/MODE` | `off` / `heat` / `auto` | `HVAC/FB_THERMOSTAT_2/MODE` |
 | Thermostat setpoint | `HVAC/FB_THERMOSTAT_2/DESIRED_TEMP` | e.g. `22` | `HVAC/FB_THERMOSTAT_2/DESIRED_TEMP` |
@@ -199,6 +201,53 @@ say so and press the button instead — do not report a pass you did not get.
 
 Note that `FB_DI_PB_001.P_LONG` drives the cover in `MOVE_COVERS`, so a long press
 here is also a cover test.
+
+### The position-capable cover
+
+`specs/cover-position.json` is the whole test: nine steps, `OPEN` → `STOP` → `CLOSE`
+→ end stop → 60%, asserting the **coils** as well as the block outputs at every step.
+
+```powershell
+./tools/ai/codesys.ps1 download -Force -Address 00E8 -Spec .claude/skills/test-plc-logic/specs/cover-position.json
+```
+
+`FB_DO_COVER_002.MU` and `MD` are wired to `DO_005` and `DO_006` on the second
+750-540, so the LEDs on that module are the test you can watch from across the room.
+Read both the coil and the block output, never just one: **the two disagreeing is the
+failure worth catching** — a block that believes it is driving while nothing reaches
+the module. That has happened here twice, once because two tasks were writing the
+same coil and once because a library block was simulating a position without ever
+energising an output.
+
+Three specific traps in this block, all of which produced a *plausible* cover:
+
+- **A restart must move nothing.** If the first read shows a coil on or a position
+  climbing before anything was commanded, the block is treating its default target as
+  a request. On a building that is every shutter moving after a power cut.
+- **A full open must reach 100 and say `OPEN`.** Stopping at 98 with `PositionKnown`
+  FALSE means the arrival tolerance is being applied to an end stop, so the estimate
+  never recalibrates.
+- **`STOP` must not be a pause.** Read the position twice, seconds apart, after a
+  stop: if it resumes, the target was not dragged to where the cover stood.
+
+The position path cannot be driven from a download spec - a spec writes variables,
+not MQTT - so drive it from the broker and watch the cover's own topics:
+
+```powershell
+mosquitto_pub -h 10.101.1.11 -t Devices/PLC/Lab/In/Covers/FB_DO_COVER_002/POSITION -m 35 -q 2
+mosquitto_sub -h 10.101.1.11 -v -t 'Devices/PLC/Lab/Out/Covers/FB_DO_COVER_002/#' -W 22
+```
+
+A healthy run steps in `PublishStep` increments while travelling and lands on the
+exact value when movement ends:
+
+```
+58  CLOSING  53  48  43  38  STOPPED
+```
+
+:bulb: **The cover subscription is `MqttSubCoverPrefix` + `#`.** A `+` would deliver
+the command topic and silently swallow `/POSITION`, one level below it - which looks
+exactly like a block that ignores the slider.
 
 ## 3. HVAC — thermostat → valve → pump → burner
 

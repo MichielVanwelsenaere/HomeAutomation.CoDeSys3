@@ -40,7 +40,7 @@ Basic function blocks for basic IO events and operations.
 - [FB_OUTPUT_BINARY_MQTT](./docs/FunctionBlocks/FB_OUTPUT_BINARY_MQTT.md)
 - [FB_OUTPUT_DIMMER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_MQTT.md)
 - [FB_OUTPUT_COVER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_MQTT.md)
-- [FB_OUTPUT_COVER_POSITION_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_POSITION_MQTT.md) - a cover Home Assistant can send to a position, with a slider rather than three buttons
+- [FB_OUTPUT_COVER_POSITION_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_POSITION_MQTT.md)
 - [FB_OUTPUT_BISTABLE_MQTT](./docs/FunctionBlocks/FB_OUTPUT_BISTABLE_MQTT.md)
 
 ## Modbus RTU over RS485

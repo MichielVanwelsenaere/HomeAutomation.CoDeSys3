@@ -146,45 +146,6 @@ topic sits one level below the cover's own topic, and `MqttSubCoverTopic` used t
 which would not have delivered it. The older cover block's topics still match, so nothing changed
 for it.
 
-:white_check_mark: **Verified on hardware, end to end.** A CODESYS 3 PFC200 with the coils on a
-750-540, driven from the broker and from the online interface, with nothing but LEDs on the
-outputs - the position is integrated from run time, so the whole chain runs without a motor.
-
-| | |
-|:--|:--|
-| at rest after a download | both coils off, `PositionKnown` FALSE, state `STOPPED` — **a restart moves nothing** |
-| `OPEN` | up coil on, state `OPENING`, position 20 → 51 |
-| `STOP` mid-travel | both coils off within a cycle, position held at 54 |
-| `CLOSE` | down coil on, state `CLOSING`, position 34 |
-| reaching the bottom | position 0, **`PositionKnown` TRUE**, state `CLOSED` |
-| set position 60 | up coil on, arrives at 58 and stops itself inside `Tolerance` |
-| throughout | `DO_003`, `DO_004`, `DO_007`, `DO_008` all untouched |
-
-And from the broker, a set-position of 35 while resting at 58:
-
-```
-58  CLOSING  53  48  43  38  STOPPED
-```
-
-The 5% steps are `PublishStep`; the exact value lands when movement ends. Home Assistant's config
-for this entity carries `pos_t`, `set_pos_t`, `pos_open: 100` and `pos_clsd: 0`, and
-[`FB_OUTPUT_COVER_MQTT`](FB_OUTPUT_COVER_MQTT.md)'s config carries **none of those keys at all** -
-which is the point of the separate struct, and is what Home Assistant requires.
-
-:bulb: **Three bugs in this block were found by putting LEDs on it, and none of them by the
-compiler.** Worth knowing, because two would have looked like a working cover on a dashboard:
-
-1. **The lockout deadlocked.** The timer that grants permission to start was fed the decision it
-   was meant to gate, so asking to move reset it, and the request was refused forever. Symptom: a
-   cover that reported `STOPPED` at 0% no matter what was asked. It now runs on where the cover
-   *was*, not on what has just been decided.
-2. **It drove itself open on every restart**, because the target defaulted to 100 and nothing said
-   "no request outstanding". Hence `Arrived`, TRUE at power-up.
-3. **A full open stopped at 98%.** The tolerance was applied to end-stop targets too, so the
-   motor never reached the stop, the estimate never recalibrated, `PositionKnown` stayed FALSE and
-   the entity read `STOPPED` where it should have read `OPEN`. Fully open is now treated as a
-   place rather than a number.
-
 ### **What a stop means**
 
 Three ways to interrupt a journey, and they are deliberately not the same:
