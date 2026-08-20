@@ -21,6 +21,11 @@ recalibrates, and enforces a lockout between direction changes. This block is th
 layer around it: percent to and from 0..255, Home Assistant's payloads and topics, and the state
 machine that decides what a stop means.
 
+:bulb: **It drives `BLIND_CONTROL_S` directly, not through OSCAT's `BLIND_INPUT` stage.**
+Pushbutton handling in this project belongs to
+[`FB_INPUT_PUSHBUTTON_MQTT`](FB_INPUT_PUSHBUTTON_MQTT.md), and using OSCAT's input stage as well
+would put two state machines in charge of one shutter.
+
 :bulb: **Measure both travel times.** A shutter usually falls faster than it climbs. Times that
 are 10% out show up as a position that drifts from reality mid-travel and snaps back at the end
 stops.
@@ -179,16 +184,3 @@ which is the whole difference from the older cover block on the Home Assistant s
 `null` for each when they are empty — so
 [`FB_OUTPUT_COVER_MQTT`](FB_OUTPUT_COVER_MQTT.md)'s config gains four nulls and behaves exactly as
 it did.
-
-### **Provenance**
-
-The idea, and the mapping from Home Assistant's cover to OSCAT's blind chain, came from a library
-built on top of this project by a friend of the author: their `FB_COVER_MQTT_SD` drives
-`BLIND_INPUT_EXT_PT` and `BLIND_CONTROL_S_PT` from a fork of `CommonTypesAndFunctions`, and
-publishes position to a second topic in much the same shape.
-
-This block is a re-implementation rather than a port, for two reasons: it needs no forked library,
-and it drives `BLIND_CONTROL_S` directly rather than through the input stage, since pushbutton
-handling in this project belongs to
-[`FB_INPUT_PUSHBUTTON_MQTT`](FB_INPUT_PUSHBUTTON_MQTT.md) and doing it twice would put two state
-machines in charge of one shutter.
