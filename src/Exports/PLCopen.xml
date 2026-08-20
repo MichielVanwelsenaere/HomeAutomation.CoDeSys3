@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T14:27:20.1111468" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T14:26:44.7270478">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T15:39:15.0629441" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T15:32:56.7180876">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -5282,6 +5282,15 @@ THIS^.T_UD := T_UD;
                 <simpleValue value="TRUE" />
               </initialValue>
             </variable>
+            <variable name="HasMoved">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A motor has run at least once since power-up, so an end stop reached from
+ here is a measurement rather than the engine's opening assumption.</xhtml>
+              </documentation>
+            </variable>
             <variable name="Payload">
               <type>
                 <string length="20" />
@@ -5454,8 +5463,14 @@ ELSE
 END_IF
 
 (* An end stop is the only place the position is measured rather than integrated,
-   so reaching one is what turns a guess into a fact. *)
-IF (Blind.POS = 0) OR (Blind.POS &gt;= RAW_OPEN) THEN
+   so reaching one is what turns a guess into a fact - but only if something drove
+   there. The engine starts its simulated position at 0, which looks exactly like
+   a shutter resting closed and is in fact an assumption about a cover nobody has
+   moved yet. Requiring a motor to have run first is what keeps those two apart. *)
+IF Moving THEN
+	HasMoved := TRUE;
+END_IF
+IF HasMoved AND ((Blind.POS = 0) OR (Blind.POS &gt;= RAW_OPEN)) THEN
 	PositionKnown := TRUE;
 END_IF
 
@@ -5466,6 +5481,12 @@ IF Blind.MU THEN
 	State := 'OPENING';
 ELSIF Blind.MD THEN
 	State := 'CLOSING';
+ELSIF NOT PositionKnown THEN
+	(* Nothing has driven to an end stop yet, so OPEN and CLOSED would both be
+	   guesses. 'STOPPED' is an honest "position unknown", and it is what
+	   FB_OUTPUT_COVER_MQTT publishes at boot for the same reason: a confidently
+	   wrong CLOSED misleads an automation more than no position does. *)
+	State := 'STOPPED';
 ELSIF Blind.POS &gt;= RAW_OPEN THEN
 	State := 'OPEN';
 ELSIF Blind.POS = 0 THEN
@@ -5517,73 +5538,60 @@ END_IF
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="777fa5ed-ad40-46a8-958f-fdf71f9ef0bb">
+            <Method name="PublishReceived" ObjectId="c469aad6-8c71-44bf-993e-848a6a42ac0b">
               <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
                 <inputVars>
-                  <variable name="MQTTPublishPrefix">
+                  <variable name="Data">
                     <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
+                      <derived name="MQTT.CALLBACK_DATA" />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically.</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="MQTTSubscribePrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT subscribe prefix used for this block.</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MqttPublishQueue" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the shared MQTT queue that carries messages to the broker.</xhtml>
-                    </documentation>
-                  </variable>
-                  <variable name="pMqttCallbackCollector">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="MQTT.CallbackCollector" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the callback collector this block registers with, so commands reach it.</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
                     </documentation>
                   </variable>
                 </inputVars>
                 <documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Enables MQTT on the function block. Call once at startup. Not needed when FriendlyName is set at the declaration: the block then wires itself.</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Callback invoked by the callback collector when a message arrives on the subscribed topic. Not called directly.</xhtml>
                 </documentation>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
 
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
-THIS^.MQTTSubscribeTopicPrefix := MQTTSubscribePrefix;
+//the command topic: the same three payloads the older cover block takes
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	PublishReceived := TRUE;
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN
+		THIS^.MqttRequestStop := TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
+		THIS^.MqttRequestOpen := TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN
+		THIS^.MqttRequestClose := TRUE;
+	END_IF
 
-SUPER^.InitBaseMqtt();
-pMqttCallbackCollector^.put(instance := THIS^); // register the FB against the collector so mqtt events can be received
+//and the position topic, which carries a bare number
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(SetPositionTopic), str2:= Data.TopicOut) THEN
+	PublishReceived := TRUE;
+	(* Home Assistant sends the number as text. STRING_TO_BYTE returns 0 for
+	   anything it cannot parse, which is indistinguishable from a genuine
+	   request to close - so an unparseable payload is dropped instead, and
+	   'closed' has to be asked for as 0 or as CLOSE. *)
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('0'))
+		OR (STRING_TO_BYTE(Data.PayloadString^) &gt; 0)
+	THEN
+		THIS^.MqttRequestPositionPct := STRING_TO_BYTE(Data.PayloadString^);
+		IF THIS^.MqttRequestPositionPct &gt; 100 THEN
+			THIS^.MqttRequestPositionPct := 100;
+		END_IF
+		THIS^.MqttRequestPosition := TRUE;
+	END_IF
+END_IF
 </xhtml>
                 </ST>
               </body>
@@ -5591,7 +5599,7 @@ pMqttCallbackCollector^.put(instance := THIS^); // register the FB against the c
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="5371b578-445a-40f8-9453-3323bfe0c086">
+            <Method name="InitMqttDiscovery" ObjectId="ce99be4c-f441-4698-9b1f-051c457b3a48">
               <interface>
                 <inputVars>
                   <variable name="Device">
@@ -5702,60 +5710,73 @@ END_IF
             </Method>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="PublishReceived" ObjectId="61daa3c9-5f3c-43f1-9ecf-cf9571661e18">
+            <Method name="InitMqtt" ObjectId="748827b2-3346-495d-bca0-fdbf5dcfef45">
               <interface>
-                <returnType>
-                  <BOOL />
-                </returnType>
                 <inputVars>
-                  <variable name="Data">
+                  <variable name="MQTTPublishPrefix">
                     <type>
-                      <derived name="MQTT.CALLBACK_DATA" />
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT subscribe prefix used for this block.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the shared MQTT queue that carries messages to the broker.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the callback collector this block registers with, so commands reach it.</xhtml>
                     </documentation>
                   </variable>
                 </inputVars>
                 <documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Callback invoked by the callback collector when a message arrives on the subscribed topic. Not called directly.</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Enables MQTT on the function block. Call once at startup. Not needed when FriendlyName is set at the declaration: the block then wires itself.</xhtml>
                 </documentation>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
-IF NOT(InitMqttDone) THEN
-	//mark the interface call from the collector as done
-	PublishReceived := TRUE;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
 
-//the command topic: the same three payloads the older cover block takes
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(MQTTSubscribeTopic), str2:= Data.TopicOut) THEN
-	PublishReceived := TRUE;
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN
-		THIS^.MqttRequestStop := TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
-		THIS^.MqttRequestOpen := TRUE;
-	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN
-		THIS^.MqttRequestClose := TRUE;
-	END_IF
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix := MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix := MQTTSubscribePrefix;
 
-//and the position topic, which carries a bare number
-ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(SetPositionTopic), str2:= Data.TopicOut) THEN
-	PublishReceived := TRUE;
-	(* Home Assistant sends the number as text. STRING_TO_BYTE returns 0 for
-	   anything it cannot parse, which is indistinguishable from a genuine
-	   request to close - so an unparseable payload is dropped instead, and
-	   'closed' has to be asked for as 0 or as CLOSE. *)
-	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('0'))
-		OR (STRING_TO_BYTE(Data.PayloadString^) &gt; 0)
-	THEN
-		THIS^.MqttRequestPositionPct := STRING_TO_BYTE(Data.PayloadString^);
-		IF THIS^.MqttRequestPositionPct &gt; 100 THEN
-			THIS^.MqttRequestPositionPct := 100;
-		END_IF
-		THIS^.MqttRequestPosition := TRUE;
-	END_IF
-END_IF
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance := THIS^); // register the FB against the collector so mqtt events can be received
 </xhtml>
                 </ST>
               </body>
@@ -25906,9 +25927,9 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           </Object>
           <Object Name="E_RELAY_TYPE" ObjectId="1725693c-2e66-470f-96cb-0947d108f150" />
           <Object Name="FB_OUTPUT_COVER_POSITION_MQTT" ObjectId="92cee984-f36c-4945-afb6-94a21cf49a1e">
-            <Object Name="InitMqtt" ObjectId="777fa5ed-ad40-46a8-958f-fdf71f9ef0bb" />
-            <Object Name="InitMqttDiscovery" ObjectId="5371b578-445a-40f8-9453-3323bfe0c086" />
-            <Object Name="PublishReceived" ObjectId="61daa3c9-5f3c-43f1-9ecf-cf9571661e18" />
+            <Object Name="PublishReceived" ObjectId="c469aad6-8c71-44bf-993e-848a6a42ac0b" />
+            <Object Name="InitMqttDiscovery" ObjectId="ce99be4c-f441-4698-9b1f-051c457b3a48" />
+            <Object Name="InitMqtt" ObjectId="748827b2-3346-495d-bca0-fdbf5dcfef45" />
           </Object>
         </Folder>
         <Folder Name="DMX">

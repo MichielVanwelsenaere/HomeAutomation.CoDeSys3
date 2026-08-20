@@ -25,6 +25,12 @@ machine that decides what a stop means.
 are 10% out show up as a position that drifts from reality mid-travel and snaps back at the end
 stops.
 
+:rotating_light: **A cover that has not moved since power-up does not know where it is**, and says
+so: `PositionKnown` is FALSE and the state is `STOPPED` rather than a confident `OPEN` or `CLOSED`.
+The engine's simulated position starts at 0, which looks exactly like a shutter resting closed and
+is in fact an assumption - so reaching an end stop is only counted as knowledge once a motor has
+actually run. The first full travel in either direction settles it.
+
 <!-- fb-interface:start -->
 ### **Block diagram**
 
@@ -131,6 +137,21 @@ an online session, or by editing one line here.
 topic sits one level below the cover's own topic, and `MqttSubCoverTopic` used to end in `+`,
 which would not have delivered it. The older cover block's topics still match, so nothing changed
 for it.
+
+:white_check_mark: **Verified on hardware.** Runs on a CODESYS 3 PFC200, commanded from the broker
+with nothing wired to the outputs - the position is simulated from run time, so the whole chain
+can be exercised without a motor:
+
+```
+set position 90 ->  50  OPENING  55 60 65 70 75 80 85 90  STOPPED
+OPEN           ->  90  OPENING  95 100                   OPEN
+CLOSE          -> 100  CLOSING  95 90 ... 10 5 0          CLOSED
+```
+
+The 5% steps are `PublishStep`; the exact value lands when movement ends. A request for 50% became
+a setpoint of 128 of 255 and stopped at a reported 50, which is the rounding behaving. `STOP` left
+`AutoMode` FALSE with the setpoint dragged to where the cover stood, and the older cover block on
+the same prefix and the same collector was undisturbed throughout.
 
 ### **What a stop means**
 
