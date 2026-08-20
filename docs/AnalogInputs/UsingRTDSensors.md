@@ -143,7 +143,34 @@ is really measuring cannot ignore either.
    of its scale immediately. A channel that stays where it was is not looking at its terminals at
    all, which is conclusive.
 
-If neither moves the number, the module needs **WAGO-I/O-CHECK** over the service interface: set
-the channel to Pt1000, 0.1 °C, 2-conductor, and make sure the channel is enabled. There is no way
-round it from IEC code as this project is configured — the module's control/status byte is not in
-the process image, so there is no mailbox to write registers through.
+### **Reconfiguring the module, if it comes to that**
+
+If neither test moves the number, the channel's settings have to be changed in the module, and
+that means **WAGO-I/O-CHECK**. Two things to know before planning for it:
+
+- **It is chargeable.** WAGO's own download-center entry for 3.25.03 says so in as many words:
+  *"Please note that this software package is chargeable... A download link will only be sent
+  after the proof of purchase has been verified."* The licence is article **759-920** (or
+  759-302/000-923); the download is requested at
+  [wago.com/de/d/6599903](https://www.wago.com/de/d/6599903) and the manual is
+  [wago.com/global/d/388](https://www.wago.com/global/d/388). It is not on winget and there is no
+  free installer — the one `winget search wago` hit is *wago.io*, a World of Warcraft addon
+  manager, and emphatically not this.
+- **It needs a cable, not a network.** The PFC200 talks to it through the 4-pin service header
+  under the front flap, using
+  [750-923](https://www.wago.com/global/accessories/configuration-cable/p/750-923/) (USB, 2.5 m)
+  or 750-920 (serial). That interface exists for I/O-CHECK, I/O-PRO and firmware download.
+
+Then: stop the PLC application so the K-bus is free, connect the cable, let I/O-CHECK identify the
+node, select the 750-463, and set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**. Write
+the settings into the module, power-cycle the node, and start the application again.
+
+There is no route to this from IEC code as this project is configured, and it is not a matter of
+enabling something: the CODESYS device description for `01CF_75x_463` offers a single layout of
+four input words, with no control/status byte, so there is no mailbox to write registers through.
+
+:bulb: **Cheaper than the licence, if this is a one-off:** the sensor does not have to be on this
+module at all. A 1-Wire probe on the ESERA gateway
+([`FB_RS485_ESERA_OWD_MQTT`](../FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)) publishes a
+temperature over the RS485 bus that is already commissioned, and needs no module configuration
+whatsoever.
