@@ -107,8 +107,9 @@ add it to `HIDDEN_METHODS` with a comment saying why.
 
 ## What the generator does not touch
 
-- Pages for blocks not in the export, such as the archived
-  `FB_OUTPUT_DIMMER_DALI_MQTT` — it reports them and leaves them alone.
+- Pages for blocks not in the export — it reports them as `ORPHANED` and leaves
+  them alone. Nothing is in that state today; `FB_OUTPUT_DIMMER_DALI_MQTT` was,
+  until `WagoAppDALI` was installed and the block came back into the project.
 - Wiring diagrams, which are real drawings in `docs/_drawio/`.
 - The Home Assistant YAML fallback on blocks **without** discovery support
   (the virtual and RS485 blocks), which genuinely need it.

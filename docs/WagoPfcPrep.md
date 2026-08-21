@@ -11,6 +11,7 @@
   - [Flashing via SD card](#flashing-via-sd-card)
   - [Install CODESYS Control SL (G1 only)](#install-codesys-control-sl-g1-only)
   - [Activating the license (G1 only)](#activating-the-license-g1-only)
+- [Installing the WAGO libraries (DALI)](#installing-the-wago-libraries-dali)
 
 ## Generations
 
@@ -34,7 +35,8 @@ As a general rule: lower-numbered variants within a series are G1, while higher-
 | CODESYS license required | Yes | No (included with device) |
 | CODESYS license cost | Depends on the license tier, which is driven by your I/O count (see [Install CODESYS Control SL](#install-codesys-control-sl-g1-only)) | Free |
 | Docker containers | No | Yes |
-| WAGO libraries (e.g. DALI) | No | Yes |
+| WAGO libraries (e.g. DALI) | Yes — see [Installing the WAGO libraries](#installing-the-wago-libraries-dali) | Yes |
+| WAGO device descriptions / e!RUNTIME | No (needs FW30+) | Yes |
 
 ## Device preparation
 
@@ -159,3 +161,56 @@ If the PLC or the engineering PC cannot reach the licensing server, the same Lic
 ---
 
 Note that menu paths differ slightly between CODESYS versions, so treat the steps above as the general flow rather than exact clicks.
+
+## Installing the WAGO libraries (DALI)
+
+The DALI blocks need WAGO's `WagoAppDALI` library. It is **not** vendored under
+`src/Libraries/` like MQTT, OSCAT and PRO_JSON: WAGO's software licence forbids
+copying the software or passing it to third parties, and this repository is
+public. So it is a one-off install on each engineering PC, and without it
+`src/HomeAutomation.project` does not build at all.
+
+It arrives as one package — WAGO's **Device Support Package**, listed in the
+[WAGO Download Center](https://downloadcenter.wago.com/software/latest/dd-codesys)
+as *Device Description CODESYS*, downloading as
+`WAGO_Devices_and_Libraries_<version>.package`. It carries both the WAGO device
+descriptions and the whole `WagoApp*` / `WagoSys*` / `WagoTypes*` library set.
+
+**The package version is pinned to the CODESYS version** — WAGO's own words are
+"use this exclusively with the CODESYS version linked below", and the pairing is
+listed on the download page:
+
+| Device Support Package | CODESYS |
+|:--|:--|
+| 2.0.7.5 | 3.5.21.10 (SP21 Patch 1) |
+| **2.0.8.9** | **3.5.21.30 (SP21 Patch 3) — what this project uses** |
+| 2.0.9.2 / 2.0.9.3 | 3.5.21.50 (SP21 Patch 5) |
+
+Install it either from the IDE — *Tools* &rarr; *CODESYS Installer* &rarr;
+*Install File* — or headlessly, which is what the agent tooling does:
+
+```powershell
+& "C:\Program Files (x86)\CODESYS\APInstaller\APInstaller.CLI.exe" `
+    --installAddOnFromFile `
+    --location "C:\Program Files\CODESYS 3.5.21.30\CODESYS" `
+    --sourcefile "<path>\WAGO_Devices_and_Libraries_2.0.8.9.package"
+```
+
+`--location` wants the **`CODESYS` subfolder** of the installation, not the
+installation folder itself; given the latter it reports *"No installation was
+found in the directory"*. Confirm the result with
+`./tools/ai/codesys.ps1 libs -LibFilter dali`, which should list `WagoAppDALI`
+under installed versions.
+
+Two things this does **not** change:
+
+- The `753-647` module is in the G1 K-bus catalogue already, from
+  *CODESYS Control for PFC200 SL* — no package needed to put it on the bus.
+- The WAGO **device descriptions** in the package target FW30 (G2 and newer)
+  devices and cannot be attached to a G1 SL device tree. This is why **only a G2
+  device can actually drive the DALI module under the CODESYS runtime**: the
+  module goes on a G1 bus, but nothing there implements the port interface
+  `FbDaliMaster` binds to. The DALI feature is also **untested on hardware**.
+  Both points are set out on the
+  [FB_OUTPUT_DIMMER_DALI_MQTT](./FunctionBlocks/FB_OUTPUT_DIMMER_DALI_MQTT.md)
+  page.

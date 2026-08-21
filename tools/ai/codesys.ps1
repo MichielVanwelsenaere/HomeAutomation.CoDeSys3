@@ -18,6 +18,8 @@
                The real project is never touched.
       apply    Import .ai/candidates/*.xml into the real project and save it,
                but only if it still builds. Requires -Force.
+      device   Report the configured target, or with -AddModule plug a module
+               into the device tree. Writing requires -Force.
 
 .EXAMPLE
     ./tools/ai/codesys.ps1 verify
@@ -32,7 +34,7 @@
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet('doctor', 'tree', 'device', 'scan', 'export', 'verify', 'simulate', 'download', 'apply', 'probe',
-        'info', 'compare', 'libs')]
+        'info', 'compare', 'libs', 'scaffold')]
     [string]$Task,
 
     # Operate on a project other than src/HomeAutomation.project. This is what
@@ -105,6 +107,47 @@ param(
     # this, whether or not the project references them. How to answer "is there
     # a newer Modbus library?" without knowing what it would be called.
     [string]$LibFilter,
+
+    # device only: plug something into the device tree.
+    #
+    # -AddModule takes the ModuleId from the PARENT's device description (e.g.
+    # 0287_75x_647 for the 753-647 DALI multi-master) and reads the rest of the
+    # identification off the parent, because a module has none of its own.
+    #
+    # -AddDevice takes a device's full identification as "type:id:version",
+    # optionally with a ":moduleid" tail. Read it out of the device description:
+    # C:\ProgramData\CODESYS\Devices\<type>\<id>\<version>\device.xml. With no
+    # -Under it lands at the project root, which is how a second controller gets
+    # added - a project can hold several, and one that is never downloaded still
+    # gets compiled.
+    #
+    # -Under names the node to plug into (an exact node name wins over a path
+    # substring), and -NodeName is the instance name. It is required for
+    # -AddDevice and optional for -AddModule, which otherwise follows the
+    # _75x_nnn convention the existing modules use.
+    #
+    # Writing to the real project needs -Force, and the change is only saved if
+    # the project still builds - exactly as `apply` and `libs` behave.
+    # -RemoveNode unplugs a device or module by node name, and -RenameNode
+    # renames one (to the name given by -NodeName). Same guard as adding one: the
+    # project is only saved if it still builds.
+    #
+    # A device's name is in the object path of every compiler message, so a
+    # rename makes the recorded baseline stale - re-record it afterwards or every
+    # unchanged warning under that device reads as NEW.
+    [string]$AddModule,
+    [string]$AddDevice,
+    [string]$RemoveNode,
+    [string]$RenameNode,
+    [string]$Under,
+    [string]$NodeName,
+
+    # scaffold only: JSON spec of objects to create inside an application - a
+    # GVL, a program, or a task calling one. Adding a device gives you an
+    # application with a Library Manager and nothing else, so this is what makes
+    # that application able to compile anything. Idempotent by name, so re-running
+    # a spec updates the text instead of creating a second object.
+    [string]$Scaffold,
 
     # verify/apply: JSON list of surgical edits to POUs already in the project.
     # Defaults to .ai/edits/edits.json when that exists. Use -Edits none to skip.
@@ -324,6 +367,34 @@ function Resolve-Edits {
     return $out
 }
 
+function Resolve-Scaffold {
+    # Same treatment as an edits spec: every *_file path made absolute, because
+    # the driver reads the fragments itself.
+    if (-not $Scaffold) { throw 'scaffold needs -Scaffold <spec.json>.' }
+    if (-not (Test-Path $Scaffold)) { throw "Scaffold spec not found: $Scaffold" }
+    $spec = Get-Content $Scaffold -Raw | ConvertFrom-Json
+    $base = Split-Path (Resolve-Path $Scaffold) -Parent
+    $out = @()
+    foreach ($o in @($spec.objects)) {
+        if (-not $o) { continue }
+        $h = [ordered]@{}
+        foreach ($p in $o.PSObject.Properties) {
+            $v = $p.Value
+            if ($p.Name -like '*_file' -and $v) {
+                $cand = Join-Path $base $v
+                if (-not (Test-Path $cand)) { $cand = Join-Path $repo $v }
+                if (-not (Test-Path $cand)) { throw "Scaffold fragment not found: $v" }
+                $v = (Resolve-Path $cand).Path
+            }
+            elseif ($p.Name -eq 'calls' -and $v) { $v = @($v) }
+            $h[$p.Name] = $v
+        }
+        $out += $h
+    }
+    Write-Host "scaffold  : $($out.Count) object(s) from $Scaffold"
+    return $out
+}
+
 # ---------------------------------------------------------------- sandbox
 
 function New-Sandbox {
@@ -379,6 +450,38 @@ switch ($Task) {
         if ($LibFilter) { $cfg.lib_filter = $LibFilter }
         if ($RemoveLib -or $AddLib -or $UpdateLib) {
             Write-Host 'mode      : editing library references (builds before saving)'
+        }
+        else {
+            Write-Host 'mode      : read-only report'
+        }
+    }
+    'scaffold' {
+        if (-not $Force) {
+            throw "scaffold writes to $targetProject. Re-run with -Force."
+        }
+        $cfg.scaffold = Resolve-Scaffold
+    }
+    'device' {
+        if ($AddModule -or $AddDevice -or $RemoveNode -or $RenameNode) {
+            if (-not $Force) {
+                throw "device -AddModule/-AddDevice/-RemoveNode/-RenameNode writes to $targetProject. Re-run with -Force."
+            }
+            if ($RenameNode -and -not $NodeName) {
+                throw 'device -RenameNode needs -NodeName <name>, the name to rename it to.'
+            }
+            if ($RemoveNode) { $cfg.node_remove = $RemoveNode }
+            if ($RenameNode) { $cfg.node_rename = $RenameNode }
+            if ($AddModule -and -not $Under) {
+                throw 'device -AddModule needs -Under <node>, the device tree node to plug it into.'
+            }
+            if ($AddDevice -and -not $NodeName) {
+                throw 'device -AddDevice needs -NodeName <name>, what to call the new device.'
+            }
+            if ($AddModule) { $cfg.module_add = $AddModule }
+            if ($AddDevice) { $cfg.device_add = $AddDevice }
+            if ($Under)     { $cfg.node_under = $Under }
+            if ($NodeName)  { $cfg.node_name  = $NodeName }
+            Write-Host 'mode      : editing the device tree (builds before saving)'
         }
         else {
             Write-Host 'mode      : read-only report'
@@ -662,6 +765,35 @@ switch ($Task) {
             foreach ($p in $report.installed_libraries.PSObject.Properties | Sort-Object Name) {
                 Write-Host ("  {0,-46} {1}" -f $p.Name, ($p.Value.versions -join ', '))
             }
+        }
+        if ($null -ne $report.saved) {
+            Write-Host ''
+            Write-Host "saved     : $($report.saved)"
+        }
+    }
+    'scaffold' {
+        foreach ($c in @($report.scaffold | Where-Object { $_ })) {
+            Write-Host "  $c" -ForegroundColor Green
+        }
+        Write-Host ''
+        Write-Host "built: $($report.built -join ', ')"
+        Write-Host "saved: $($report.saved)"
+    }
+    'device' {
+        foreach ($c in @($report.device_changes | Where-Object { $_ })) {
+            Write-Host "  $c" -ForegroundColor Green
+        }
+        if ($report.device_changes) { Write-Host '' }
+        Write-Host 'device tree:'
+        foreach ($d in @($report.devices)) {
+            $note = ''
+            if ($d.gateway) { $note = "  gateway $($d.gateway) address $($d.address) simulation $($d.simulation)" }
+            Write-Host ("  {0,-52}{1}" -f $d.path, $note)
+        }
+        if (@($report.gateways).Count -gt 0) {
+            Write-Host ''
+            Write-Host 'gateways:'
+            foreach ($g in @($report.gateways)) { Write-Host "  $($g.name)  $($g.id)" }
         }
         if ($null -ne $report.saved) {
             Write-Host ''

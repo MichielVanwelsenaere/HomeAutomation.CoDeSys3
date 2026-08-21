@@ -965,20 +965,54 @@ def build_and_collect(proj, result):
     if not apps:
         result["errors"].append("no application found in project")
         return
-    clear_all_messages()
+    # Collected per application, because a build CLEARS the message store. With
+    # one application that was invisible; with two, sweeping only at the end
+    # returned the last application's messages and silently dropped the first
+    # one's - which is how a baseline came back with none of this project's eight
+    # known warnings in it.
+    gathered = []
+    gathered_keys = {}
+
+    def gather():
+        for item in collect_messages():
+            key = (item["severity"], item["text"], item["object"], item["position"])
+            if key in gathered_keys:
+                gathered_keys[key]["occurrences"] += item.get("occurrences", 1)
+                continue
+            gathered_keys[key] = item
+            gathered.append(item)
+
     for app in apps:
         name = object_path(app)
+        clear_all_messages()
         try:
             log("building %s ..." % name)
-            app.build()
+            # rebuild(), not build(). `build()` is incremental, and an
+            # application CODESYS considers up to date compiles nothing and
+            # reports nothing - so it lands in `built` having said nothing about
+            # itself. That is harmless until a project has two applications:
+            # then a baseline recorded straight after a save came back with the
+            # new application's messages only, and the eight known warnings of
+            # the other one read as NEW on the next run. A complete message set
+            # is worth the extra seconds.
+            try:
+                app.rebuild()
+            except Exception:
+                # No rebuild on this object: an incremental build is still
+                # better than no build.
+                log("rebuild unavailable for %s, falling back to build()" % name)
+                app.build()
             result["built"].append(name)
             log("built %s" % name)
         except Exception:
             trace = traceback.format_exc()
             log("build failed for %s:\n%s" % (name, trace))
             result["errors"].append("build failed for %s: %s" % (name, trace))
-    log("collecting messages ...")
-    result["messages"] = collect_messages()
+        gather()
+        log("messages after %s: %d" % (name, len(gathered)))
+    gathered.sort(key=lambda m: (SEVERITY_ORDER.get(m["severity"], 9),
+                                 m["object"] or "", m["text"]))
+    result["messages"] = gathered
     log("messages: %d" % len(result["messages"]))
 
 
@@ -1445,6 +1479,32 @@ def clear_precompile_cache(cfg, result):
         return False
 
 
+def save_if_it_builds(cfg, result, proj, reason):
+    """Build, and save only if it builds. True when the project was saved.
+
+    The same guard `apply` and `libs` carry inline: build, and on failure clear
+    the precompile cache and build once more, because an in-place build can fail
+    citing an identifier the source no longer contains. Refusing to save a
+    project that does not build is what makes a wrong guess cost a run rather
+    than a project.
+    """
+    build_and_collect(proj, result)
+    blocking = [m for m in result["messages"] if m["severity"] in BAD_SEVERITIES]
+    if blocking and not result["errors"] and clear_precompile_cache(cfg, result):
+        del result["messages"][:]
+        log("build failed; precompile cache cleared, rebuilding once")
+        build_and_collect(proj, result)
+        blocking = [m for m in result["messages"] if m["severity"] in BAD_SEVERITIES]
+        result["precompile_cache_cleared"] = True
+    if blocking or result["errors"]:
+        result["saved"] = False
+        result["errors"].append("project NOT saved: %s" % reason)
+        return False
+    proj.save()
+    result["saved"] = True
+    return True
+
+
 def do_apply(cfg, result):
     proj = projects.open(cfg["project"])  # noqa: F821
     try:
@@ -1512,6 +1572,13 @@ def do_probe(cfg, result):
             for name in ("build", "generate_code"):
                 member = getattr(app, name, None)
                 sigs["application." + name] = safe(lambda: str(member.__doc__), "<no doc>")
+            # Everything the object really exposes, because the stubs document a
+            # subset. This is how an application setting with no documented
+            # accessor gets found - or ruled out.
+            result["members"] = {
+                "application": sorted([u(n) for n in dir(app) if not n.startswith("_")]),
+                "project": sorted([u(n) for n in dir(proj) if not n.startswith("_")]),
+            }
         result["signatures"] = sigs
     finally:
         safe(lambda: proj.close())
@@ -1880,15 +1947,239 @@ def do_download(cfg, result):
         safe(lambda: proj.close())
 
 
+def resolve_node(result, proj, needle):
+    """The one device node matching `needle`, or None with an error recorded.
+
+    An exact name wins outright, and only then does a path substring get a say.
+    Without that precedence "Pfc200Bus" matches the bus AND every module already
+    on it, because a child's path contains its parent's name - so the obvious
+    query is refused as ambiguous by its own children.
+    """
+    needle = u(needle or u"").lower()
+    exact, loose = [], []
+    for node in list(safe(lambda: proj.get_children(True), []) or []):
+        if not safe(lambda: node.is_device, False):
+            continue
+        if needle == u(safe(lambda: node.get_name(), u"")).lower():
+            exact.append(node)
+        elif needle in object_path(node).lower():
+            loose.append(node)
+    hits = exact or loose
+    if not hits:
+        result["errors"].append("no device node matches %r" % needle)
+        return None
+    if len(hits) > 1:
+        # Same reasoning as an ambiguous POU edit: a coin flip over which bus
+        # gets a new device is worse than a refusal.
+        result["errors"].append(
+            "%r matches %d device nodes (%s) - be more specific"
+            % (needle, len(hits), ", ".join(object_path(h) for h in hits)))
+        return None
+    return hits[0]
+
+
+def add_device(cfg, result, proj):
+    """Add a device by its full identification: "type:id:version[:moduleid]".
+
+    Unlike a module, a device carries its own identification, so it has to be
+    given. Read it from the device description - `<DeviceIdentification>` in
+    `C:\\ProgramData\\CODESYS\\Devices\\<type>\\<id>\\<version>\\device.xml`,
+    which is also where the folder layout spells it out.
+
+    With no parent the device is added at the project root, which is what makes
+    a second controller possible: a project can hold several, and one that is
+    never downloaded still gets compiled.
+
+    Returns True when a device was added.
+    """
+    spec = u(cfg.get("device_add") or u"")
+    parts = [p.strip() for p in spec.split(":")]
+    if len(parts) < 3:
+        result["errors"].append(
+            "device_add wants \"type:id:version\" (optionally \":moduleid\"), got %r" % spec)
+        return False
+    try:
+        dev_type = int(parts[0])
+    except ValueError:
+        result["errors"].append("device type %r is not a number" % parts[0])
+        return False
+    dev_id, dev_version = parts[1], parts[2]
+    module_id = parts[3] if len(parts) > 3 else None
+    name = u(cfg.get("node_name") or u"")
+    if not name:
+        result["errors"].append("device_add needs node_name: what to call the new device")
+        return False
+
+    needle = u(cfg.get("node_under") or u"")
+    if needle:
+        parent = resolve_node(result, proj, needle)
+        if parent is None:
+            return False
+        where = object_path(parent)
+    else:
+        parent = proj
+        where = u"the project root"
+
+    try:
+        if module_id:
+            parent.add(name, dev_type, dev_id, dev_version, module_id)
+        else:
+            parent.add(name, dev_type, dev_id, dev_version)
+    except Exception:
+        trace = traceback.format_exc()
+        result["errors"].append(
+            "adding device %s under %s failed:\n%s" % (spec, where, trace))
+        log("add_device failed:\n%s" % trace)
+        return False
+
+    change = u"added %s (%s) under %s" % (name, spec, where)
+    result.setdefault("device_changes", []).append(change)
+    log(change)
+    return True
+
+
+def rename_node(cfg, result, proj):
+    """Rename a device or module node.
+
+    Worth knowing what a device's name reaches: the object paths in every
+    compiler message, and so the object paths recorded in a baseline. Rename a
+    device and the next `verify` reads its unchanged warnings as NEW until the
+    baseline is re-recorded. Persistent instance paths would matter too, but this
+    project's `PersistentVars` list is empty.
+
+    Returns True when a node was renamed.
+    """
+    node = resolve_node(result, proj, cfg.get("node_rename"))
+    if node is None:
+        return False
+    new_name = u(cfg.get("node_name") or u"")
+    if not new_name:
+        result["errors"].append("node_rename needs node_name: what to rename it to")
+        return False
+    old_path = object_path(node)
+    try:
+        node.rename(new_name)
+    except Exception:
+        trace = traceback.format_exc()
+        result["errors"].append("renaming %s to %r failed:\n%s" % (old_path, new_name, trace))
+        log("rename_node failed:\n%s" % trace)
+        return False
+    change = u"renamed %s to %s" % (old_path, new_name)
+    result.setdefault("device_changes", []).append(change)
+    log(change)
+    return True
+
+
+def remove_node(cfg, result, proj):
+    """Unplug a device or module from the device tree, by node name.
+
+    The counterpart to adding one, and the reason the guard matters: removing a
+    module changes what the runtime expects on its bus, so the build has to be
+    re-run before this can be saved.
+
+    Returns True when a node was removed.
+    """
+    node = resolve_node(result, proj, cfg.get("node_remove"))
+    if node is None:
+        return False
+    path = object_path(node)
+    try:
+        node.remove()
+    except Exception:
+        trace = traceback.format_exc()
+        result["errors"].append("removing %s failed:\n%s" % (path, trace))
+        log("remove_node failed:\n%s" % trace)
+        return False
+    change = u"removed %s" % path
+    result.setdefault("device_changes", []).append(change)
+    log(change)
+    return True
+
+
+def add_module(cfg, result, proj):
+    """Plug a module into a node of the device tree, by ModuleId.
+
+    A module is not identified the way a device is. Its parent's device
+    description carries every module that description can hold, and `add` takes
+    the PARENT's (type, id, version) plus the module's own ModuleId - which is
+    why every module already under `Pfc200Bus` reports the bus's own
+    identification ("288", "0000 0001", "4.19.0.0") and differs only in name.
+    So the identification is read off the parent rather than asked for: there is
+    exactly one right answer and it is already in the project.
+
+    Returns True when a module was added.
+    """
+    module_id = u(cfg.get("module_add") or u"")
+    needle = u(cfg.get("node_under") or u"")
+    name = u(cfg.get("node_name") or u"")
+    if not needle:
+        result["errors"].append("module_add needs node_under: which node to plug it into")
+        return False
+
+    parent = resolve_node(result, proj, needle)
+    if parent is None:
+        return False
+    ident = safe(lambda: parent.get_device_identification(), None)
+    if ident is None:
+        result["errors"].append("cannot read the device identification of %s" % object_path(parent))
+        return False
+    dev_type = safe(lambda: int(str(ident.type)), None)
+    dev_id = u(safe(lambda: str(ident.id), u""))
+    dev_version = u(safe(lambda: str(ident.version), u""))
+    if dev_type is None or not dev_id:
+        result["errors"].append("incomplete device identification on %s" % object_path(parent))
+        return False
+
+    if not name:
+        # CODESYS's own default instance name for these is the order number with
+        # the leading digit dropped and dots turned into underscores; the modules
+        # already in this project are named _75x_440 and the like. Deriving it
+        # from the ModuleId keeps a scripted module indistinguishable from one
+        # added in the IDE.
+        name = u"_" + module_id.split("_", 1)[-1] if "_" in module_id else module_id
+
+    try:
+        parent.add(name, dev_type, dev_id, dev_version, module_id)
+    except Exception:
+        trace = traceback.format_exc()
+        result["errors"].append(
+            "adding module %r under %s failed:\n%s" % (module_id, object_path(parent), trace))
+        log("add_module failed:\n%s" % trace)
+        return False
+
+    change = u"added %s (module %s) under %s" % (name, module_id, object_path(parent))
+    result.setdefault("device_changes", []).append(change)
+    log(change)
+    return True
+
+
 def do_device(cfg, result):
     """Report the configured communication target, without connecting to it.
 
     Answers "could this project be downloaded from here?" — which gateway and
     address the device node points at, and whether simulation is switched on —
     while making no attempt to reach the PLC.
+
+    With `module_add` or `device_add` it also writes: something is plugged into
+    the device tree, and then it behaves like `libs` and `apply` - build first,
+    refuse to save a project that does not build.
     """
-    proj = projects.open(cfg["project"], allow_readonly=True)  # noqa: F821
+    mutating = bool(cfg.get("module_add") or cfg.get("device_add")
+                    or cfg.get("node_remove") or cfg.get("node_rename"))
+    proj = projects.open(cfg["project"], allow_readonly=not mutating)  # noqa: F821
     try:
+        if cfg.get("node_rename"):
+            if not rename_node(cfg, result, proj):
+                return
+        if cfg.get("node_remove"):
+            if not remove_node(cfg, result, proj):
+                return
+        if cfg.get("device_add"):
+            if not add_device(cfg, result, proj):
+                return
+        if cfg.get("module_add"):
+            if not add_module(cfg, result, proj):
+                return
         devices = []
         for node in list(safe(lambda: proj.get_children(True), []) or []):
             if not safe(lambda: node.is_device, False):
@@ -1912,6 +2203,206 @@ def do_device(cfg, result):
             )
         result["gateways"] = gateways
         log("devices=%d gateways=%d" % (len(devices), len(gateways)))
+        if mutating:
+            save_if_it_builds(cfg, result, proj,
+                              "it does not build with this device tree")
+    finally:
+        safe(lambda: proj.close())
+
+
+# ------------------------------------------------------------------ scaffold
+#
+# Adding a device gets you `Plc Logic/Application` with a Library Manager and
+# nothing else - no program, no task configuration - so an application created
+# from a script cannot compile anything yet. These three creations are what turn
+# it into one that does, and they are the reason a second controller is a useful
+# thing to be able to add: a program in an application no task calls is not
+# compiled, and neither is a POU no application references.
+
+
+def find_application(result, proj, needle):
+    """The one application whose path contains `needle`."""
+    needle = u(needle or u"").lower()
+    hits = []
+    for node in list(safe(lambda: proj.get_children(True), []) or []):
+        if not safe(lambda: node.is_application, False):
+            continue
+        if needle in object_path(node).lower():
+            hits.append(node)
+    if not hits:
+        result["errors"].append("no application matches %r" % needle)
+        return None
+    if len(hits) > 1:
+        result["errors"].append(
+            "%r matches %d applications (%s) - be more specific"
+            % (needle, len(hits), ", ".join(object_path(h) for h in hits)))
+        return None
+    return hits[0]
+
+
+def child_named(parent, name):
+    for child in list(safe(lambda: parent.get_children(False), []) or []):
+        if u(safe(lambda: child.get_name(), u"")) == u(name):
+            return child
+    return None
+
+
+def task_configuration_of(app):
+    for child in list(safe(lambda: app.get_children(False), []) or []):
+        if safe(lambda: child.is_task_configuration, False):
+            return child
+    return None
+
+
+def set_property(result, obj, name, *candidates):
+    """Set a property, trying each candidate value until one is accepted.
+
+    The ScriptEngine's stubs get property types wrong often enough that guessing
+    is normal, and a swallowed failure here is invisible: the object keeps a
+    default the compiler later rejects for its own reasons. So this reports the
+    last error rather than shrugging.
+    """
+    last = None
+    for value in candidates:
+        try:
+            setattr(obj, name, value)
+            return True
+        except Exception:
+            last = traceback.format_exc()
+    result["errors"].append("could not set %s on %s:\n%s"
+                            % (name, object_path(obj), last))
+    return False
+
+
+def scaffold_item(cfg, result, proj, item):
+    """Create one GVL, program or task, and set its text. Idempotent by name."""
+    app = find_application(result, proj, item.get("application"))
+    if app is None:
+        return
+    where = object_path(app)
+
+    def text_for(key):
+        # The wrapper has already made every *_file path absolute, exactly as it
+        # does for an edits spec.
+        path = item.get(key + "_file")
+        if path:
+            return read_text(path)
+        return item.get(key)
+
+    if item.get("gvl"):
+        name = u(item["gvl"])
+        obj = child_named(app, name)
+        created = obj is None
+        if created:
+            obj = app.create_gvl(name)
+        decl = text_for("decl")
+        if decl is not None:
+            obj.textual_declaration.replace(decl)
+        result.setdefault("scaffold", []).append(
+            u"%s GVL %s in %s" % (u"created" if created else u"updated", name, where))
+        return
+
+    if item.get("program"):
+        name = u(item["program"])
+        obj = child_named(app, name)
+        created = obj is None
+        if created:
+            obj = app.create_pou(name, PouType.Program)  # noqa: F821
+        decl = text_for("decl")
+        body = text_for("body")
+        if decl is not None:
+            obj.textual_declaration.replace(decl)
+        if body is not None:
+            obj.textual_implementation.replace(body)
+        result.setdefault("scaffold", []).append(
+            u"%s program %s in %s" % (u"created" if created else u"updated", name, where))
+        return
+
+    if item.get("task"):
+        name = u(item["task"])
+        config = task_configuration_of(app)
+        if config is None:
+            config = app.create_task_configuration()
+        task = child_named(config, name)
+        created = task is None
+        if created:
+            task = config.create_task(name)
+        if item.get("interval"):
+            if not set_property(result, task, "interval", u(item["interval"])):
+                return
+        if item.get("priority") is not None:
+            # The stub types priority as str; the real property is numeric, and a
+            # string leaves it unset - which the compiler then reports as "The
+            # task priority is invalid" rather than as a failed assignment. Try
+            # the int first and keep the string as the fallback.
+            if not set_property(result, task, "priority", int(item["priority"]),
+                                u(str(item["priority"]))):
+                return
+        calls = item.get("calls") or []
+        existing = [u(str(p)) for p in list(safe(lambda: task.pous, []) or [])]
+        for pou in calls:
+            # A task calling the same POU twice is legal and would run it twice,
+            # so this has to be checked rather than just added.
+            if not [e for e in existing if u(pou) in e]:
+                task.pous.add(u(pou))
+        # Read back what actually landed. A property the ScriptEngine accepted is
+        # not necessarily a property the compiler accepts, and the compiler's
+        # complaint ("the task priority is invalid") names the field without
+        # showing its value.
+        read_back = u"kind=%s interval=%s priority=%s" % (
+            u(str(safe(lambda: task.kind_of_task, u"?"))),
+            u(str(safe(lambda: task.interval, u"?"))),
+            u(str(safe(lambda: task.priority, u"?"))))
+        result.setdefault("scaffold", []).append(
+            u"%s task %s in %s calling %s [%s]"
+            % (u"created" if created else u"updated", name, where,
+               ", ".join(calls) or u"nothing", read_back))
+        return
+
+    if item.get("set"):
+        # Blind property setting, for a setting the stubs do not document and
+        # `dir()` cannot reveal - ScriptEngine objects answer dir() with nothing,
+        # so the only way to find out whether a property is reachable is to try
+        # it and read back. Every attempt is reported, successes included, so a
+        # run either proves the name or rules it out.
+        for key in sorted(item["set"].keys()):
+            value = item["set"][key]
+            before = u(str(safe(lambda: getattr(app, key), u"<unreadable>")))
+            ok = False
+            try:
+                setattr(app, key, value)
+                ok = True
+            except Exception:
+                pass
+            after = u(str(safe(lambda: getattr(app, key), u"<unreadable>")))
+            result.setdefault("scaffold", []).append(
+                u"set %s on %s: accepted=%s before=%s after=%s"
+                % (key, where, ok, before, after))
+        return
+
+    result["errors"].append("scaffold item names none of gvl/program/task/set: %r" % item)
+
+
+def do_scaffold(cfg, result):
+    """Create objects inside an application from a spec, then build and save.
+
+    Same contract as `libs` and `apply`: it refuses to save a project that does
+    not build, so a wrong fragment costs a run rather than a project.
+    """
+    items = cfg.get("scaffold") or []
+    if isinstance(items, dict):
+        items = [items]
+    if not items:
+        result["errors"].append("nothing to scaffold: the spec has no objects")
+        return
+    proj = projects.open(cfg["project"])  # noqa: F821
+    try:
+        for item in items:
+            scaffold_item(cfg, result, proj, item)
+            if result["errors"]:
+                return
+        save_if_it_builds(cfg, result, proj,
+                          "it does not build with these scaffolded objects")
     finally:
         safe(lambda: proj.close())
 
@@ -2281,6 +2772,7 @@ def do_libs(cfg, result):
 
 TASKS = {
     "compare": do_compare,
+    "scaffold": do_scaffold,
     "info": do_info,
     "device": do_device,
     "download": do_download,

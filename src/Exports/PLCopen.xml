@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-20T21:35:29.8671867" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-20T21:29:19.8185511">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-21T16:34:04.2827232" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-21T16:32:37.7415059">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -6788,6 +6788,474 @@ END_IF</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>e06a724f-ce4e-4dee-bc94-f2be12e7019f</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_OUTPUT_DIMMER_DALI_MQTT" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="STATUS_LED">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="InstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="noinit" />
+                    <Attribute Name="instance-path" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Refelection: object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Startup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="DaliSendDimValue">
+              <type>
+                <derived name="WagoAppDALI.FbDaliSendDimValue" />
+              </type>
+            </variable>
+            <variable name="DaliSendFadeTime">
+              <type>
+                <derived name="WagoAppDALI.FbDaliSendFadeTime" />
+              </type>
+            </variable>
+            <variable name="DaliSendFadeRate">
+              <type>
+                <derived name="WagoAppDALI.FbDaliSendFadeRate" />
+              </type>
+            </variable>
+            <variable name="MqttSendBrightnessUpdate">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MqttSendOnUpdate">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="MqttSendOffUpdate">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="Toggle_RTrigger">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="DaliSyncSignalGenerator">
+              <type>
+                <derived name="Util.BLINK" />
+              </type>
+            </variable>
+            <variable name="DaliConfigSyncSignalGenerator">
+              <type>
+                <derived name="Util.BLINK" />
+              </type>
+            </variable>
+            <variable name="DimDirection">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+          </localVars>
+          <localVars persistent="true">
+            <variable name="DimValue">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+          </localVars>
+          <inputVars>
+            <variable name="BALLAST">
+              <type>
+                <derived name="WagoAppDALI.typBallast" />
+              </type>
+            </variable>
+            <variable name="TOGGLE">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="P_LONG">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="PRIO_HIGH">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="PRIO_LOW">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+          </inputVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+                <Implements>MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">DaliSendFadeTime(
+	typBallast := BALLAST,
+	bFadeTime := 2, // 1 sec
+	xUpdate := DaliConfigSyncSignalGenerator.OUT
+	);
+	
+DaliSendFadeRate(
+	typBallast := BALLAST,
+	bFadeRate := 2, // 1 sec
+	xUpdate := DaliConfigSyncSignalGenerator.OUT
+	);
+
+DaliSendDimValue(
+	typBallast := BALLAST,
+	rDimValue := DimValue,
+	xUpdate := DaliSyncSignalGenerator.OUT OR MqttSendOffUpdate OR MqttSendOnUpdate);
+
+DaliSyncSignalGenerator(
+	ENABLE := TRUE,
+	TIMEHIGH := T#1S,
+	TIMELOW := T#1M);
+	
+DaliConfigSyncSignalGenerator(
+	ENABLE := TRUE,
+	TIMEHIGH := T#1S,
+	TIMELOW := T#24H);
+
+Toggle_RTrigger(CLK:=TOGGLE);
+
+// Regular push
+IF(Toggle_RTrigger.Q AND DimValue = 0) THEN
+	SetDimValue(100);
+ELSIF(Toggle_RTrigger.Q AND DimValue &gt; 0) THEN
+	SetDimValue(0);
+END_IF
+
+// Long push
+IF P_LONG THEN
+	SetDimValue(DimValue + DimDirection);
+END_IF
+
+IF MqttSendBrightnessUpdate OR Startup AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(		
+		Payload := REAL_TO_STRING(DimValue),
+		Topic := CONCAT(THIS^.MQTTPublishTopic, '/BRIGHTNESS'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+	MqttSendBrightnessUpdate := FALSE;
+END_IF
+
+IF MqttSendOnUpdate OR (Startup AND DimValue &gt; 0) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(		
+		Payload := 'ON',
+		Topic := THIS^.MQTTPublishTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+	MqttSendOnUpdate := FALSE;
+END_IF
+
+IF MqttSendOffUpdate OR (Startup AND DimValue = 0) AND InitMqttDone THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := 'OFF',
+		Topic := THIS^.MQTTPublishTopic,
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+	MqttSendOffUpdate := FALSE;
+END_IF
+
+Startup:=FALSE;
+STATUS_LED := REAL_TO_BOOL(DimValue);</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="41b5d1f1-1379-4f11-beca-4c2f68505959">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
+	
+	IF CommonTypesAndFunctions.StrEquals(str1:= ADR(overruleId), str2:= ADR('')) THEN
+		id := CONCAT(CONCAT(THIS^.DeviceName,'_'), THIS^.InstanceNamePt^); // 'FB_DI_PB_003'
+	ELSE
+		id := overruleId; // 'MY_PH_GND_HALL_01'
+	END_IF
+	
+	Device^.CreateLightDimmerEntity(
+		Name := name,
+		Id := Id,
+		Meta := meta,
+		CommandTopic := THIS^.MQTTSubscribeTopic,
+		PayloadOn := 'ON',
+		PayloadOff := 'OFF',
+		StateTopic := THIS^.MQTTPublishTopic,
+		BrightnessCommandTopic := CONCAT(THIS^.MQTTSubscribeTopic, '/BRIGHTNESS'),
+		BrightnessStateTopic := CONCAT(THIS^.MQTTPublishTopic, '/BRIGHTNESS'),
+		BrightnessScale := 100,
+		OnCommandType := 'brightness');
+
+	initMqttDiscoveryDone := TRUE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt" ObjectId="6d1a9526-fc40-4bea-984e-b993a4038193">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MqttPublishQueue" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._InstancePath := THIS^.InstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
+THIS^.pMqttPublishQueue:=pMqttPublishQueue;
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received
+
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived" ObjectId="bb67726e-6c8a-4afa-9d66-b7762c1c796b">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(InitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	
+ELSIF MQTTSubscribeTopic =  Data.TopicOut^ THEN
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('ON')) THEN
+		SetDimValue(100);
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OFF')) THEN
+		SetDimValue(0);
+	END_IF
+	
+ELSIF CONCAT(MQTTSubscribeTopic, '/BRIGHTNESS') =  Data.TopicOut^ THEN
+	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
+		SetDimValue(STRING_TO_REAL(Data.PayloadString^));
+	END_IF
+END_IF </xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetDimValue" ObjectId="82749cde-9c91-4dc7-a4be-811420070a63">
+              <interface>
+                <inputVars>
+                  <variable name="Value">
+                    <type>
+                      <REAL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
+                    <AccessModifiers Private="true" />
+                  </data>
+                </addData>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.MqttSendBrightnessUpdate := TRUE;
+
+IF THIS^.DimValue = 0 AND Value &gt; 0 THEN
+	THIS^.MqttSendOnUpdate := TRUE;
+END_IF
+
+IF THIS^.DimValue &gt; 0 AND Value = 0 THEN
+	THIS^.MqttSendOffUpdate := TRUE;
+END_IF
+
+IF Value = 0 THEN
+	DimDirection := 1;
+ELSIF Value = 100 THEN
+	DimDirection := -1;
+END_IF
+
+THIS^.DimValue := Value;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="ConfigureFunctionBlock" ObjectId="e586ae99-722c-4df2-8331-ed86cebf14a6">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="FadeTime">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                  <variable name="FadeRate">
+                    <type>
+                      <BYTE />
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">DaliSendFadeTime.bFadeTime := FadeTime;
+DaliSendFadeRate.bFadeRate := FadeRate;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>cf57d568-37d2-4c86-8d8d-04c9284ba294</ObjectId>
           </data>
         </addData>
       </pou>
@@ -21663,7 +22131,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
   </types>
   <instances>
     <configurations>
-      <configuration name="Wago_PFC_Lab">
+      <configuration name="Wago_PFC200_G1_Lab">
         <resource name="HomeAutomation">
           <task name="HvacTask" interval="PT0.05S" priority="8">
             <pouInstance name="PLC_PRG_HVAC" typeName="">
@@ -25843,6 +26311,501 @@ PreviousReachable := DMXnodeReachable;</xhtml>
           </data>
         </addData>
       </configuration>
+      <configuration name="Wago_PFC200_G2_Virtual">
+        <resource name="Application">
+          <task name="DaliVerify" interval="PT0.2S" priority="15">
+            <pouInstance name="PRG_DALI_VERIFY" typeName="">
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml" />
+              </documentation>
+            </pouInstance>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
+                <TaskSettings KindOfTask="Cyclic" Interval="T#200ms" IntervalUnit="ms" WithinSPSTimeSlicing="true">
+                  <Watchdog Enabled="false" TimeUnit="ms" Sensitivity="1" />
+                </TaskSettings>
+              </data>
+              <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                <ObjectId>a614f42a-e3e1-4850-b4d8-63587670576d</ObjectId>
+              </data>
+            </addData>
+          </task>
+          <globalVars name="MqttVariables" constant="true">
+            <variable name="MQTT_TOPIC_LEN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="160" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The only two members FB_MQTT_BASE and FB_MqttPublishQueue read, and so the
+ only two this application needs: it exists to compile the DALI chain, not
+ to speak MQTT. The real MqttVariables lives in Wago_PFC200_G1_Lab's application,
+ and a GVL cannot be shared between applications.
+
+ If these drift from the real ones nothing breaks here - they only size
+ strings, and this application is never downloaded.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="MQTT_SUFFIX_LEN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="64" />
+              </initialValue>
+            </variable>
+            <addData>
+              <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                <Attributes>
+                  <Attribute Name="qualified_only" Value="" />
+                </Attributes>
+              </data>
+              <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                <ObjectId>f2e2eb86-f33d-4d0a-bd8f-5a203cd174cd</ObjectId>
+              </data>
+            </addData>
+          </globalVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
+              <pou name="PRG_DALI_VERIFY" pouType="program">
+                <interface>
+                  <localVars>
+                    <variable name="Ballast">
+                      <type>
+                        <derived name="WagoAppDALI.typBallast" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="bAddress">
+                            <simpleValue value="0" />
+                          </value>
+                          <value member="xIsGroup">
+                            <simpleValue value="FALSE" />
+                          </value>
+                          <value member="bPortDALI">
+                            <simpleValue value="1" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> A ballast on the first 753-647 of this device, short address 0. The values
+ are arbitrary: nothing here is downloaded. What matters is that every type
+ and every call in the DALI chain is compiled on every build.</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="DaliMaster">
+                      <type>
+                        <derived name="WagoAppDALI.FbDaliMaster" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> The master, and the block under test.</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="Dimmer">
+                      <type>
+                        <derived name="FB_OUTPUT_DIMMER_DALI_MQTT" />
+                      </type>
+                    </variable>
+                  </localVars>
+                </interface>
+                <body>
+                  <ST>
+                    <xhtml xmlns="http://www.w3.org/1999/xhtml">// Run the master before anything else, bound to the 753-647 on this device's own
+// K-bus. This binding is the whole point of the second controller: I_Port wants a
+// WagoTypesModule_753_647.I_Port_753_647, which only WAGO's device description
+// creates, and that description does not fit the G1 lab device's bus.
+DaliMaster(
+	bPortDALI := 1,
+	I_Port := IoConfig_Globals.DALI_753_647);
+
+// The block under test. No InitMqtt and no InitMqttDiscovery: this application
+// never runs, and calling them would only invent a Home Assistant entity for a
+// controller that does not exist.
+Dimmer(
+	BALLAST := Ballast,
+	TOGGLE := FALSE,
+	P_LONG := FALSE);
+</xhtml>
+                  </ST>
+                </body>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>5c41cb81-5fe0-4209-ad3c-f2d92c064e8b</ObjectId>
+                  </data>
+                </addData>
+              </pou>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/libraries" handleUnknown="implementation">
+              <Libraries>
+                <Library Name="#BreakpointLogging" Namespace="BPLog" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="Breakpoint Logging Functions, * (3S - Smart Software Solutions GmbH)" />
+                <Library Name="#IoStandard" Namespace="IoStandard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="true" DefaultResolution="IoStandard, 3.5.17.0 (System)" />
+                <Library Name="#3SLicense" Namespace="_3S_LICENSE" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="3SLicense, 0.0.0.0 (3S - Smart Software Solutions GmbH)" ResolverGuid="97c3b452-d9fa-4ac2-9d0c-3d420aa6d95b" />
+                <Library Name="#WagoSysDRM" Namespace="WagoSysDRM" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoSysDRM, 1.0.3.4 (WAGO)" />
+                <Library Name="#WagoSysStandard" Namespace="WagoSysStandard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoSysStandard, * (WAGO)" />
+                <Library Name="#WagoAppProcessorLoad" Namespace="WagoAppProcessorLoad" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoAppProcessorLoad, * (WAGO)" />
+                <Library Name="#WagoSysKbusTerminalControl" Namespace="WagoSysKbusTerminalControl" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoSysKbusTerminalControl, 2.3.0.1 (WAGO)" />
+                <Library Name="#WagoSysComInternal" Namespace="WagoSysCom_Internal" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoSysCom_Internal_PFC, 1.0.2.7 (WAGO)" />
+                <Library Name="#WagoSysModule_753_647" Namespace="WagoSysModule_753_647" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoSysModule_753_647, * (WAGO)" />
+                <Library Name="#WagoSysKbusServices" Namespace="WagoSysKbusServices" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="WagoSysKbusServices, 2.0.2.3 (WAGO)" />
+                <Library Name="#CDS_MemMan" Namespace="CMM" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="true" LinkAllContent="false" DefaultResolution="CDS_MemMan, 3.3.2.0 (3S - Smart Software Solutions GmbH)" />
+                <PlaceholderRedirections>
+                  <PlaceholderRedirection Placeholder="WagoAppString" Redirection="WagoAppString, 1.6.3.4 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="Standard" Redirection="Standard, 3.5.18.0 (System)" />
+                  <PlaceholderRedirection Placeholder="WagoSysErrorBase" Redirection="WagoSysErrorBase, 1.6.2.6 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoTypesCommon" Redirection="WagoTypesCommon, 1.6.0.0 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoSysStandard" Redirection="WagoSysStandard, 1.6.1.0 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoTypesErrorBase" Redirection="WagoTypesErrorBase, 1.6.2.1 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoSysUtils" Redirection="WagoSysUtils, 1.5.3.0 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoSysPlainMem" Redirection="WagoSysPlainMem, 1.5.3.1 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoSysModuleBase" Redirection="WagoSysModuleBase, 2.0.2.11 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoTypesModule_753_647" Redirection="WagoTypesModule_753_647, 1.1.2.1 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoTypesCom" Redirection="WagoTypesCom, 1.6.2.3 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoTypesBusServices" Redirection="WagoTypesBusServices, 2.0.1.2 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoAppProcessorLoad" Redirection="WagoAppProcessorLoad, 2.0.1.3 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoSysTypedefs_Pointer" Redirection="WagoSysTypedefs_Pointer, 1.0.2.0 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoSysModule_753_647" Redirection="WagoSysModule_753_647, 1.1.2.1 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoTypesModuleBase" Redirection="WagoTypesModuleBase, 1.9.11.1 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoAppTime" Redirection="WagoAppTime, 1.7.3.5 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoSysString" Redirection="WagoSysString, 1.6.1.1 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoTypesAppLED" Redirection="WagoTypesAppLED, 1.5.2.1 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoSysBehaviourModels" Redirection="WagoSysBehaviourModels, 1.6.3.1 (WAGO)" />
+                  <PlaceholderRedirection Placeholder="WagoTypesProcessorLoad" Redirection="WagoTypesProcessorLoad, 1.0.1.1 (WAGO)" />
+                </PlaceholderRedirections>
+                <addData>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>e70b289e-1f9e-4b67-a342-f6135603c272</ObjectId>
+                  </data>
+                </addData>
+              </Libraries>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+              <ObjectId>3e212a67-1d70-4019-8535-8af80ab6f3ea</ObjectId>
+            </data>
+          </addData>
+        </resource>
+        <addData>
+          <data name="Device" handleUnknown="discard">
+            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
+              <DeviceType>
+                <DeviceIdentification>
+                  <Type>4096</Type>
+                  <Id>1006 1209</Id>
+                  <Version>6.4.5.11</Version>
+                </DeviceIdentification>
+                <Connector moduleType="32777" interface="Wago.LocalBus" connectorId="1">
+                  <HostParameterSet />
+                </Connector>
+                <Connector moduleType="32779" interface="Wago.Serial" connectorId="2">
+                  <HostParameterSet />
+                </Connector>
+                <Connector moduleType="256" interface="Common.PCI" connectorId="3">
+                  <HostParameterSet />
+                </Connector>
+                <DeviceParameterSet>
+                  <Parameter ParameterId="10001000" type="std:DWORD" IndexInDevDesc="0">
+                    <Attributes onlineaccess="read" />
+                    <Value name="_x0031_0001000" visiblename="Processor Load Lower Limit" onlineaccess="read">80</Value>
+                    <Name>Processor Load Lower Limit</Name>
+                  </Parameter>
+                  <Parameter ParameterId="10001001" type="std:DWORD" IndexInDevDesc="1">
+                    <Attributes onlineaccess="read" />
+                    <Value name="_x0031_0001001" visiblename="Processor Load Upper Limit" onlineaccess="read">90</Value>
+                    <Name>Processor Load Upper Limit</Name>
+                  </Parameter>
+                  <Parameter ParameterId="10001002" type="std:DWORD" IndexInDevDesc="2">
+                    <Attributes onlineaccess="read" />
+                    <Value name="_x0031_0001002" visiblename="Processor Load Processor Share" onlineaccess="read">90</Value>
+                    <Name>Processor Load Processor Share</Name>
+                  </Parameter>
+                  <Parameter ParameterId="10001010" type="std:bool" IndexInDevDesc="3">
+                    <Attributes onlineaccess="read" />
+                    <Value name="_x0031_0001010" visiblename="Processor Load Should Throw ProcessorLoadWatchdog_Exception" onlineaccess="read">FALSE</Value>
+                    <Name>Processor Load Should Throw ProcessorLoadWatchdog_Exception</Name>
+                  </Parameter>
+                </DeviceParameterSet>
+              </DeviceType>
+            </Device>
+          </data>
+          <data name="configurations" handleUnknown="discard">
+            <configurations>
+              <configuration name="Kbus">
+                <addData>
+                  <data name="Device" handleUnknown="discard">
+                    <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" fixedIndex="0" xmlns="">
+                      <DeviceType>
+                        <DeviceIdentification>
+                          <Type>32778</Type>
+                          <Id>Wago 750-Series Local Bus Interface</Id>
+                          <Version>2.1.0.1</Version>
+                        </DeviceIdentification>
+                        <Connector moduleType="32778" role="child" interface="Wago.LocalBus" connectorId="0">
+                          <HostParameterSet>
+                            <Parameter ParameterId="41" type="std:UDINT" IndexInDevDesc="0">
+                              <Attributes offlineaccess="none" onlineaccess="read" />
+                              <Value name="_x0034_1" visiblename="TCM control" offlineaccess="none" onlineaccess="read" desc="0: disable / TCM version (16777216 = 01.00.00.00) enable">16777216</Value>
+                              <Name>TCM control</Name>
+                              <Description>0: disable / TCM version (16777216 = 01.00.00.00) enable</Description>
+                            </Parameter>
+                            <Parameter ParameterId="128" type="local:kbus.cycle_time" IndexInDevDesc="1">
+                              <Attributes onlineaccess="read" />
+                              <Value name="_x0031_28" visiblename="k-bus cycle time" onlineaccess="read" desc="cycle time in [ms]">10</Value>
+                              <Name>k-bus cycle time</Name>
+                              <Description>cycle time in [ms]</Description>
+                            </Parameter>
+                            <Parameter ParameterId="129" type="local:kbus.event_ctrl" IndexInDevDesc="2">
+                              <Attributes onlineaccess="read" />
+                              <Value name="_x0031_29" visiblename="k-bus event control 1" onlineaccess="read" desc="cycle offset and cycle number">
+                                <Element name="offset" visiblename="offset" desc="offset in number of cycles">0</Element>
+                                <Element name="cycle_no" visiblename="cycle number" desc="cycle number (disable event with zero)">2</Element>
+                              </Value>
+                              <Name>k-bus event control 1</Name>
+                              <Description>cycle offset and cycle number</Description>
+                            </Parameter>
+                            <Parameter ParameterId="130" type="local:kbus.event_ctrl" IndexInDevDesc="3">
+                              <Attributes onlineaccess="read" />
+                              <Value name="_x0031_30" visiblename="k-bus event control 2" onlineaccess="read" desc="cycle offset and cycle number">
+                                <Element name="offset" visiblename="offset" desc="offset in number of cycles">1</Element>
+                                <Element name="cycle_no" visiblename="cycle number" desc="cycle number (disable event with zero)">4</Element>
+                              </Value>
+                              <Name>k-bus event control 2</Name>
+                              <Description>cycle offset and cycle number</Description>
+                            </Parameter>
+                            <Parameter ParameterId="131" type="local:kbus.event_ctrl" IndexInDevDesc="4">
+                              <Attributes onlineaccess="read" />
+                              <Value name="_x0031_31" visiblename="k-bus event control 3" onlineaccess="read" desc="cycle offset and cycle number">
+                                <Element name="offset" visiblename="offset" desc="offset in number of cycles">3</Element>
+                                <Element name="cycle_no" visiblename="cycle number" desc="cycle number (disable event with zero)">8</Element>
+                              </Value>
+                              <Name>k-bus event control 3</Name>
+                              <Description>cycle offset and cycle number</Description>
+                            </Parameter>
+                            <Parameter ParameterId="132" type="local:kbus.event_ctrl" IndexInDevDesc="5">
+                              <Attributes onlineaccess="read" />
+                              <Value name="_x0031_32" visiblename="k-bus event control 4" onlineaccess="read" desc="cycle offset and cycle number">
+                                <Element name="offset" visiblename="offset" desc="offset in number of cycles">7</Element>
+                                <Element name="cycle_no" visiblename="cycle number" desc="cycle number (disable event with zero)">16</Element>
+                              </Value>
+                              <Name>k-bus event control 4</Name>
+                              <Description>cycle offset and cycle number</Description>
+                            </Parameter>
+                            <Parameter ParameterId="150" type="std:BOOL" IndexInDevDesc="6">
+                              <Attributes onlineaccess="read" />
+                              <Value name="_x0031_50" visiblename="program start interlock" onlineaccess="read" desc="locks on configuration error">TRUE</Value>
+                              <Name>program start interlock</Name>
+                              <Description>locks on configuration error</Description>
+                            </Parameter>
+                            <Parameter ParameterId="83886080" type="local:kbus.diag" IndexInDevDesc="7">
+                              <Attributes channel="input" offlineaccess="read" onlineaccess="read" />
+                              <Value name="_x0038_3886080" visiblename="K-BUS diagnostics" offlineaccess="read" onlineaccess="read" desc="K-BUS diagnostics">
+                                <Element name="error" visiblename="K-BUS error" desc="K-BUS general error flag" />
+                              </Value>
+                              <Name>K-BUS diagnostics</Name>
+                              <Description>K-BUS diagnostics</Description>
+                            </Parameter>
+                          </HostParameterSet>
+                        </Connector>
+                        <Connector moduleType="32779" interface="Wago.Kbus" connectorId="1000" hostpath="0">
+                          <HostParameterSet />
+                        </Connector>
+                        <DeviceParameterSet />
+                      </DeviceType>
+                    </Device>
+                  </data>
+                  <data name="configurations" handleUnknown="discard">
+                    <configurations>
+                      <configuration name="DALI_753_647">
+                        <addData>
+                          <data name="Device" handleUnknown="discard">
+                            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
+                              <DeviceType>
+                                <DeviceIdentification>
+                                  <Type>32776</Type>
+                                  <Id>07530647000000002424</Id>
+                                  <Version>2.0.0.20</Version>
+                                </DeviceIdentification>
+                                <Connector moduleType="32776" role="child" interface="Wago.Kbus" connectorId="0">
+                                  <HostParameterSet>
+                                    <Parameter ParameterId="10" type="std:STRING" IndexInDevDesc="0">
+                                      <Attributes offlineaccess="none" onlineaccess="none" />
+                                      <Value name="_x0031_0" visiblename="Module compare value" offlineaccess="none" onlineaccess="none" desc="Desired value">'0100028700000000'</Value>
+                                      <Name>Module compare value</Name>
+                                      <Description>Desired value</Description>
+                                    </Parameter>
+                                    <Parameter ParameterId="65536" type="std:DWORD" IndexInDevDesc="1">
+                                      <Attributes offlineaccess="none" onlineaccess="read" />
+                                      <Value name="_x0036_5536" visiblename="Pointer to 1. Input" offlineaccess="none" onlineaccess="read">
+                                        <Custom>
+                                          <POINTER_TO_IOCONFIGADDRESS xmlns="http://www.3s-software.com/schemas/DeviceDescription-1.0.xsd" />
+                                        </Custom>16777216</Value>
+                                      <Name>Pointer to 1. Input</Name>
+                                      <Custom>
+                                        <POINTER_TO_IOCONFIGADDRESS xmlns="http://www.3s-software.com/schemas/DeviceDescription-1.0.xsd" />
+                                      </Custom>
+                                    </Parameter>
+                                    <Parameter ParameterId="65791" type="std:DWORD" IndexInDevDesc="2">
+                                      <Attributes offlineaccess="none" onlineaccess="read" />
+                                      <Value name="_x0036_5791" visiblename="Pointer to Last Input" offlineaccess="none" onlineaccess="read">
+                                        <Custom>
+                                          <POINTER_TO_IOCONFIGADDRESS xmlns="http://www.3s-software.com/schemas/DeviceDescription-1.0.xsd" />
+                                        </Custom>16777216</Value>
+                                      <Name>Pointer to Last Input</Name>
+                                      <Custom>
+                                        <POINTER_TO_IOCONFIGADDRESS xmlns="http://www.3s-software.com/schemas/DeviceDescription-1.0.xsd" />
+                                      </Custom>
+                                    </Parameter>
+                                    <Parameter ParameterId="65792" type="std:DWORD" IndexInDevDesc="3">
+                                      <Attributes offlineaccess="none" onlineaccess="read" />
+                                      <Value name="_x0036_5792" visiblename="ParameterId of Last Input" offlineaccess="none" onlineaccess="read">16777216</Value>
+                                      <Name>ParameterId of Last Input</Name>
+                                    </Parameter>
+                                    <Parameter ParameterId="131072" type="std:DWORD" IndexInDevDesc="4">
+                                      <Attributes offlineaccess="none" onlineaccess="read" />
+                                      <Value name="_x0031_31072" visiblename="Pointer to 1. Output" offlineaccess="none" onlineaccess="read">
+                                        <Custom>
+                                          <POINTER_TO_IOCONFIGADDRESS xmlns="http://www.3s-software.com/schemas/DeviceDescription-1.0.xsd" />
+                                        </Custom>50331648</Value>
+                                      <Name>Pointer to 1. Output</Name>
+                                      <Custom>
+                                        <POINTER_TO_IOCONFIGADDRESS xmlns="http://www.3s-software.com/schemas/DeviceDescription-1.0.xsd" />
+                                      </Custom>
+                                    </Parameter>
+                                    <Parameter ParameterId="131327" type="std:DWORD" IndexInDevDesc="5">
+                                      <Attributes offlineaccess="none" onlineaccess="read" />
+                                      <Value name="_x0031_31327" visiblename="Pointer to Last Output" offlineaccess="none" onlineaccess="read">
+                                        <Custom>
+                                          <POINTER_TO_IOCONFIGADDRESS xmlns="http://www.3s-software.com/schemas/DeviceDescription-1.0.xsd" />
+                                        </Custom>50331648</Value>
+                                      <Name>Pointer to Last Output</Name>
+                                      <Custom>
+                                        <POINTER_TO_IOCONFIGADDRESS xmlns="http://www.3s-software.com/schemas/DeviceDescription-1.0.xsd" />
+                                      </Custom>
+                                    </Parameter>
+                                    <Parameter ParameterId="131328" type="std:DWORD" IndexInDevDesc="6">
+                                      <Attributes offlineaccess="none" onlineaccess="read" />
+                                      <Value name="_x0031_31328" visiblename="ParameterId of Last Output" offlineaccess="none" onlineaccess="read">50331648</Value>
+                                      <Name>ParameterId of Last Output</Name>
+                                    </Parameter>
+                                    <Parameter ParameterId="16777216" type="local:DATA24" IndexInDevDesc="7">
+                                      <Attributes channel="input" offlineaccess="none" onlineaccess="none" />
+                                      <Value name="_x0031_6777216_0_0_0" visiblename="_IN[0]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_1_0_0" visiblename="_IN[1]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_2_0_0" visiblename="_IN[2]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_3_0_0" visiblename="_IN[3]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_4_0_0" visiblename="_IN[4]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_5_0_0" visiblename="_IN[5]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_6_0_0" visiblename="_IN[6]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_7_0_0" visiblename="_IN[7]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_8_0_0" visiblename="_IN[8]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_9_0_0" visiblename="_IN[9]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_10_0_0" visiblename="_IN[10]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_11_0_0" visiblename="_IN[11]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_12_0_0" visiblename="_IN[12]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_13_0_0" visiblename="_IN[13]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_14_0_0" visiblename="_IN[14]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_15_0_0" visiblename="_IN[15]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_16_0_0" visiblename="_IN[16]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_17_0_0" visiblename="_IN[17]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_18_0_0" visiblename="_IN[18]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_19_0_0" visiblename="_IN[19]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_20_0_0" visiblename="_IN[20]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_21_0_0" visiblename="_IN[21]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_22_0_0" visiblename="_IN[22]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Value name="_x0031_6777216_23_0_0" visiblename="_IN[23]" offlineaccess="none" onlineaccess="none" desc="Input" />
+                                      <Name>_IN</Name>
+                                      <Description>Input</Description>
+                                    </Parameter>
+                                    <Parameter ParameterId="50331648" type="local:DATA24" IndexInDevDesc="8">
+                                      <Attributes channel="output" offlineaccess="none" onlineaccess="none" />
+                                      <Value name="_x0035_0331648_0_0_0" visiblename="_OUT[0]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_1_0_0" visiblename="_OUT[1]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_2_0_0" visiblename="_OUT[2]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_3_0_0" visiblename="_OUT[3]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_4_0_0" visiblename="_OUT[4]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_5_0_0" visiblename="_OUT[5]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_6_0_0" visiblename="_OUT[6]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_7_0_0" visiblename="_OUT[7]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_8_0_0" visiblename="_OUT[8]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_9_0_0" visiblename="_OUT[9]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_10_0_0" visiblename="_OUT[10]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_11_0_0" visiblename="_OUT[11]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_12_0_0" visiblename="_OUT[12]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_13_0_0" visiblename="_OUT[13]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_14_0_0" visiblename="_OUT[14]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_15_0_0" visiblename="_OUT[15]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_16_0_0" visiblename="_OUT[16]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_17_0_0" visiblename="_OUT[17]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_18_0_0" visiblename="_OUT[18]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_19_0_0" visiblename="_OUT[19]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_20_0_0" visiblename="_OUT[20]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_21_0_0" visiblename="_OUT[21]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_22_0_0" visiblename="_OUT[22]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Value name="_x0035_0331648_23_0_0" visiblename="_OUT[23]" offlineaccess="none" onlineaccess="none" desc="Output" />
+                                      <Name>_OUT</Name>
+                                      <Description>Output</Description>
+                                    </Parameter>
+                                  </HostParameterSet>
+                                </Connector>
+                                <DeviceParameterSet />
+                              </DeviceType>
+                            </Device>
+                          </data>
+                          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                            <ObjectId>30966741-d8ac-43f7-8729-85152b59309d</ObjectId>
+                          </data>
+                        </addData>
+                      </configuration>
+                    </configurations>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>ed04c70c-fbfe-4bdc-b66c-729a526d8105</ObjectId>
+                  </data>
+                </addData>
+              </configuration>
+              <configuration name="Serial">
+                <addData>
+                  <data name="ExplicitConnector" handleUnknown="discard">
+                    <ExplicitConnector connectorID="2" />
+                  </data>
+                  <data name="configurations" handleUnknown="discard">
+                    <configurations>
+                      <configuration name="COM1">
+                        <addData>
+                          <data name="Device" handleUnknown="discard">
+                            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" fixedIndex="0" xmlns="">
+                              <DeviceType>
+                                <DeviceIdentification>
+                                  <Type>32780</Type>
+                                  <Id>1006 0111</Id>
+                                  <Version>0.0.0.19</Version>
+                                </DeviceIdentification>
+                                <Connector moduleType="32781" role="child" interface="Wago.Serial" connectorId="0">
+                                  <HostParameterSet />
+                                </Connector>
+                                <DeviceParameterSet />
+                              </DeviceType>
+                            </Device>
+                          </data>
+                          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                            <ObjectId>b95977bd-f7d9-401e-b94c-8981fa77063c</ObjectId>
+                          </data>
+                        </addData>
+                      </configuration>
+                    </configurations>
+                  </data>
+                  <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                    <ObjectId>20687bb7-c886-4aca-be4a-690a459e967a</ObjectId>
+                  </data>
+                </addData>
+              </configuration>
+            </configurations>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>a8f8a168-7f15-4995-8cb0-0cd2ca459b2c</ObjectId>
+          </data>
+        </addData>
+      </configuration>
     </configurations>
   </instances>
   <addData>
@@ -26205,6 +27168,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
         <Library Name="#Standard" Namespace="Standard" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Standard, * (System)" />
         <Library Name="#Util" Namespace="Util" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="Util, * (System)" />
         <Library Name="#SysMem" Namespace="NOTIMPLEMENTEDBYDEVICE" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" DefaultResolution="SysMem, * (System)" />
+        <Library Name="WagoAppDALI, 1.3.1.15 (WAGO)" Namespace="WagoAppDALI" HideWhenReferencedAsDependency="false" PublishSymbolsInContainer="false" SystemLibrary="false" LinkAllContent="false" />
         <PlaceholderRedirections>
           <PlaceholderRedirection Placeholder="MQTT" Redirection="MQTT, 1.2.0.6 (Stefan Dreyer)" />
           <PlaceholderRedirection Placeholder="CmpTls" Redirection="CmpTls, 3.5.17.0 (System)" />
@@ -26216,38 +27180,43 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           <PlaceholderRedirection Placeholder="SysTimeRtc" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="OSCAT_NETWORK_TYPES" Redirection="OSCAT Network Types, 1.0.0.2 (Stefan Dreyer)" />
           <PlaceholderRedirection Placeholder="SysSocket" Redirection="SysSocket, 3.5.19.0 (System)" />
-          <PlaceholderRedirection Placeholder="SysSocket2 Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuElemsWinControls" Redirection="VisuElemsWinControls, 4.9.0.0 (System)" />
           <PlaceholderRedirection Placeholder="IoStandard" Redirection="IoStandard, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CmpX509Cert Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CmpCodeMeter" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="WagoTypesErrorBase" Redirection="WagoTypesErrorBase, 1.6.2.1 (WAGO)" />
           <PlaceholderRedirection Placeholder="CAA Tick" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CmpX509Cert" Redirection="CmpX509Cert, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CmpApp" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
-          <PlaceholderRedirection Placeholder="CmpUserMgr Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="System_VisuElemBase" Redirection="VisuElemBase, 4.9.1.0 (System)" />
           <PlaceholderRedirection Placeholder="CmpCrypto Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="SysTarget" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="CmpDynamicText" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="Standard" Redirection="Standard, 3.5.18.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuElemMeter" Redirection="VisuElemMeter, 4.9.0.0 (System)" />
-          <PlaceholderRedirection Placeholder="CmpTraceMgr" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="SysShm Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="SysProcess Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="StringUtils" Redirection="StringUtils, 3.5.20.0 (System)" />
-          <PlaceholderRedirection Placeholder="PRO_JSON" Redirection="PRO JSON, 1.0.21.0 (Pro Electric)" />
-          <PlaceholderRedirection Placeholder="CmpWebServer Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="SysMem" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="WagoVisuIconsMaterialDesign" Redirection="WagoVisuIconsMaterialDesign, 1.0.0.2 (WAGO)" />
+          <PlaceholderRedirection Placeholder="WagoVisuIcons" Redirection="WagoVisuIcons, 1.1.0.9 (WAGO)" />
           <PlaceholderRedirection Placeholder="CmpTargetVisu" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="OSCAT_BUILDING" Redirection="BUILDING, 1.0.0.1 (OSCAT)" />
           <PlaceholderRedirection Placeholder="System_VisuElem3DPath" Redirection="VisuElem3DPath, 4.7.0.0 (System)" />
           <PlaceholderRedirection Placeholder="CAA Types" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="WagoTypesModule_753_647" Redirection="WagoTypesModule_753_647, 1.1.2.1 (WAGO)" />
           <PlaceholderRedirection Placeholder="SysTask" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="SysTime" Redirection="SysTime, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuElemXYChart" Redirection="VisuElemXYChart, 4.8.0.0 (System)" />
           <PlaceholderRedirection Placeholder="Rts Service Handler" Redirection="Rts Service Handler, 3.5.17.0 (3S - Smart Software Solutions GmbH)" />
           <PlaceholderRedirection Placeholder="CAA DTUtility" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CAA Behaviour Model" Redirection="CAA Behaviour Model, 3.5.19.0 (CAA Technical Workgroup)" />
+          <PlaceholderRedirection Placeholder="WagoTypesModuleBase" Redirection="WagoTypesModuleBase, 1.9.11.1 (WAGO)" />
           <PlaceholderRedirection Placeholder="System_VisuElemTextEditor" Redirection="VisuElemTextEditor, 4.8.0.0 (System)" />
           <PlaceholderRedirection Placeholder="CAA TickUtil" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="CAA Storage Imp" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="Standard64" Redirection="Standard64, 3.5.20.0 (System)" />
-          <PlaceholderRedirection Placeholder="SysTimeCore" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="CmpUserMgr Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CmpIoMgr Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuElemsSpecialControls" Redirection="VisuElemsSpecialControls, 4.7.0.0 (System)" />
           <PlaceholderRedirection Placeholder="SysShm" Redirection="SysShm, 3.5.17.0 (System)" />
@@ -26260,20 +27229,21 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           <PlaceholderRedirection Placeholder="SysDir" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="SysSocket Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="SysSem" Redirection="SysSem, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="WagoTypesAppLED" Redirection="WagoTypesAppLED, 1.5.2.1 (WAGO)" />
           <PlaceholderRedirection Placeholder="CmpEventMgr Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuElems" Redirection="VisuElems, 4.9.1.0 (System)" />
           <PlaceholderRedirection Placeholder="Util" Redirection="Util, 3.5.21.0 (System)" />
           <PlaceholderRedirection Placeholder="SysExcept" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="SysProcess" Redirection="SysProcess, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CmpIecTask" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
-          <PlaceholderRedirection Placeholder="SysShm Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="CmpTraceMgr" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="OSCAT_BASIC" Redirection="BASIC, 3.3.4.0 (OSCAT)" />
           <PlaceholderRedirection Placeholder="CAA Storage" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
-          <PlaceholderRedirection Placeholder="Plc Services" Redirection="Plc Services, 3.5.8.0 (System)" />
+          <PlaceholderRedirection Placeholder="WagoTypesCommon" Redirection="WagoTypesCommon, 1.6.0.0 (WAGO)" />
           <PlaceholderRedirection Placeholder="CmpChannelClientIec" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuElemTrace" Redirection="VisuElemTrace, 4.9.0.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuElemCamDisplayer" Redirection="VisuElemCamDisplayer, 4.7.0.0 (System)" />
-          <PlaceholderRedirection Placeholder="CmpDynamicText" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="PRO_JSON" Redirection="PRO JSON, 1.0.21.0 (Pro Electric)" />
           <PlaceholderRedirection Placeholder="BASIC_Extension" Redirection="OSCAT Basic Extensions, 1.0.0.0 (Stefan Dreyer)" />
           <PlaceholderRedirection Placeholder="SysFile" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuNativeControl" Redirection="VisuNativeControl, 4.9.0.0 (System)" />
@@ -26283,12 +27253,16 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           <PlaceholderRedirection Placeholder="CmpTls Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CmpVisuHandler" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CAA MemBlockMan" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
-          <PlaceholderRedirection Placeholder="SysMem" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
-          <PlaceholderRedirection Placeholder="CAA Storage Imp" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
-          <PlaceholderRedirection Placeholder="System_VisuElemBase" Redirection="VisuElemBase, 4.9.1.0 (System)" />
+          <PlaceholderRedirection Placeholder="Plc Services" Redirection="Plc Services, 3.5.8.0 (System)" />
+          <PlaceholderRedirection Placeholder="CmpWebServer Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="SysSocket2 Implementation" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="WagoTypesBusServices" Redirection="WagoTypesBusServices, 2.0.1.2 (WAGO)" />
           <PlaceholderRedirection Placeholder="CmpBitmapPool" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="VisuSymbols" Redirection="VisuSymbols, 4.5.0.0 (System)" />
           <PlaceholderRedirection Placeholder="System_VisuElemsAlarm" Redirection="VisuElemsAlarm, 4.9.0.0 (System)" />
+          <PlaceholderRedirection Placeholder="SysTimeCore" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
           <PlaceholderRedirection Placeholder="CAA RTCLK" Redirection="NotImplementedByDevice, 3.5.17.0 (System)" />
+          <PlaceholderRedirection Placeholder="WagoSysErrorBase" Redirection="WagoSysErrorBase, 1.6.2.6 (WAGO)" />
         </PlaceholderRedirections>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
@@ -26353,6 +27327,15 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="PublishReceived" ObjectId="7660e274-cedc-4962-a02f-fe20c8879450" />
             <Object Name="InitMqttDiscovery" ObjectId="786503f0-f9eb-490e-adc0-b29811e12890" />
             <Object Name="InitMqtt" ObjectId="4ebaeee1-77a3-4a44-9453-83e6e27c497e" />
+          </Object>
+        </Folder>
+        <Folder Name="DALI">
+          <Object Name="FB_OUTPUT_DIMMER_DALI_MQTT" ObjectId="cf57d568-37d2-4c86-8d8d-04c9284ba294">
+            <Object Name="InitMqttDiscovery" ObjectId="41b5d1f1-1379-4f11-beca-4c2f68505959" />
+            <Object Name="InitMqtt" ObjectId="6d1a9526-fc40-4bea-984e-b993a4038193" />
+            <Object Name="PublishReceived" ObjectId="bb67726e-6c8a-4afa-9d66-b7762c1c796b" />
+            <Object Name="SetDimValue" ObjectId="82749cde-9c91-4dc7-a4be-811420070a63" />
+            <Object Name="ConfigureFunctionBlock" ObjectId="e586ae99-722c-4df2-8331-ed86cebf14a6" />
           </Object>
         </Folder>
         <Folder Name="DMX">
@@ -26607,7 +27590,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           </Object>
           <Object Name="RS485_CommissionRequest" ObjectId="65b2e331-d573-4b8e-8316-c5be37ebfde1" />
         </Folder>
-        <Object Name="Wago_PFC_Lab" ObjectId="14c41d3e-f0a8-426f-bff9-95c95b300d49">
+        <Object Name="Wago_PFC200_G1_Lab" ObjectId="14c41d3e-f0a8-426f-bff9-95c95b300d49">
           <Object Name="HomeAutomation" ObjectId="dc8b4b06-db0a-415d-9c9a-bbaa6953bc53">
             <Folder Name="PRG's">
               <Object Name="PLC_PRG_MQTT" ObjectId="012c3962-ea65-4f8b-be5c-432a302d1a76">
@@ -26652,6 +27635,20 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="_75x_463" ObjectId="48d949c7-9a12-4fea-af77-395e1684b2eb" />
             <Object Name="_75x_550" ObjectId="33351c91-ae9c-4c69-9aff-874e3858aa5b" />
             <Object Name="_75x_467" ObjectId="24398a47-f502-46a5-9720-a47008f147b0" />
+          </Object>
+        </Object>
+        <Object Name="Wago_PFC200_G2_Virtual" ObjectId="a8f8a168-7f15-4995-8cb0-0cd2ca459b2c">
+          <Object Name="Application" ObjectId="3e212a67-1d70-4019-8535-8af80ab6f3ea">
+            <Object Name="Library Manager" ObjectId="e70b289e-1f9e-4b67-a342-f6135603c272" />
+            <Object Name="MqttVariables" ObjectId="f2e2eb86-f33d-4d0a-bd8f-5a203cd174cd" />
+            <Object Name="PRG_DALI_VERIFY" ObjectId="5c41cb81-5fe0-4209-ad3c-f2d92c064e8b" />
+            <Object Name="DaliVerify" ObjectId="a614f42a-e3e1-4850-b4d8-63587670576d" />
+          </Object>
+          <Object Name="Kbus" ObjectId="ed04c70c-fbfe-4bdc-b66c-729a526d8105">
+            <Object Name="DALI_753_647" ObjectId="30966741-d8ac-43f7-8729-85152b59309d" />
+          </Object>
+          <Object Name="Serial" ObjectId="20687bb7-c886-4aca-be4a-690a459e967a">
+            <Object Name="COM1" ObjectId="b95977bd-f7d9-401e-b94c-8981fa77063c" />
           </Object>
         </Object>
       </ProjectStructure>

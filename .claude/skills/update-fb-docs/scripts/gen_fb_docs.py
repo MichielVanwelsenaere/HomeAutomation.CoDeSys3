@@ -67,6 +67,10 @@ HIDDEN_METHODS = {
     "Judge",                 #   guts as though they were its API.
     "SelectNext",            # Bus controller: arbitration internals, PRIVATE
     "FinishStep",
+    "SetDimValue",           # DALI dimmer: sets the level and raises the MQTT
+                             #   update flags. Called only from the block's own
+                             #   body and PublishReceived; the API is the pins
+                             #   and the MQTT topics.
     # NOT hidden, deliberately: HasWork, BuildTransaction, OnStepResult and
     # OnTransactionDone are the RS485Device contract itself. This set is keyed
     # by bare name and so applies to every block, which is exactly why they
