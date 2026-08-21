@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-21T16:34:04.2827232" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-21T16:32:37.7415059">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-21T20:19:13.348283" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-21T20:18:28.7449224">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -7475,26 +7475,6 @@ DaliSendFadeRate.bFadeRate := FadeRate;</xhtml>
                 <simpleValue value="FALSE" />
               </initialValue>
             </variable>
-            <variable name="OUT_Target">
-              <type>
-                <BYTE />
-              </type>
-            </variable>
-            <variable name="SoftDimToValue">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="SoftDimToQFalse">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="OUT_Internal_tmp">
-              <type>
-                <BYTE />
-              </type>
-            </variable>
           </localVars>
           <localVars persistent="true">
             <variable name="PreviousOUT">
@@ -7734,14 +7714,6 @@ IF InitDmxDone THEN
 		IF pDmxValues^.BUFFER[DmxChannel-1] &lt;&gt; 0 THEN
 			pDmxValues^.BUFFER[DmxChannel-1] := 0;
 		END_IF
-	END_IF
-END_IF
-IF SoftDimToValue AND OUT_Internal = OUT_Target THEN // If the same, softdim to value is done
-	SoftDimToValue := FALSE;
-	IF SoftDimToQFalse THEN
-		SoftDimToQFalse := FALSE;
-		OUT_Internal := OUT_Internal_tmp;
-		PreviousOUT:=OUT_Internal;
 	END_IF
 END_IF</xhtml>
           </ST>
@@ -8102,8 +8074,7 @@ ELSIF CONCAT(MQTTSubscribeTopic,'/Q') =  Data.TopicOut^ THEN
 	
 ELSIF CONCAT(MQTTSubscribeTopic,'/OUT') =  Data.TopicOut^ THEN
 	IF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
-		THIS^.OUT_Target:=STRING_TO_BYTE(Data.PayloadString^);
-		THIS^.SoftDimToValue:=TRUE;
+		THIS^.OUT_Internal:=STRING_TO_BYTE(Data.PayloadString^);
 	END_IF
 	
 	
@@ -8117,8 +8088,7 @@ ELSIF CommonTypesAndFunctions.StrEqualsAtStart(str1:= ADR(MQTTSubscribeTopic), s
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('FALSE')) THEN
 		MqttLowRequest := TRUE;
 	ELSIF OSCAT_BASIC.IS_CC(str:= Data.PayloadString^,cmp:='0123456789.') AND THIS^.PRIO_HIGH = FALSE THEN
-		THIS^.OUT_Target:=STRING_TO_BYTE(Data.PayloadString^);
-		THIS^.SoftDimToValue:=TRUE;
+		THIS^.OUT_Internal:=STRING_TO_BYTE(Data.PayloadString^);
 	END_IF
 END_IF </xhtml>
                 </ST>
