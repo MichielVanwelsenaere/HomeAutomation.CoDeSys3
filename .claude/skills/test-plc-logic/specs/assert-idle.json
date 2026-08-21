@@ -51,8 +51,8 @@
         "GVL_MQTT.fbMqttPublishQueue.DroppedCount": "UDINT#0"
       },
       "read": [
-        "GVL_MQTT.fbMqttPublishQueue.pr",
-        "GVL_MQTT.fbMqttPublishQueue.pw"
+        "GVL_MQTT.fbMqttPublishQueue.iPr",
+        "GVL_MQTT.fbMqttPublishQueue.iPw"
       ]
     }
   ]
