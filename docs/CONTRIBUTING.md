@@ -27,6 +27,18 @@ In case your specific project differs too much from the reference project in thi
 
 * Ask any question about how to use the source code in the [Gitter chat](https://gitter.im/MichielVanwelsenaere/HomeAutomation.CoDeSys3).
 
+#### **What do I name it?**
+
+* Read [the coding style](CodingStyle.md). It decides the name of every object and
+every variable, so there is nothing to weigh up: objects are `PREFIX_` +
+`SCREAMING_SNAKE` (`FB_`, `E_`, `ST_`, `I_`, `A_`, `GVL_`, `PRG_`, `F_`) and
+variables are a type prefix plus `PascalCase` (`bStartup`, `sFriendlyName`,
+`pMqttPublishQueue`).
+
+* Two details that catch people: `b` is `BOOL` and `by` is `BYTE`, following the
+CODESYS guide rather than TwinCAT habit — and the `MQTT_DISCOVERY_*` structs are
+exempt, because their member names are published as Home Assistant discovery keys.
+
 # Merge request (pull request)
 
 ## **GIT side**
