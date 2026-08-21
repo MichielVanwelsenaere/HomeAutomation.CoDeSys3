@@ -31,7 +31,7 @@ Fast, does not launch CODESYS. Required:
 | CODESYS 3.5 SP21 (3.5.21.30) | Includes the ScriptEngine and the IronPython stdlib. No extra license needed for `--noUI` scripting. |
 | `ScriptEngine.dll` | Under `CODESYS\Common\`. The entire harness depends on it. |
 | CODESYS Control for PFC200 SL | The project's device. Without it the device will not resolve and the build fails. |
-| WAGO Device Support Package 2.0.8.9 | Supplies `WagoAppDALI`, which `FB_OUTPUT_DIMMER_DALI_MQTT` needs. Without it the build fails on that block, not just on DALI. It is not vendored — WAGO's licence forbids redistribution — so install it per machine: `docs/WagoPfcPrep.md#installing-the-wago-libraries-dali`. |
+| WAGO Device Support Package 2.0.8.9 | Supplies `WagoAppDALI`, which `FB_OUTPUT_DIMMER_DALI_MQTT` needs. Without it the build fails on that block, not just on DALI. It is not vendored — WAGO's licence forbids redistribution — so install it per machine: `docs/WagoPfcPrep.md#installing-the-wago-libraries-dali`. **`WagoAppDALI` is qualified-only**, unlike in e!COCKPIT: its types are `WagoAppDALI.typBallast`, `WagoAppDALI.FbDaliSendDimValue` and so on, so ST lifted out of an e!COCKPIT project does not compile until it is qualified. |
 | Windows PowerShell 5.1 | The scripts avoid PowerShell 7-only syntax, so either works. |
 | mosquitto clients | **Optional but the only runtime check available.** `winget install --id EclipseFoundation.Mosquitto --scope machine`. The installer registers a broker service that is not needed here (leave it stopped) and does **not** add itself to `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
 

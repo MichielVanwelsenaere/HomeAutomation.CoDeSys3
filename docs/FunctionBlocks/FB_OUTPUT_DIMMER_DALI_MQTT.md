@@ -17,15 +17,6 @@ installed once per engineering PC from WAGO's own package — see
 [Installing the WAGO libraries](../WagoPfcPrep.md#installing-the-wago-libraries-dali).
 Without it the project does not build at all.
 
-The library is **qualified-only**, so its types are referenced as
-`WagoAppDALI.typBallast`, `WagoAppDALI.FbDaliSendDimValue` and so on. Code copied
-from e!COCKPIT, where the bare names resolve, will not compile here until it is
-qualified.
-
-`DimValue` is persistent, so a new instance also needs its instance path in
-`PersistentVars` — otherwise the compiler warns and the level is not retained
-across a power cycle.
-
 ----------------------------
 
 :rotating_light: **Untested on hardware.** Everything here is compile-verified
