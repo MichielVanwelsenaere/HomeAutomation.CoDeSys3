@@ -20,6 +20,9 @@
                but only if it still builds. Requires -Force.
       device   Report the configured target, or with -AddModule plug a module
                into the device tree. Writing requires -Force.
+      rename   Rename objects and identifiers from a -Map file, rewriting every
+               reference to them. -DryRun reports what it would touch and writes
+               nothing; writing requires -Force.
 
 .EXAMPLE
     ./tools/ai/codesys.ps1 verify
@@ -34,7 +37,7 @@
 param(
     [Parameter(Mandatory = $true, Position = 0)]
     [ValidateSet('doctor', 'tree', 'device', 'scan', 'export', 'verify', 'simulate', 'download', 'apply', 'probe',
-        'info', 'compare', 'libs', 'scaffold')]
+        'info', 'compare', 'libs', 'scaffold', 'rename')]
     [string]$Task,
 
     # Operate on a project other than src/HomeAutomation.project. This is what
@@ -148,6 +151,35 @@ param(
     # that application able to compile anything. Idempotent by name, so re-running
     # a spec updates the text instead of creating a second object.
     [string]$Scaffold,
+
+    # rename only: JSON map of what to rename. The driver reads and parses the
+    # file itself rather than being handed a converted object, because a rename
+    # map nests deeper than ConvertTo-Json's default depth and a silently
+    # truncated map would rename half a project.
+    #
+    #   {
+    #     "objects":     { "MqttVariables": "GVL_MQTT" },
+    #     "identifiers": [ { "object": "MqttVariables", "mode": "qualified",
+    #                        "map": { "fbMqttPublishQueue": "fbPublishQueue" } } ],
+    #     "protect":      [ "name", "pl_on" ],
+    #     "skip_objects": [ "MQTT_DISCOVERY_LIGHT" ],
+    #     "allow_shadow": [ ]
+    #   }
+    #
+    # mode is local (inside the declaring object only), qualified (also rewrites
+    # Owner.name project-wide - right for GVL members and enum values), or loose
+    # (also rewrites .name and name := project-wide - the only handle on a
+    # function block's pins). protect is never renamed anywhere; skip_objects are
+    # left alone by identifier passes.
+    #
+    # Identifier groups run before the object renames and name their object as the
+    # project spells it TODAY, so one map can rename a variable out of the way of
+    # an object about to take its name. An object whose old name is also a variable
+    # somewhere is refused for that reason - allow_shadow accepts it deliberately.
+    [string]$Map,
+
+    # rename only: report what would be touched, write nothing, build nothing.
+    [switch]$DryRun,
 
     # verify/apply: JSON list of surgical edits to POUs already in the project.
     # Defaults to .ai/edits/edits.json when that exists. Use -Edits none to skip.
@@ -607,6 +639,16 @@ running application and re-initialises non-persistent variables. Re-run with
             $cfg.steps = @((Get-Content $Spec -Raw | ConvertFrom-Json).steps)
         }
     }
+    'rename' {
+        if (-not $Map) { throw 'rename needs -Map <file>, the JSON rename map.' }
+        if (-not (Test-Path $Map)) { throw "Rename map not found: $Map" }
+        if (-not $DryRun -and -not $Force) {
+            throw "rename writes to $targetProject. Re-run with -Force, or with -DryRun to see what it would touch."
+        }
+        $cfg.rename_map = (Resolve-Path $Map).Path
+        $cfg.dry_run = [bool]$DryRun
+        if ($DryRun) { Write-Host 'mode      : dry run, nothing is written' }
+    }
     'apply' {
         if (-not $Force) {
             throw "apply writes to $targetProject. Re-run with -Force."
@@ -778,6 +820,54 @@ switch ($Task) {
         Write-Host ''
         Write-Host "built: $($report.built -join ', ')"
         Write-Host "saved: $($report.saved)"
+    }
+    'rename' {
+        $r = $report.renames
+        if ($r) {
+            if ($r.dry_run) { Write-Host 'DRY RUN - nothing was written' -ForegroundColor Yellow; Write-Host '' }
+            if (@($r.objects).Count -gt 0) {
+                Write-Host 'objects renamed:'
+                # One name can reach several objects: two applications mean two
+                # MqttVariables, and a program is renamed together with the task
+                # configuration's call entry for it. Say which is which rather than
+                # printing the same line twice.
+                $dupes = @($r.objects | Group-Object old | Where-Object { $_.Count -gt 1 } |
+                    ForEach-Object { $_.Name })
+                foreach ($o in @($r.objects)) {
+                    $note = ''
+                    if ($o.task_call) { $note = '   (task call)' }
+                    elseif ($dupes -contains $o.old) { $note = "   $($o.path)" }
+                    Write-Host ("  {0,-40} -> {1}{2}" -f $o.old, $o.new, $note) -ForegroundColor Green
+                }
+                if ($r.object_references) {
+                    Write-Host ''
+                    Write-Host "references rewritten: $($r.object_references.total)"
+                    foreach ($h in @($r.object_references.top)) {
+                        Write-Host ("  {0,-64} {1}" -f $h.object, $h.hits)
+                    }
+                }
+            }
+            if (@($r.identifiers).Count -gt 0) {
+                Write-Host ''
+                Write-Host 'identifiers renamed:'
+                foreach ($i in @($r.identifiers)) {
+                    Write-Host ("  {0,-52} {1,4} name(s)  {2,5} local  {3,5} elsewhere  ({4})" -f `
+                        $i.object, $i.names, $i.local_hits, $i.cross_hits, $i.mode)
+                }
+                # A cross-object rename that lands nowhere is the interesting case:
+                # either nothing refers to it, or it is referred to in a shape this
+                # pass does not recognise - and the second is a silent half-rename.
+                foreach ($i in @($r.identifiers | Where-Object { $_.mode -ne 'local' -and $_.cross_hits -eq 0 })) {
+                    Write-Host "  note: $($i.object) matched nothing outside itself" -ForegroundColor Yellow
+                }
+            }
+            if ($r.protected) { Write-Host ''; Write-Host "protected names (never renamed): $($r.protected)" }
+        }
+        if ($null -ne $report.saved) {
+            Write-Host ''
+            Write-Host "built: $($report.built -join ', ')"
+            Write-Host "saved: $($report.saved)"
+        }
     }
     'device' {
         foreach ($c in @($report.device_changes | Where-Object { $_ })) {
