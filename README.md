@@ -120,6 +120,7 @@ Control your HVAC setup, more detail in the [HVAC getting started guide](./docs/
 
 - [Contributing guidelines](./docs/CONTRIBUTING.md)
 - [Coding style](./docs/CodingStyle.md)
+- [Migrating to the naming convention](./docs/NamingConventionMigration.md)
 - [How-to: adding a new MQTT subscription](./docs/FAQ/Howto_adding_a_new_MQTT_subscription.md)
 - [How-to: verifying resource usage on a Wago PFC PLC](./docs/FAQ/Howto_verifying_resource_usage_WagoPFC.md)
 - [How-to: updating function blocks to the latest version](./docs/FAQ/Howto_updating_function_blocks.md)
