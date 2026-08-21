@@ -6,15 +6,15 @@
       "label": "shrink the timings at runtime, and prove the writes actually stuck",
       "delay_ms": 1500,
       "write": {
-        "PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5S",
-        "PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10S",
-        "PRG_HVAC.FB_PUMP_2.MIN_OFFTIME": "TIME#5S",
-        "PRG_HVAC.FB_BURNER_GAS.MIN_ONTIME": "TIME#10S",
-        "PRG_HVAC.FB_BURNER_GAS.MIN_OFFTIME": "TIME#5S"
+        "PRG_HVAC.fbPump2Collector.ValveCycleTime": "TIME#5S",
+        "PRG_HVAC.fbPump2.MIN_ONTIME": "TIME#10S",
+        "PRG_HVAC.fbPump2.MIN_OFFTIME": "TIME#5S",
+        "PRG_HVAC.fbBurnerGas.MIN_ONTIME": "TIME#10S",
+        "PRG_HVAC.fbBurnerGas.MIN_OFFTIME": "TIME#5S"
       },
       "expect": {
-        "PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5s",
-        "PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10s"
+        "PRG_HVAC.fbPump2Collector.ValveCycleTime": "TIME#5s",
+        "PRG_HVAC.fbPump2.MIN_ONTIME": "TIME#10s"
       }
     },
     {
@@ -26,8 +26,8 @@
       },
       "delay_ms": 2000,
       "expect": {
-        "PRG_HVAC.FB_THERMOSTAT_2.SensorFault": "FALSE",
-        "PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE"
+        "PRG_HVAC.fbThermostat2.bSensorFault": "FALSE",
+        "PRG_HVAC.fbThermostat2.OUT": "FALSE"
       }
     }
   ]

@@ -10,39 +10,39 @@
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.MU",
-        "PRG_MAIN.FB_DO_COVER_002.MD",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.State",
-        "PRG_MAIN.FB_DO_COVER_002.PositionKnown",
-        "PRG_MAIN.FB_DO_COVER_002.PublishedPosition"
+        "PRG_MAIN.fbDoCover002.MU",
+        "PRG_MAIN.fbDoCover002.MD",
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.sState",
+        "PRG_MAIN.fbDoCover002.PositionKnown",
+        "PRG_MAIN.fbDoCover002.byPublishedPosition"
       ],
       "expect": {
         "DO_005": "FALSE",
         "DO_006": "FALSE",
-        "PRG_MAIN.FB_DO_COVER_002.State": "'STOPPED'",
-        "PRG_MAIN.FB_DO_COVER_002.PositionKnown": "FALSE",
-        "PRG_MAIN.FB_DO_COVER_002.PublishedPosition": "BYTE#1"
+        "PRG_MAIN.fbDoCover002.sState": "'STOPPED'",
+        "PRG_MAIN.fbDoCover002.PositionKnown": "FALSE",
+        "PRG_MAIN.fbDoCover002.byPublishedPosition": "BYTE#1"
       }
     },
     {
       "label": "OPEN, sampled 3 s in: the up coil is energised and the LED is on",
       "write": {
-        "PRG_MAIN.FB_DO_COVER_002.MqttRequestOpen": "TRUE"
+        "PRG_MAIN.fbDoCover002.bMqttRequestOpen": "TRUE"
       },
       "delay_ms": 3000,
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.MU",
-        "PRG_MAIN.FB_DO_COVER_002.MD",
-        "PRG_MAIN.FB_DO_COVER_002.Position"
+        "PRG_MAIN.fbDoCover002.MU",
+        "PRG_MAIN.fbDoCover002.MD",
+        "PRG_MAIN.fbDoCover002.Position"
       ],
       "expect": {
         "DO_005": "TRUE",
         "DO_006": "FALSE",
-        "PRG_MAIN.FB_DO_COVER_002.MU": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.State": "'OPENING'"
+        "PRG_MAIN.fbDoCover002.MU": "TRUE",
+        "PRG_MAIN.fbDoCover002.sState": "'OPENING'"
       }
     },
     {
@@ -50,45 +50,45 @@
       "delay_ms": 4000,
       "read": [
         "DO_005",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.State"
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.sState"
       ]
     },
     {
       "label": "STOP mid-travel: both coils drop and the position is held, not resumed",
       "write": {
-        "PRG_MAIN.FB_DO_COVER_002.MqttRequestStop": "TRUE"
+        "PRG_MAIN.fbDoCover002.bMqttRequestStop": "TRUE"
       },
       "delay_ms": 2000,
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.Moving"
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.Moving"
       ],
       "expect": {
         "DO_005": "FALSE",
         "DO_006": "FALSE",
-        "PRG_MAIN.FB_DO_COVER_002.Moving": "FALSE"
+        "PRG_MAIN.fbDoCover002.Moving": "FALSE"
       }
     },
     {
       "label": "CLOSE, sampled 3 s in: now the other coil, and only the other coil",
       "write": {
-        "PRG_MAIN.FB_DO_COVER_002.MqttRequestClose": "TRUE"
+        "PRG_MAIN.fbDoCover002.bMqttRequestClose": "TRUE"
       },
       "delay_ms": 3000,
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.MD",
-        "PRG_MAIN.FB_DO_COVER_002.Position"
+        "PRG_MAIN.fbDoCover002.MD",
+        "PRG_MAIN.fbDoCover002.Position"
       ],
       "expect": {
         "DO_005": "FALSE",
         "DO_006": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.MD": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.State": "'CLOSING'"
+        "PRG_MAIN.fbDoCover002.MD": "TRUE",
+        "PRG_MAIN.fbDoCover002.sState": "'CLOSING'"
       }
     },
     {
@@ -97,33 +97,33 @@
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.PositionKnown",
-        "PRG_MAIN.FB_DO_COVER_002.State"
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.PositionKnown",
+        "PRG_MAIN.fbDoCover002.sState"
       ],
       "expect": {
         "DO_006": "FALSE",
-        "PRG_MAIN.FB_DO_COVER_002.Position": "BYTE#0",
-        "PRG_MAIN.FB_DO_COVER_002.PositionKnown": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.State": "'CLOSED'"
+        "PRG_MAIN.fbDoCover002.Position": "BYTE#0",
+        "PRG_MAIN.fbDoCover002.PositionKnown": "TRUE",
+        "PRG_MAIN.fbDoCover002.sState": "'CLOSED'"
       }
     },
     {
       "label": "send it to 60 percent and catch it on the way",
       "write": {
-        "PRG_MAIN.FB_DO_COVER_002.MqttRequestPositionPct": "60",
-        "PRG_MAIN.FB_DO_COVER_002.MqttRequestPosition": "TRUE"
+        "PRG_MAIN.fbDoCover002.byMqttRequestPositionPct": "60",
+        "PRG_MAIN.fbDoCover002.bMqttRequestPosition": "TRUE"
       },
       "delay_ms": 6000,
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.State"
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.sState"
       ],
       "expect": {
         "DO_005": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.State": "'OPENING'"
+        "PRG_MAIN.fbDoCover002.sState": "'OPENING'"
       }
     },
     {
@@ -132,29 +132,29 @@
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.State"
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.sState"
       ],
       "expect": {
         "DO_005": "FALSE",
         "DO_006": "FALSE",
-        "PRG_MAIN.FB_DO_COVER_002.State": "'STOPPED'"
+        "PRG_MAIN.fbDoCover002.sState": "'STOPPED'"
       }
     },
     {
       "label": "lie to it: the estimate now says 80 while the cover is actually at the bottom, which is the drift case a time-based cover cannot detect for itself",
       "write": {
-        "PRG_MAIN.FB_DO_COVER_002.PositionReal": "80.0"
+        "PRG_MAIN.fbDoCover002.rPositionReal": "80.0"
       },
       "delay_ms": 1500,
       "read": [
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.PositionKnown",
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.PositionKnown",
         "DO_005",
         "DO_006"
       ],
       "expect": {
-        "PRG_MAIN.FB_DO_COVER_002.Position": "BYTE#80",
+        "PRG_MAIN.fbDoCover002.Position": "BYTE#80",
         "DO_005": "FALSE",
         "DO_006": "FALSE"
       }
@@ -162,20 +162,20 @@
     {
       "label": "close it, and look 8 s in: the run is timed from the FULL travel, so it is still driving - a run computed from the estimate would have thought it had 80% to go and be nearly done",
       "write": {
-        "PRG_MAIN.FB_DO_COVER_002.MqttRequestClose": "TRUE"
+        "PRG_MAIN.fbDoCover002.bMqttRequestClose": "TRUE"
       },
       "delay_ms": 8000,
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.Referencing",
-        "PRG_MAIN.FB_DO_COVER_002.State"
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.bReferencing",
+        "PRG_MAIN.fbDoCover002.sState"
       ],
       "expect": {
         "DO_006": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.Referencing": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.State": "'CLOSING'"
+        "PRG_MAIN.fbDoCover002.bReferencing": "TRUE",
+        "PRG_MAIN.fbDoCover002.sState": "'CLOSING'"
       }
     },
     {
@@ -183,12 +183,12 @@
       "delay_ms": 8000,
       "read": [
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.Referencing"
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.bReferencing"
       ],
       "expect": {
         "DO_006": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.Position": "BYTE#0"
+        "PRG_MAIN.fbDoCover002.Position": "BYTE#0"
       }
     },
     {
@@ -197,18 +197,18 @@
       "read": [
         "DO_005",
         "DO_006",
-        "PRG_MAIN.FB_DO_COVER_002.Position",
-        "PRG_MAIN.FB_DO_COVER_002.PositionKnown",
-        "PRG_MAIN.FB_DO_COVER_002.PublishedPosition",
-        "PRG_MAIN.FB_DO_COVER_002.State"
+        "PRG_MAIN.fbDoCover002.Position",
+        "PRG_MAIN.fbDoCover002.PositionKnown",
+        "PRG_MAIN.fbDoCover002.byPublishedPosition",
+        "PRG_MAIN.fbDoCover002.sState"
       ],
       "expect": {
         "DO_005": "FALSE",
         "DO_006": "FALSE",
-        "PRG_MAIN.FB_DO_COVER_002.Position": "BYTE#0",
-        "PRG_MAIN.FB_DO_COVER_002.PositionKnown": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_002.PublishedPosition": "BYTE#0",
-        "PRG_MAIN.FB_DO_COVER_002.State": "'CLOSED'"
+        "PRG_MAIN.fbDoCover002.Position": "BYTE#0",
+        "PRG_MAIN.fbDoCover002.PositionKnown": "TRUE",
+        "PRG_MAIN.fbDoCover002.byPublishedPosition": "BYTE#0",
+        "PRG_MAIN.fbDoCover002.sState": "'CLOSED'"
       }
     },
     {
@@ -218,14 +218,14 @@
         "DO_004",
         "DO_007",
         "DO_008",
-        "PRG_MAIN.FB_DO_COVER_001.initMqttDiscoveryDone"
+        "PRG_MAIN.fbDoCover001.bInitMqttDiscoveryDone"
       ],
       "expect": {
         "DO_003": "FALSE",
         "DO_004": "FALSE",
         "DO_007": "FALSE",
         "DO_008": "FALSE",
-        "PRG_MAIN.FB_DO_COVER_001.initMqttDiscoveryDone": "TRUE"
+        "PRG_MAIN.fbDoCover001.bInitMqttDiscoveryDone": "TRUE"
       }
     }
   ]

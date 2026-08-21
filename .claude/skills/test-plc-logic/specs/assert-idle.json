@@ -6,43 +6,43 @@
       "label": "every MQTT block wired itself on its first cyclic call - an instance whose body never runs is silently absent from Home Assistant, and nothing warns",
       "delay_ms": 3000,
       "expect": {
-        "PRG_MAIN.FB_DO_BIN_001.InitMqttDone": "TRUE",
-        "PRG_MAIN.FB_DO_BISTABLE_001.InitMqttDone": "TRUE",
-        "PRG_MAIN.FB_DO_COVER_001.InitMqttDone": "TRUE",
-        "PRG_MAIN.FB_AO_DIMMER_001.InitMqttDone": "TRUE",
-        "PRG_MAIN.FB_DI_PB_001.InitMqttDone": "TRUE",
-        "PRG_HVAC.FB_THERMOSTAT_2.InitMqttDone": "TRUE",
-        "PRG_HVAC.FB_PUMP_2.InitMqttDone": "TRUE",
-        "PRG_HVAC.FB_BURNER_GAS.InitMqttDone": "TRUE"
+        "PRG_MAIN.fbDoBin001.bInitMqttDone": "TRUE",
+        "PRG_MAIN.fbDoBistable001.bInitMqttDone": "TRUE",
+        "PRG_MAIN.fbDoCover001.bInitMqttDone": "TRUE",
+        "PRG_MAIN.fbAoDimmer001.bInitMqttDone": "TRUE",
+        "PRG_MAIN.fbDiPb001.bInitMqttDone": "TRUE",
+        "PRG_HVAC.fbThermostat2.bInitMqttDone": "TRUE",
+        "PRG_HVAC.fbPump2.bInitMqttDone": "TRUE",
+        "PRG_HVAC.fbBurnerGas.bInitMqttDone": "TRUE"
       }
     },
     {
       "label": "no composed topic was silently truncated - IEC cuts an over-long CONCAT short with no error, and the only other symptom is an entity that never appears",
       "expect": {
-        "PRG_MAIN.FB_DO_BIN_001.TopicTruncated": "FALSE",
-        "PRG_MAIN.FB_AO_DIMMER_001.TopicTruncated": "FALSE",
-        "PRG_HVAC.FB_THERMOSTAT_2.TopicTruncated": "FALSE"
+        "PRG_MAIN.fbDoBin001.bTopicTruncated": "FALSE",
+        "PRG_MAIN.fbAoDimmer001.bTopicTruncated": "FALSE",
+        "PRG_HVAC.fbThermostat2.bTopicTruncated": "FALSE"
       }
     },
     {
       "label": "cover timings came from FB_init at the declaration - T_UD's own default is 10s, so 20s is what proves FB_init actually ran",
       "expect": {
-        "PRG_MAIN.FB_DO_COVER_001.T_UD": "TIME#20s",
-        "PRG_MAIN.FB_DO_COVER_001.T_LOCKOUT": "TIME#1s"
+        "PRG_MAIN.fbDoCover001.T_UD": "TIME#20s",
+        "PRG_MAIN.fbDoCover001.T_LOCKOUT": "TIME#1s"
       }
     },
     {
       "label": "the collector's array interface is live and idle: 8 circuits, both wired ones closed, pump off",
       "expect": {
-        "PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE_COUNT": "INT#8",
-        "PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "FALSE",
-        "PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[2]": "FALSE",
-        "PRG_HVAC.FB_PUMP_2_COLLECTOR.PUMP": "FALSE",
-        "PRG_HVAC.FB_BURNER_GAS.OUT": "FALSE"
+        "PRG_HVAC.fbPump2Collector.ciValveCount": "INT#8",
+        "PRG_HVAC.fbPump2Collector.VALVE[1]": "FALSE",
+        "PRG_HVAC.fbPump2Collector.VALVE[2]": "FALSE",
+        "PRG_HVAC.fbPump2Collector.PUMP": "FALSE",
+        "PRG_HVAC.fbBurnerGas.OUT": "FALSE"
       },
       "read": [
-        "PRG_HVAC.FB_THERMOSTAT_2.SensorFault",
-        "PRG_HVAC.FB_THERMOSTAT_3.SensorFault"
+        "PRG_HVAC.fbThermostat2.bSensorFault",
+        "PRG_HVAC.fbThermostat3.bSensorFault"
       ]
     },
     {
