@@ -13,7 +13,7 @@
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 | `MqttQos` | MQTT.QoS | `MQTT.QoS.ExactlyOnce` | MQTT QoS used for messages published by this block. |
 | `MqttRetain` | BOOL | `FALSE` | MQTT retain flag used for messages published by this block. |
 
@@ -21,7 +21,7 @@
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) | `'plc_log'` | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
 | `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
@@ -39,14 +39,14 @@
 You normally do not instantiate this block yourself. The discovery device owns
 an instance (`logger`, inside `FB_BASE_MQTT_DISCOVERY_DEVICE`) and wires it up
 as part of its own initialisation, so logging is available as soon as
-`MqttVariables.PLC_Device` is declared — see
+`GVL_MQTT.PLC_Device` is declared — see
 [FB_PLC_MQTT_DISCOVERY_DEVICE](./FB_PLC_MQTT_DISCOVERY_DEVICE.md).
 
 - To send a log message:
 ```
-MqttVariables.PLC_Device.SendLogMessage(
+GVL_MQTT.PLC_Device.SendLogMessage(
 	str      := 'Init finished',
-	instance := 'PLC_PRG_MAIN'
+	instance := 'PRG_MAIN'
 );
 ```
 

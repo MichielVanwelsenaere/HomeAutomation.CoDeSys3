@@ -7,5 +7,5 @@ VAR
 
 	// The master, and the block under test.
 	DaliMaster : WagoAppDALI.FbDaliMaster;
-	Dimmer : FB_OUTPUT_DIMMER_DALI_MQTT;
+	fbDimmer : FB_OUTPUT_DIMMER_DALI_MQTT;
 END_VAR

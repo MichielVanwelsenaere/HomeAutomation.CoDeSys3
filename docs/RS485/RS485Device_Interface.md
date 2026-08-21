@@ -1,6 +1,6 @@
 ## RS485 Device Interface
 
-`RS485Device` is what a Modbus slave function block owes the bus controller. It exists so the
+`I_RS485_DEVICE` is what a Modbus slave function block owes the bus controller. It exists so the
 controller can share one RS485 line between many devices without knowing anything about any of
 them, and so a device block can be written once and reused across installations.
 
@@ -22,7 +22,7 @@ That single decision is what makes three things work:
 
 ```mermaid
 flowchart TB
-  subgraph DEVS["device blocks — implement RS485Device"]
+  subgraph DEVS["device blocks — implement I_RS485_DEVICE"]
     direction LR
     A["FB_RS485_EASTRON_SDM220_MQTT"]
     B["FB_RS485_EASTRON_SDM630_MQTT"]
@@ -32,7 +32,7 @@ flowchart TB
 
   SCH["FB_RS485_BUSCONTROLLER<br/><br/>round-robin cursor<br/>transaction execution<br/>silence + watchdog"]
 
-  subgraph TRS["RS485Transport"]
+  subgraph TRS["I_RS485_TRANSPORT"]
     T1["FB_RS485_TRANSPORT_RTU<br/>SysCom + CRC"]
   end
 
@@ -44,13 +44,13 @@ flowchart TB
   TRS --> PORT
 ```
 
-The protocol lives behind a second interface, [`RS485Transport`](#the-rs485transport-interface),
+The protocol lives behind a second interface, [`I_RS485_TRANSPORT`](#the-rs485transport-interface),
 so the controller never sees a CRC, a function code or a serial handle — and so a different
 Modbus implementation can be substituted without touching a single device block.
 
 ### **The four methods every device implements**
 
-#### `HasWork : RS485_WorkLevel`
+#### `HasWork : E_RS485_WORK_LEVEL`
 
 Does this device want the bus, and how badly?
 
@@ -64,7 +64,7 @@ Does this device want the bus, and how badly?
 and up to twice per device per cycle — once looking for `COMMAND` work and again for `POLL`.
 Anything that mutates state belongs in `BuildTransaction`.
 
-#### `BuildTransaction(pSteps : POINTER TO RS485_StepList) : INT`
+#### `BuildTransaction(pSteps : POINTER TO A_RS485_STEP_LIST) : INT`
 
 Called once, immediately after this device has been granted the bus. Fill in every step the
 device wants executed and return how many. Returning `0` withdraws: the controller releases the
@@ -111,7 +111,7 @@ polling and is not called again.
 ### **The step**
 
 ```iecst
-TYPE RS485_Step :
+TYPE ST_RS485_STEP :
 STRUCT
     DeviceId     : BYTE;                 (* Modbus unit id *)
     FunctionCode : BYTE;                 (* 3, 4, 6, 16 *)
@@ -187,7 +187,7 @@ If step 0 fails, `AbortOnError` skips step 1 and nothing is published as confirm
 
 An SDM220 poll is the same machinery with three read steps and no aborts.
 
-### **The RS485Transport interface**
+### **The I_RS485_TRANSPORT interface**
 
 The bus controller talks to the wire through four methods, so the Modbus implementation is
 replaceable:
@@ -195,8 +195,8 @@ replaceable:
 | Method | |
 |:--|:--|
 | `Start(pStep) : BOOL` | Begin one exchange. `FALSE` if the port is down, a step is already in flight, or the function code is not one this transport implements — an unsupported code is refused rather than framed as a guess. |
-| `Service() : RS485_StepState` | Call every cycle. Drives the transport's state machine and reports `IDLE` / `BUSY` / `OK` / `FAILED`. `OK` and `FAILED` are each reported for exactly one cycle. |
-| `ReadBuffer() : POINTER TO RS485_ReadBuffer` | Where a read step's registers landed. |
+| `Service() : E_RS485_STEP_STATE` | Call every cycle. Drives the transport's state machine and reports `IDLE` / `BUSY` / `OK` / `FAILED`. `OK` and `FAILED` are each reported for exactly one cycle. |
+| `ReadBuffer() : POINTER TO A_RS485_READ_BUFFER` | Where a read step's registers landed. |
 | `Registers() : INT` | How many words of it the last `OK` step filled. |
 
 and three more that exist for commissioning, because a bus that has to be swept has to be
@@ -214,8 +214,8 @@ be another; see [#181](https://github.com/MichielVanwelsenaere/HomeAutomation.Co
 
 ### **Writing a new device block**
 
-1. `IMPLEMENTS RS485Device` on the function block.
-2. Declare an `RS485_Step` per register block, and a `StepMap : ARRAY[0..n] OF INT` if the block
+1. `IMPLEMENTS I_RS485_DEVICE` on the function block.
+2. Declare an `ST_RS485_STEP` per register block, and a `StepMap : ARRAY[0..n] OF INT` if the block
    has more than one — the controller gives you a step index, and only your block knows what
    step 0 of *this* transaction was for.
 3. Fill the steps in `FB_init`. Modbus address, register map and poll rate describe the

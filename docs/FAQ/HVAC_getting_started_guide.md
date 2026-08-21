@@ -2,7 +2,7 @@
 
 ### **General**
 
-This guide aims to get you acquainted with the principles applied in the HVAC function blocks and how they are designed to work together. An implementation of scenario C can be found in the project under program `PLC_PRG_HVAC`. 
+This guide aims to get you acquainted with the principles applied in the HVAC function blocks and how they are designed to work together. An implementation of scenario C can be found in the project under program `PRG_HVAC`. 
 
 ### **Scenario A: Floor heating**
 

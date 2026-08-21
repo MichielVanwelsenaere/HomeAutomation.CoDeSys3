@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-21T20:19:13.348283" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-21T20:18:28.7449224">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-21T21:34:23.1768912" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-21T21:32:23.6969621">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -21,7 +21,7 @@
   </contentHeader>
   <types>
     <dataTypes>
-      <dataType name="Dimmer">
+      <dataType name="E_DIMMER">
         <baseType>
           <enum>
             <values>
@@ -49,7 +49,7 @@
           </data>
         </addData>
       </dataType>
-      <dataType name="DIMMER_CURVE">
+      <dataType name="E_DIMMER_CURVE">
         <baseType>
           <enum>
             <values>
@@ -113,7 +113,7 @@ build can catch that, because nothing in the PLC is wrong.</xhtml>
           </data>
         </addData>
       </dataType>
-      <dataType name="HvacModes">
+      <dataType name="E_HVAC_MODE">
         <baseType>
           <enum>
             <values>
@@ -1419,7 +1419,7 @@ is what puts a slider on the entity rather than three buttons.</xhtml>
           </data>
         </addData>
       </dataType>
-      <dataType name="MQTT_MESSAGE">
+      <dataType name="ST_MQTT_MESSAGE">
         <baseType>
           <struct>
             <variable name="Payload">
@@ -1429,7 +1429,7 @@ is what puts a slider on the entity rather than three buttons.</xhtml>
             </variable>
             <variable name="Topic">
               <type>
-                <string length="MqttVariables.MQTT_TOPIC_LEN" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="Qos">
@@ -1450,7 +1450,157 @@ is what puts a slider on the entity rather than three buttons.</xhtml>
           </data>
         </addData>
       </dataType>
-      <dataType name="RS485_CommissionRequest">
+      <dataType name="A_RS485_READ_BUFFER">
+        <baseType>
+          <array>
+            <dimension lower="0" upper="124" />
+            <baseType>
+              <WORD />
+            </baseType>
+          </array>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>26dedc21-d12d-4963-b6e9-09ae11847aab</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="A_RS485_STEP_LIST">
+        <baseType>
+          <array>
+            <dimension lower="0" upper="7" />
+            <baseType>
+              <derived name="ST_RS485_STEP" />
+            </baseType>
+          </array>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>662abd5d-1b4c-4038-a74c-94bcc0032aa0</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="E_RS485_EASTRON_SDM_DEVICE">
+        <baseType>
+          <enum>
+            <values>
+              <value name="SDM120" />
+              <value name="SDM220" />
+              <value name="SDM630" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>68297554-6996-4c62-a3d9-b3b490d6809e</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="E_RS485_STEP_STATE">
+        <baseType>
+          <enum>
+            <values>
+              <value name="IDLE" value="0" />
+              <value name="BUSY" value="1" />
+              <value name="OK" value="2" />
+              <value name="FAILED" value="3" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>IDLE</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">No step in flight. Start() will be accepted.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>BUSY</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Transmitting, or waiting for the line to go quiet.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>OK</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">A reply arrived, addressed to us, with the function code we asked for and a CRC of
+zero over the whole trimmed frame. For a read, ReadBuffer holds Registers() words.
+
+Reported for one cycle, then the transport returns to IDLE.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>FAILED</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">No reply, a bad CRC, the wrong slave, the wrong function code, or a Modbus exception
+reply. Which of those it was is in the transport's counters, not in this value - the
+scheduler does not need to care and the counters are how a line fault is diagnosed
+without a scope.</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+              <Attribute Name="strict" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>c9a66c80-b83c-4183-9fbb-16a18cf97204</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="E_RS485_WORK_LEVEL">
+        <baseType>
+          <enum>
+            <values>
+              <value name="NONE" value="0" />
+              <value name="POLL" value="1" />
+              <value name="COMMAND" value="2" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>NONE</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to do. The scheduler passes over this device.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>POLL</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">A routine read whose interval timer has elapsed. Served round-robin, after every
+pending COMMAND.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>COMMAND</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Something a person or Home Assistant asked for, so latency is visible. Served before
+any POLL, but still round-robin among themselves, so a chatty device cannot starve a
+quiet one.</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+              <Attribute Name="strict" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>379c8f88-10e7-4f2c-951c-0a2591bfe8e8</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="ST_RS485_COMMISSION_REQUEST">
         <baseType>
           <struct>
             <variable name="DeviceId">
@@ -1570,38 +1720,7 @@ nothing.</xhtml>
           </data>
         </addData>
       </dataType>
-      <dataType name="RS485_EASTRON_SDM_Devices">
-        <baseType>
-          <enum>
-            <values>
-              <value name="SDM120" />
-              <value name="SDM220" />
-              <value name="SDM630" />
-            </values>
-          </enum>
-        </baseType>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>68297554-6996-4c62-a3d9-b3b490d6809e</ObjectId>
-          </data>
-        </addData>
-      </dataType>
-      <dataType name="RS485_ReadBuffer">
-        <baseType>
-          <array>
-            <dimension lower="0" upper="124" />
-            <baseType>
-              <WORD />
-            </baseType>
-          </array>
-        </baseType>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>26dedc21-d12d-4963-b6e9-09ae11847aab</ObjectId>
-          </data>
-        </addData>
-      </dataType>
-      <dataType name="RS485_Step">
+      <dataType name="ST_RS485_STEP">
         <baseType>
           <struct>
             <variable name="DeviceId">
@@ -1669,125 +1788,6 @@ block should not cost the others.</xhtml>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>b6fbe585-7af7-4aba-851a-d078ab9d777e</ObjectId>
-          </data>
-        </addData>
-      </dataType>
-      <dataType name="RS485_StepList">
-        <baseType>
-          <array>
-            <dimension lower="0" upper="7" />
-            <baseType>
-              <derived name="RS485_Step" />
-            </baseType>
-          </array>
-        </baseType>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>662abd5d-1b4c-4038-a74c-94bcc0032aa0</ObjectId>
-          </data>
-        </addData>
-      </dataType>
-      <dataType name="RS485_StepState">
-        <baseType>
-          <enum>
-            <values>
-              <value name="IDLE" value="0" />
-              <value name="BUSY" value="1" />
-              <value name="OK" value="2" />
-              <value name="FAILED" value="3" />
-            </values>
-          </enum>
-        </baseType>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
-            <EnumValueDocumentation>
-              <EnumValue>
-                <Name>IDLE</Name>
-                <Documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">No step in flight. Start() will be accepted.</xhtml>
-                </Documentation>
-              </EnumValue>
-              <EnumValue>
-                <Name>BUSY</Name>
-                <Documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Transmitting, or waiting for the line to go quiet.</xhtml>
-                </Documentation>
-              </EnumValue>
-              <EnumValue>
-                <Name>OK</Name>
-                <Documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">A reply arrived, addressed to us, with the function code we asked for and a CRC of
-zero over the whole trimmed frame. For a read, ReadBuffer holds Registers() words.
-
-Reported for one cycle, then the transport returns to IDLE.</xhtml>
-                </Documentation>
-              </EnumValue>
-              <EnumValue>
-                <Name>FAILED</Name>
-                <Documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">No reply, a bad CRC, the wrong slave, the wrong function code, or a Modbus exception
-reply. Which of those it was is in the transport's counters, not in this value - the
-scheduler does not need to care and the counters are how a line fault is diagnosed
-without a scope.</xhtml>
-                </Documentation>
-              </EnumValue>
-            </EnumValueDocumentation>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-            <Attributes>
-              <Attribute Name="qualified_only" Value="" />
-              <Attribute Name="strict" Value="" />
-            </Attributes>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>c9a66c80-b83c-4183-9fbb-16a18cf97204</ObjectId>
-          </data>
-        </addData>
-      </dataType>
-      <dataType name="RS485_WorkLevel">
-        <baseType>
-          <enum>
-            <values>
-              <value name="NONE" value="0" />
-              <value name="POLL" value="1" />
-              <value name="COMMAND" value="2" />
-            </values>
-          </enum>
-        </baseType>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
-            <EnumValueDocumentation>
-              <EnumValue>
-                <Name>NONE</Name>
-                <Documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to do. The scheduler passes over this device.</xhtml>
-                </Documentation>
-              </EnumValue>
-              <EnumValue>
-                <Name>POLL</Name>
-                <Documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">A routine read whose interval timer has elapsed. Served round-robin, after every
-pending COMMAND.</xhtml>
-                </Documentation>
-              </EnumValue>
-              <EnumValue>
-                <Name>COMMAND</Name>
-                <Documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Something a person or Home Assistant asked for, so latency is visible. Served before
-any POLL, but still round-robin among themselves, so a chatty device cannot starve a
-quiet one.</xhtml>
-                </Documentation>
-              </EnumValue>
-            </EnumValueDocumentation>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
-            <Attributes>
-              <Attribute Name="qualified_only" Value="" />
-              <Attribute Name="strict" Value="" />
-            </Attributes>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>379c8f88-10e7-4f2c-951c-0a2591bfe8e8</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -1910,7 +1910,7 @@ quiet one.</xhtml>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -1933,13 +1933,13 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPushbuttonPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPushbuttonPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName);
 	END_IF
 
@@ -2093,7 +2093,7 @@ END_IF		</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -2236,7 +2236,7 @@ SUPER^.InitBaseMqtt();
                 <simpleValue value="TIME#10ms" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for E_DIMMER, can be overwritten by method call </xhtml>
               </documentation>
             </variable>
             <variable name="T_Reconfig">
@@ -2466,7 +2466,7 @@ END_IF</xhtml>
                       <TIME />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for E_DIMMER, can be overwritten by method call </xhtml>
                     </documentation>
                   </variable>
                   <variable name="T_Reconfig">
@@ -2560,7 +2560,7 @@ THIS^.T_Long:=T_Long;</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -2696,7 +2696,7 @@ THIS^.Delta_Dimm:=Delta_Dimm;</xhtml>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -2719,13 +2719,13 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPushbuttonPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPushbuttonPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName);
 	END_IF
 
@@ -2810,7 +2810,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -3012,7 +3012,7 @@ END_IF		</xhtml>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -3035,42 +3035,42 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubSwitchPrefix),
-			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubSwitchPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubSwitchPrefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubSwitchPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_OUTPUT_SWITCH_MQTT));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		IF EntityType = E_MQTT_ENTITY.Light THEN
 			THIS^.InitMqttDiscoveryAsLight(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Lock THEN
 			THIS^.InitMqttDiscoveryAsLock(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Siren THEN
 			THIS^.InitMqttDiscoveryAsSiren(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Valve THEN
 			THIS^.InitMqttDiscoveryAsValve(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Fan THEN
 			THIS^.InitMqttDiscoveryAsFan(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSE
 			(* Default, and any platform this block cannot announce as. *)
 			THIS^.InitMqttDiscoveryAsSwitch(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		END_IF
@@ -3507,7 +3507,7 @@ END_IF </xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -3695,7 +3695,7 @@ END_IF		</xhtml>
 	id := SUPER^.ResolveEntityId(overruleId);
 
 	(* An on/off fan: no percentage or oscillation topics, because a binary output
-	   has no speed to report. A dimmer-backed fan would pass those. *)
+	   has no speed to report. A E_DIMMER-backed fan would pass those. *)
 	Device^.CreateFanEntity(
 			Name := name,
 			Id := id,
@@ -3831,7 +3831,7 @@ END_IF
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -3854,37 +3854,37 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubSwitchPrefix),
-			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubSwitchPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubSwitchPrefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubSwitchPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_OUTPUT_SWITCH_MQTT));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		IF EntityType = E_MQTT_ENTITY.Light THEN
 			THIS^.InitMqttDiscoveryAsLight(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Lock THEN
 			THIS^.InitMqttDiscoveryAsLock(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Siren THEN
 			THIS^.InitMqttDiscoveryAsSiren(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSIF EntityType = E_MQTT_ENTITY.Fan THEN
 			THIS^.InitMqttDiscoveryAsFan(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		ELSE
 			(* Default, and any platform this block cannot announce as. *)
 			THIS^.InitMqttDiscoveryAsSwitch(
-				Device := ADR(MqttVariables.PLC_Device),
+				Device := ADR(GVL_MQTT.PLC_Device),
 				Name := FriendlyName,
 				RelayType := RelayType);
 		END_IF
@@ -4199,7 +4199,7 @@ END_IF		</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -4452,7 +4452,7 @@ END_IF		</xhtml>
 	id := SUPER^.ResolveEntityId(overruleId);
 
 	(* An on/off fan: no percentage or oscillation topics, because a binary output
-	   has no speed to report. A dimmer-backed fan would pass those. *)
+	   has no speed to report. A E_DIMMER-backed fan would pass those. *)
 	Device^.CreateFanEntity(
 			Name := name,
 			Id := id,
@@ -4647,7 +4647,7 @@ END_IF
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -4670,15 +4670,15 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubCoverPrefix),
-			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubCoverPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubCoverPrefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubCoverPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_OUTPUT_COVER_MQTT));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName);
 	END_IF
 
@@ -4960,7 +4960,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -5509,7 +5509,7 @@ THIS^.T_UD := T_UD;
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Set FriendlyName at the declaration and this block wires itself from
-   MqttVariables on its first cyclic call, then announces itself to Home
+   GVL_MQTT on its first cyclic call, then announces itself to Home
    Assistant. Same idiom, and the same reasons, as every other block here: see
    FB_OUTPUT_COVER_MQTT.
 
@@ -5524,15 +5524,15 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubCoverPrefix),
-			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubCoverPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_OUTPUT_COVER_MQTT));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubCoverPrefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubCoverPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_OUTPUT_COVER_MQTT));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName);
 	END_IF
 
@@ -5884,7 +5884,7 @@ END_IF
                       </pointer>
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the discovery device this entity belongs to, normally MqttVariables.PLC_Device.</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the discovery device this entity belongs to, normally GVL_MQTT.PLC_Device.</xhtml>
                     </documentation>
                   </variable>
                   <variable name="Name">
@@ -6014,7 +6014,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -6175,7 +6175,7 @@ pMqttCallbackCollector^.put(instance := THIS^); // register the FB against the c
                 <simpleValue value="TIME#10ms" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for E_DIMMER, can be overwritten by method call </xhtml>
               </documentation>
             </variable>
             <variable name="T_Reconfig">
@@ -6327,7 +6327,7 @@ pMqttCallbackCollector^.put(instance := THIS^); // register the FB against the c
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -6350,10 +6350,10 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubDimmerPrefix),
-			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubDimmerPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT),
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubDimmerPrefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubDimmerPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_DIMMER_MQTT),
 			OutputDimmer := TRUE,
 			Qos_Dimm := MQTT.QoS.ExactlyOnce,
 			Delta_Dimm := 5);
@@ -6361,7 +6361,7 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName);
 	END_IF
 
@@ -6397,9 +6397,9 @@ ELSIF set THEN
 ELSIF SINGLE THEN
 	(* a single click reverses output Q *)
 	Q := NOT Q;
-	(* when dimmer is turned on we need to limit out to min and max limits *)
+	(* when E_DIMMER is turned on we need to limit out to min and max limits *)
 	IF Q THEN OUT_Internal := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);	END_IF;
-	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)
+	(* set the appropriate direction of E_DIMMER dir is reversed because next action will reverse again *)
 	dir := OUT_Internal &gt; 127;
 ELSIF LONG THEN
 	IF NOT Q THEN
@@ -6530,7 +6530,7 @@ END_IF</xhtml>
                       <simpleValue value="TIME#10ms" />
                     </initialValue>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for E_DIMMER, can be overwritten by method call </xhtml>
                     </documentation>
                   </variable>
                   <variable name="T_Reconfig">
@@ -6659,7 +6659,7 @@ THIS^.OUT_LinearScaleMax:=OUT_LinearScaleMax;</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -6678,7 +6678,7 @@ THIS^.OUT_LinearScaleMax:=OUT_LinearScaleMax;</xhtml>
                       <BOOL />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Dimmer specific</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> E_DIMMER specific</xhtml>
                     </documentation>
                   </variable>
                   <variable name="Qos_Dimm">
@@ -6703,7 +6703,7 @@ THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
 THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
 THIS^.pMqttPublishQueue:=pMqttPublishQueue;
 
-// Dimmer specific
+// E_DIMMER specific
 THIS^.OutputDimmer:=OutputDimmer;
 THIS^.Qos_Dimm:=Qos_Dimm;
 THIS^.Delta_Dimm:=Delta_Dimm;
@@ -7110,7 +7110,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -7357,7 +7357,7 @@ DaliSendFadeRate.bFadeRate := FadeRate;</xhtml>
                 <simpleValue value="TIME#10ms" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for E_DIMMER, can be overwritten by method call </xhtml>
               </documentation>
             </variable>
             <variable name="T_Reconfig">
@@ -7560,7 +7560,7 @@ DaliSendFadeRate.bFadeRate := FadeRate;</xhtml>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -7583,10 +7583,10 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubDimmerPrefix),
-			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubDimmerPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT),
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubDimmerPrefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubDimmerPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_DIMMER_MQTT),
 			OutputDimmer := TRUE,
 			Qos_Dimm := MQTT.QoS.ExactlyOnce,
 			Delta_Dimm := 5);
@@ -7594,7 +7594,7 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName);
 	END_IF
 
@@ -7630,9 +7630,9 @@ ELSIF set THEN
 ELSIF SINGLE THEN
 	(* a single click reverses output Q *)
 	Q := NOT Q;
-	(* when dimmer is turned on we need to limit out to min and max limits *)
+	(* when E_DIMMER is turned on we need to limit out to min and max limits *)
 	IF Q THEN OUT_Internal := LIMIT(MAX(OUT_Internal,1), OUT_Internal, MAX_ON);	END_IF;
-	(* set the appropriate direction of dimmer dir is reversed because next action will reverse again *)
+	(* set the appropriate direction of E_DIMMER dir is reversed because next action will reverse again *)
 	dir := OUT_Internal &gt; 127;
 ELSIF LONG THEN
 	IF NOT Q THEN
@@ -7867,7 +7867,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -7886,7 +7886,7 @@ END_IF</xhtml>
                       <BOOL />
                     </type>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Dimmer specific</xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> E_DIMMER specific</xhtml>
                     </documentation>
                   </variable>
                   <variable name="Qos_Dimm">
@@ -7911,7 +7911,7 @@ THIS^.MqttPublishTopicPrefix:=MQTTPublishPrefix;
 THIS^.MQTTSubscribeTopicPrefix:=MQTTSubscribePrefix;
 THIS^.pMqttPublishQueue:=pMqttPublishQueue;
 
-// Dimmer specific
+// E_DIMMER specific
 THIS^.OutputDimmer:=OutputDimmer;
 THIS^.Qos_Dimm:=Qos_Dimm;
 THIS^.Delta_Dimm:=Delta_Dimm;
@@ -7938,7 +7938,7 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <simpleValue value="TIME#10ms" />
                     </initialValue>
                     <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for dimmer, can be overwritten by method call </xhtml>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Default values for E_DIMMER, can be overwritten by method call </xhtml>
                     </documentation>
                   </variable>
                   <variable name="T_Reconfig">
@@ -8195,7 +8195,7 @@ END_IF </xhtml>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -8218,13 +8218,13 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubHVACPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubHVACPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName);
 	END_IF
 
@@ -8273,7 +8273,7 @@ PreviousState := OUT;</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -8436,7 +8436,7 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Circuits on the manifold. A hardware fact rather than a tuning knob, and the
  one place the count is written for this block. A caller that passes a valve
  name array has to spell the same bound - see CollectorValveNames in
- PLC_PRG_HVAC.</xhtml>
+ PRG_HVAC.</xhtml>
               </documentation>
             </variable>
             <variable name="VALVE_NAMES">
@@ -8657,7 +8657,7 @@ Startup := FALSE;
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -8817,7 +8817,7 @@ code. You can evaluate the return value.</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Alias of PUMP, kept deliberately: PLC_PRG_HVAC ORs both pumps' HEAT_REQUEST
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Alias of PUMP, kept deliberately: PRG_HVAC ORs both pumps' HEAT_REQUEST
 	   into the gas burner's demand input, so this is the name that expresses
 	   "this pump is asking for heat" at the call site. </xhtml>
               </documentation>
@@ -8925,7 +8925,7 @@ code. You can evaluate the return value.</xhtml>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -8948,13 +8948,13 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubHVACPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubHVACPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName);
 	END_IF
 
@@ -9009,7 +9009,7 @@ PreviousState := PUMP;</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -9253,7 +9253,7 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
             </variable>
             <variable name="HvacMode">
               <type>
-                <derived name="HvacModes" />
+                <derived name="E_HVAC_MODE" />
               </type>
             </variable>
           </localVars>
@@ -9309,7 +9309,7 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery* calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -9332,15 +9332,15 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubHVACPrefix),
-			MQTTSubscribePrefix := ADR(MqttVariables.MqttSubHVACPrefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-			pMqttCallbackCollector := ADR(MqttVariables.collector_FB_HVAC_MQTT));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubHVACPrefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubHVACPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_HVAC_MQTT));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		THIS^.InitMqttDiscovery(
-			Device := ADR(MqttVariables.PLC_Device),
+			Device := ADR(GVL_MQTT.PLC_Device),
 			Name := FriendlyName,
 			TempStep := 0.5);
 	END_IF
@@ -9357,17 +9357,17 @@ IF SensorFault THEN
 	(* Fail safe: no heat demand on a suspect sensor. For a heating system this is
 	   the branch that matters - the alternative is calling for heat forever. *)
 	OUT := FALSE;
-ELSIF NOT ENABLED OR HvacMode = HvacModes.off THEN
+ELSIF NOT ENABLED OR HvacMode = E_HVAC_MODE.off THEN
 	OUT := FALSE;
 ELSIF MEASURED_TEMP &gt; MaxAllowedTemp THEN
 	OUT := FALSE;
-ELSIF ENABLED AND HvacMode = HvacModes.auto AND MEASURED_TEMP &lt; MinAllowedTemp THEN
+ELSIF ENABLED AND HvacMode = E_HVAC_MODE.auto AND MEASURED_TEMP &lt; MinAllowedTemp THEN
 	OUT := TRUE;
-ELSIF ENABLED AND HvacMode = HvacModes.auto AND OUT AND MEASURED_TEMP &gt; (MinAllowedTemp + Hysteresis) THEN
+ELSIF ENABLED AND HvacMode = E_HVAC_MODE.auto AND OUT AND MEASURED_TEMP &gt; (MinAllowedTemp + Hysteresis) THEN
 	OUT := FALSE;
-ELSIF ENABLED AND HvacMode = HvacModes.heat AND MEASURED_TEMP &lt; (DESIRED_TEMP - Hysteresis) THEN
+ELSIF ENABLED AND HvacMode = E_HVAC_MODE.heat AND MEASURED_TEMP &lt; (DESIRED_TEMP - Hysteresis) THEN
 	OUT := TRUE;
-ELSIF ENABLED AND HvacMode = HvacModes.heat AND MEASURED_TEMP &gt; (DESIRED_TEMP + Hysteresis) THEN
+ELSIF ENABLED AND HvacMode = E_HVAC_MODE.heat AND MEASURED_TEMP &gt; (DESIRED_TEMP + Hysteresis) THEN
 	OUT := FALSE;
 END_IF
 
@@ -9468,7 +9468,7 @@ PreviousState := OUT;</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -9640,7 +9640,7 @@ ELSIF CONCAT(MQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 	PublishReceived := TRUE;
 	//check if the mode is known and if so set it
 	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('auto')) THEN
-		THIS^.HvacMode := HvacModes.auto;		
+		THIS^.HvacMode := E_HVAC_MODE.auto;		
 	 	THIS^.pMqttPublishQueue^.AddMessage(
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(MQTTPublishTopic, '/MODE'),
@@ -9648,7 +9648,7 @@ ELSIF CONCAT(MQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 			MqttRetain := TRUE
 		);
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('off')) THEN
-		THIS^.HvacMode := HvacModes.off;		
+		THIS^.HvacMode := E_HVAC_MODE.off;		
 	 	THIS^.pMqttPublishQueue^.AddMessage(
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(MQTTPublishTopic, '/MODE'),
@@ -9656,7 +9656,7 @@ ELSIF CONCAT(MQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 			MqttRetain := TRUE
 		);
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('heat')) THEN
-		THIS^.HvacMode := HvacModes.heat;		
+		THIS^.HvacMode := E_HVAC_MODE.heat;		
 	 	THIS^.pMqttPublishQueue^.AddMessage(
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(MQTTPublishTopic, '/MODE'),
@@ -9772,12 +9772,12 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="MqttVariables.MQTT_SUFFIX_LEN" />
+                <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
               </type>
             </variable>
             <variable name="MQTTPublishTopic">
               <type>
-                <string length="MqttVariables.MQTT_TOPIC_LEN" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="MqttSubscribeTopicPrefix">
@@ -9794,19 +9794,19 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
             </variable>
             <variable name="MqttSubscribeTopicSuffix">
               <type>
-                <string length="MqttVariables.MQTT_SUFFIX_LEN" />
+                <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
               </type>
             </variable>
             <variable name="MQTTSubscribeTopic">
               <type>
-                <string length="MqttVariables.MQTT_TOPIC_LEN" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="pMqttPublishQueue">
               <type>
                 <pointer>
                   <baseType>
-                    <derived name="FB_MqttPublishQueue" />
+                    <derived name="FB_MQTT_PUBLISH_QUEUE" />
                   </baseType>
                 </pointer>
               </type>
@@ -9875,7 +9875,7 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Human readable name shown in Home Assistant. Setting it is what switches
  a block to self-wiring: on its first cyclic call the block reaches into
- MqttVariables for its publish queue, topic prefixes and callback
+ GVL_MQTT for its publish queue, topic prefixes and callback
  collector, and announces itself for discovery. Leave it empty and the
  block behaves exactly as before, wired only by an explicit
  InitMqtt / InitMqttDiscovery* call - which remain available for anything
@@ -9954,12 +9954,12 @@ END_IF
 (* Make truncation detectable. IEC cuts an over-long CONCAT short without any
    error, so without this the only symptom is an entity that never appears. *)
 IF MqttPublishTopicPrefix &lt;&gt; 0 THEN
-	IF LEN(MqttPublishTopicPrefix^) + LEN(THIS^.MqttPublishTopicSuffix) &gt; MqttVariables.MQTT_TOPIC_LEN THEN
+	IF LEN(MqttPublishTopicPrefix^) + LEN(THIS^.MqttPublishTopicSuffix) &gt; GVL_MQTT.MQTT_TOPIC_LEN THEN
 		THIS^.TopicTruncated := TRUE;
 	END_IF
 END_IF
 IF MqttSubscribeTopicPrefix &lt;&gt; 0 THEN
-	IF LEN(MqttSubscribeTopicPrefix^) + LEN(THIS^.MQTTSubscribeTopicSuffix) &gt; MqttVariables.MQTT_TOPIC_LEN THEN
+	IF LEN(MqttSubscribeTopicPrefix^) + LEN(THIS^.MQTTSubscribeTopicSuffix) &gt; GVL_MQTT.MQTT_TOPIC_LEN THEN
 		THIS^.TopicTruncated := TRUE;
 	END_IF
 END_IF
@@ -10062,7 +10062,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -10207,7 +10207,7 @@ END_IF		</xhtml>
           </data>
         </addData>
       </pou>
-      <pou name="FB_MqttPublishQueue" pouType="functionBlock">
+      <pou name="FB_MQTT_PUBLISH_QUEUE" pouType="functionBlock">
         <interface>
           <outputVars>
             <variable name="DroppedCount">
@@ -10226,7 +10226,7 @@ END_IF		</xhtml>
                 <array>
                   <dimension lower="0" upper="n" />
                   <baseType>
-                    <derived name="MQTT_MESSAGE" />
+                    <derived name="ST_MQTT_MESSAGE" />
                   </baseType>
                 </array>
               </type>
@@ -10296,7 +10296,7 @@ END_IF		</xhtml>
             <Method name="GetMessage" ObjectId="1e1db97d-88e1-4c9c-9f86-4328b3d5480c">
               <interface>
                 <returnType>
-                  <derived name="MQTT_MESSAGE" />
+                  <derived name="ST_MQTT_MESSAGE" />
                 </returnType>
               </interface>
               <body>
@@ -10324,7 +10324,7 @@ END_IF;
                   </variable>
                   <variable name="Topic">
                     <type>
-                      <string length="MqttVariables.MQTT_TOPIC_LEN" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="Qos">
@@ -10400,7 +10400,7 @@ END_IF;
           </data>
         </addData>
       </pou>
-      <pou name="FB_MqttPublishWorker" pouType="functionBlock">
+      <pou name="FB_MQTT_PUBLISH_WORKER" pouType="functionBlock">
         <interface>
           <outputVars>
             <variable name="SendDone">
@@ -10421,7 +10421,7 @@ END_IF;
           <localVars>
             <variable name="LocalMqttMessage">
               <type>
-                <derived name="MQTT_MESSAGE" />
+                <derived name="ST_MQTT_MESSAGE" />
               </type>
             </variable>
             <variable name="InitDone">
@@ -10528,7 +10528,7 @@ SendDone := TRUE;
                 <inputVars>
                   <variable name="MqttMessage">
                     <type>
-                      <derived name="MQTT_MESSAGE" />
+                      <derived name="ST_MQTT_MESSAGE" />
                     </type>
                   </variable>
                 </inputVars>
@@ -10545,6 +10545,131 @@ RequestToSend:=TRUE;</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>0204b2b3-9509-47d9-86ef-0cc71876ab14</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="F_STRIP_JSON_ROOT" pouType="function">
+        <interface>
+          <returnType>
+            <BOOL />
+          </returnType>
+          <inputVars>
+            <variable name="pJson">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> ADR(sJson)</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiSize">
+              <type>
+                <UINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> SIZEOF(sJson)</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <localVars>
+            <variable name="iContentLen">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="iStart">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="iEnd">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="i">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="bFoundStart">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="bFoundEnd">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">
+// Returns TRUE if successful, FALSE if the string could not be parsed.
+// The result is written back into the string in-place.
+
+F_STRIP_JSON_ROOT := FALSE;
+
+// Find actual string length by scanning for null terminator
+iContentLen := 0;
+FOR i := 0 TO UINT_TO_DINT(uiSize) - 1 DO
+    IF pJson[i] = 0 THEN
+        iContentLen := i;
+        EXIT;
+    END_IF
+END_FOR
+
+IF iContentLen &lt; 5 THEN
+    RETURN;
+END_IF
+
+// Find the first occurrence of ':{' (byte values 58 and 123)
+bFoundStart := FALSE;
+FOR i := 0 TO iContentLen - 2 DO
+    IF (pJson[i] = 16#3A) AND (pJson[i + 1] = 16#7B) THEN
+        iStart := i + 1; // index of the inner '{'
+        bFoundStart := TRUE;
+        EXIT;
+    END_IF
+END_FOR
+
+IF NOT bFoundStart THEN
+    RETURN;
+END_IF
+
+// Find the last '}' (byte value 125) scanning backwards
+bFoundEnd := FALSE;
+FOR i := iContentLen - 1 TO 0 BY -1 DO
+    IF pJson[i] = 16#7D THEN
+        iEnd := i;
+        bFoundEnd := TRUE;
+        EXIT;
+    END_IF
+END_FOR
+
+IF NOT bFoundEnd THEN
+    RETURN;
+END_IF
+
+// iEnd is the outer '}', the inner object runs from iStart to iEnd - 1
+// Move the inner content to the beginning of the buffer
+SysMemMove(pDest := pJson, pSrc := ADR(pJson[iStart]), udiCount := DINT_TO_UDINT(iEnd - iStart));
+
+// Null-terminate
+pJson[iEnd - iStart] := 0;
+
+F_STRIP_JSON_ROOT := TRUE;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>b4e04fa1-7370-47e1-a5b3-eb4645c8d421</ObjectId>
           </data>
         </addData>
       </pou>
@@ -10676,7 +10801,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -10812,7 +10937,7 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
               <type>
                 <pointer>
                   <baseType>
-                    <derived name="FB_MqttPublishQueue" />
+                    <derived name="FB_MQTT_PUBLISH_QUEUE" />
                   </baseType>
                 </pointer>
               </type>
@@ -12026,7 +12151,7 @@ THIS^.PublishEntityConfig(
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -13409,7 +13534,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="MqttTopic">
                     <type>
-                      <string length="MqttVariables.MQTT_TOPIC_LEN" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -13448,7 +13573,7 @@ ComposeJSON(
 ComposeJSON.Execute := TRUE;
 ComposeJSON();
 
-bStripJsonRootOk := FC_StripJsonRoot(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
+bStripJsonRootOk := F_STRIP_JSON_ROOT(pJson := ADR(MqttJson), uiSize := SIZEOF(MqttJson));
 
 IF MqttJSON = '' THEN
 	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := InstanceName);
@@ -13778,7 +13903,7 @@ THIS^.PublishEntityConfig(
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -13905,7 +14030,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -14032,7 +14157,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -14072,128 +14197,50 @@ END_IF</xhtml>
           </data>
         </addData>
       </pou>
-      <pou name="FC_StripJsonRoot" pouType="function">
+      <pou name="F_SWAP_WORDS_TO_REAL" pouType="function">
         <interface>
           <returnType>
-            <BOOL />
+            <REAL />
           </returnType>
           <inputVars>
-            <variable name="pJson">
+            <variable name="wHi">
               <type>
-                <pointer>
-                  <baseType>
-                    <BYTE />
-                  </baseType>
-                </pointer>
+                <WORD />
               </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> ADR(sJson)</xhtml>
-              </documentation>
             </variable>
-            <variable name="uiSize">
+            <variable name="wLo">
               <type>
-                <UINT />
+                <WORD />
               </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> SIZEOF(sJson)</xhtml>
-              </documentation>
             </variable>
           </inputVars>
           <localVars>
-            <variable name="iContentLen">
+            <variable name="dwVar">
               <type>
-                <DINT />
+                <DWORD />
               </type>
             </variable>
-            <variable name="iStart">
+            <variable name="pt_REAL">
               <type>
-                <DINT />
-              </type>
-            </variable>
-            <variable name="iEnd">
-              <type>
-                <DINT />
-              </type>
-            </variable>
-            <variable name="i">
-              <type>
-                <DINT />
-              </type>
-            </variable>
-            <variable name="bFoundStart">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="bFoundEnd">
-              <type>
-                <BOOL />
+                <pointer>
+                  <baseType>
+                    <REAL />
+                  </baseType>
+                </pointer>
               </type>
             </variable>
           </localVars>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">
-// Returns TRUE if successful, FALSE if the string could not be parsed.
-// The result is written back into the string in-place.
-
-FC_StripJsonRoot := FALSE;
-
-// Find actual string length by scanning for null terminator
-iContentLen := 0;
-FOR i := 0 TO UINT_TO_DINT(uiSize) - 1 DO
-    IF pJson[i] = 0 THEN
-        iContentLen := i;
-        EXIT;
-    END_IF
-END_FOR
-
-IF iContentLen &lt; 5 THEN
-    RETURN;
-END_IF
-
-// Find the first occurrence of ':{' (byte values 58 and 123)
-bFoundStart := FALSE;
-FOR i := 0 TO iContentLen - 2 DO
-    IF (pJson[i] = 16#3A) AND (pJson[i + 1] = 16#7B) THEN
-        iStart := i + 1; // index of the inner '{'
-        bFoundStart := TRUE;
-        EXIT;
-    END_IF
-END_FOR
-
-IF NOT bFoundStart THEN
-    RETURN;
-END_IF
-
-// Find the last '}' (byte value 125) scanning backwards
-bFoundEnd := FALSE;
-FOR i := iContentLen - 1 TO 0 BY -1 DO
-    IF pJson[i] = 16#7D THEN
-        iEnd := i;
-        bFoundEnd := TRUE;
-        EXIT;
-    END_IF
-END_FOR
-
-IF NOT bFoundEnd THEN
-    RETURN;
-END_IF
-
-// iEnd is the outer '}', the inner object runs from iStart to iEnd - 1
-// Move the inner content to the beginning of the buffer
-SysMemMove(pDest := pJson, pSrc := ADR(pJson[iStart]), udiCount := DINT_TO_UDINT(iEnd - iStart));
-
-// Null-terminate
-pJson[iEnd - iStart] := 0;
-
-FC_StripJsonRoot := TRUE;</xhtml>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">dwVar := SHL(WORD_TO_DWORD(wHi),16) OR WORD_TO_DWORD(wLo);
+pt_REAL := ADR(dwVar);
+F_SWAP_WORDS_TO_REAL := pt_REAL^;</xhtml>
           </ST>
         </body>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>b4e04fa1-7370-47e1-a5b3-eb4645c8d421</ObjectId>
+            <ObjectId>d7f431fc-43d0-47a1-9db3-a3fb4496d281</ObjectId>
           </data>
         </addData>
       </pou>
@@ -14266,7 +14313,7 @@ FC_StripJsonRoot := TRUE;</xhtml>
           <localVars>
             <variable name="Transport">
               <type>
-                <derived name="RS485Transport" />
+                <derived name="I_RS485_TRANSPORT" />
               </type>
             </variable>
             <variable name="Initialised">
@@ -14279,7 +14326,7 @@ FC_StripJsonRoot := TRUE;</xhtml>
                 <array>
                   <dimension lower="0" upper="31" />
                   <baseType>
-                    <derived name="RS485Device" />
+                    <derived name="I_RS485_DEVICE" />
                   </baseType>
                 </array>
               </type>
@@ -14362,7 +14409,7 @@ FC_StripJsonRoot := TRUE;</xhtml>
             </variable>
             <variable name="Steps">
               <type>
-                <derived name="RS485_StepList" />
+                <derived name="A_RS485_STEP_LIST" />
               </type>
             </variable>
             <variable name="StepCount">
@@ -14392,7 +14439,7 @@ FC_StripJsonRoot := TRUE;</xhtml>
             </variable>
             <variable name="stepState">
               <type>
-                <derived name="RS485_StepState" />
+                <derived name="E_RS485_STEP_STATE" />
               </type>
             </variable>
           </localVars>
@@ -14416,7 +14463,7 @@ FC_StripJsonRoot := TRUE;</xhtml>
 	cursor, so a Home Assistant command does not queue behind every meter while
 	a chatty device still cannot starve a quiet one.
 
-	The protocol lives behind RS485Transport. This block never sees a CRC, a
+	The protocol lives behind I_RS485_TRANSPORT. This block never sees a CRC, a
 	function code or a serial handle.
 </xhtml>
           </documentation>
@@ -14488,11 +14535,11 @@ CASE State OF
 
 2:	(* ------------------------------------------------------ wait it out *)
 	BusOcupied := TRUE;
-	IF stepState = RS485_StepState.OK THEN
+	IF stepState = E_RS485_STEP_STATE.OK THEN
 		THIS^.FinishStep(Failed := FALSE,
 		                 pData := Transport.ReadBuffer(),
 		                 Count := Transport.Registers());
-	ELSIF stepState = RS485_StepState.FAILED THEN
+	ELSIF stepState = E_RS485_STEP_STATE.FAILED THEN
 		THIS^.FinishStep(Failed := TRUE, pData := Transport.ReadBuffer(), Count := 0);
 	ELSIF watchdog.Q THEN
 		Watchdogs := Watchdogs + 1;
@@ -14544,7 +14591,7 @@ END_CASE
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_ReadBuffer" />
+                          <derived name="A_RS485_READ_BUFFER" />
                         </baseType>
                       </pointer>
                     </type>
@@ -14644,7 +14691,7 @@ SelectNext := -1;
 
 FOR k := 0 TO devicesCount - 1 DO
 	i := (Cursor + k) MOD devicesCount;
-	IF devices[i].HasWork() = RS485_WorkLevel.COMMAND THEN
+	IF devices[i].HasWork() = E_RS485_WORK_LEVEL.COMMAND THEN
 		SelectNext := i;
 		RETURN;
 	END_IF
@@ -14652,7 +14699,7 @@ END_FOR
 
 FOR k := 0 TO devicesCount - 1 DO
 	i := (Cursor + k) MOD devicesCount;
-	IF devices[i].HasWork() = RS485_WorkLevel.POLL THEN
+	IF devices[i].HasWork() = E_RS485_WORK_LEVEL.POLL THEN
 		SelectNext := i;
 		RETURN;
 	END_IF
@@ -14672,7 +14719,7 @@ END_FOR
                 <inputVars>
                   <variable name="device">
                     <type>
-                      <derived name="RS485Device" />
+                      <derived name="I_RS485_DEVICE" />
                     </type>
                   </variable>
                 </inputVars>
@@ -14701,7 +14748,7 @@ END_IF
                 <inputVars>
                   <variable name="Transport">
                     <type>
-                      <derived name="RS485Transport" />
+                      <derived name="I_RS485_TRANSPORT" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml">The protocol implementation to drive. Replaces the BusTrigger / BusData / BusError pointer trio, which existed only because the framing lived in a program action rather than in a block of its own.</xhtml>
@@ -14782,7 +14829,7 @@ being handed a second list to keep in step with this one.</xhtml>
             <Method name="GetDevice" ObjectId="95e11ce6-599d-460e-a963-d70b3f95873a">
               <interface>
                 <returnType>
-                  <derived name="RS485Device" />
+                  <derived name="I_RS485_DEVICE" />
                 </returnType>
                 <inputVars>
                   <variable name="Index">
@@ -14869,7 +14916,7 @@ END_IF
           <localVars>
             <variable name="Transport">
               <type>
-                <derived name="RS485Transport" />
+                <derived name="I_RS485_TRANSPORT" />
               </type>
             </variable>
             <variable name="pController">
@@ -14890,7 +14937,7 @@ END_IF
               <type>
                 <pointer>
                   <baseType>
-                    <derived name="FB_MqttPublishQueue" />
+                    <derived name="FB_MQTT_PUBLISH_QUEUE" />
                   </baseType>
                 </pointer>
               </type>
@@ -14932,17 +14979,17 @@ END_IF
             </variable>
             <variable name="device">
               <type>
-                <derived name="RS485Device" />
+                <derived name="I_RS485_DEVICE" />
               </type>
             </variable>
             <variable name="Request">
               <type>
-                <derived name="RS485_CommissionRequest" />
+                <derived name="ST_RS485_COMMISSION_REQUEST" />
               </type>
             </variable>
             <variable name="Step">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
             </variable>
             <variable name="Delay">
@@ -14952,7 +14999,7 @@ END_IF
             </variable>
             <variable name="Outcome">
               <type>
-                <derived name="RS485_StepState" />
+                <derived name="E_RS485_STEP_STATE" />
               </type>
             </variable>
             <variable name="BaudIdx">
@@ -15097,7 +15144,7 @@ CASE State OF
 	END_IF
 
 5:	Outcome := Transport.Service();
-	IF Outcome &lt;&gt; RS485_StepState.BUSY THEN
+	IF Outcome &lt;&gt; E_RS485_STEP_STATE.BUSY THEN
 		(* Bytes arriving at all is the useful signal when none of them frame: it
 		   separates a device that is present and mis-configured from a bus with
 		   nothing on it, which is the difference between sweeping on and going to
@@ -15107,7 +15154,7 @@ CASE State OF
 			MaxRxBaud	:= Request.Bauds[BaudIdx];
 			MaxRxStop	:= Request.StopBits[StopIdx];
 		END_IF
-		IF Outcome = RS485_StepState.OK THEN
+		IF Outcome = E_RS485_STEP_STATE.OK THEN
 			FoundBaud	:= Request.Bauds[BaudIdx];
 			FoundStop	:= Request.StopBits[StopIdx];
 			State		:= 7;
@@ -15160,7 +15207,7 @@ CASE State OF
 9:	(* The acknowledgement comes back at the NEW setting and this end will not hear
 	   it, so the outcome is deliberately ignored: a failure here is the expected
 	   result of success, and nothing may retry on it. *)
-	IF Transport.Service() &lt;&gt; RS485_StepState.BUSY THEN
+	IF Transport.Service() &lt;&gt; E_RS485_STEP_STATE.BUSY THEN
 		State := 70;
 	END_IF
 
@@ -15226,7 +15273,7 @@ END_CASE
                 <inputVars>
                   <variable name="Transport">
                     <type>
-                      <derived name="RS485Transport" />
+                      <derived name="I_RS485_TRANSPORT" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml">The bus. Re-tuned during a sweep and restored afterwards, which is why it is the transport interface rather than a port number.</xhtml>
@@ -15256,7 +15303,7 @@ END_CASE
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -15346,7 +15393,7 @@ Initialised := TRUE;
             </variable>
             <variable name="Step">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> The one register block this sensor is read in: distance and output state
@@ -15358,12 +15405,12 @@ Initialised := TRUE;
             </variable>
             <variable name="ConfigStep">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> A pending configuration write. The sensor's settings live in ordinary
 	   holding registers, so changing one is an FC6 step like any other - it just
-	   has to jump the polling queue, which is what RS485_WorkLevel.COMMAND is
+	   has to jump the polling queue, which is what E_RS485_WORK_LEVEL.COMMAND is
 	   for. See RequestConfigWrite. </xhtml>
               </documentation>
             </variable>
@@ -15592,7 +15639,7 @@ Initialised := TRUE;
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
                 <Extends>FB_MQTT_BASE</Extends>
-                <Implements>RS485Device</Implements>
+                <Implements>I_RS485_DEVICE</Implements>
               </Inheritance>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -15606,7 +15653,7 @@ Initialised := TRUE;
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -15620,8 +15667,8 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubRS485Prefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubRS485Prefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
@@ -15855,7 +15902,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_ReadBuffer" />
+                          <derived name="A_RS485_READ_BUFFER" />
                         </baseType>
                       </pointer>
                     </type>
@@ -15910,7 +15957,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_StepList" />
+                          <derived name="A_RS485_STEP_LIST" />
                         </baseType>
                       </pointer>
                     </type>
@@ -15943,7 +15990,7 @@ END_IF
             <Method name="HasWork" ObjectId="b573e789-f437-4344-a3ec-43ce16a79345">
               <interface>
                 <returnType>
-                  <derived name="RS485_WorkLevel" />
+                  <derived name="E_RS485_WORK_LEVEL" />
                 </returnType>
               </interface>
               <body>
@@ -15951,11 +15998,11 @@ END_IF
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Predicate only - the scheduler calls this on every device every cycle, and
    twice when it is looking for commands first. Nothing here may change state. *)
 IF ConfigPending THEN
-	HasWork := RS485_WorkLevel.COMMAND;
+	HasWork := E_RS485_WORK_LEVEL.COMMAND;
 ELSIF timerData.Q THEN
-	HasWork := RS485_WorkLevel.POLL;
+	HasWork := E_RS485_WORK_LEVEL.POLL;
 ELSE
-	HasWork := RS485_WorkLevel.NONE;
+	HasWork := E_RS485_WORK_LEVEL.NONE;
 END_IF
 </xhtml>
                 </ST>
@@ -16020,13 +16067,13 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		name := DeviceName,
 		id := id,
 		Model := Model,
-		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic1 := GVL_MQTT.MqttAvailabilityTopic,
 		availabilityTopic2 := CONCAT(THIS^.MQTTPublishTopic, '/availability'),
-		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
-		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
-		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
-		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
-		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
+		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := GVL_MQTT.MqttDiagnosticTopic,
+		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
 	Device^.CreateSensorEntity(
 		Name := 'Distance',
@@ -16110,7 +16157,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -16239,7 +16286,7 @@ FB_init := TRUE;
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_CommissionRequest" />
+                          <derived name="ST_RS485_COMMISSION_REQUEST" />
                         </baseType>
                       </pointer>
                     </type>
@@ -16335,7 +16382,7 @@ commission here, and describing it is the sensor's own business: which register 
 the rate, what code that register wants for the bus rate, and which rates the register
 can select at all.
 
-See RS485Device.GetCommissioning for the contract.</xhtml>
+See I_RS485_DEVICE.GetCommissioning for the contract.</xhtml>
                 </documentation>
               </interface>
               <body>
@@ -16525,17 +16572,17 @@ GetCommissioning := TRUE;
             </variable>
             <variable name="MasterStep">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
             </variable>
             <variable name="WriteStep">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
             </variable>
             <variable name="ReadBackStep">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
             </variable>
             <variable name="WriteQueryReady">
@@ -16587,7 +16634,7 @@ GetCommissioning := TRUE;
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
                 <Extends>FB_MQTT_BASE</Extends>
-                <Implements>RS485Device</Implements>
+                <Implements>I_RS485_DEVICE</Implements>
                 <Implements>MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
               </Inheritance>
             </data>
@@ -16673,7 +16720,7 @@ THIS^.InitRS485Done := TRUE;
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -16881,7 +16928,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_StepList" />
+                          <derived name="A_RS485_STEP_LIST" />
                         </baseType>
                       </pointer>
                     </type>
@@ -16968,7 +17015,7 @@ BuildTransaction := n;
             <Method name="HasWork" ObjectId="654f58b7-3ddd-46e6-ad53-98705a1c0c24">
               <interface>
                 <returnType>
-                  <derived name="RS485_WorkLevel" />
+                  <derived name="E_RS485_WORK_LEVEL" />
                 </returnType>
                 <localVars>
                   <variable name="k">
@@ -16984,7 +17031,7 @@ BuildTransaction := n;
    nothing and cannot disturb anything - which is the reason the node kept that
    method while the parent's own version was replaced. *)
 IF NOT InitRS485Done THEN
-	HasWork := RS485_WorkLevel.NONE;
+	HasWork := E_RS485_WORK_LEVEL.NONE;
 	RETURN;
 END_IF
 
@@ -16992,20 +17039,20 @@ IF WriteQueryReady THEN
 	(* Somebody is waiting on this: it arrived over MQTT, from Home Assistant or
 	   a person. Ahead of routine polling, but still round-robin against other
 	   devices' commands. *)
-	HasWork := RS485_WorkLevel.COMMAND;
+	HasWork := E_RS485_WORK_LEVEL.COMMAND;
 	RETURN;
 END_IF
 
 IF timerData.Q THEN
-	HasWork := RS485_WorkLevel.POLL;
+	HasWork := E_RS485_WORK_LEVEL.POLL;
 	RETURN;
 END_IF
 
-HasWork := RS485_WorkLevel.NONE;
+HasWork := E_RS485_WORK_LEVEL.NONE;
 FOR k := 2 TO 30 DO
 	IF k &lt; UINT_TO_INT(NodePointer) THEN
 		IF Nodes[k].RequestBusTime() THEN
-			HasWork := RS485_WorkLevel.POLL;
+			HasWork := E_RS485_WORK_LEVEL.POLL;
 			RETURN;
 		END_IF
 	END_IF
@@ -17034,7 +17081,7 @@ END_FOR
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_ReadBuffer" />
+                          <derived name="A_RS485_READ_BUFFER" />
                         </baseType>
                       </pointer>
                     </type>
@@ -17144,14 +17191,14 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_CommissionRequest" />
+                          <derived name="ST_RS485_COMMISSION_REQUEST" />
                         </baseType>
                       </pointer>
                     </type>
                   </variable>
                 </inputVars>
                 <documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See RS485Device.GetCommissioning.</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See I_RS485_DEVICE.GetCommissioning.</xhtml>
                 </documentation>
               </interface>
               <body>
@@ -17198,14 +17245,14 @@ GetCommissioning := FALSE;
             </variable>
             <variable name="MqttPublishTopicSuffix">
               <type>
-                <string length="MqttVariables.MQTT_SUFFIX_LEN" />
+                <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
               </type>
             </variable>
             <variable name="pMqttPublishQueue">
               <type>
                 <pointer>
                   <baseType>
-                    <derived name="FB_MqttPublishQueue" />
+                    <derived name="FB_MQTT_PUBLISH_QUEUE" />
                   </baseType>
                 </pointer>
               </type>
@@ -17225,7 +17272,7 @@ GetCommissioning := FALSE;
             </variable>
             <variable name="Step">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> This node's read block. Filled by InitNode in code; a node is not
@@ -17326,7 +17373,7 @@ THIS^.NodeInitialized := TRUE;
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -17389,7 +17436,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_ReadBuffer" />
+                          <derived name="A_RS485_READ_BUFFER" />
                         </baseType>
                       </pointer>
                     </type>
@@ -17423,7 +17470,7 @@ END_IF
             <Method name="GetStep" ObjectId="c9f7a275-0892-44b6-86a6-6e9ee1c21aeb">
               <interface>
                 <returnType>
-                  <derived name="RS485_Step" />
+                  <derived name="ST_RS485_STEP" />
                 </returnType>
               </interface>
               <body>
@@ -17488,12 +17535,12 @@ END_IF
             </variable>
             <variable name="DeviceType">
               <type>
-                <derived name="RS485_EASTRON_SDM_Devices" />
+                <derived name="E_RS485_EASTRON_SDM_DEVICE" />
               </type>
             </variable>
             <variable name="StepSmallMeter">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Active power sits at a different input register on the single-phase
@@ -17504,7 +17551,7 @@ END_IF
             </variable>
             <variable name="StepSDM630">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
             </variable>
           </localVars>
@@ -17551,7 +17598,7 @@ END_IF
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
                 <Extends>FB_MQTT_BASE</Extends>
-                <Implements>RS485Device</Implements>
+                <Implements>I_RS485_DEVICE</Implements>
               </Inheritance>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -17565,7 +17612,7 @@ END_IF
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -17583,8 +17630,8 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubRS485Prefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubRS485Prefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
@@ -17636,7 +17683,7 @@ END_IF
                   </variable>
                   <variable name="DeviceType">
                     <type>
-                      <derived name="RS485_EASTRON_SDM_Devices" />
+                      <derived name="E_RS485_EASTRON_SDM_DEVICE" />
                     </type>
                   </variable>
                   <variable name="DataPollingInterval">
@@ -17698,7 +17745,7 @@ FB_init := TRUE;
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -17753,7 +17800,7 @@ END_IF</xhtml>
             <Method name="HasWork" ObjectId="8ddd6968-fb9a-470d-87ea-0369e7c95c19">
               <interface>
                 <returnType>
-                  <derived name="RS485_WorkLevel" />
+                  <derived name="E_RS485_WORK_LEVEL" />
                 </returnType>
               </interface>
               <body>
@@ -17761,9 +17808,9 @@ END_IF</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Predicate only - the scheduler calls this on every device every cycle, and
    twice when it is looking for commands first. Nothing here may change state. *)
 IF timerData.Q THEN
-	HasWork := RS485_WorkLevel.POLL;
+	HasWork := E_RS485_WORK_LEVEL.POLL;
 ELSE
-	HasWork := RS485_WorkLevel.NONE;
+	HasWork := E_RS485_WORK_LEVEL.NONE;
 END_IF
 </xhtml>
                 </ST>
@@ -17782,7 +17829,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_StepList" />
+                          <derived name="A_RS485_STEP_LIST" />
                         </baseType>
                       </pointer>
                     </type>
@@ -17803,11 +17850,11 @@ END_IF
 IF timerData.Q THEN
 	timerData.IN := FALSE;
 
-	IF DeviceType = RS485_EASTRON_SDM_Devices.SDM630 THEN
+	IF DeviceType = E_RS485_EASTRON_SDM_DEVICE.SDM630 THEN
 		pSteps^[0]			:= StepSDM630;
 		BuildTransaction	:= 1;
-	ELSIF DeviceType = RS485_EASTRON_SDM_Devices.SDM120
-	   OR DeviceType = RS485_EASTRON_SDM_Devices.SDM220 THEN
+	ELSIF DeviceType = E_RS485_EASTRON_SDM_DEVICE.SDM120
+	   OR DeviceType = E_RS485_EASTRON_SDM_DEVICE.SDM220 THEN
 		pSteps^[0]			:= StepSmallMeter;
 		BuildTransaction	:= 1;
 	END_IF
@@ -17838,7 +17885,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_ReadBuffer" />
+                          <derived name="A_RS485_READ_BUFFER" />
                         </baseType>
                       </pointer>
                     </type>
@@ -17856,7 +17903,7 @@ END_IF
 THIS^.timerData.IN := TRUE;
 
 IF NOT Failed AND Count &gt;= 2 THEN
-	THIS^.ACTIVEPOWER := SwapWordsToReal(pData^[0], pData^[1]);
+	THIS^.ACTIVEPOWER := F_SWAP_WORDS_TO_REAL(pData^[0], pData^[1]);
 	THIS^.DataAvailable := TRUE;
 	THIS^.isDataUpdated := TRUE;
 END_IF
@@ -17957,9 +18004,9 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		resolvedModel := Model;
 	ELSE
 		CASE DeviceType OF
-			RS485_EASTRON_SDM_Devices.SDM120:	resolvedModel := 'SDM120';
-			RS485_EASTRON_SDM_Devices.SDM220:	resolvedModel := 'SDM220';
-			RS485_EASTRON_SDM_Devices.SDM630:	resolvedModel := 'SDM630';
+			E_RS485_EASTRON_SDM_DEVICE.SDM120:	resolvedModel := 'SDM120';
+			E_RS485_EASTRON_SDM_DEVICE.SDM220:	resolvedModel := 'SDM220';
+			E_RS485_EASTRON_SDM_DEVICE.SDM630:	resolvedModel := 'SDM630';
 		ELSE
 			resolvedModel := 'unknown';
 		END_CASE
@@ -17971,13 +18018,13 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		name := DeviceName,
 		id := id,
 		Model := resolvedModel,
-		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic1 := GVL_MQTT.MqttAvailabilityTopic,
 		availabilityTopic2 := CONCAT(THIS^.MQTTPublishTopic, '/availability'),
-		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
-		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
-		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
-		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
-		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
+		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := GVL_MQTT.MqttDiagnosticTopic,
+		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
 	Device^.CreateSensorEntity(
 		Name := 'Active Power',
@@ -18011,14 +18058,14 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_CommissionRequest" />
+                          <derived name="ST_RS485_COMMISSION_REQUEST" />
                         </baseType>
                       </pointer>
                     </type>
                   </variable>
                 </inputVars>
                 <documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See RS485Device.GetCommissioning.</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See I_RS485_DEVICE.GetCommissioning.</xhtml>
                 </documentation>
               </interface>
               <body>
@@ -18073,7 +18120,7 @@ GetCommissioning := FALSE;
                 <array>
                   <dimension lower="0" upper="2" />
                   <baseType>
-                    <derived name="RS485_Step" />
+                    <derived name="ST_RS485_STEP" />
                   </baseType>
                 </array>
               </type>
@@ -18317,7 +18364,7 @@ GetCommissioning := FALSE;
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
                 <Extends>FB_MQTT_BASE</Extends>
-                <Implements>RS485Device</Implements>
+                <Implements>I_RS485_DEVICE</Implements>
               </Inheritance>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -18331,7 +18378,7 @@ GetCommissioning := FALSE;
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -18347,8 +18394,8 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubRS485Prefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubRS485Prefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
@@ -18418,7 +18465,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -18473,7 +18520,7 @@ END_IF</xhtml>
             <Method name="HasWork" ObjectId="0059e32f-586d-4c3a-acb7-8ef1872e19d2">
               <interface>
                 <returnType>
-                  <derived name="RS485_WorkLevel" />
+                  <derived name="E_RS485_WORK_LEVEL" />
                 </returnType>
               </interface>
               <body>
@@ -18481,9 +18528,9 @@ END_IF</xhtml>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Predicate only - the scheduler calls this on every device every cycle, and
    twice when it is looking for commands first. Nothing here may change state. *)
 IF timerData.Q THEN
-	HasWork := RS485_WorkLevel.POLL;
+	HasWork := E_RS485_WORK_LEVEL.POLL;
 ELSE
-	HasWork := RS485_WorkLevel.NONE;
+	HasWork := E_RS485_WORK_LEVEL.NONE;
 END_IF
 </xhtml>
                 </ST>
@@ -18502,7 +18549,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_StepList" />
+                          <derived name="A_RS485_STEP_LIST" />
                         </baseType>
                       </pointer>
                     </type>
@@ -18553,7 +18600,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_ReadBuffer" />
+                          <derived name="A_RS485_READ_BUFFER" />
                         </baseType>
                       </pointer>
                     </type>
@@ -18578,30 +18625,30 @@ CASE StepMap[StepIndex] OF
 
 1:	THIS^.Error1 := Failed;
 	IF NOT Failed AND Count &gt;= 38 THEN
-		THIS^.VOLTAGE			:= SwapWordsToReal(pData^[0], pData^[1]);
-		THIS^.CURRENT			:= SwapWordsToReal(pData^[6], pData^[7]);
-		THIS^.ACTIVEPOWER		:= SwapWordsToReal(pData^[12], pData^[13]);
-		THIS^.APPARENT_POWER	:= SwapWordsToReal(pData^[18], pData^[19]);
-		THIS^.REACTIVE_POWER	:= SwapWordsToReal(pData^[24], pData^[25]);
-		THIS^.POWER_FACTOR		:= SwapWordsToReal(pData^[30], pData^[31]);
-		THIS^.PHASE_ANGLE		:= SwapWordsToReal(pData^[36], pData^[37]);
+		THIS^.VOLTAGE			:= F_SWAP_WORDS_TO_REAL(pData^[0], pData^[1]);
+		THIS^.CURRENT			:= F_SWAP_WORDS_TO_REAL(pData^[6], pData^[7]);
+		THIS^.ACTIVEPOWER		:= F_SWAP_WORDS_TO_REAL(pData^[12], pData^[13]);
+		THIS^.APPARENT_POWER	:= F_SWAP_WORDS_TO_REAL(pData^[18], pData^[19]);
+		THIS^.REACTIVE_POWER	:= F_SWAP_WORDS_TO_REAL(pData^[24], pData^[25]);
+		THIS^.POWER_FACTOR		:= F_SWAP_WORDS_TO_REAL(pData^[30], pData^[31]);
+		THIS^.PHASE_ANGLE		:= F_SWAP_WORDS_TO_REAL(pData^[36], pData^[37]);
 		THIS^.Update1 := TRUE;
 	END_IF
 
 2:	THIS^.Error2 := Failed;
 	IF NOT Failed AND Count &gt;= 10 THEN
-		THIS^.FREQUENCY					:= SwapWordsToReal(pData^[0], pData^[1]);
-		THIS^.IMPORT_ACTIVE_ENERGY		:= SwapWordsToReal(pData^[2], pData^[3]);
-		THIS^.EXPORT_ACTIVE_ENERGY		:= SwapWordsToReal(pData^[4], pData^[5]);
-		THIS^.IMPORT_REACTIVE_ENERGY	:= SwapWordsToReal(pData^[6], pData^[7]);
-		THIS^.EXPORT_REACTIVE_ENERGY	:= SwapWordsToReal(pData^[8], pData^[9]);
+		THIS^.FREQUENCY					:= F_SWAP_WORDS_TO_REAL(pData^[0], pData^[1]);
+		THIS^.IMPORT_ACTIVE_ENERGY		:= F_SWAP_WORDS_TO_REAL(pData^[2], pData^[3]);
+		THIS^.EXPORT_ACTIVE_ENERGY		:= F_SWAP_WORDS_TO_REAL(pData^[4], pData^[5]);
+		THIS^.IMPORT_REACTIVE_ENERGY	:= F_SWAP_WORDS_TO_REAL(pData^[6], pData^[7]);
+		THIS^.EXPORT_REACTIVE_ENERGY	:= F_SWAP_WORDS_TO_REAL(pData^[8], pData^[9]);
 		THIS^.Update2 := TRUE;
 	END_IF
 
 3:	THIS^.Error3 := Failed;
 	IF NOT Failed AND Count &gt;= 4 THEN
-		THIS^.TOTAL_ACTIVE_ENERGY	:= SwapWordsToReal(pData^[0], pData^[1]);
-		THIS^.TOTAL_REACTIVE_ENERGY	:= SwapWordsToReal(pData^[2], pData^[3]);
+		THIS^.TOTAL_ACTIVE_ENERGY	:= F_SWAP_WORDS_TO_REAL(pData^[0], pData^[1]);
+		THIS^.TOTAL_REACTIVE_ENERGY	:= F_SWAP_WORDS_TO_REAL(pData^[2], pData^[3]);
 		THIS^.Update3 := TRUE;
 	END_IF
 
@@ -18711,13 +18758,13 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		name := DeviceName,
 		id := id,
 		Model := Model,
-		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic1 := GVL_MQTT.MqttAvailabilityTopic,
 		availabilityTopic2 := CONCAT(THIS^.MQTTPublishTopic, '/availability'),
-		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
-		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
-		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
-		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
-		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
+		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := GVL_MQTT.MqttDiagnosticTopic,
+		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
 	(* --- register block 1: the instantaneous electrical values ------------- *)
 
@@ -18932,14 +18979,14 @@ FB_init := TRUE;
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_CommissionRequest" />
+                          <derived name="ST_RS485_COMMISSION_REQUEST" />
                         </baseType>
                       </pointer>
                     </type>
                   </variable>
                 </inputVars>
                 <documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See RS485Device.GetCommissioning.</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See I_RS485_DEVICE.GetCommissioning.</xhtml>
                 </documentation>
               </interface>
               <body>
@@ -18996,7 +19043,7 @@ GetCommissioning := FALSE;
             </variable>
             <variable name="Step">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> One read covers the whole measurement block: function 4 (input registers),
@@ -19326,7 +19373,7 @@ GetCommissioning := FALSE;
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
                 <Extends>FB_MQTT_BASE</Extends>
-                <Implements>RS485Device</Implements>
+                <Implements>I_RS485_DEVICE</Implements>
               </Inheritance>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -19340,7 +19387,7 @@ GetCommissioning := FALSE;
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
    Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
-   the declaration site and this block wires itself from MqttVariables on its
+   the declaration site and this block wires itself from GVL_MQTT on its
    first cyclic call, then announces itself to Home Assistant.
 
    Deliberately in the body rather than in FB_init: it dereferences GVL members
@@ -19363,8 +19410,8 @@ IF FriendlyName &lt;&gt; '' THEN
 
 	IF NOT InitMqttDone THEN
 		THIS^.InitMqtt(
-			MQTTPublishPrefix := ADR(MqttVariables.MqttPubRS485Prefix),
-			pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubRS485Prefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 	END_IF
 
 	IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
@@ -19418,15 +19465,15 @@ END_IF</xhtml>
             <Method name="HasWork" ObjectId="aebc6851-9dee-4d6c-8c39-27331d94fc01">
               <interface>
                 <returnType>
-                  <derived name="RS485_WorkLevel" />
+                  <derived name="E_RS485_WORK_LEVEL" />
                 </returnType>
               </interface>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
-	HasWork := RS485_WorkLevel.POLL;
+	HasWork := E_RS485_WORK_LEVEL.POLL;
 ELSE
-	HasWork := RS485_WorkLevel.NONE;
+	HasWork := E_RS485_WORK_LEVEL.NONE;
 END_IF
 </xhtml>
                 </ST>
@@ -19452,7 +19499,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_ReadBuffer" />
+                          <derived name="A_RS485_READ_BUFFER" />
                         </baseType>
                       </pointer>
                     </type>
@@ -19473,32 +19520,32 @@ IF NOT Failed AND Count &gt;= 64 THEN
 	(* Every value is a big-endian IEEE float across two consecutive words, so the
 	   word index is the register offset from 16#000C doubled. Gaps below are
 	   registers the SDM630 reserves. *)
-	THIS^.L1_ACTIVEPOWER := SwapWordsToReal(pData^[0], pData^[1]);	// 16#000C L1 Active Power
-	THIS^.L2_ACTIVEPOWER := SwapWordsToReal(pData^[2], pData^[3]);	// 16#000E L2 Active Power
-	THIS^.L3_ACTIVEPOWER := SwapWordsToReal(pData^[4], pData^[5]);	// 16#0010 L3 Active Power
-	THIS^.L1_VA := SwapWordsToReal(pData^[6], pData^[7]);	// 16#0012 L1 Apparent Power
-	THIS^.L2_VA := SwapWordsToReal(pData^[8], pData^[9]);	// 16#0014 L2 Apparent Power
-	THIS^.L3_VA := SwapWordsToReal(pData^[10], pData^[11]);	// 16#0016 L3 Apparent Power
-	THIS^.L1_VAR := SwapWordsToReal(pData^[12], pData^[13]);	// 16#0018 L1 Reactive Power
-	THIS^.L2_VAR := SwapWordsToReal(pData^[14], pData^[15]);	// 16#001A L2 Reactive Power
-	THIS^.L3_VAR := SwapWordsToReal(pData^[16], pData^[17]);	// 16#001C L3 Reactive Power
-	THIS^.L1_PF := SwapWordsToReal(pData^[18], pData^[19]);	// 16#001E L1 Power Factor
-	THIS^.L2_PF := SwapWordsToReal(pData^[20], pData^[21]);	// 16#0020 L2 Power Factor
-	THIS^.L3_PF := SwapWordsToReal(pData^[22], pData^[23]);	// 16#0022 L3 Power Factor
-	THIS^.L1_PHI := SwapWordsToReal(pData^[24], pData^[25]);	// 16#0024 L1 Phase Angle
-	THIS^.L2_PHI := SwapWordsToReal(pData^[26], pData^[27]);	// 16#0026 L2 Phase Angle
-	THIS^.L3_PHI := SwapWordsToReal(pData^[28], pData^[29]);	// 16#0028 L3 Phase Angle
-	THIS^.AVG_LN_V := SwapWordsToReal(pData^[30], pData^[31]);	// 16#002A Average L-N Voltage
-	THIS^.AVG_LINE_I := SwapWordsToReal(pData^[32], pData^[33]);	// 16#002C Average Line Current
-	THIS^.SUM_LINE_I := SwapWordsToReal(pData^[34], pData^[35]);	// 16#002E Sum of Line Currents
-	THIS^.ACTIVEPOWER := SwapWordsToReal(pData^[40], pData^[41]);	// 16#0034 Active Power
-	THIS^.TOTAL_VA := SwapWordsToReal(pData^[44], pData^[45]);	// 16#0038 Total Apparent Power
-	THIS^.TOTAL_VAR := SwapWordsToReal(pData^[48], pData^[49]);	// 16#003C Total Reactive Power
-	THIS^.TOTAL_PF := SwapWordsToReal(pData^[50], pData^[51]);	// 16#003E Total Power Factor
-	THIS^.TOTAL_PHI := SwapWordsToReal(pData^[54], pData^[55]);	// 16#0042 Total Phase Angle
-	THIS^.FREQUENCY := SwapWordsToReal(pData^[58], pData^[59]);	// 16#0046 Frequency
-	THIS^.TOTAL_IMPORT_ENERGY := SwapWordsToReal(pData^[60], pData^[61]);	// 16#0048 Total Import Energy
-	THIS^.TOTAL_EXPORT_ENERGY := SwapWordsToReal(pData^[62], pData^[63]);	// 16#004A Total Export Energy
+	THIS^.L1_ACTIVEPOWER := F_SWAP_WORDS_TO_REAL(pData^[0], pData^[1]);	// 16#000C L1 Active Power
+	THIS^.L2_ACTIVEPOWER := F_SWAP_WORDS_TO_REAL(pData^[2], pData^[3]);	// 16#000E L2 Active Power
+	THIS^.L3_ACTIVEPOWER := F_SWAP_WORDS_TO_REAL(pData^[4], pData^[5]);	// 16#0010 L3 Active Power
+	THIS^.L1_VA := F_SWAP_WORDS_TO_REAL(pData^[6], pData^[7]);	// 16#0012 L1 Apparent Power
+	THIS^.L2_VA := F_SWAP_WORDS_TO_REAL(pData^[8], pData^[9]);	// 16#0014 L2 Apparent Power
+	THIS^.L3_VA := F_SWAP_WORDS_TO_REAL(pData^[10], pData^[11]);	// 16#0016 L3 Apparent Power
+	THIS^.L1_VAR := F_SWAP_WORDS_TO_REAL(pData^[12], pData^[13]);	// 16#0018 L1 Reactive Power
+	THIS^.L2_VAR := F_SWAP_WORDS_TO_REAL(pData^[14], pData^[15]);	// 16#001A L2 Reactive Power
+	THIS^.L3_VAR := F_SWAP_WORDS_TO_REAL(pData^[16], pData^[17]);	// 16#001C L3 Reactive Power
+	THIS^.L1_PF := F_SWAP_WORDS_TO_REAL(pData^[18], pData^[19]);	// 16#001E L1 Power Factor
+	THIS^.L2_PF := F_SWAP_WORDS_TO_REAL(pData^[20], pData^[21]);	// 16#0020 L2 Power Factor
+	THIS^.L3_PF := F_SWAP_WORDS_TO_REAL(pData^[22], pData^[23]);	// 16#0022 L3 Power Factor
+	THIS^.L1_PHI := F_SWAP_WORDS_TO_REAL(pData^[24], pData^[25]);	// 16#0024 L1 Phase Angle
+	THIS^.L2_PHI := F_SWAP_WORDS_TO_REAL(pData^[26], pData^[27]);	// 16#0026 L2 Phase Angle
+	THIS^.L3_PHI := F_SWAP_WORDS_TO_REAL(pData^[28], pData^[29]);	// 16#0028 L3 Phase Angle
+	THIS^.AVG_LN_V := F_SWAP_WORDS_TO_REAL(pData^[30], pData^[31]);	// 16#002A Average L-N Voltage
+	THIS^.AVG_LINE_I := F_SWAP_WORDS_TO_REAL(pData^[32], pData^[33]);	// 16#002C Average Line Current
+	THIS^.SUM_LINE_I := F_SWAP_WORDS_TO_REAL(pData^[34], pData^[35]);	// 16#002E Sum of Line Currents
+	THIS^.ACTIVEPOWER := F_SWAP_WORDS_TO_REAL(pData^[40], pData^[41]);	// 16#0034 Active Power
+	THIS^.TOTAL_VA := F_SWAP_WORDS_TO_REAL(pData^[44], pData^[45]);	// 16#0038 Total Apparent Power
+	THIS^.TOTAL_VAR := F_SWAP_WORDS_TO_REAL(pData^[48], pData^[49]);	// 16#003C Total Reactive Power
+	THIS^.TOTAL_PF := F_SWAP_WORDS_TO_REAL(pData^[50], pData^[51]);	// 16#003E Total Power Factor
+	THIS^.TOTAL_PHI := F_SWAP_WORDS_TO_REAL(pData^[54], pData^[55]);	// 16#0042 Total Phase Angle
+	THIS^.FREQUENCY := F_SWAP_WORDS_TO_REAL(pData^[58], pData^[59]);	// 16#0046 Frequency
+	THIS^.TOTAL_IMPORT_ENERGY := F_SWAP_WORDS_TO_REAL(pData^[60], pData^[61]);	// 16#0048 Total Import Energy
+	THIS^.TOTAL_EXPORT_ENERGY := F_SWAP_WORDS_TO_REAL(pData^[62], pData^[63]);	// 16#004A Total Export Energy
 
 	THIS^.DataAvailable := TRUE;
 	THIS^.isDataUpdated := TRUE;
@@ -19520,7 +19567,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_StepList" />
+                          <derived name="A_RS485_STEP_LIST" />
                         </baseType>
                       </pointer>
                     </type>
@@ -19606,13 +19653,13 @@ IF InitMqttDone AND NOT initMqttDiscoveryDone THEN
 		name := DeviceName,
 		id := id,
 		Model := Model,
-		availabilityTopic1 := MqttVariables.MqttAvailabilityTopic,
+		availabilityTopic1 := GVL_MQTT.MqttAvailabilityTopic,
 		availabilityTopic2 := CONCAT(THIS^.MQTTPublishTopic, '/availability'),
-		availabilityOnline := MqttVariables.MqttAvailabilityOnlinePayload,
-		availabilityOffline := MqttVariables.MqttAvailabilityOfflinePayload,
-		MqttDiscoveryPrefix := MqttVariables.MqttHADiscoveryPrefix,
-		MqttDiagnosticTopic := MqttVariables.MqttDiagnosticTopic,
-		pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue));
+		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
+		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := GVL_MQTT.MqttDiagnosticTopic,
+		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
 	Device^.CreateSensorEntity(
 		Name := 'L1 Active Power',
@@ -19865,7 +19912,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -19995,14 +20042,14 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_CommissionRequest" />
+                          <derived name="ST_RS485_COMMISSION_REQUEST" />
                         </baseType>
                       </pointer>
                     </type>
                   </variable>
                 </inputVars>
                 <documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See RS485Device.GetCommissioning.</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See I_RS485_DEVICE.GetCommissioning.</xhtml>
                 </documentation>
               </interface>
               <body>
@@ -20056,7 +20103,7 @@ GetCommissioning := FALSE;
             </variable>
             <variable name="Step">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> One read of the gateway's per-sensor block: function 3, 17 holding
@@ -20159,7 +20206,7 @@ GetCommissioning := FALSE;
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
                 <Extends>FB_MQTT_BASE</Extends>
-                <Implements>RS485Device</Implements>
+                <Implements>I_RS485_DEVICE</Implements>
               </Inheritance>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -20181,15 +20228,15 @@ GetCommissioning := FALSE;
             <Method name="HasWork" ObjectId="fe828a59-cc20-4394-bbeb-1515da82b0da">
               <interface>
                 <returnType>
-                  <derived name="RS485_WorkLevel" />
+                  <derived name="E_RS485_WORK_LEVEL" />
                 </returnType>
               </interface>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF timerData.Q THEN
-	HasWork := RS485_WorkLevel.POLL;
+	HasWork := E_RS485_WORK_LEVEL.POLL;
 ELSE
-	HasWork := RS485_WorkLevel.NONE;
+	HasWork := E_RS485_WORK_LEVEL.NONE;
 END_IF
 </xhtml>
                 </ST>
@@ -20215,7 +20262,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_ReadBuffer" />
+                          <derived name="A_RS485_READ_BUFFER" />
                         </baseType>
                       </pointer>
                     </type>
@@ -20292,7 +20339,7 @@ END_IF
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_StepList" />
+                          <derived name="A_RS485_STEP_LIST" />
                         </baseType>
                       </pointer>
                     </type>
@@ -20500,7 +20547,7 @@ END_IF</xhtml>
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="FB_MqttPublishQueue" />
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
                         </baseType>
                       </pointer>
                     </type>
@@ -20784,14 +20831,14 @@ FB_Init := TRUE;
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_CommissionRequest" />
+                          <derived name="ST_RS485_COMMISSION_REQUEST" />
                         </baseType>
                       </pointer>
                     </type>
                   </variable>
                 </inputVars>
                 <documentation>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See RS485Device.GetCommissioning.</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Nothing to commission on this device. See I_RS485_DEVICE.GetCommissioning.</xhtml>
                 </documentation>
               </interface>
               <body>
@@ -21006,15 +21053,15 @@ GetCommissioning := FALSE;
             </variable>
             <variable name="Outcome">
               <type>
-                <derived name="RS485_StepState" />
+                <derived name="E_RS485_STEP_STATE" />
               </type>
               <initialValue>
-                <simpleValue value="RS485_StepState.IDLE" />
+                <simpleValue value="E_RS485_STEP_STATE.IDLE" />
               </initialValue>
             </variable>
             <variable name="Step">
               <type>
-                <derived name="RS485_Step" />
+                <derived name="ST_RS485_STEP" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> private copy: the caller's scratch is reused </xhtml>
@@ -21022,7 +21069,7 @@ GetCommissioning := FALSE;
             </variable>
             <variable name="Data">
               <type>
-                <derived name="RS485_ReadBuffer" />
+                <derived name="A_RS485_READ_BUFFER" />
               </type>
             </variable>
             <variable name="RegCount">
@@ -21183,13 +21230,13 @@ GetCommissioning := FALSE;
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
-                <Implements>RS485Transport</Implements>
+                <Implements>I_RS485_TRANSPORT</Implements>
               </Inheritance>
             </data>
           </addData>
           <documentation>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">
-	Modbus RTU master for the PFC's onboard serial port, behind RS485Transport.
+	Modbus RTU master for the PFC's onboard serial port, behind I_RS485_TRANSPORT.
 
 	This is the code that was proven on the bench in #182, lifted out of the
 	RS485_RUN action into a block of its own and taught the write function codes
@@ -21222,7 +21269,7 @@ GetCommissioning := FALSE;
                 <returnType>
                   <pointer>
                     <baseType>
-                      <derived name="RS485_ReadBuffer" />
+                      <derived name="A_RS485_READ_BUFFER" />
                     </baseType>
                   </pointer>
                 </returnType>
@@ -21240,7 +21287,7 @@ GetCommissioning := FALSE;
             <Method name="Service" ObjectId="f6c50565-a81d-4528-98f4-c88645f290f8">
               <interface>
                 <returnType>
-                  <derived name="RS485_StepState" />
+                  <derived name="E_RS485_STEP_STATE" />
                 </returnType>
               </interface>
               <body>
@@ -21254,7 +21301,7 @@ IF ReopenRequest THEN
 	PortOpen	:= FALSE;
 	PortError	:= FALSE;
 	State		:= 0;
-	Outcome		:= RS485_StepState.IDLE;
+	Outcome		:= E_RS485_STEP_STATE.IDLE;
 END_IF
 
 IF Configured AND NOT PortOpen AND NOT PortError THEN
@@ -21276,7 +21323,7 @@ CASE State OF
 
 0:	(* Idle. OK and FAILED were each returned for exactly one cycle, by the
 	   return at the bottom of the cycle that reached state 2. *)
-	Outcome := RS485_StepState.IDLE;
+	Outcome := E_RS485_STEP_STATE.IDLE;
 
 1:	(* Collect until the line has been quiet for GapTime, which is how RTU
 	   delimits a frame, or until the slave has clearly not answered at all. *)
@@ -21329,7 +21376,7 @@ Service := Outcome;
                     <type>
                       <pointer>
                         <baseType>
-                          <derived name="RS485_Step" />
+                          <derived name="ST_RS485_STEP" />
                         </baseType>
                       </pointer>
                     </type>
@@ -21425,7 +21472,7 @@ RxCount			:= 0;
 RegCount		:= 0;
 restartGap		:= TRUE;
 restartReply	:= TRUE;
-Outcome			:= RS485_StepState.BUSY;
+Outcome			:= E_RS485_STEP_STATE.BUSY;
 State			:= 1;
 Start			:= TRUE;
 </xhtml>
@@ -21543,7 +21590,7 @@ ELSE
 				RegCount := DINT_TO_INT(UPPER_BOUND(Data, 1)) + 1;
 			END_IF
 			(* Registers are big-endian on the wire, which is the order
-			   SwapWordsToReal expects at the far end. *)
+			   F_SWAP_WORDS_TO_REAL expects at the far end. *)
 			FOR i := 0 TO RegCount - 1 DO
 				Data[i] := SHL(BYTE_TO_WORD(Rx[first + 3 + 2 * i]), 8)
 				           OR BYTE_TO_WORD(Rx[first + 4 + 2 * i]);
@@ -21589,9 +21636,9 @@ ELSE
 END_IF
 
 IF valid THEN
-	Outcome := RS485_StepState.OK;
+	Outcome := E_RS485_STEP_STATE.OK;
 ELSE
-	Outcome := RS485_StepState.FAILED;
+	Outcome := E_RS485_STEP_STATE.FAILED;
 END_IF
 </xhtml>
                 </ST>
@@ -22050,53 +22097,6 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           </data>
         </addData>
       </pou>
-      <pou name="SwapWordsToReal" pouType="function">
-        <interface>
-          <returnType>
-            <REAL />
-          </returnType>
-          <inputVars>
-            <variable name="wHi">
-              <type>
-                <WORD />
-              </type>
-            </variable>
-            <variable name="wLo">
-              <type>
-                <WORD />
-              </type>
-            </variable>
-          </inputVars>
-          <localVars>
-            <variable name="dwVar">
-              <type>
-                <DWORD />
-              </type>
-            </variable>
-            <variable name="pt_REAL">
-              <type>
-                <pointer>
-                  <baseType>
-                    <REAL />
-                  </baseType>
-                </pointer>
-              </type>
-            </variable>
-          </localVars>
-        </interface>
-        <body>
-          <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">dwVar := SHL(WORD_TO_DWORD(wHi),16) OR WORD_TO_DWORD(wLo);
-pt_REAL := ADR(dwVar);
-SwapWordsToReal := pt_REAL^;</xhtml>
-          </ST>
-        </body>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>d7f431fc-43d0-47a1-9db3-a3fb4496d281</ObjectId>
-          </data>
-        </addData>
-      </pou>
     </pous>
   </types>
   <instances>
@@ -22104,7 +22104,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
       <configuration name="Wago_PFC200_G1_Lab">
         <resource name="HomeAutomation">
           <task name="HvacTask" interval="PT0.05S" priority="8">
-            <pouInstance name="PLC_PRG_HVAC" typeName="">
+            <pouInstance name="PRG_HVAC" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
               </documentation>
@@ -22121,7 +22121,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </addData>
           </task>
           <task name="MainTask" interval="PT0.05S" priority="4">
-            <pouInstance name="PLC_PRG_MAIN" typeName="">
+            <pouInstance name="PRG_MAIN" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
               </documentation>
@@ -22138,12 +22138,12 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </addData>
           </task>
           <task name="MqttCommunication" priority="5">
-            <pouInstance name="PLC_PRG_MQTT" typeName="">
+            <pouInstance name="PRG_MQTT" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
               </documentation>
             </pouInstance>
-            <pouInstance name="DMX_SEND" typeName="">
+            <pouInstance name="PRG_DMX_SEND" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
               </documentation>
@@ -22177,7 +22177,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </addData>
           </task>
           <task name="RS485" interval="PT0.05S" priority="15">
-            <pouInstance name="PLC_PRG_RS485" typeName="">
+            <pouInstance name="PRG_RS485" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
               </documentation>
@@ -22193,7 +22193,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
             </addData>
           </task>
-          <globalVars name="MqttVariables" constant="true">
+          <globalVars name="GVL_MQTT" constant="true">
             <variable name="MQTT_TOPIC_LEN">
               <type>
                 <INT />
@@ -22240,7 +22240,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
             </variable>
             <variable name="fbMqttPublishQueue">
               <type>
-                <derived name="FB_MqttPublishQueue" />
+                <derived name="FB_MQTT_PUBLISH_QUEUE" />
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> use the below for username password authentication to broker 
@@ -22617,7 +22617,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
               <data name="http://www.3s-software.com/plcopenxml/mixedattrsvarlist" handleUnknown="implementation">
                 <MixedAttrsVarList>
-                  <globalVars name="MqttVariables" constant="true">
+                  <globalVars name="GVL_MQTT" constant="true">
                     <variable name="MQTT_TOPIC_LEN">
                       <type>
                         <INT />
@@ -22644,7 +22644,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                       </initialValue>
                     </variable>
                   </globalVars>
-                  <globalVars name="MqttVariables">
+                  <globalVars name="GVL_MQTT">
                     <variable name="clientID">
                       <type>
                         <string />
@@ -22666,7 +22666,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                     </variable>
                     <variable name="fbMqttPublishQueue">
                       <type>
-                        <derived name="FB_MqttPublishQueue" />
+                        <derived name="FB_MQTT_PUBLISH_QUEUE" />
                       </type>
                       <documentation>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml"> use the below for username password authentication to broker 
@@ -23037,7 +23037,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
             </addData>
           </globalVars>
-          <globalVars name="DALIVariables">
+          <globalVars name="GVL_DALI">
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                 <Attributes>
@@ -23049,12 +23049,12 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
             </addData>
           </globalVars>
-          <globalVars name="PersistentVars">
+          <globalVars name="GVL_PERSISTENT">
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                 <Attributes>
                   <Attribute Name="qualified_only" Value="" />
-                  <Attribute Name="checksumnoinit_override" Value="2866057263" />
+                  <Attribute Name="checksumnoinit_override" Value="348960859" />
                   <Attribute Name="init_related_code" Value="e2545669-e23e-45fa-90bb-dcdbc35c83a4" />
                 </Attributes>
               </data>
@@ -23063,7 +23063,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
             </addData>
           </globalVars>
-          <globalVars name="DMXVariables">
+          <globalVars name="GVL_DMX">
             <variable name="IP">
               <type>
                 <string />
@@ -23093,7 +23093,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
             </addData>
           </globalVars>
-          <globalVars name="RS485Variables">
+          <globalVars name="GVL_RS485">
             <variable name="FB_RS485_EASTRON_SDM220_1">
               <type>
                 <derived name="FB_RS485_EASTRON_SDM220_MQTT" />
@@ -23192,7 +23192,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                       <Value>1</Value>
                     </InputAssignment>
                     <InputAssignment>
-                      <Value>RS485_EASTRON_SDM_Devices.SDM220</Value>
+                      <Value>E_RS485_EASTRON_SDM_DEVICE.SDM220</Value>
                     </InputAssignment>
                     <InputAssignment>
                       <Value>TIME#5s0ms</Value>
@@ -23280,7 +23280,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
               </data>
               <data name="http://www.3s-software.com/plcopenxml/mixedattrsvarlist" handleUnknown="implementation">
                 <MixedAttrsVarList>
-                  <globalVars name="RS485Variables">
+                  <globalVars name="GVL_RS485">
                     <variable name="FB_RS485_EASTRON_SDM220_1">
                       <type>
                         <derived name="FB_RS485_EASTRON_SDM220_MQTT" />
@@ -23379,7 +23379,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                               <Value>1</Value>
                             </InputAssignment>
                             <InputAssignment>
-                              <Value>RS485_EASTRON_SDM_Devices.SDM220</Value>
+                              <Value>E_RS485_EASTRON_SDM_DEVICE.SDM220</Value>
                             </InputAssignment>
                             <InputAssignment>
                               <Value>TIME#5s0ms</Value>
@@ -23437,7 +23437,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                       </documentation>
                     </variable>
                   </globalVars>
-                  <globalVars name="RS485Variables" constant="true">
+                  <globalVars name="GVL_RS485" constant="true">
                     <variable name="RS485_COMMISSION_ON_BOOT">
                       <type>
                         <BOOL />
@@ -23465,7 +23465,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
           </globalVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
-              <pou name="PLC_PRG_MAIN" pouType="program">
+              <pou name="PRG_MAIN" pouType="program">
                 <interface>
                   <localVars>
                     <variable name="FB_DI_PB_001">
@@ -23480,7 +23480,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                         </structValue>
                       </initialValue>
                       <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Every MQTT block below now wires itself from MqttVariables on its first
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Every MQTT block below now wires itself from GVL_MQTT on its first
 	   cyclic call. Setting FriendlyName is what enables that, and it is the only
 	   thing a normal instance has to say. The InitMqtt / InitMqttDiscovery* calls
 	   that used to live in MAIN_INIT are gone.
@@ -23594,7 +23594,7 @@ SwapWordsToReal := pt_REAL^;</xhtml>
                         </structValue>
                       </initialValue>
                       <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> DIMMER FUNCTION BLOCKS 
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> E_DIMMER FUNCTION BLOCKS 
  NOTE: this instance never had InitMqtt called before this refactor - only
 	   ConfigureFunctionBlock and InitMqttDiscovery, and the latter short-circuited
 	   because InitMqttDone stayed FALSE. It therefore had no MQTT topic, no Home
@@ -23667,25 +23667,25 @@ FB_DI_PB_002(PB:= DI_002);</xhtml>
                       <ST>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">(* MQTT wiring no longer lives here.
 
-   Every block that extends FB_MQTT_BASE now wires itself from MqttVariables on
+   Every block that extends FB_MQTT_BASE now wires itself from GVL_MQTT on
    its first cyclic call and announces itself to Home Assistant, driven by the
    FriendlyName set on its declaration above. What remains in this action is the
    behavioural configuration that genuinely is per-instance and is not MQTT, which
-   is now only the dimmer's timings.
+   is now only the E_DIMMER's timings.
 
    The one exception is FB_DI_PB_002: FB_INPUT_PUSHBUTTON_DIMMER_MQTT does not
    extend FB_MQTT_BASE, so it cannot self-wire yet and keeps its explicit call. *)
 
 FB_DI_PB_002.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPushbuttonPrefix),
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-    TRUE,                                                               (* specify whether dimmer value should be outputted on MQTT topic *)
-    MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the dimmer mqtt events (values 0-255) *)
-    5                                                                   (* specify the resolution for the dimmer mqtt events *)
+	MQTTPublishPrefix:= ADR(GVL_MQTT.MqttPushbuttonPrefix),
+	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+    TRUE,                                                               (* specify whether E_DIMMER value should be outputted on MQTT topic *)
+    MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the E_DIMMER mqtt events (values 0-255) *)
+    5                                                                   (* specify the resolution for the E_DIMMER mqtt events *)
 );
 
 
-(* ALTER THE DIMMER OUTPUT DEFAULT BEHAVIOR *)
+(* ALTER THE E_DIMMER OUTPUT DEFAULT BEHAVIOR *)
 FB_AO_DIMMER_001.ConfigureFunctionBlock(
 	T_Debounce:=T#10MS,
 	T_Reconfig:=T#10S,
@@ -23706,16 +23706,16 @@ FB_AO_DIMMER_001.ConfigureFunctionBlock(
 
 (* DALI *)
 (*
-FB_DALI_1_ADR0.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPrefix),
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubDimmerPrefix),
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT)
+FB_DALI_1_ADR0.InitMqtt(MQTTPublishPrefix:= ADR(GVL_MQTT.MqttPubDimmerPrefix),
+	MQTTSubscribePrefix:= ADR(GVL_MQTT.MqttSubDimmerPrefix),
+	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+	pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_DIMMER_MQTT)
 );
 
-FB_DALI_1_ADR0.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), 'Keuken');
+FB_DALI_1_ADR0.InitMqttDiscovery(ADR(GVL_MQTT.PLC_Device), 'Keuken');
 *)
 
-MqttVariables.PLC_Device.SendLogMessage('Init finished', 'MAIN_INIT');
+GVL_MQTT.PLC_Device.SendLogMessage('Init finished', 'MAIN_INIT');
 </xhtml>
                       </ST>
                     </body>
@@ -23763,7 +23763,7 @@ M1_DALIMASTER(
 	
 // Run individual DALI FB
 FB_DALI_1_ADR0(
-	BALLAST := DALIVariables.M1_Light1,
+	BALLAST := GVL_DALI.M1_Light1,
 	TOGGLE := FB_DI_PB_002.SINGLE,
 	P_LONG := FB_DI_PB_002.P_LONG,
 	STATUS_LED =&gt; DO_002);
@@ -24009,7 +24009,7 @@ FB_DALI_1_ADR0(
               </pou>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
-              <pou name="DMX_SEND" pouType="program">
+              <pou name="PRG_DMX_SEND" pouType="program">
                 <interface>
                   <localVars>
                     <variable name="Universe">
@@ -24129,8 +24129,8 @@ END_IF;
 size := 512+18;
 FOR i:= 0 TO 511 DO (* check whether the DMX values ​​in the global variable have changed *)
 	// i+2 is strange, buffers are not the same, its often offset with 2 sometimes by 1, todo
-	IF S_BUF1.BUFFER[i+18] &lt;&gt; DMXVariables.DMX.BUFFER[i+2] THEN
-   		S_BUF1.BUFFER[i+18]:= DMXVariables.DMX.BUFFER[i+2];
+	IF S_BUF1.BUFFER[i+18] &lt;&gt; GVL_DMX.DMX.BUFFER[i+2] THEN
+   		S_BUF1.BUFFER[i+18]:= GVL_DMX.DMX.BUFFER[i+2];
 		Step := 1;
 	END_IF
 END_FOR
@@ -24149,7 +24149,7 @@ CASE Step OF
 		IP_C.TIME_RESET := TRUE; (*Reset TIME monitoring * *)
 		IP_C.R_OBSERVE := TRUE; (* Monitor data receive *)
 		R_BUF1.SIZE:= 0; (* Reset Home length *)
-		IP_C.C_IP:= oscat_network.IP4_DECODE (DMXVariables.IP);
+		IP_C.C_IP:= oscat_network.IP4_DECODE (GVL_DMX.IP);
 		IP_C.C_PORT:= WORD#6454;
 		
 		S_BUF1.SIZE := size;
@@ -24164,7 +24164,7 @@ CASE Step OF
 	666:		
      	PFC.SetLed(which:=PFC.LED.U3, how:=PFC.LedState.BLINK_RED);
 		IF ErrorTrig.Q AND IP_C.ERROR = 33554432 THEN
-		MqttVariables.PLC_Device.SendLogMessage(CONCAT('ERROR|DMX has a connection error ', DWORD_TO_STRING(IP_C.ERROR)));
+		GVL_MQTT.PLC_Device.SendLogMessage(CONCAT('ERROR|DMX has a connection error ', DWORD_TO_STRING(IP_C.ERROR)));
 		
 		END_IF;
 		
@@ -24201,7 +24201,7 @@ END_CASE
               </pou>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
-              <pou name="PLC_PRG_MQTT" pouType="program">
+              <pou name="PRG_MQTT" pouType="program">
                 <interface>
                   <localVars>
                     <variable name="MQTTClient">
@@ -24221,7 +24221,7 @@ END_CASE
                     </variable>
                     <variable name="MQTTBirthMessage">
                       <type>
-                        <derived name="MQTT_MESSAGE" />
+                        <derived name="ST_MQTT_MESSAGE" />
                       </type>
                     </variable>
                     <variable name="MQTTBirthHartbeat">
@@ -24249,7 +24249,7 @@ END_CASE
                     </variable>
                     <variable name="MQTTBirthPublisher">
                       <type>
-                        <derived name="FB_MqttPublishWorker" />
+                        <derived name="FB_MQTT_PUBLISH_WORKER" />
                       </type>
                     </variable>
                     <variable name="initMqtt">
@@ -24281,7 +24281,7 @@ END_CASE
                         <array>
                           <dimension lower="0" upper="39" />
                           <baseType>
-                            <derived name="FB_MqttPublishWorker" />
+                            <derived name="FB_MQTT_PUBLISH_WORKER" />
                           </baseType>
                         </array>
                       </type>
@@ -24344,13 +24344,13 @@ IF MQTTDisconnectTrigger.Q THEN
 END_IF 
 
 (* allow the device to do its work *)
-MqttVariables.PLC_Device();
+GVL_MQTT.PLC_Device();
 
 (* allow the rising edge detector to detect a connect/reconnect to the broker, used for  birth message *)
 MQTTConnectTrigger(CLK := MQTTInfo.MQTT_CONNECTED);
 
 (* allow the pulse generator to generate a pulse, used for birth message hartbeat *)
-MQTTBirthHartbeat(ENQ:=TRUE, PTH:=T#0S, PTL:=MqttVariables.MQTTAvailabilityHartbeatTime);
+MQTTBirthHartbeat(ENQ:=TRUE, PTH:=T#0S, PTL:=GVL_MQTT.MQTTAvailabilityHartbeatTime);
 
 (* Check if this is a new connection due to startup or connection issues *)
 IF initMqtt AND (MQTTConnectTrigger.Q OR MQTTBirthHartbeat.Q) THEN
@@ -24365,14 +24365,14 @@ END_IF
 
 
 (* Check if Mqtt is initialized AND if there are elements on the queue to process AND if a MQTTbirthmessage has been published successfully *)
-IF initMqtt AND MqttVariables.fbMqttPublishQueue.HasMessage() AND MQTTPublishBirth = FALSE AND MQTTBirthPublisher.SendDone THEN	
+IF initMqtt AND GVL_MQTT.fbMqttPublishQueue.HasMessage() AND MQTTPublishBirth = FALSE AND MQTTBirthPublisher.SendDone THEN	
 	(* Loop through all free publishers untill there are no more elements in the queue or no more free publishers *)
 	FOR i:=0 TO (ipublishers-1) DO			
 		(* use the publishers that are free  *)
-		IF publishers[i].SendDone AND MqttVariables.fbMqttPublishQueue.HasMessage() THEN	
+		IF publishers[i].SendDone AND GVL_MQTT.fbMqttPublishQueue.HasMessage() THEN	
 			(* Pass message from the queue to a publisher *)
-			publishers[i].PublishMessage(MqttMessage:= MqttVariables.fbMqttPublishQueue.GetMessage());
-		ELSIF NOT MqttVariables.fbMqttPublishQueue.HasMessage() THEN
+			publishers[i].PublishMessage(MqttMessage:= GVL_MQTT.fbMqttPublishQueue.GetMessage());
+		ELSIF NOT GVL_MQTT.fbMqttPublishQueue.HasMessage() THEN
 			(* Queue is empty, jump out of the for loop	*)
 			EXIT;	
 		END_IF
@@ -24385,7 +24385,7 @@ IF initMqtt THEN
 	MQTT_IN_OUT.clientFB(
 		MQTT_IN_OUT:= MQTT_IN_OUT, 
 		ENABLE:= TRUE, 
-		URL:= MQttVariables.broker, 
+		URL:= GVL_MQTT.broker, 
 		TIMEOUT:= T#1S, 
 		TLS:= FALSE);		
 		
@@ -24412,18 +24412,18 @@ END_IF
 IF NOT initMqtt THEN
 	initMqtt := TRUE;
 	(* Basic MQTT config *)
-	MQTT_IN_OUT.ClientID := MqttVariables.clientID;
+	MQTT_IN_OUT.ClientID := GVL_MQTT.clientID;
 	
 	(* Set the LWT topic / payload *)
 	MQTT_IN_OUT.BuildWillTopicAndMessage := FALSE;
 	MQTT_IN_OUT.WillTopicBase := '';
-	MQTT_IN_OUT.ClientWillTopic := MqttVariables.MqttAvailabilityTopic;
-	MQTT_IN_OUT.ClientWillMessage := MqttVariables.MqttAvailabilityOfflinePayload;
+	MQTT_IN_OUT.ClientWillTopic := GVL_MQTT.MqttAvailabilityTopic;
+	MQTT_IN_OUT.ClientWillMessage := GVL_MQTT.MqttAvailabilityOfflinePayload;
 	
 	(* Set the birth message *)
-	MQTTBirthMessage.Payload := MqttVariables.MqttAvailabilityOnlinePayload;
-	MQTTBirthMessage.Topic := MqttVariables.MqttAvailabilityTopic;
-	MQTTBirthMessage.Qos := MqttVariables.MQTT_QOS_EXACTLY_ONCE;
+	MQTTBirthMessage.Payload := GVL_MQTT.MqttAvailabilityOnlinePayload;
+	MQTTBirthMessage.Topic := GVL_MQTT.MqttAvailabilityTopic;
+	MQTTBirthMessage.Qos := GVL_MQTT.MQTT_QOS_EXACTLY_ONCE;
 	MQTTBirthMessage.MqttRetain := FALSE;
 	
 	(* Configure the rising/falling edge detector to detect a connect/reconnect to the broker, used for  birth message *)
@@ -24434,7 +24434,7 @@ IF NOT initMqtt THEN
 	MQTTBirthPublisher.Init(inputMQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 	
 	(* Configure the pulse generator for the birth message hartbeat *)
-	 MQTTBirthHartbeat(ENQ:=TRUE, PTH:=T#0S, PTL:=MqttVariables.MQTTAvailabilityHartbeatTime);
+	 MQTTBirthHartbeat(ENQ:=TRUE, PTH:=T#0S, PTL:=GVL_MQTT.MQTTAvailabilityHartbeatTime);
 	
 	(* INIT MQTT PUBLISH STUFF *)
 	FOR icounter := 0 TO (ipublishers-1) DO		
@@ -24470,38 +24470,38 @@ IF initMqtt THEN
 
 	subscriber_FB_OUTPUT_SWITCH_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR(MqttVariables.MqttSubSwitchTopic), 
-		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE, 
+		Topic:= ADR(GVL_MQTT.MqttSubSwitchTopic), 
+		QoSSubscribe:= GVL_MQTT.MQTT_QOS_EXACTLY_ONCE, 
 		ExpectingString:= TRUE, 
-		Callback:= MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT,
+		Callback:= GVL_MQTT.collector_FB_OUTPUT_SWITCH_MQTT,
 	);	
 	subscriber_FB_OUTPUT_COVER_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR(MqttVariables.MqttSubCoverTopic), 
-		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE, 
+		Topic:= ADR(GVL_MQTT.MqttSubCoverTopic), 
+		QoSSubscribe:= GVL_MQTT.MQTT_QOS_EXACTLY_ONCE, 
 		ExpectingString:= TRUE, 
-		Callback:= MqttVariables.collector_FB_OUTPUT_COVER_MQTT,
+		Callback:= GVL_MQTT.collector_FB_OUTPUT_COVER_MQTT,
 	);	
 	subscriber_FB_DIMMER_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR(MqttVariables.MqttSubDimmerTopic), 
-		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE, 
+		Topic:= ADR(GVL_MQTT.MqttSubDimmerTopic), 
+		QoSSubscribe:= GVL_MQTT.MQTT_QOS_EXACTLY_ONCE, 
 		ExpectingString:= TRUE, 
-		Callback:= MqttVariables.collector_FB_DIMMER_MQTT,
+		Callback:= GVL_MQTT.collector_FB_DIMMER_MQTT,
 	);
 	subscriber_FB_RS485_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR(MqttVariables.MqttSubRS485Topic), 
-		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE,
+		Topic:= ADR(GVL_MQTT.MqttSubRS485Topic), 
+		QoSSubscribe:= GVL_MQTT.MQTT_QOS_EXACTLY_ONCE,
 		ExpectingString:= TRUE, 
-		Callback:= MqttVariables.collector_FB_RS485_MQTT,
+		Callback:= GVL_MQTT.collector_FB_RS485_MQTT,
 	);
 	subscriber_FB_HVAC_MQTT(
 		Subscribe:= TRUE, 
-		Topic:= ADR(MqttVariables.MqttSubHVACTopic), 
-		QoSSubscribe:= MqttVariables.MQTT_QOS_EXACTLY_ONCE,
+		Topic:= ADR(GVL_MQTT.MqttSubHVACTopic), 
+		QoSSubscribe:= GVL_MQTT.MQTT_QOS_EXACTLY_ONCE,
 		ExpectingString:= TRUE, 
-		Callback:= MqttVariables.collector_FB_HVAC_MQTT,
+		Callback:= GVL_MQTT.collector_FB_HVAC_MQTT,
 	);
 END_IF</xhtml>
                       </ST>
@@ -24715,7 +24715,7 @@ END_IF</xhtml>
               </pou>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
-              <pou name="PLC_PRG_HVAC" pouType="program">
+              <pou name="PRG_HVAC" pouType="program">
                 <interface>
                   <localVars>
                     <variable name="FB_THERMOSTAT_1">
@@ -24745,7 +24745,7 @@ END_IF</xhtml>
                         </data>
                       </addData>
                       <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> The thermostats, pumps and the burner wire themselves from MqttVariables on
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> The thermostats, pumps and the burner wire themselves from GVL_MQTT on
 	   their first cyclic call, driven by FriendlyName. The positional arguments are
 	   each block's own FB_init (setpoint limits, run-on times) and are unchanged.
 
@@ -24963,10 +24963,10 @@ END_IF</xhtml>
 IF NOT InitHvacDone THEN
 	InitHvacDone := TRUE;
 
-	FB_PUMP_2_COLLECTOR.InitMqtt(ADR(MqttVariables.MqttPubHVACPrefix), ADR(MqttVariables.fbMqttPublishQueue));
+	FB_PUMP_2_COLLECTOR.InitMqtt(ADR(GVL_MQTT.MqttPubHVACPrefix), ADR(GVL_MQTT.fbMqttPublishQueue));
 	CollectorValveNames[1] := 'Radiator 1';
 	CollectorValveNames[2] := 'Radiator 2';
-	FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), CollectorValveNames);
+	FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(GVL_MQTT.PLC_Device), CollectorValveNames);
 END_IF
 </xhtml>
                       </ST>
@@ -25011,7 +25011,7 @@ END_IF
 
 
 // FLoorheating
-FB_THERMOSTAT_1(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
+FB_THERMOSTAT_1(MEASURED_TEMP := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error);
 FB_PUMP_1(
 	IN := FB_THERMOSTAT_1.OUT
 	(* Coil dropped: DO_005..DO_008 are the bench's spare LEDs now, and the
@@ -25021,8 +25021,8 @@ FB_PUMP_1(
 
 
 // Radiators
-FB_THERMOSTAT_2(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
-FB_THERMOSTAT_3(MEASURED_TEMP := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error);
+FB_THERMOSTAT_2(MEASURED_TEMP := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error);
+FB_THERMOSTAT_3(MEASURED_TEMP := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error);
 
 (* Circuit 1 is Radiator 1, circuit 2 is Radiator 2; circuits 3..8 are unwired and
    their valves stay closed. The indices match CollectorValveNames above and the
@@ -25238,7 +25238,7 @@ FB_BURNER_GAS(
               </pou>
             </data>
             <data name="http://www.3s-software.com/plcopenxml/pou" handleUnknown="implementation">
-              <pou name="PLC_PRG_RS485" pouType="program">
+              <pou name="PRG_RS485" pouType="program">
                 <interface>
                   <localVars constant="true">
                     <variable name="BUS_BAUDRATE">
@@ -25264,7 +25264,7 @@ FB_BURNER_GAS(
                         <simpleValue value="FALSE" />
                       </initialValue>
                     </variable>
-                    <variable name="RS485Transport">
+                    <variable name="fbRs485Transport">
                       <type>
                         <derived name="FB_RS485_TRANSPORT_RTU" />
                       </type>
@@ -25278,7 +25278,7 @@ FB_BURNER_GAS(
 
 	   The e!COCKPIT variant that used to sit here commented out is gone rather
 	   than lost: WagoAppPlcModbus.FbMbMasterSerial belongs behind the same
-	   RS485Transport interface as this one, as a second implementation, and so
+	   fbRs485Transport interface as this one, as a second implementation, and so
 	   does ModbusFB.ClientSerial. None of them is the program's business. </xhtml>
                       </documentation>
                     </variable>
@@ -25299,7 +25299,7 @@ FB_BURNER_GAS(
 	   this program to notice: the sweep used to live in RS485_RUN as two hundred
 	   lines that named one sensor, its slave address and its registers. A program
 	   that owns the bus should not know what is on it. It asks each registered
-	   device instead - RS485Device.GetCommissioning - and the device answers with
+	   device instead - I_RS485_DEVICE.GetCommissioning - and the device answers with
 	   what to probe and what to write. </xhtml>
                       </documentation>
                     </variable>
@@ -25340,7 +25340,7 @@ FB_BURNER_GAS(
    mode once per controller with `serialmode RS485` from the CODESYS PLC shell.
    That is a commissioning step: no IEC code can do it, it survives a reboot,
    and until it is done the bus is silent with no error to show for it. *)
-RS485Transport.Init(
+fbRs485Transport.Init(
 	Port			:= SysCom.SYS_COM_PORTS.SYS_COMPORT1,
 	Baudrate		:= BUS_BAUDRATE,
 	Parity			:= SysCom.SYS_COM_PARITY.SYS_NOPARITY,
@@ -25354,70 +25354,70 @@ RS485Transport.Init(
    at a cursor and wraps, so the device registered last is polled as often as
    the device registered first. *)
 RS485BusController.Init(
-	Transport		:= RS485Transport,
+	Transport		:= fbRs485Transport,
 	StartupDelay	:= T#5S,			(* let the slaves finish booting *)
 	SilenceTime		:= T#50MS,			(* between frames, and between transactions *)
 	StepTimeout		:= T#3S				(* watchdog on the transport, not on the slave *)
 );
 
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM220_1);
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM630_1);
-//RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME);
-//RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01);
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_1);
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_SEN0492_1);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_EASTRON_SDM220_1);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_EASTRON_SDM630_1);
+//RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME);
+//RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_EASTRON_SDM_POWER_1);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_SEN0492_1);
 
 (* WHAT CANNOT BE SPOKEN TO YET.
    Asked of every device registered above, before the bus controller is allowed to
    start. Nothing here names a device or a register: what has to be written, and
-   where, is each device's own answer - see RS485Device.GetCommissioning. A device
+   where, is each device's own answer - see I_RS485_DEVICE.GetCommissioning. A device
    that needs nothing costs one method call.
 
    It holds the bus off while it runs, because a device being hunted for at some
    other baud rate makes the whole pair unusable for as long as that takes. *)
 RS485Commissioner.Init(
-	Transport			:= RS485Transport,
+	Transport			:= fbRs485Transport,
 	pController			:= ADR(RS485BusController),
 	BusBaudrate			:= BUS_BAUDRATE,
-	pMqttPublishQueue	:= ADR(MqttVariables.fbMqttPublishQueue),
-	MqttPublishPrefix	:= ADR(MqttVariables.MqttPubRS485Prefix),
-	Enable				:= RS485Variables.RS485_COMMISSION_ON_BOOT
+	pMqttPublishQueue	:= ADR(GVL_MQTT.fbMqttPublishQueue),
+	MqttPublishPrefix	:= ADR(GVL_MQTT.MqttPubRS485Prefix),
+	Enable				:= GVL_RS485.RS485_COMMISSION_ON_BOOT
 );
 
 (* INIT RS485 DEVICE STUFF.
    Nothing to do for the three Eastron meters. Modbus address, poll rate and -
    for the SDM_POWER block - the meter model all reach them through FB_init at
-   their declaration in RS485Variables, and FriendlyName wires up MQTT and Home
+   their declaration in GVL_RS485, and FriendlyName wires up MQTT and Home
    Assistant on the first cyclic call. Registration above is the whole of it. *)
 
-RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
+GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
 	DataPollingInterval := T#3S,		(* Polling interval for data array *)
 	DeviceAddress := 3					(* Device address of the modbus device *)
 );
 
 // Nodes: valves for example
-RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
+GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
 	DataPollingInterval := T#15S
 );
-RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
+GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
 	DataPollingInterval := T#15S
 );
 
-RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubRS485Prefix),
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubRS485Prefix),
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_RS485_MQTT)
+GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.InitMqtt(
+	MQTTPublishPrefix:= ADR(GVL_MQTT.MqttPubRS485Prefix),
+	MQTTSubscribePrefix:= ADR(GVL_MQTT.MqttSubRS485Prefix),
+	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+	pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_RS485_MQTT)
 );
 
 
-RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubRS485Prefix),
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)
+GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.InitMqtt(
+	MQTTPublishPrefix:= ADR(GVL_MQTT.MqttPubRS485Prefix),
+	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue)
 );
-RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.InitMqttDiscovery(
-	Device := ADR(MqttVariables.OWD_MULTISENSOR_01),
-	ParentDevice:= ADR(MqttVariables.PLC_Device),
+GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.InitMqttDiscovery(
+	Device := ADR(GVL_MQTT.OWD_MULTISENSOR_01),
+	ParentDevice:= ADR(GVL_MQTT.PLC_Device),
 	DeviceName := 'Lab PLC 1-Wire sensorhub',
 	SupportsTemperature := TRUE,
 	SupportsHumidity := TRUE,
@@ -25444,7 +25444,7 @@ END_IF
    cycle, and this costs one comparison from then on.
 
    Neither call knows what is on the bus: the commissioner asks every registered
-   device whether it needs anything (RS485Device.GetCommissioning), and the bus
+   device whether it needs anything (I_RS485_DEVICE.GetCommissioning), and the bus
    controller asks every registered device whether it wants the bus (HasWork). *)
 IF NOT RS485Commissioner.Done THEN
 	RS485Commissioner();
@@ -25467,23 +25467,23 @@ END_IF
    context for those two. *)
 DiagTimer(IN := NOT DiagTimer.Q, PT := T#30S);
 IF DiagTimer.Q THEN
-	DiagReport := CONCAT('ok=', UDINT_TO_STRING(RS485Transport.Ok));
+	DiagReport := CONCAT('ok=', UDINT_TO_STRING(fbRs485Transport.Ok));
 	DiagReport := CONCAT(DiagReport, ' noreply=');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.NoReply));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.NoReply));
 	DiagReport := CONCAT(DiagReport, ' crc=');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.CrcFail));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.CrcFail));
 	DiagReport := CONCAT(DiagReport, ' short=');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.ShortFrame));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.ShortFrame));
 	DiagReport := CONCAT(DiagReport, ' badaddr=');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.BadAddress));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.BadAddress));
 	DiagReport := CONCAT(DiagReport, ' badfunc=');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.BadFunction));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.BadFunction));
 	DiagReport := CONCAT(DiagReport, ' exc=');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.Exceptions));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.Exceptions));
 	DiagReport := CONCAT(DiagReport, ' lead=');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.LeadNulls));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.LeadNulls));
 	DiagReport := CONCAT(DiagReport, ' trail=');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.TrailNulls));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.TrailNulls));
 	DiagReport := CONCAT(DiagReport, ' tx=');
 	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485BusController.Transactions));
 	DiagReport := CONCAT(DiagReport, ' steps=');
@@ -25491,18 +25491,18 @@ IF DiagTimer.Q THEN
 	DiagReport := CONCAT(DiagReport, ' fail=');
 	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485BusController.StepFailures));
 	DiagReport := CONCAT(DiagReport, ' lastfail=dev');
-	DiagReport := CONCAT(DiagReport, BYTE_TO_STRING(RS485Transport.LastFailAddr));
+	DiagReport := CONCAT(DiagReport, BYTE_TO_STRING(fbRs485Transport.LastFailAddr));
 	DiagReport := CONCAT(DiagReport, '/fc');
-	DiagReport := CONCAT(DiagReport, BYTE_TO_STRING(RS485Transport.LastFailFunc));
+	DiagReport := CONCAT(DiagReport, BYTE_TO_STRING(fbRs485Transport.LastFailFunc));
 	DiagReport := CONCAT(DiagReport, '/n');
-	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(RS485Transport.LastFailLen));
+	DiagReport := CONCAT(DiagReport, UDINT_TO_STRING(fbRs485Transport.LastFailLen));
 	DiagReport := CONCAT(DiagReport, ' [');
-	DiagReport := CONCAT(DiagReport, RS485Transport.LastFailBytes);
+	DiagReport := CONCAT(DiagReport, fbRs485Transport.LastFailBytes);
 	DiagReport := CONCAT(DiagReport, ']');
 
-	MqttVariables.fbMqttPublishQueue.AddMessage(
+	GVL_MQTT.fbMqttPublishQueue.AddMessage(
 		Payload := DiagReport,
-		Topic := CONCAT(MqttVariables.MqttPubRS485Prefix, 'BUS_COUNTERS'),
+		Topic := CONCAT(GVL_MQTT.MqttPubRS485Prefix, 'BUS_COUNTERS'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE);
 END_IF
@@ -25510,12 +25510,12 @@ END_IF
 (* RS485 devices. Called even while commissioning runs: their bodies only
    publish and self-wire, and the scheduler is the only thing that talks to the
    bus on their behalf. *)
-RS485Variables.FB_RS485_EASTRON_SDM220_1();
-RS485Variables.FB_RS485_DUCO_DUCOBOX_HOME();
-RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();
-RS485Variables.FB_RS485_EASTRON_SDM630_1();
-RS485Variables.FB_RS485_EASTRON_SDM_POWER_1();
-RS485Variables.FB_RS485_SEN0492_1();
+GVL_RS485.FB_RS485_EASTRON_SDM220_1();
+GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME();
+GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01();
+GVL_RS485.FB_RS485_EASTRON_SDM630_1();
+GVL_RS485.FB_RS485_EASTRON_SDM_POWER_1();
+GVL_RS485.FB_RS485_SEN0492_1();
 </xhtml>
                       </ST>
                     </body>
@@ -25743,17 +25743,17 @@ RS485Variables.FB_RS485_SEN0492_1();
                 <body>
                   <ST>
                     <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Ping the DMX artNet node *)
-DMXnodeReachable := SysSockPing(szIPAddress:=DMXVariables.IP, ulTimeout:=100, pulReplyTime:= ADR(PingTime));
+DMXnodeReachable := SysSockPing(szIPAddress:=GVL_DMX.IP, ulTimeout:=100, pulReplyTime:= ADR(PingTime));
 
 IF DMXnodeReachable = 0 THEN
     PFC.SetLed(which:=PFC.LED.U3, how:=PFC.LedState.STATIC_GRN);
 	IF DMXnodeReachable &lt;&gt; PreviousReachable THEN
-		MqttVariables.PLC_Device.SendLogMessage('DMX ping OK');
+		GVL_MQTT.PLC_Device.SendLogMessage('DMX ping OK');
 	END_IF
 ELSIF DMXnodeReachable = 5 THEN
      PFC.SetLed(which:=PFC.LED.U3, how:=PFC.LedState.BLINK_RED);
 	IF DMXnodeReachable &lt;&gt; PreviousReachable THEN
-		MqttVariables.PLC_Device.SendLogMessage('DMX ping Error');
+		GVL_MQTT.PLC_Device.SendLogMessage('DMX ping Error');
 	END_IF
 END_IF
 
@@ -26300,7 +26300,7 @@ PreviousReachable := DMXnodeReachable;</xhtml>
               </data>
             </addData>
           </task>
-          <globalVars name="MqttVariables" constant="true">
+          <globalVars name="GVL_MQTT" constant="true">
             <variable name="MQTT_TOPIC_LEN">
               <type>
                 <INT />
@@ -26309,9 +26309,9 @@ PreviousReachable := DMXnodeReachable;</xhtml>
                 <simpleValue value="160" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The only two members FB_MQTT_BASE and FB_MqttPublishQueue read, and so the
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The only two members FB_MQTT_BASE and FB_MQTT_PUBLISH_QUEUE read, and so the
  only two this application needs: it exists to compile the DALI chain, not
- to speak MQTT. The real MqttVariables lives in Wago_PFC200_G1_Lab's application,
+ to speak MQTT. The real GVL_MQTT lives in Wago_PFC200_G1_Lab's application,
  and a GVL cannot be shared between applications.
 
  If these drift from the real ones nothing breaks here - they only size
@@ -26373,7 +26373,7 @@ PreviousReachable := DMXnodeReachable;</xhtml>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml"> The master, and the block under test.</xhtml>
                       </documentation>
                     </variable>
-                    <variable name="Dimmer">
+                    <variable name="fbDimmer">
                       <type>
                         <derived name="FB_OUTPUT_DIMMER_DALI_MQTT" />
                       </type>
@@ -26393,7 +26393,7 @@ DaliMaster(
 // The block under test. No InitMqtt and no InitMqttDiscovery: this application
 // never runs, and calling them would only invent a Home Assistant entity for a
 // controller that does not exist.
-Dimmer(
+fbDimmer(
 	BALLAST := Ballast,
 	TOGGLE := FALSE,
 	P_LONG := FALSE);
@@ -26780,7 +26780,7 @@ Dimmer(
   </instances>
   <addData>
     <data name="http://www.3s-software.com/plcopenxml/interface" handleUnknown="implementation">
-      <Interface name="RS485Device" ObjectId="2303918f-c973-4b6d-ade3-ea98bb810ec9">
+      <Interface name="I_RS485_DEVICE" ObjectId="2303918f-c973-4b6d-ade3-ea98bb810ec9">
         <Methods>
           <Method name="OnTransactionDone" ObjectId="db29327e-5a55-42c8-8150-87dc24be02d2">
             <interface>
@@ -26836,7 +26836,7 @@ and ActiveNode tags every device block used to keep.</xhtml>
                   <type>
                     <pointer>
                       <baseType>
-                        <derived name="RS485_ReadBuffer" />
+                        <derived name="A_RS485_READ_BUFFER" />
                       </baseType>
                     </pointer>
                   </type>
@@ -26872,7 +26872,7 @@ by an AbortOnError predecessor is never reported.</xhtml>
                   <type>
                     <pointer>
                       <baseType>
-                        <derived name="RS485_StepList" />
+                        <derived name="A_RS485_STEP_LIST" />
                       </baseType>
                     </pointer>
                   </type>
@@ -26898,7 +26898,7 @@ dropping steps is not something to rely on.</xhtml>
           <Method name="HasWork" ObjectId="c349efe1-8d3a-4565-a68d-6212ba904951">
             <interface>
               <returnType>
-                <derived name="RS485_WorkLevel" />
+                <derived name="E_RS485_WORK_LEVEL" />
               </returnType>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">Does this device want the bus, and how badly?
@@ -26926,7 +26926,7 @@ assigned ActiveNode as it went), which is why selection could not be reordered.<
                   <type>
                     <pointer>
                       <baseType>
-                        <derived name="RS485_CommissionRequest" />
+                        <derived name="ST_RS485_COMMISSION_REQUEST" />
                       </baseType>
                     </pointer>
                   </type>
@@ -26956,7 +26956,7 @@ the way its own register expects, and can withdraw if it cannot be told to use i
       </Interface>
     </data>
     <data name="http://www.3s-software.com/plcopenxml/interface" handleUnknown="implementation">
-      <Interface name="RS485Transport" ObjectId="590ae4db-a126-4268-8b0c-edb932489d46">
+      <Interface name="I_RS485_TRANSPORT" ObjectId="590ae4db-a126-4268-8b0c-edb932489d46">
         <Methods>
           <Method name="Registers" ObjectId="4d035f56-ed34-471f-81ff-568aa7ebb776">
             <interface>
@@ -26974,7 +26974,7 @@ the way its own register expects, and can withdraw if it cannot be told to use i
               <returnType>
                 <pointer>
                   <baseType>
-                    <derived name="RS485_ReadBuffer" />
+                    <derived name="A_RS485_READ_BUFFER" />
                   </baseType>
                 </pointer>
               </returnType>
@@ -26987,7 +26987,7 @@ the way its own register expects, and can withdraw if it cannot be told to use i
           <Method name="Service" ObjectId="ab3a52e5-5e3f-42a1-bc91-9f8b0d6ade04">
             <interface>
               <returnType>
-                <derived name="RS485_StepState" />
+                <derived name="E_RS485_STEP_STATE" />
               </returnType>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml">Call every cycle. Drives the transport's own state machine and reports where the
@@ -27007,7 +27007,7 @@ after which the transport returns to IDLE and will accept another Start.</xhtml>
                   <type>
                     <pointer>
                       <baseType>
-                        <derived name="RS485_Step" />
+                        <derived name="ST_RS485_STEP" />
                       </baseType>
                     </pointer>
                   </type>
@@ -27244,8 +27244,8 @@ keep sweeping settings or go and look at the wiring.</xhtml>
     <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
       <ProjectStructure>
         <Folder Name="BASIC">
-          <Object Name="Dimmer" ObjectId="296462a9-00a8-41bb-9922-cbb218a0684c" />
-          <Object Name="DIMMER_CURVE" ObjectId="7e70064f-6492-4dc1-92cd-358022349669" />
+          <Object Name="E_DIMMER" ObjectId="296462a9-00a8-41bb-9922-cbb218a0684c" />
+          <Object Name="E_DIMMER_CURVE" ObjectId="7e70064f-6492-4dc1-92cd-358022349669" />
           <Object Name="FB_INPUT_BINARYSENSOR_MQTT" ObjectId="63aef430-0697-418d-919b-7de1dc965413">
             <Object Name="ConfigureFunctionBlock" ObjectId="b14b2dd3-63af-48b3-9858-62392f379c35" />
             <Object Name="InitMqttDiscovery" ObjectId="f597937c-93bc-4d44-b6a5-f412cc13239f" />
@@ -27339,17 +27339,17 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="PublishReceived" ObjectId="ade3faba-08cd-44a4-af33-15f20cf7dcff" />
             <Object Name="FB_init" ObjectId="4fc0f2e2-9dac-42c6-969a-af3676c94996" />
           </Object>
-          <Object Name="HvacModes" ObjectId="c263e4c5-e138-429d-baf2-052e2bd713e1" />
+          <Object Name="E_HVAC_MODE" ObjectId="c263e4c5-e138-429d-baf2-052e2bd713e1" />
         </Folder>
         <Object Name="Library Manager" ObjectId="b3393e58-851f-4aa0-a1b0-a61ae0cb0514" />
         <Folder Name="MQTT">
-          <Object Name="FB_MqttPublishQueue" ObjectId="90b69ae3-a8a9-4f75-8166-d1d53b3342c5">
+          <Object Name="FB_MQTT_PUBLISH_QUEUE" ObjectId="90b69ae3-a8a9-4f75-8166-d1d53b3342c5">
             <Object Name="GetMessage" ObjectId="1e1db97d-88e1-4c9c-9f86-4328b3d5480c" />
             <Object Name="AddMessage" ObjectId="4d8543b2-a77d-46bd-823d-ede80d21882c" />
             <Object Name="HasMessage" ObjectId="b909c7eb-3848-4d7f-834f-7f9a453932a8" />
             <Object Name="IsFull" ObjectId="2b910003-eb68-43e3-a4d2-a01423cd741f" />
           </Object>
-          <Object Name="FB_MqttPublishWorker" ObjectId="0204b2b3-9509-47d9-86ef-0cc71876ab14">
+          <Object Name="FB_MQTT_PUBLISH_WORKER" ObjectId="0204b2b3-9509-47d9-86ef-0cc71876ab14">
             <Object Name="Init" ObjectId="8770d8a6-0590-4d4b-a5b2-e147e5cb77e7" />
             <Object Name="PublishMessage" ObjectId="f1be54fb-d3fd-4f84-9a40-ca869478495d" />
           </Object>
@@ -27412,13 +27412,13 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="MQTT_DISCOVERY_SWITCH" ObjectId="f5343dd6-2f9e-4c6a-bbe1-4f06148c221a" />
             <Object Name="MQTT_DISCOVERY_VALVE" ObjectId="6d5ec04f-ae42-40ed-8a28-b85a8d031653" />
             <Object Name="MQTT_DISCOVERY_VALVE_STATE" ObjectId="4c3d508c-dee4-4a0b-a9b7-4899191774e6" />
-            <Object Name="MQTT_MESSAGE" ObjectId="95eff7e5-06f8-4be2-b096-62409f4cd51d" />
+            <Object Name="ST_MQTT_MESSAGE" ObjectId="95eff7e5-06f8-4be2-b096-62409f4cd51d" />
             <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
             <Object Name="MQTT_DISCOVERY_FAN" ObjectId="fb3fe26d-fe23-4358-87c1-ffeea777d962" />
             <Object Name="MQTT_DISCOVERY_COVER_POSITION" ObjectId="da529542-8240-4724-b774-dd369f156566" />
           </Folder>
           <Folder Name="FUNCTION">
-            <Object Name="FC_StripJsonRoot" ObjectId="b4e04fa1-7370-47e1-a5b3-eb4645c8d421" />
+            <Object Name="F_STRIP_JSON_ROOT" ObjectId="b4e04fa1-7370-47e1-a5b3-eb4645c8d421" />
           </Folder>
           <Object Name="FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE" ObjectId="83ba608b-36e7-4e0d-bc48-e72f8108c8bd">
             <Object Name="initEastronDevice" ObjectId="a0707a79-bcc0-4f52-afc3-2aa79f1295d1" />
@@ -27506,15 +27506,15 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="OnTransactionDone" ObjectId="068561f2-e3ee-47d4-bbb2-cd86c10523d3" />
             <Object Name="GetCommissioning" ObjectId="2ad1adfc-8405-45ac-931e-ed3899ce788e" />
           </Object>
-          <Object Name="RS485Device" ObjectId="2303918f-c973-4b6d-ade3-ea98bb810ec9">
+          <Object Name="I_RS485_DEVICE" ObjectId="2303918f-c973-4b6d-ade3-ea98bb810ec9">
             <Object Name="OnTransactionDone" ObjectId="db29327e-5a55-42c8-8150-87dc24be02d2" />
             <Object Name="OnStepResult" ObjectId="48aade84-b45d-461a-aa6e-11cf540fde72" />
             <Object Name="BuildTransaction" ObjectId="a7cbbca4-5c66-459a-a586-01d573e38574" />
             <Object Name="HasWork" ObjectId="c349efe1-8d3a-4565-a68d-6212ba904951" />
             <Object Name="GetCommissioning" ObjectId="caa6704a-0f2e-4e46-83ea-463a537da505" />
           </Object>
-          <Object Name="RS485_EASTRON_SDM_Devices" ObjectId="68297554-6996-4c62-a3d9-b3b490d6809e" />
-          <Object Name="SwapWordsToReal" ObjectId="d7f431fc-43d0-47a1-9db3-a3fb4496d281" />
+          <Object Name="E_RS485_EASTRON_SDM_DEVICE" ObjectId="68297554-6996-4c62-a3d9-b3b490d6809e" />
+          <Object Name="F_SWAP_WORDS_TO_REAL" ObjectId="d7f431fc-43d0-47a1-9db3-a3fb4496d281" />
           <Object Name="FB_RS485_TRANSPORT_RTU" ObjectId="f87a4e8c-d851-4b35-a8d5-ecdb549d770a">
             <Object Name="ReadBuffer" ObjectId="0734bde1-e02b-45f4-aadb-2d667c4c11c2" />
             <Object Name="Service" ObjectId="f6c50565-a81d-4528-98f4-c88645f290f8" />
@@ -27529,7 +27529,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="RestoreTuning" ObjectId="8d2147db-1c92-468d-92b4-3c33a56b5c3d" />
             <Object Name="LastRxCount" ObjectId="1f4e6901-d606-4e02-a8c8-71ddcb4ee993" />
           </Object>
-          <Object Name="RS485Transport" ObjectId="590ae4db-a126-4268-8b0c-edb932489d46">
+          <Object Name="I_RS485_TRANSPORT" ObjectId="590ae4db-a126-4268-8b0c-edb932489d46">
             <Object Name="Registers" ObjectId="4d035f56-ed34-471f-81ff-568aa7ebb776" />
             <Object Name="ReadBuffer" ObjectId="e6d9f0d2-8e9f-4d41-9eb8-48f4c56cc1be" />
             <Object Name="Service" ObjectId="ab3a52e5-5e3f-42a1-bc91-9f8b0d6ade04" />
@@ -27538,11 +27538,11 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="RestoreTuning" ObjectId="14d1ca53-9885-4ed3-953e-4fa85b8f6dfa" />
             <Object Name="LastRxCount" ObjectId="be593e79-9f6a-4538-a142-4553f9bd56b4" />
           </Object>
-          <Object Name="RS485_Step" ObjectId="b6fbe585-7af7-4aba-851a-d078ab9d777e" />
-          <Object Name="RS485_StepList" ObjectId="662abd5d-1b4c-4038-a74c-94bcc0032aa0" />
-          <Object Name="RS485_ReadBuffer" ObjectId="26dedc21-d12d-4963-b6e9-09ae11847aab" />
-          <Object Name="RS485_WorkLevel" ObjectId="379c8f88-10e7-4f2c-951c-0a2591bfe8e8" />
-          <Object Name="RS485_StepState" ObjectId="c9a66c80-b83c-4183-9fbb-16a18cf97204" />
+          <Object Name="ST_RS485_STEP" ObjectId="b6fbe585-7af7-4aba-851a-d078ab9d777e" />
+          <Object Name="A_RS485_STEP_LIST" ObjectId="662abd5d-1b4c-4038-a74c-94bcc0032aa0" />
+          <Object Name="A_RS485_READ_BUFFER" ObjectId="26dedc21-d12d-4963-b6e9-09ae11847aab" />
+          <Object Name="E_RS485_WORK_LEVEL" ObjectId="379c8f88-10e7-4f2c-951c-0a2591bfe8e8" />
+          <Object Name="E_RS485_STEP_STATE" ObjectId="c9a66c80-b83c-4183-9fbb-16a18cf97204" />
           <Object Name="FB_RS485_DFROBOT_SEN0492_MQTT" ObjectId="64f1d9ac-10e3-430e-9ae8-cc98d25585ed">
             <Object Name="RequestConfigWrite" ObjectId="ee05a191-af1b-4405-bfee-5810853813c8" />
             <Object Name="OnTransactionDone" ObjectId="1be80d87-5415-4f6f-8950-2e1654c8ab9e" />
@@ -27558,40 +27558,40 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           <Object Name="FB_RS485_COMMISSIONER" ObjectId="48b07f9a-01ce-4c22-bda0-bcc7cf452873">
             <Object Name="Init" ObjectId="8f9056c2-0dba-4e70-9c74-60f7427c52a4" />
           </Object>
-          <Object Name="RS485_CommissionRequest" ObjectId="65b2e331-d573-4b8e-8316-c5be37ebfde1" />
+          <Object Name="ST_RS485_COMMISSION_REQUEST" ObjectId="65b2e331-d573-4b8e-8316-c5be37ebfde1" />
         </Folder>
         <Object Name="Wago_PFC200_G1_Lab" ObjectId="14c41d3e-f0a8-426f-bff9-95c95b300d49">
           <Object Name="HomeAutomation" ObjectId="dc8b4b06-db0a-415d-9c9a-bbaa6953bc53">
             <Folder Name="PRG's">
-              <Object Name="PLC_PRG_MQTT" ObjectId="012c3962-ea65-4f8b-be5c-432a302d1a76">
+              <Object Name="PRG_MQTT" ObjectId="012c3962-ea65-4f8b-be5c-432a302d1a76">
                 <Object Name="MQTT_PUBLISH" ObjectId="4129da29-9461-4ab2-88d2-8dbec626fefe" />
                 <Object Name="MQTT_INIT" ObjectId="b0c9e992-b112-47f4-aceb-f216353cefaf" />
                 <Object Name="MQTT_SUBSCRIBE" ObjectId="8f495dd5-08ff-4021-8d5e-f2fc6292398c" />
               </Object>
-              <Object Name="PLC_PRG_MAIN" ObjectId="98c8b3af-823f-460e-96b4-4a3a11616ef1">
+              <Object Name="PRG_MAIN" ObjectId="98c8b3af-823f-460e-96b4-4a3a11616ef1">
                 <Object Name="MOVE_COVERS" ObjectId="0179406e-0243-4248-bd15-86bda23b0ead" />
                 <Object Name="READ_PUSHBUTTONS" ObjectId="72c511d1-ce6f-4b43-a80f-bcc4f298eb89" />
                 <Object Name="MAIN_INIT" ObjectId="f5b06497-3f42-4150-9639-33f5f16d160a" />
                 <Object Name="WRITE_SWITCHES" ObjectId="bc43bd28-4a8e-408d-8fdd-b4f45ff42b62" />
                 <Object Name="DALI" ObjectId="353dab8b-6c60-41cc-8756-e1855fbbd18e" />
               </Object>
-              <Object Name="DMX_SEND" ObjectId="9358c11f-a91a-4423-b77b-596b67d97fc8" />
-              <Object Name="PLC_PRG_HVAC" ObjectId="0dfca192-7f48-4c1e-8841-2dc751bdec80">
+              <Object Name="PRG_DMX_SEND" ObjectId="9358c11f-a91a-4423-b77b-596b67d97fc8" />
+              <Object Name="PRG_HVAC" ObjectId="0dfca192-7f48-4c1e-8841-2dc751bdec80">
                 <Object Name="HVAC_INIT" ObjectId="e40d6a7d-7f6c-4a08-b52d-0e2074cf3822" />
                 <Object Name="HVAC_RUN" ObjectId="38b927a3-c5b5-4df5-9a33-28b36065ae47" />
               </Object>
-              <Object Name="PLC_PRG_RS485" ObjectId="11b84459-a410-429f-af02-95271a5bdc14">
+              <Object Name="PRG_RS485" ObjectId="11b84459-a410-429f-af02-95271a5bdc14">
                 <Object Name="RS485_INIT" ObjectId="19a0b9c6-13a0-47af-9f52-80de9e9309ba" />
                 <Object Name="RS485_RUN" ObjectId="9d08ceb4-cf71-42a4-b379-bf5cea2234e6" />
               </Object>
               <Object Name="PRG_PING_DMX" ObjectId="fc6b9fab-e8cc-4b60-9d58-7604fa191497" />
             </Folder>
-            <Object Name="MqttVariables" ObjectId="4f9cb91a-49cd-4924-912b-f57a11772a7e" />
-            <Object Name="DALIVariables" ObjectId="5232f53d-845f-4696-ac63-167ae46c5456" />
+            <Object Name="GVL_MQTT" ObjectId="4f9cb91a-49cd-4924-912b-f57a11772a7e" />
+            <Object Name="GVL_DALI" ObjectId="5232f53d-845f-4696-ac63-167ae46c5456" />
             <Object Name="Library Manager" ObjectId="22df262e-1a4c-4744-ad5e-c9e16e0cfb95" />
-            <Object Name="PersistentVars" ObjectId="75fbe56d-b36e-4d1d-a520-902891aa15d6" />
-            <Object Name="DMXVariables" ObjectId="c0a2e700-56f8-4f5f-9886-e69283cbff02" />
-            <Object Name="RS485Variables" ObjectId="f7e3dd4d-4c8f-481d-88fd-3fc4761009f1" />
+            <Object Name="GVL_PERSISTENT" ObjectId="75fbe56d-b36e-4d1d-a520-902891aa15d6" />
+            <Object Name="GVL_DMX" ObjectId="c0a2e700-56f8-4f5f-9886-e69283cbff02" />
+            <Object Name="GVL_RS485" ObjectId="f7e3dd4d-4c8f-481d-88fd-3fc4761009f1" />
             <Object Name="HvacTask" ObjectId="83c2eeca-be8e-4975-a70d-0a295c7764aa" />
             <Object Name="MainTask" ObjectId="3105d1e0-925d-4f28-aadf-e5d4d663e807" />
             <Object Name="MqttCommunication" ObjectId="697fd9f7-7f03-439d-a4ee-169b615acbda" />
@@ -27610,7 +27610,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
         <Object Name="Wago_PFC200_G2_Virtual" ObjectId="a8f8a168-7f15-4995-8cb0-0cd2ca459b2c">
           <Object Name="Application" ObjectId="3e212a67-1d70-4019-8535-8af80ab6f3ea">
             <Object Name="Library Manager" ObjectId="e70b289e-1f9e-4b67-a342-f6135603c272" />
-            <Object Name="MqttVariables" ObjectId="f2e2eb86-f33d-4d0a-bd8f-5a203cd174cd" />
+            <Object Name="GVL_MQTT" ObjectId="f2e2eb86-f33d-4d0a-bd8f-5a203cd174cd" />
             <Object Name="PRG_DALI_VERIFY" ObjectId="5c41cb81-5fe0-4209-ad3c-f2d92c064e8b" />
             <Object Name="DaliVerify" ObjectId="a614f42a-e3e1-4850-b4d8-63587670576d" />
           </Object>

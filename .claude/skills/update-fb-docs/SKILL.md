@@ -16,7 +16,7 @@ Two regions per page are machine-owned — never hand-edit inside them:
     <!-- fb-interface:end -->
 
 `docs/AdditionalFunctionality/MQTT_General.md` has a third, `<!-- gvl:start -->`,
-holding the `MqttVariables` global variable list.
+holding the `GVL_MQTT` global variable list.
 
 Everything else — General, callouts, MQTT behaviour tables, code examples,
 wiring — is hand-written and left alone.

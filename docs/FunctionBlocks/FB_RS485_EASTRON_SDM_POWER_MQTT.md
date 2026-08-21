@@ -55,14 +55,14 @@ Eastron SDM630 datasheet:
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `pSteps` | POINTER TO RS485_StepList |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
+| `pSteps` | POINTER TO A_RS485_STEP_LIST |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
 
 **`FB_init`** — CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `DeviceAddress` | BYTE |  | Modbus RTU address of the device on the RS485 bus. |
-| `DeviceType` | RS485_EASTRON_SDM_Devices |  | Which Eastron SDM model is connected, from `RS485_EASTRON_SDM_Devices`. It decides which register active power is read from — `30013` on the SDM120 and SDM220, `30053` on the SDM630 — and is also the model announced to Home Assistant. |
+| `DeviceType` | E_RS485_EASTRON_SDM_DEVICE |  | Which Eastron SDM model is connected, from `E_RS485_EASTRON_SDM_DEVICE`. It decides which register active power is read from — `30013` on the SDM120 and SDM220, `30053` on the SDM630 — and is also the model announced to Home Assistant. |
 | `DataPollingInterval` | TIME |  | How often this block polls the device. |
 
 **`GetCommissioning`** — Asked once at startup, by `FB_RS485_COMMISSIONER`, whether this device needs something written into it before it can be spoken to at all - a device that ships on a baud rate the bus does not use, say. Returning FALSE, which is the ordinary case, means there is nothing to do.
@@ -70,7 +70,7 @@ Eastron SDM630 datasheet:
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `BusBaudrate` | UDINT |  | What the bus runs at, so a device can encode that rate the way its own register expects - and can withdraw if it cannot be told to use it. |
-| `pRequest` | POINTER TO RS485_CommissionRequest |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
+| `pRequest` | POINTER TO ST_RS485_COMMISSION_REQUEST |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
 
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
@@ -79,13 +79,13 @@ Eastron SDM630 datasheet:
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 
 **`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Device` | POINTER TO FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Device` | POINTER TO FB_EASTRON_SDM_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `DeviceName` | STRING(50) |  | Name of that Home Assistant device. The self-wiring prologue passes `FriendlyName`. |
 | `Model` | STRING(20) | `''` | Model shown on the Home Assistant device page. Empty means derive it from `DeviceType`, which is what the self-wiring prologue relies on; pass a string to overrule that. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
@@ -96,7 +96,7 @@ Eastron SDM630 datasheet:
 |:--|:--|:--|:--|
 | `StepIndex` | INT |  | Which step of the transaction this answers, indexed as `BuildTransaction` filled them. |
 | `Failed` | BOOL |  | No reply, a bad frame, or a Modbus exception. `pData` holds nothing meaningful. |
-| `pData` | POINTER TO RS485_ReadBuffer |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
+| `pData` | POINTER TO A_RS485_READ_BUFFER |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
 | `Count` | INT |  | How many registers `pData` actually holds. Trusting this rather than the quantity requested is what stops a short reply being read past the end of. |
 
 **`OnTransactionDone`** — Called once, after the last `OnStepResult`, as the bus is released. The one place to publish `/availability` and clear a pending command.
@@ -128,7 +128,7 @@ The declaration is the whole configuration. `FB_init` takes the Modbus address, 
 this is**, and the poll rate; the initialiser takes the Home Assistant name:
 
 ```
-FB_RS485_EASTRON_SDM_POWER_001 : FB_RS485_EASTRON_SDM_POWER_MQTT(1, RS485_EASTRON_SDM_Devices.SDM630, T#15S)
+FB_RS485_EASTRON_SDM_POWER_001 : FB_RS485_EASTRON_SDM_POWER_MQTT(1, E_RS485_EASTRON_SDM_DEVICE.SDM630, T#15S)
                                := (FriendlyName := 'Car charger');
 ```
 
@@ -140,23 +140,23 @@ Home Assistant as.
 Register it with the bus controller once at startup, in `RS485_INIT`:
 
 ```
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM_POWER_001);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_EASTRON_SDM_POWER_001);
 ```
 
 and call it cyclically, in `RS485_RUN`:
 
 ```
-RS485Variables.FB_RS485_EASTRON_SDM_POWER_001();
+GVL_RS485.FB_RS485_EASTRON_SDM_POWER_001();
 ```
 
 No `InitRS485`, no `InitMqtt`, no `InitMqttDiscovery`: the block wires itself from
-`MqttVariables` on its first cyclic call. **A block wired this way must be called cyclically** —
+`GVL_MQTT` on its first cyclic call. **A block wired this way must be called cyclically** —
 an instance whose body never runs stays unwired and never appears in Home Assistant, and nothing
 warns about it.
 
 ### **The standing cross-check**
 
-`RS485Variables.FB_RS485_EASTRON_SDM_POWER_1` is wired in `PLC_PRG_RS485` against the lab
+`GVL_RS485.FB_RS485_EASTRON_SDM_POWER_1` is wired in `PRG_RS485` against the lab
 SDM220 at address 1 — the same meter `FB_RS485_EASTRON_SDM220_1` reads. That is deliberate
 and it is not redundant instrumentation:
 

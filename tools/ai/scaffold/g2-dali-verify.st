@@ -9,7 +9,7 @@ DaliMaster(
 // The block under test. No InitMqtt and no InitMqttDiscovery: this application
 // never runs, and calling them would only invent a Home Assistant entity for a
 // controller that does not exist.
-Dimmer(
+fbDimmer(
 	BALLAST := Ballast,
 	TOGGLE := FALSE,
 	P_LONG := FALSE);

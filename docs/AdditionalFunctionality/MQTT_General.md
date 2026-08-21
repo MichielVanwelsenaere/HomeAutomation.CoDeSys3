@@ -1,6 +1,6 @@
 ## **All MQTT settings**
 
-The topics are predefined once in the `MqttVariables`.
+The topics are predefined once in the `GVL_MQTT`.
 
 MQTT works with subscriptions and publications. An example for a dimmer publication is 
   `Devices/PLC/Lab/Out/Dimmers/FB_AO_DIMMER_001/OUT`
@@ -16,7 +16,7 @@ VAR_GLOBAL
     MQTT_SUFFIX_LEN : INT := 64;
     clientID : STRING := 'PLC-Lab';
     broker : STRING := '10.101.1.11:1883';
-    fbMqttPublishQueue : FB_MqttPublishQueue;
+    fbMqttPublishQueue : FB_MQTT_PUBLISH_QUEUE;
     collector_FB_OUTPUT_SWITCH_MQTT : MQTT.CallbackCollector;
     collector_FB_OUTPUT_COVER_MQTT : MQTT.CallbackCollector;
     collector_FB_DIMMER_MQTT : MQTT.CallbackCollector;
@@ -58,9 +58,9 @@ END_VAR
 
 ## The publish queue
 
-Every block publishes by handing a message to `MqttVariables.fbMqttPublishQueue`, a
-ring buffer of 1025 slots. `PLC_PRG_MQTT.MQTT_PUBLISH` drains it and hands messages
-to a pool of 40 `FB_MqttPublishWorker` instances, which do the actual sending.
+Every block publishes by handing a message to `GVL_MQTT.fbMqttPublishQueue`, a
+ring buffer of 1025 slots. `PRG_MQTT.MQTT_PUBLISH` drains it and hands messages
+to a pool of 40 `FB_MQTT_PUBLISH_WORKER` instances, which do the actual sending.
 
 ### **Reading its state**
 

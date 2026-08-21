@@ -85,7 +85,7 @@ Nevertheless, adding a new device is a simple task, feel free to reach out.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `pSteps` | POINTER TO RS485_StepList |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
+| `pSteps` | POINTER TO A_RS485_STEP_LIST |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
 
 **`FB_init`** — CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.
 
@@ -100,7 +100,7 @@ Nevertheless, adding a new device is a simple task, feel free to reach out.
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `BusBaudrate` | UDINT |  | What the bus runs at, so a device can encode that rate the way its own register expects - and can withdraw if it cannot be told to use it. |
-| `pRequest` | POINTER TO RS485_CommissionRequest |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
+| `pRequest` | POINTER TO ST_RS485_COMMISSION_REQUEST |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
 
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
@@ -109,13 +109,13 @@ Nevertheless, adding a new device is a simple task, feel free to reach out.
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 
 **`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Device` | POINTER TO FB_1WIRE_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Device` | POINTER TO FB_1WIRE_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `ParentDevice` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the PLC discovery device, so the sensor hub appears beneath it in Home Assistant. |
 | `DeviceName` | STRING(50) |  | Name shown in Home Assistant for the 1-Wire sensor hub itself. |
 | `SupportsTemperature` | BOOL | `FALSE` | Set TRUE if the physical sensor reports temperature, so the entity is created. |
@@ -131,7 +131,7 @@ Nevertheless, adding a new device is a simple task, feel free to reach out.
 |:--|:--|:--|:--|
 | `StepIndex` | INT |  | Which step of the transaction this answers, indexed as `BuildTransaction` filled them. |
 | `Failed` | BOOL |  | No reply, a bad frame, or a Modbus exception. `pData` holds nothing meaningful. |
-| `pData` | POINTER TO RS485_ReadBuffer |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
+| `pData` | POINTER TO A_RS485_READ_BUFFER |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
 | `Count` | INT |  | How many registers `pData` actually holds. Trusting this rather than the quantity requested is what stops a short reply being read past the end of. |
 
 **`OnTransactionDone`** — Called once, after the last `OnStepResult`, as the bus is released. The one place to publish `/availability` and clear a pending command.
@@ -173,18 +173,18 @@ FB_RS485_1WIRE_MULTISENSOR_01 			: FB_RS485_ESERA_OWD_MQTT(2, 1, T#30S);
 
 - In RS485_Init, register the device to the RS485 bus controller:
 ```
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01);
 ```
 
 - In RS485_Init, initialize MQTT configuration for the function block:
 ```
-RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.InitMqtt(	
-	MQTTPublishPrefix:= ADR(MqttVariables.MqttPubRS485Prefix),	
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue)
+GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.InitMqtt(	
+	MQTTPublishPrefix:= ADR(GVL_MQTT.MqttPubRS485Prefix),	
+	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue)
 );
-RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.InitMqttDiscovery(
-	Device := ADR(MqttVariables.OWD_MULTISENSOR_01),
-	ParentDevice:= ADR(MqttVariables.PLC_Device),
+GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.InitMqttDiscovery(
+	Device := ADR(GVL_MQTT.OWD_MULTISENSOR_01),
+	ParentDevice:= ADR(GVL_MQTT.PLC_Device),
 	DeviceName := '1-Wire sensorhub Garage',
 	SupportsTemperature := TRUE,
 	SupportsHumidity := TRUE,
@@ -194,5 +194,5 @@ RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.InitMqttDiscovery(
 
 - In RS485_Run, call the function block so it can do its work:
 ```
-RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01();
+GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01();
 ```

@@ -10,10 +10,10 @@ transactions and between the steps inside one.
 The unit of arbitration is a **transaction**: an ordered list of up to eight steps that a device
 hands over in one go, executed back to back **with the bus held throughout**. Nothing else may
 interleave, which is what allows a write and the read that confirms it to be one indivisible
-operation. See [the RS485Device interface](../RS485/RS485Device_Interface.md) for the device
+operation. See [the I_RS485_DEVICE interface](../RS485/RS485Device_Interface.md) for the device
 side of the contract.
 
-The Modbus protocol itself lives behind `RS485Transport`, so this block never sees a CRC, a
+The Modbus protocol itself lives behind `I_RS485_TRANSPORT`, so this block never sees a CRC, a
 function code or a serial handle. [`FB_RS485_TRANSPORT_RTU`](FB_RS485_TRANSPORT_RTU.md) is the
 implementation this project ships.
 
@@ -98,7 +98,7 @@ time and not the baud rate is what sets throughput. See
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Transport` | RS485Transport |  | The protocol implementation to drive. |
+| `Transport` | I_RS485_TRANSPORT |  | The protocol implementation to drive. |
 | `StartupDelay` | TIME |  | Wait this long after a cold start before talking to anything, so slaves that boot slower than the PLC are not written off as missing. Zero keeps the default. |
 | `SilenceTime` | TIME |  | Quiet line between frames, both between the steps of one transaction and between transactions. Zero keeps the default. |
 | `StepTimeout` | TIME |  | How long one step may take before the controller stops waiting for the transport and moves on. A watchdog on the transport, not on the slave — the slave's own reply timeout is shorter and lives in the transport. Zero keeps the default. |
@@ -107,20 +107,20 @@ time and not the baud rate is what sets throughput. See
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `device` | RS485Device |  | The RS485 device function block to register. |
+| `device` | I_RS485_DEVICE |  | The RS485 device function block to register. |
 <!-- fb-interface:end -->
 
 ### **Code example**
 
 - variables initiation:
 ```
-RS485Transport		: FB_RS485_TRANSPORT_RTU;
+I_RS485_TRANSPORT		: FB_RS485_TRANSPORT_RTU;
 RS485BusController	: FB_RS485_BUSCONTROLLER;
 ```
 
 - Init calls (called once during startup, transport first):
 ```
-RS485Transport.Init(
+I_RS485_TRANSPORT.Init(
 	Port			:= SysCom.SYS_COM_PORTS.SYS_COMPORT1,
 	Baudrate		:= 9600,
 	Parity			:= SysCom.SYS_COM_PARITY.SYS_NOPARITY,
@@ -130,7 +130,7 @@ RS485Transport.Init(
 );
 
 RS485BusController.Init(
-	Transport		:= RS485Transport,
+	Transport		:= I_RS485_TRANSPORT,
 	StartupDelay	:= T#5S,			(* let the slaves finish booting *)
 	SilenceTime		:= T#50MS,			(* between frames, and between transactions *)
 	StepTimeout		:= T#3S				(* watchdog on the transport *)
@@ -139,7 +139,7 @@ RS485BusController.Init(
 
 - Adding a device to the bus (called once during startup):
 ```
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM220_1);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_EASTRON_SDM220_1);
 ```
 
 - Calling it cyclically. The controller drives the transport, so the transport instance itself

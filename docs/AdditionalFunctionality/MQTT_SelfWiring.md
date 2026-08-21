@@ -10,7 +10,7 @@ Now a block wires itself. The only thing you have to say is the name you want to
 see in Home Assistant, and you say it where you declare the instance:
 
 ```iecst
-PROGRAM PLC_PRG_MAIN
+PROGRAM PRG_MAIN
 VAR
     FB_DO_BIN_001  : FB_OUTPUT_BINARY_MQTT := (FriendlyName := 'Kitchen light',
                                                EntityType := E_MQTT_ENTITY.Light);
@@ -22,7 +22,7 @@ That is the whole configuration. No `InitMqtt`, no `InitMqttDiscovery`.
 
 ## What the block does on its own
 
-On its **first cyclic call** a named block reaches into the `MqttVariables`
+On its **first cyclic call** a named block reaches into the `GVL_MQTT`
 global variable list for everything it used to be handed — the publish queue, the
 publish and subscribe topic prefixes for its category, its callback collector,
 and the Home Assistant device — and then announces itself for discovery. The MQTT
@@ -122,7 +122,7 @@ is also how you deliberately keep an instance silent.
 `InitMqtt` and `InitMqttDiscovery*` are unchanged and still public. Call them
 yourself when the declaration cannot express what you need:
 
-- a second broker, or a publish queue other than `MqttVariables.fbMqttPublishQueue`
+- a second broker, or a publish queue other than `GVL_MQTT.fbMqttPublishQueue`
 - a topic prefix that is not the standard one for that block's category
 - a `DeviceClass`, `overruleId` or `meta` on the discovery config
 - a per-instance Home Assistant device rather than the shared `PLC_Device`
@@ -186,4 +186,4 @@ whole init sequence rather than half of it.
 
 `FB_MQTT_LOG` extends the base and could self-wire, but it has no call site
 anywhere in the reference project and there is no log topic prefix in
-`MqttVariables`, so there was no existing behaviour to preserve. It was left alone.
+`GVL_MQTT`, so there was no existing behaviour to preserve. It was left alone.

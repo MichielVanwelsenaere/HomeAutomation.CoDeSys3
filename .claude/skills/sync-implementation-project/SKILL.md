@@ -30,6 +30,22 @@ library code.** The planner applies that rule plus the declared kind, so a
 site's own `FB_VIRTUAL_BOOL_MQTT` under `VIRTUAL/` is left alone and a site's
 `PLC_PRG_MAIN` is never touched.
 
+### The names on this page are the installation's, not the reference's
+
+The reference project renamed its objects to the convention in
+[docs/CodingStyle.md](../../../docs/CodingStyle.md): `MqttVariables` is
+`GVL_MQTT` there, `PersistentVars` is `GVL_PERSISTENT`, `PLC_PRG_MAIN` is
+`PRG_MAIN`. An installation keeps its own spelling until it is migrated, which is
+exactly why the names above are still the old ones — they name objects this skill
+promises never to rewrite.
+
+Consequence for a sync across that boundary: a synced block now refers to
+`GVL_MQTT`, so the installation's GVL has to be renamed in the same window or
+every synced block fails with `Identifier 'GVL_MQTT' not defined`. Use the
+`rename` task for it (see the `codesys-loop` skill), against the installation
+project, before syncing the blocks. That is a breaking, one-off migration and it
+belongs to the major release, not to a routine sync.
+
 ## Before anything else
 
 An installation project is a building's running control program. Two rules, and

@@ -47,13 +47,13 @@ ARRAY [1..VALVE_COUNT] OF BOOL ──┤ THERMOSTAT       VALVE ├── ARRAY 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 
 **`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `NameValve` | ARRAY [1..VALVE_COUNT] OF STRING(100) |  | Name shown in the Home Assistant front-end for each valve, indexed as `THERMOSTAT` and `VALVE` are. An empty name means that circuit is unwired and announces no entity. |
 | `DeviceClass` | STRING(100) | `'water'` | Home Assistant device class for the entity. Leave empty for the default. |
 <!-- fb-interface:end -->
@@ -77,7 +77,7 @@ CollectorValveNames : ARRAY[1..8] OF STRING(100);
 // once, at startup, after InitMqtt
 CollectorValveNames[1] := 'Radiator 1';
 CollectorValveNames[2] := 'Radiator 2';
-FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(MqttVariables.PLC_Device), CollectorValveNames);
+FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(GVL_MQTT.PLC_Device), CollectorValveNames);
 
 // every cycle
 FB_PUMP_2_COLLECTOR.THERMOSTAT[1] := FB_THERMOSTAT_2.OUT;

@@ -36,9 +36,19 @@ XML.
 | Task | Skill |
 |:--|:--|
 | Add or change a function block, refactor ST, check that something compiles, re-export the PLCopen XML, inspect the project structure | **`codesys-loop`** |
+| Rename an object or a variable, with every reference to it | **`codesys-loop`** (the `rename` task) |
 | Regenerate or check the generated regions of `docs/FunctionBlocks/*.md` | **`update-fb-docs`** |
 | Check whether the logic actually *works* — lights, pushbuttons, covers, HVAC — on a real PLC | **`test-plc-logic`** |
 | Bring a real building's installation project up to this project's function blocks, or check whether it is still version-compatible | **`sync-implementation-project`** |
+
+**Naming is decided, not open.** Objects are `PREFIX_` + SCREAMING_SNAKE (`FB_`,
+`F_`, `PRG_`, `I_`, `E_`, `ST_`, `A_`, `GVL_`); variables are a type prefix plus
+PascalCase, with `b` for BOOL and `by` for BYTE per the CODESYS guide. The one
+exemption is the `MQTT_DISCOVERY_*` structs, whose member names are published as
+Home Assistant discovery keys. Do not re-derive any of this from the surrounding
+code: [`docs/CodingStyle.md`](docs/CodingStyle.md) is the full version and
+[`src/CLAUDE.md`](src/CLAUDE.md) the working summary, loaded automatically when
+you edit the project.
 
 Two things worth knowing before you start, both covered in detail by
 `codesys-loop`:
@@ -90,12 +100,12 @@ For the record, so this is not relitigated:
   reviewable as files and survive a failed run, so they are the default. The
   verify harness does use the textual API.
 
-- **Editing an SFC chart from a script, by any route.** `PLC_PRG_MAIN` is SFC and
+- **Editing an SFC chart from a script, by any route.** `PRG_MAIN` is SFC and
   its chart cannot be touched: the object has a `textual_declaration` but **no
   `textual_implementation` at all** (`AttributeError` on access), so
   `replace_in_body` is out. Re-importing the POU as XML does not work either — a
   candidate file carries no folder structure, so the import files a *second*
-  `PLC_PRG_MAIN` at the project root and leaves the real one in `PRG's/` alone.
+  `PRG_MAIN` at the project root and leaves the real one in `PRG's/` alone.
   `import_conflict: "replace"` does not save it, because at the root there is
   nothing to conflict with; and the root copy is never compiled, since a program
   is only compiled where a task calls it. So the build stays green while the
@@ -110,7 +120,7 @@ For the record, so this is not relitigated:
   **Order matters when someone does it by hand**, and the obvious order is the
   wrong one: delete the association box from the step's action list *first*, then
   the action. Deleting the action first leaves a project that does not build, with
-  no hint in the chart that anything is missing. `PLC_PRG_MAIN.PROCESS_VIRTUAL` was
+  no hint in the chart that anything is missing. `PRG_MAIN.PROCESS_VIRTUAL` was
   retired this way and is gone; that program's chart is the worked example.
 
 ## An instance's `FB_init` arguments live outside the declaration text
@@ -231,7 +241,7 @@ every case seen so far:
 - new instance → no stored entry to win → text is parsed. The whole annex
   migration landed this way, 37 instances at once.
 - **existing instance that had no initialiser** → also no stored entry → also
-  parsed. `RS485Variables.FB_RS485_EASTRON_SDM220_1` had been declared bare since
+  parsed. `GVL_RS485.FB_RS485_EASTRON_SDM220_1` had been declared bare since
   it was written; a scripted `replace_in_decl` adding `:= (FriendlyName := '...')`
   reached `structValue` and the PLC ran it. So the test is whether a stored entry
   **exists**, not whether the instance is new — which is the more useful form of
@@ -314,7 +324,7 @@ It is a one-time click that then lives in the committed binary forever, like the
 Not resolved, so do not assume an edit landed just because the report says so —
 read the compiler messages, which is the advice for the `harness` section too.
 
-Seen on `PLC_PRG_HVAC.HVAC_INIT` while splitting the publish queue: both
+Seen on `PRG_HVAC.HVAC_INIT` while splitting the publish queue: both
 `replace_in_body` (`x1`) and a whole-body `body_replace` reported success, and the
 compiler went on reporting the *old* text at that line. A diagnostic run that
 deleted only the referenced GVL member showed the same reference in `HVAC_INIT` at
@@ -324,7 +334,7 @@ elsewhere — the collector-array change went through `HVAC_INIT` and is verifie
 hardware — so this is specific to some combination, not to the action.
 
 Worth checking next time: whether `find_editable` can return the
-`Task Configuration/HvacTask/PLC_PRG_HVAC` node rather than the `PRG's/` program
+`Task Configuration/HvacTask/PRG_HVAC` node rather than the `PRG's/` program
 (both are exported as roots), and whether `get_children(False)` should be `True`.
 
 - **Behavioural tests in CODESYS simulation.** Built as the `simulate` task, then

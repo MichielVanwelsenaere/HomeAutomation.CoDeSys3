@@ -68,7 +68,7 @@ BOOL ──┤ RST                      SINGLE ├── BOOL
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 | `OutputDimmer` | BOOL |  | Set TRUE to publish the dimmer value as MQTT events. |
 | `Qos_Dimm` | MQTT.QoS |  | MQTT QoS used for the dimmer value events. |
 | `Delta_Dimm` | INT |  | Resolution of the dimmer events: only publish once the value has moved by at least this much. The final value is always published, so MQTT and the output never drift apart. |

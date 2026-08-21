@@ -74,7 +74,7 @@ TIME ──┤ PollIntervalOverride            DISTANCE ├── UINT
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `pSteps` | POINTER TO RS485_StepList |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
+| `pSteps` | POINTER TO A_RS485_STEP_LIST |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
 
 **`FB_init`** — CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.
 
@@ -88,7 +88,7 @@ TIME ──┤ PollIntervalOverride            DISTANCE ├── UINT
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `BusBaudrate` | UDINT |  | What the bus runs at, so a device can encode that rate the way its own register expects - and can withdraw if it cannot be told to use it. |
-| `pRequest` | POINTER TO RS485_CommissionRequest |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
+| `pRequest` | POINTER TO ST_RS485_COMMISSION_REQUEST |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
 
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
@@ -97,13 +97,13 @@ TIME ──┤ PollIntervalOverride            DISTANCE ├── UINT
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 
 **`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Device` | POINTER TO FB_DFROBOT_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Device` | POINTER TO FB_DFROBOT_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `DeviceName` | STRING(50) |  | Name of that Home Assistant device. The self-wiring prologue passes `FriendlyName`. |
 | `Model` | STRING(20) | `'SEN0492'` | Model shown on the Home Assistant device page. One discovery device serves the whole DFRobot RS485 range, so it is set per instance. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
@@ -114,7 +114,7 @@ TIME ──┤ PollIntervalOverride            DISTANCE ├── UINT
 |:--|:--|:--|:--|
 | `StepIndex` | INT |  | Which step of the transaction this answers, indexed as `BuildTransaction` filled them. |
 | `Failed` | BOOL |  | No reply, a bad frame, or a Modbus exception. `pData` holds nothing meaningful. |
-| `pData` | POINTER TO RS485_ReadBuffer |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
+| `pData` | POINTER TO A_RS485_READ_BUFFER |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
 | `Count` | INT |  | How many registers `pData` actually holds. Trusting this rather than the quantity requested is what stops a short reply being read past the end of. |
 
 **`OnTransactionDone`** — Called once, after the last `OnStepResult`, as the bus is released. The one place to publish `/availability` and clear a pending command.
@@ -144,20 +144,20 @@ FB_RS485_SEN0492_1 : FB_RS485_DFROBOT_SEN0492_MQTT(80, T#10S)
 
 `80` is the sensor's factory slave address — `16#50`, which is how DFRobot's own documentation
 writes it. Change it only if something else on your bus already answers there; the baud rate is
-the setting that always has to move, and `PLC_PRG_RS485` does that once at startup. Register it
+the setting that always has to move, and `PRG_RS485` does that once at startup. Register it
 with the bus controller in `RS485_INIT`:
 
 ```
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_SEN0492_1);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_SEN0492_1);
 ```
 
 and call it cyclically, in `RS485_RUN`:
 
 ```
-RS485Variables.FB_RS485_SEN0492_1();
+GVL_RS485.FB_RS485_SEN0492_1();
 ```
 
-No `InitMqtt` or `InitMqttDiscovery` call is needed: the block wires itself from `MqttVariables`
+No `InitMqtt` or `InitMqttDiscovery` call is needed: the block wires itself from `GVL_MQTT`
 on its first cyclic call. **A block wired this way must be called cyclically** — an instance
 whose body never runs stays unwired and never appears in Home Assistant, and nothing warns
 about it.
@@ -187,10 +187,10 @@ polling on every device:
 
 ```
 (* move it to slave address 16#20 *)
-RS485Variables.FB_RS485_SEN0492_1.RequestConfigWrite(Register := 16#1A, Value := 16#20);
+GVL_RS485.FB_RS485_SEN0492_1.RequestConfigWrite(Register := 16#1A, Value := 16#20);
 
 (* measure to 4 m rather than the default range *)
-RS485Variables.FB_RS485_SEN0492_1.RequestConfigWrite(Register := 16#36, Value := 3);
+GVL_RS485.FB_RS485_SEN0492_1.RequestConfigWrite(Register := 16#36, Value := 3);
 ```
 
 :rotating_light: **Two of these registers change how the sensor talks, and after writing one the

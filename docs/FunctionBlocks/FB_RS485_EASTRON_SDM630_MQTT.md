@@ -105,7 +105,7 @@ has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/Usi
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `pSteps` | POINTER TO RS485_StepList |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
+| `pSteps` | POINTER TO A_RS485_STEP_LIST |  | Scheduler-owned scratch to fill. Only valid for the duration of the call. |
 
 **`FB_init`** — CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.
 
@@ -119,7 +119,7 @@ has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/Usi
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `BusBaudrate` | UDINT |  | What the bus runs at, so a device can encode that rate the way its own register expects - and can withdraw if it cannot be told to use it. |
-| `pRequest` | POINTER TO RS485_CommissionRequest |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
+| `pRequest` | POINTER TO ST_RS485_COMMISSION_REQUEST |  | Commissioner-owned scratch to fill when the answer is TRUE: what to probe, which register to write, and the rates worth trying. Only valid for the duration of the call. |
 
 **`HasWork`** — Asked by the bus controller whether this device wants the bus, and how badly: `NONE`, `POLL`, or `COMMAND` for something a person or Home Assistant is waiting on. Must be free of side effects - it is called on every device, twice per cycle.
 
@@ -128,7 +128,7 @@ has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/Usi
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 
 **`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
 
@@ -145,7 +145,7 @@ has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/Usi
 |:--|:--|:--|:--|
 | `StepIndex` | INT |  | Which step of the transaction this answers, indexed as `BuildTransaction` filled them. |
 | `Failed` | BOOL |  | No reply, a bad frame, or a Modbus exception. `pData` holds nothing meaningful. |
-| `pData` | POINTER TO RS485_ReadBuffer |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
+| `pData` | POINTER TO A_RS485_READ_BUFFER |  | Registers returned by a read step, big-endian, index 0 being the first register requested. |
 | `Count` | INT |  | How many registers `pData` actually holds. Trusting this rather than the quantity requested is what stops a short reply being read past the end of. |
 
 **`OnTransactionDone`** — Called once, after the last `OnStepResult`, as the bus is released. The one place to publish `/availability` and clear a pending command.
@@ -214,16 +214,16 @@ FB_RS485_EASTRON_SDM630_1 : FB_RS485_EASTRON_SDM630_MQTT(4, T#10S)
 Register it with the bus controller once at startup, in `RS485_INIT`:
 
 ```
-RS485BusController.RegisterDevice(device := RS485Variables.FB_RS485_EASTRON_SDM630_1);
+RS485BusController.RegisterDevice(device := GVL_RS485.FB_RS485_EASTRON_SDM630_1);
 ```
 
 and call it cyclically, in `RS485_RUN`:
 
 ```
-RS485Variables.FB_RS485_EASTRON_SDM630_1();
+GVL_RS485.FB_RS485_EASTRON_SDM630_1();
 ```
 
-No `InitMqtt` or `InitMqttDiscovery` call is needed: the block wires itself from `MqttVariables`
+No `InitMqtt` or `InitMqttDiscovery` call is needed: the block wires itself from `GVL_MQTT`
 on its first cyclic call. **A block wired this way must be called cyclically** — an instance whose
 body never runs stays unwired and never appears in Home Assistant, and nothing warns about it.
 

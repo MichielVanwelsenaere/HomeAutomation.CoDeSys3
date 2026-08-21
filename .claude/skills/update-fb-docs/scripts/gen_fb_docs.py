@@ -72,7 +72,7 @@ HIDDEN_METHODS = {
                              #   body and PublishReceived; the API is the pins
                              #   and the MQTT topics.
     # NOT hidden, deliberately: HasWork, BuildTransaction, OnStepResult and
-    # OnTransactionDone are the RS485Device contract itself. This set is keyed
+    # OnTransactionDone are the I_RS485_DEVICE contract itself. This set is keyed
     # by bare name and so applies to every block, which is exactly why they
     # must stay out of it.
 }
@@ -109,7 +109,7 @@ GLOSSARY = {
                "instance declaration, not by calling a method, and are applied "
                "once at startup.",
 
-    # --- the RS485Device contract ------------------------------------------
+    # --- the I_RS485_DEVICE contract ------------------------------------------
     # Identical on every RS485 device block, so it lives here rather than being
     # written out five times and drifting four ways.
     "HasWork": "Asked by the bus controller whether this device wants the bus, "
@@ -144,12 +144,12 @@ GLOSSARY = {
                                   "wholly good outcome.",
     "InitRS485": "Configures the Modbus RTU device address and the polling "
                  "interval(s) for the read command(s).",
-    "RequestBusTime": "`RS485Device` interface method. See the "
-                      "[RS485Device interface docs](../RS485/RS485Device_Interface.md).",
-    "GetRtuQuery": "`RS485Device` interface method. See the "
-                   "[RS485Device interface docs](../RS485/RS485Device_Interface.md).",
-    "ProcessDataArray": "`RS485Device` interface method. See the "
-                        "[RS485Device interface docs](../RS485/RS485Device_Interface.md).",
+    "RequestBusTime": "`I_RS485_DEVICE` interface method. See the "
+                      "[I_RS485_DEVICE interface docs](../RS485/RS485Device_Interface.md).",
+    "GetRtuQuery": "`I_RS485_DEVICE` interface method. See the "
+                   "[I_RS485_DEVICE interface docs](../RS485/RS485Device_Interface.md).",
+    "ProcessDataArray": "`I_RS485_DEVICE` interface method. See the "
+                        "[I_RS485_DEVICE interface docs](../RS485/RS485Device_Interface.md).",
     "SetValue": "Sets the virtual value. Only effective in output mode.",
     "ConfigureFunctionBlockAsVirtualInput":
         "Configures the block as a virtual input, so a value can be pushed into "
@@ -170,7 +170,7 @@ GLOSSARY = {
     "MqttRetain": "MQTT retain flag used for messages published by this block.",
     # --- discovery parameters ---------------------------------------------
     "Device": "Pointer to the discovery device this entity belongs to, normally "
-              "`MqttVariables.PLC_Device`.",
+              "`GVL_MQTT.PLC_Device`.",
     "Name": "Name shown in the Home Assistant front-end.",
     "RelayType": "Which way round the driven contact sits: `E_RELAY_TYPE.NO` "
                  "(the default) means the load is live when the output is TRUE, "
@@ -525,10 +525,10 @@ GVL_DOC = REPO / "docs" / "AdditionalFunctionality" / "MQTT_General.md"
 
 
 def render_gvl(root) -> str:
-    """The MqttVariables global variable list, straight from the export."""
+    """The GVL_MQTT global variable list, straight from the export."""
     gvl = next((g for g in root.iter()
                 if g.tag.split("}")[-1] == "globalVars"
-                and g.get("name") == "MqttVariables"), None)
+                and g.get("name") == "GVL_MQTT"), None)
     if gvl is None:
         return None
     lines = ["```ST", "VAR_GLOBAL"]
@@ -645,7 +645,7 @@ def main() -> int:
 
     gvl_changed = update_gvl_doc(root, args.check)
     if gvl_changed:
-        (stale if args.check else wrote).append("MQTT_General.md (MqttVariables)")
+        (stale if args.check else wrote).append("MQTT_General.md (GVL_MQTT)")
 
     for label, items, note in (
         ("ORPHANED - documented but no longer in the export", orphaned,

@@ -22,7 +22,7 @@
   "objects": [
     {
       "application": "Wago_PFC200_G2_Virtual",
-      "gvl": "MqttVariables",
+      "gvl": "GVL_MQTT",
       "decl_file": "g2-dali-verify.mqttvars.decl"
     },
     {

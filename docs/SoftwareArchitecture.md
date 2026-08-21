@@ -6,7 +6,7 @@ This results in a task for the main home automation logic and a separate task to
 
 ![SoftwareArchitecture](./_img/SoftwareArchitecture.svg)
 
-### **Main Task (PLC_PRG_MAIN)**
+### **Main Task (PRG_MAIN)**
 
 The main task is built using an SFC (Sequential Function Chart) with the following actions:
 
@@ -19,7 +19,7 @@ The main task is built using an SFC (Sequential Function Chart) with the followi
 Each of the Function Blocks (FBs) used to read inputs and switch outputs has a reference to an `MQTTPublishQueue` which is used to queue events to send to the MQTT broker.
 The events are sent towards the broker in the MQTT Task which has a lower priority so it never interferes with the main task which does the critical work.
 
-### **MQTT Task (PLC_PRG_MQTT)**
+### **MQTT Task (PRG_MQTT)**
 The MQTT task is built using an SFC (Sequential Function Chart) with the following actions:
 
 ![PLC_PRG_MQTT_SFC](./_img/PLC_PRG_MQTT_SFC.png)

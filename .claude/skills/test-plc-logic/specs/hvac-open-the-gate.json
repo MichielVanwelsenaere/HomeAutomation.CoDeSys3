@@ -7,46 +7,46 @@
       "label": "baseline: nothing calling for heat, and the real reason why",
       "delay_ms": 3000,
       "read": [
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable",
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error",
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE",
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SENSOR_VALID",
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SensorFault",
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.ENABLED",
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.HvacMode"
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE",
+        "PRG_HVAC.FB_THERMOSTAT_2.SENSOR_VALID",
+        "PRG_HVAC.FB_THERMOSTAT_2.SensorFault",
+        "PRG_HVAC.FB_THERMOSTAT_2.ENABLED",
+        "PRG_HVAC.FB_THERMOSTAT_2.HvacMode"
       ],
       "expect": {
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE",
-        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "FALSE",
-        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.PUMP": "FALSE"
+        "PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE",
+        "PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "FALSE",
+        "PRG_HVAC.FB_PUMP_2_COLLECTOR.PUMP": "FALSE"
       }
     },
     {
       "label": "fabricate a healthy 18 C reading, then check it survived a cycle - if the RS485 block rewrites these outputs every scan the write lasts one cycle and the rest of the suite is not runnable this way",
       "write": {
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"
       },
       "delay_ms": 2000,
       "expect": {
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SENSOR_VALID": "TRUE",
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SensorFault": "FALSE"
+        "PRG_HVAC.FB_THERMOSTAT_2.SENSOR_VALID": "TRUE",
+        "PRG_HVAC.FB_THERMOSTAT_2.SensorFault": "FALSE"
       },
       "read": [
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.MEASURED_TEMP",
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.DESIRED_TEMP"
+        "PRG_HVAC.FB_THERMOSTAT_2.MEASURED_TEMP",
+        "PRG_HVAC.FB_THERMOSTAT_2.DESIRED_TEMP"
       ]
     },
     {
       "label": "the gate is open but nothing has asked for heat yet: mode is still off, so OUT must stay FALSE. If OUT is TRUE here, the mode gate is broken, not working.",
       "expect": {
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE",
-        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "FALSE"
+        "PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE",
+        "PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "FALSE"
       },
       "read": [
-        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime",
-        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.HeatRequest"
+        "PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime",
+        "PRG_HVAC.FB_PUMP_2_COLLECTOR.HeatRequest"
       ]
     }
   ]

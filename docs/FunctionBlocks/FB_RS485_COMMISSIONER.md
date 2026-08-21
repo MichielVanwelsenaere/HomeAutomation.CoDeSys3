@@ -10,7 +10,7 @@ answer, it is inaudible.
 
 **It knows nothing about what is on the bus.** Before the bus controller is allowed to start,
 this block asks every registered device one question —
-[`RS485Device.GetCommissioning`](#the-device-answers-for-itself) — and the device answers with
+[`I_RS485_DEVICE.GetCommissioning`](#the-device-answers-for-itself) — and the device answers with
 the address to probe, the register to write, the value that puts it on this bus, and the rates
 worth trying. A device that answers `FALSE`, which is nearly all of them, costs one method call
 at startup.
@@ -61,10 +61,10 @@ makes the whole pair unusable for as long as that takes, so the scheduler must n
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Transport` | RS485Transport |  | The bus. Re-tuned during a sweep and restored afterwards, which is why this is the transport interface rather than a port number: nothing here has to know the port, parity or buffer size. |
+| `Transport` | I_RS485_TRANSPORT |  | The bus. Re-tuned during a sweep and restored afterwards, which is why this is the transport interface rather than a port number: nothing here has to know the port, parity or buffer size. |
 | `pController` | POINTER TO FB_RS485_BUSCONTROLLER |  | Bus controller holding the registered devices. Reading the same list the scheduler serves is what stops a device being commissioned but not polled, or polled but never commissioned. |
 | `BusBaudrate` | UDINT |  | What this bus runs at. Passed to each device so it can encode that rate the way its own register expects, and so a device already on it is left alone. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 | `MqttPublishPrefix` | POINTER TO STRING |  | Topic prefix the device's own `ReportTopic` is appended to. |
 | `Enable` | BOOL |  | FALSE skips commissioning entirely and releases the bus on the first cycle. The switch to reach for if a sweep ever misbehaves on a bus that was working. |
 <!-- fb-interface:end -->
@@ -77,12 +77,12 @@ second, and the scheduler only once commissioning has finished:
 ```
 (* in RS485_INIT, after every RegisterDevice call *)
 RS485Commissioner.Init(
-	Transport			:= RS485Transport,
+	Transport			:= I_RS485_TRANSPORT,
 	pController			:= ADR(RS485BusController),
 	BusBaudrate			:= BUS_BAUDRATE,
-	pMqttPublishQueue	:= ADR(MqttVariables.fbMqttPublishQueue),
-	MqttPublishPrefix	:= ADR(MqttVariables.MqttPubRS485Prefix),
-	Enable				:= RS485Variables.RS485_COMMISSION_ON_BOOT
+	pMqttPublishQueue	:= ADR(GVL_MQTT.fbMqttPublishQueue),
+	MqttPublishPrefix	:= ADR(GVL_MQTT.MqttPubRS485Prefix),
+	Enable				:= GVL_RS485.RS485_COMMISSION_ON_BOOT
 );
 ```
 
@@ -97,14 +97,14 @@ END_IF
 
 ### **The device answers for itself**
 
-`RS485Device.GetCommissioning` is the whole interface between the two halves. It is asked once,
+`I_RS485_DEVICE.GetCommissioning` is the whole interface between the two halves. It is asked once,
 at startup, and never by the scheduler:
 
 ```
 METHOD GetCommissioning : BOOL
 VAR_INPUT
 	BusBaudrate	: UDINT;
-	pRequest	: POINTER TO RS485_CommissionRequest;
+	pRequest	: POINTER TO ST_RS485_COMMISSION_REQUEST;
 END_VAR
 ```
 

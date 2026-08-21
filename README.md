@@ -61,7 +61,7 @@ To translate the byte array received by the Modbus device to their actual value 
 - [FB_RS485_ESERA_OWD_MQTT](./docs/FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)
 - [FB_RS485_DFROBOT_SEN0492_MQTT](./docs/FunctionBlocks/FB_RS485_DFROBOT_SEN0492_MQTT.md)
 
-Each of them implements the [RS485Device interface](./docs/RS485/RS485Device_Interface.md), which
+Each of them implements the [I_RS485_DEVICE interface](./docs/RS485/RS485Device_Interface.md), which
 is what lets one bus be shared between many of them.
 
 The three Eastron meter blocks announce themselves to Home Assistant over MQTT discovery:
