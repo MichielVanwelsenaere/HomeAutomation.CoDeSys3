@@ -31,6 +31,7 @@ Fast, does not launch CODESYS. Required:
 | CODESYS 3.5 SP21 (3.5.21.30) | Includes the ScriptEngine and the IronPython stdlib. No extra license needed for `--noUI` scripting. |
 | `ScriptEngine.dll` | Under `CODESYS\Common\`. The entire harness depends on it. |
 | CODESYS Control for PFC200 SL | The project's device. Without it the device will not resolve and the build fails. |
+| WAGO Device Support Package 2.0.8.9 | Supplies `WagoAppDALI`, which `FB_OUTPUT_DIMMER_DALI_MQTT` needs. Without it the build fails on that block, not just on DALI. It is not vendored — WAGO's licence forbids redistribution — so install it per machine: `docs/WagoPfcPrep.md#installing-the-wago-libraries-dali`. **`WagoAppDALI` is qualified-only**, unlike in e!COCKPIT: its types are `WagoAppDALI.typBallast`, `WagoAppDALI.FbDaliSendDimValue` and so on, so ST lifted out of an e!COCKPIT project does not compile until it is qualified. |
 | Windows PowerShell 5.1 | The scripts avoid PowerShell 7-only syntax, so either works. |
 | mosquitto clients | **Optional but the only runtime check available.** `winget install --id EclipseFoundation.Mosquitto --scope machine`. The installer registers a broker service that is not needed here (leave it stopped) and does **not** add itself to `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
 
@@ -79,7 +80,12 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 |:--|:--|
 | `./tools/ai/codesys.ps1 doctor` | Toolchain check. No CODESYS launch. |
 | `./tools/ai/codesys.ps1 tree` | Dump the project object tree. |
-| `./tools/ai/codesys.ps1 device` | Report the configured gateway, address and simulation flag. Connects to nothing. |
+| `./tools/ai/codesys.ps1 device` | Report the device tree, the configured gateway, address and simulation flag. Connects to nothing. |
+| `./tools/ai/codesys.ps1 device -AddModule <ModuleId> -Under <node> -Force` | Plug a module into the device tree. Builds first and refuses to save a project that does not build. |
+| `./tools/ai/codesys.ps1 device -AddDevice <type:id:version> -NodeName <name> [-Under <node>] -Force` | Add a device — a module, or a whole second controller at the project root. |
+| `./tools/ai/codesys.ps1 device -RemoveNode <name> -Force` | Unplug a device or module. |
+| `./tools/ai/codesys.ps1 device -RenameNode <name> -NodeName <new> -Force` | Rename a device or module. Re-record the baseline afterwards: a device's name is in every message's object path. |
+| `./tools/ai/codesys.ps1 scaffold -Scaffold <spec.json> -Force` | Create GVLs, programs and tasks inside an application. |
 | `./tools/ai/codesys.ps1 scan` | List PLCs answering on each gateway. Read-only, needs no project. |
 | `./tools/ai/codesys.ps1 download -Force` | Full download of the real project to the real PLC, then start it. |
 | `./tools/ai/codesys.ps1 export` | Rewrite `src/Exports/PLCopen.xml` from the project. |
@@ -124,11 +130,16 @@ lifted out of another project needs both.
    about pins from a stale export bakes in wrong interfaces.
 
 2. **Record a baseline** once per session: `verify -Baseline`. The project builds
-   with 8 pre-existing warnings — three OSCAT `CONSTANTS_SETUP` string-length
-   warnings, three `IP_CONTROL2` sign conversions, `PersistentVars`, and one
-   genuine sign conversion in `DMX_SEND` line 70. With a baseline recorded,
-   `verify` prints a `NEW vs baseline` section so your own changes stand out.
-   Re-record after a library or CODESYS version change.
+   with 9 pre-existing warnings — three OSCAT `CONSTANTS_SETUP` string-length
+   warnings, three `IP_CONTROL2` sign conversions, `PersistentVars`, one genuine
+   sign conversion in `DMX_SEND` line 70, and one for
+   `PRG_DALI_VERIFY.Dimmer.DimValue` having no persistent list on
+   `Wago_PFC200_G2_Virtual`. That last one is **load-bearing**: it is only
+   reported because the DALI block really is compiled there, so if it ever
+   disappears, the verification application has stopped verifying. The
+   application is never downloaded, so nothing needs retaining. With a baseline
+   recorded, `verify` prints a `NEW vs baseline` section so your own changes
+   stand out. Re-record after a library or CODESYS version change.
 
 3. **Read** the current code from `src/Exports/PLCopen.xml`: declarations, ST
    bodies, methods and the task configuration are all there.
@@ -358,6 +369,96 @@ answers `get_all_libraries`, so this should not need rediscovering.
 Also: a repository entry's `displayname` is the **full** `"IoDrvModbus, 4.5.0.0
 (CODESYS)"` string, not a bare name. Grouping on it directly yields one entry
 per version and matches nothing.
+
+## The device tree
+
+`device -AddModule` plugs a K-bus module in, which was the last part of the
+project only the IDE could reach:
+
+```powershell
+./tools/ai/codesys.ps1 device                                   # read-only: the tree
+./tools/ai/codesys.ps1 device -AddModule '0287_75x_647' -Under 'Pfc200Bus' -Force
+```
+
+A whole device, including a second controller, goes in the same way — but a
+device carries its own identification, so it has to be given:
+
+```powershell
+# type:id:version, read out of the device description
+./tools/ai/codesys.ps1 device -AddDevice '4096:1006 1209:6.4.5.11' -NodeName 'Wago_PFC200_G2_Virtual' -Force
+./tools/ai/codesys.ps1 device -AddDevice '32776:07530647000000002424:2.0.0.20' -Under 'Kbus' -NodeName 'DALI_753_647' -Force
+./tools/ai/codesys.ps1 device -RemoveNode '_75x_647' -Force        # and back out again
+```
+
+**A second controller is how an otherwise-uncompiled block gets covered.** A
+project can hold several devices, and an application that is never downloaded is
+still compiled. Adding a controller creates `Plc Logic/Application` with a
+Library Manager and nothing else, so `scaffold` fills it in:
+
+```powershell
+./tools/ai/codesys.ps1 scaffold -Scaffold tools/ai/scaffold/g2-dali-verify.json -Force
+```
+
+A scaffold spec creates GVLs, programs and tasks inside a named application,
+idempotently by name, and it takes `*_file` fragments exactly as an edits spec
+does. `Wago_PFC200_G2_Virtual` in this project is the worked example.
+
+Four things learned building that, each of which cost a run:
+
+- **A pool POU still needs an instance.** Landing a block in the project is not
+  the same as getting it compiled; see *A clean build does not always mean
+  checked* below. That is the whole reason the second controller exists.
+- **Task priority is capped per device.** The WAGO G2 description sets
+  `maxtaskpriority` to 15, and CODESYS rejects anything higher with *"The task
+  priority is invalid"* without mentioning a range. Read the limit from
+  `<ts:setting name="maxtaskpriority">` in the device description.
+- **Libraries resolve from the project-level Library Manager.** A program in a
+  second application referenced `WagoAppDALI` and `FB_OUTPUT_DIMMER_DALI_MQTT`
+  with no library reference of its own and compiled. What does *not* carry over
+  is a GVL: those belong to an application, so the second one needs its own
+  `MqttVariables` — only the two constants `FB_MQTT_BASE` actually reads.
+- **`dir()` on a ScriptEngine object returns nothing**, so the usual way of
+  finding an undocumented member does not work here. `probe` dumps it anyway, and
+  it comes back empty; a name has to be tried and read back instead. That is what
+  a scaffold item's `"set"` is for.
+
+Three things about `-AddModule`, all of which cost a run to learn:
+
+- **A module is not identified the way a device is.** `add` takes the *parent's*
+  `(type, id, version)` plus the module's own `ModuleId`, which is why every
+  module under `Pfc200Bus` reports the bus's identification (`288`,
+  `0000 0001`, `4.19.0.0`) and differs only in name. The harness therefore reads
+  the identification off the parent instead of asking for it — there is exactly
+  one right answer and it is already in the project.
+- **ModuleIds come from the device description**, not from a catalogue the API
+  exposes. For this project's bus that file is
+  `C:\ProgramData\CODESYS\Devices\288\0000 0001\4.19.0.0\device.xml`, or the copy
+  under `CODESYS Control for PFC200 SL\...\WagoPFC200Internalbus.devdesc.xml`;
+  grep it for `<ModuleId>`. `0287_75x_647` is the 753-647 DALI multi-master.
+- **`-Under` prefers an exact node name.** Without that precedence `Pfc200Bus`
+  is ambiguous by way of its own children, whose *paths* all contain it — the
+  obvious query refused by the modules already on the bus.
+
+Writing needs `-Force`, and like `libs` it builds first and refuses to save a
+project that does not build.
+
+### Two things a second application broke, and how they are fixed
+
+Both were latent for as long as the project had exactly one application, and both
+made the harness quietly report less than it had checked:
+
+- **`build()` is incremental, `rebuild()` is not.** An application CODESYS
+  considers up to date compiles nothing and says nothing, while still landing in
+  `built`. A baseline recorded straight after a save therefore came back with the
+  new application's messages only. `build_and_collect` now calls `rebuild()`.
+- **A build CLEARS the message store.** Sweeping once after building every
+  application returned the *last* one's messages and dropped the rest — which is
+  how a baseline came back with none of this project's eight known warnings.
+  Messages are now collected after each application and accumulated.
+
+The second fix also surfaced the library `Information` messages (MQTT's `TODO`
+and `semaphore` notes) that had been swallowed all along. They are in the
+baseline now, so they do not read as new.
 
 ## A clean build does not always mean checked
 

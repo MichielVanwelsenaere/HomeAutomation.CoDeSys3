@@ -1,0 +1,11 @@
+PROGRAM PRG_DALI_VERIFY
+VAR
+	// A ballast on the first 753-647 of this device, short address 0. The values
+	// are arbitrary: nothing here is downloaded. What matters is that every type
+	// and every call in the DALI chain is compiled on every build.
+	Ballast : WagoAppDALI.typBallast := (bAddress := 0, xIsGroup := FALSE, bPortDALI := 1);
+
+	// The master, and the block under test.
+	DaliMaster : WagoAppDALI.FbDaliMaster;
+	Dimmer : FB_OUTPUT_DIMMER_DALI_MQTT;
+END_VAR

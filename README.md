@@ -83,9 +83,18 @@ Three more blocks sit underneath:
   substituted without touching any device block.
 
 ## DALI
-Control DALI drivers using the WAGO DALI modules (753-647). Requires a G2 PFC device, and is therefore not part of the reference project — it is kept as a standalone export that can be imported into a G2 project.
+Control DALI drivers using the WAGO DALI multi-master module (753-647). Needs the
+`WagoAppDALI` library, which WAGO's licence does not allow this repository to ship —
+[install it once per engineering PC](./docs/WagoPfcPrep.md#installing-the-wago-libraries-dali)
+before building.
 
-- [FB_OUTPUT_DIMMER_DALI_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_DALI_MQTT.md) (archived)
+Two caveats, both on the function block's page: **only a G2 WAGO device can drive
+the module under the CODESYS runtime**, because `FbDaliMaster` binds to a port
+instance that only WAGO's own device description provides, and the whole feature
+is **untested on hardware** — compile-verified on every build, never run against
+a real ballast.
+
+- [FB_OUTPUT_DIMMER_DALI_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_DALI_MQTT.md)
 
 ## DMX
 Control DMX drivers.

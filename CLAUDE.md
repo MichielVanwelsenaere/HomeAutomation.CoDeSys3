@@ -14,7 +14,6 @@ explains the layering. Function blocks are documented one per page under
 |:--|:--|
 | `src/HomeAutomation.project` | The real project. A **binary** CODESYS file. |
 | `src/Exports/PLCopen.xml` | Generated PLCopen XML export of all IEC content. Readable. |
-| `src/Exports/archive/` | Standalone exports of blocks not in the reference project (DALI). |
 | `src/Libraries/` | Vendored `.library` dependencies (MQTT, OSCAT, PRO_JSON). |
 | `tools/ai/` | Headless CODESYS driver. |
 | `.ai/` | Gitignored scratch: candidate blocks, sandbox copy, compiler reports. |
@@ -49,6 +48,7 @@ Two things worth knowing before you start, both covered in detail by
   | Dependency | Needed by | Notes |
   |:--|:--|:--|
   | CODESYS 3.5 SP21 (3.5.21.30) + PFC200 SL package | everything | No licence needed for `--noUI` scripting. |
+  | WAGO Device Support Package 2.0.8.9 | the build itself, since the DALI block landed | Supplies `WagoAppDALI`. **Not vendored** — WAGO's licence forbids redistributing it, so it is installed per machine: `docs/WagoPfcPrep.md#installing-the-wago-libraries-dali`. The version is pinned to the CODESYS patch level. |
   | Python 3.12 | `update-fb-docs` only | **Installed** at `C:\Program Files\Python312-arm64`. Invoke it as **`py`**. |
   | mosquitto clients | `Mqtt-Snapshot.ps1` — the only runtime check there is | Not on `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
 
@@ -286,6 +286,28 @@ someone will want to change does not live in an initialiser at all.
 
 And whatever you do, **confirm with `export` and `structValue`, never with `info`**
 — `info` returns the text, which is exactly the half that lies.
+
+## An application's dynamic-memory setting is IDE-only
+
+Adding a device, and filling its application with a GVL, a program and a task,
+are all scriptable — see `device -AddDevice` and `scaffold` in `codesys-loop`.
+**Enabling dynamic memory on an application is not.** Any application that
+compiles a block reaching `FB_MQTT_BASE` needs it, because the MQTT library's
+`CallbackCollector` uses `__NEW`, and without it the build fails with:
+
+    No memory for dynamic object creation defined for application 'X.Application'
+    <MQTT/Function Blocks/CallbackFBs/Callback Collector/CallbackCollector/put>
+
+The setting is *Application → Properties → Dynamic memory settings → Use dynamic
+memory allocation*. `Wago_PFC200_G1_Lab`'s application has it; a newly added device's
+does not. Three property names were tried from a script — `dynamic_memory_size`,
+`SizeForDynamicMemory`, `size_for_dynamic_memory` — and all three were rejected
+*and* unreadable, so this is not a naming problem. Nor can the name be discovered:
+**`dir()` on a ScriptEngine object returns nothing at all**, which is worth
+knowing before spending a run on it.
+
+It is a one-time click that then lives in the committed binary forever, like the
+`Wago_PFC200_G2_Virtual` device it belongs to.
 
 ## Open: an edit that reports success and does not take effect
 

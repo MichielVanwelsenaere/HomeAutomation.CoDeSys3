@@ -1,5 +1,7 @@
 ## FB_OUTPUT_DIMMER_DALI_MQTT
+<!-- fb-badge:start -->
 ![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
+<!-- fb-badge:end -->
 
 ### **General**
 
@@ -9,37 +11,65 @@ DALI configuration via the Wago DALI tool and creation of the `typBallast` is ex
 
 ----------------------------
 
-:rotating_light: **Not part of the reference project.** This function block needs the WAGO DALI module and the WAGO DALI libraries, which are only available on **G2** PFC devices (see [Choosing and preparing your WAGO PFC device](../WagoPfcPrep.md)). The CODESYS conversion was done on G1 hardware, so the block could not be built or tested and has been removed from `HomeAutomation.project`; the call sites in `PLC_PRG_MAIN` are commented out.
-
-It is kept as a standalone PLCopen export so it can be imported into a G2 project: **[src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml](../../src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml)**. See [Restoring it into a project](#restoring-it-into-a-project) below. It is unverified on CODESYS — please report back if you get it running.
+:rotating_light: **Needs the `WagoAppDALI` library, which is not vendored in this
+repository.** WAGO's software licence forbids redistributing it, so it has to be
+installed once per engineering PC from WAGO's own package — see
+[Installing the WAGO libraries](../WagoPfcPrep.md#installing-the-wago-libraries-dali).
+Without it the project does not build at all.
 
 ----------------------------
 
-### **Restoring it into a project**
+:rotating_light: **Untested on hardware.** Everything here is compile-verified
+only. No ballast has been addressed, no group configured and no fade timing
+measured on a real `753-647` — so treat the runtime behaviour as unproven, and
+please report back if you get it running. What *is* checked, on every build, is
+that the whole chain compiles: see the verification device below.
 
-1. In CODESYS, select the POUs top level item and choose *Project* &rarr; *Import PLCopenXML*.
-2. Browse to [src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml](../../src/Exports/archive/FB_OUTPUT_DIMMER_DALI_MQTT.xml) and import it.
-3. Resolve the dependencies it expects:
-   - `FB_MQTT_BASE` and `FB_MqttPublishQueue` — already in the reference project.
-   - `MQTT.MQTT_SUBSCRIBE_CALLBACK`, `MQTT.CallbackCollector`, `MQTT.CALLBACK_DATA` — the CODESYS MQTT library.
-   - `typBallast`, `FbDaliSendDimValue`, `FbDaliSendFadeRate`, `FbDaliSendFadeTime` — the WAGO DALI library, **G2 only**.
-4. Uncomment the DALI blocks in the `MAIN_INIT` and `DALI` actions of `PLC_PRG_MAIN`.
+----------------------------
 
+:warning: **Only a G2 WAGO device can drive the DALI module under the CODESYS
+runtime.** Not a licensing detail and not a firmware version to work around — it
+follows from where the port instance comes from:
+
+| | G1 (750-8202, *CODESYS Control for PFC200 SL*) | G2 (750-821x, e!RUNTIME FW30+) |
+|:--|:--|:--|
+| `753-647` can be put on the bus | yes, it is in the SL K-bus catalogue | yes, from WAGO's device description |
+| What the bus node gives you | 24 raw input + 24 raw output bytes, no driver function block | a `FbModule_753_647` instance |
+| `FbDaliMaster.I_Port` can be bound | **no** — nothing implements `WagoTypesModule_753_647.I_Port_753_647` | yes |
+| Result | ballast blocks compile, nothing reaches the DALI line | works |
+
+`I_Port` wants a `WagoTypesModule_753_647.I_Port_753_647`, and only WAGO's own
+device description creates one — which needs e!RUNTIME firmware, so a G2 device.
+The interface is a stateful mailbox abstraction (level cache, sensor events,
+command tokens, sequence IDs), not a byte port, so implementing it over the SL
+runtime's 24 raw bytes would mean re-implementing WAGO's module protocol. That
+was considered and rejected.
+
+That is why the project carries a **second controller**, `Wago_PFC200_G2_Virtual`: a
+750-8212 with a `753-647` on its K-bus, which is never downloaded and exists only
+so `PRG_DALI_VERIFY` can instantiate the master, bind `I_Port` to the real module
+and have the compiler check the whole chain on every build. A project can hold
+several devices, and an application that is never downloaded is still compiled —
+which is what keeps this block from drifting when `FB_MQTT_BASE` or the discovery
+structs change. `tools/ai/scaffold/g2-dali-verify.json` is how that application
+was built and how to rebuild it.
+
+----------------------------
+
+<!-- fb-interface:start -->
 ### **Block diagram**
 
 ```text
-             ┌────────────────────────────┐
-             │ FB_OUTPUT_DIMMER_DALI_MQTT │
-             ├────────────────────────────┤
-TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
-      BOOL ──┤ TOGGLE                     │
-      BOOL ──┤ P_LONG                     │
-      BOOL ──┤ PRIO_HIGH                  │
-      BOOL ──┤ PRIO_LOW                   │
-             └────────────────────────────┘
+                         ┌────────────────────────────┐
+                         │ FB_OUTPUT_DIMMER_DALI_MQTT │
+                         ├────────────────────────────┤
+WagoAppDALI.typBallast ──┤ BALLAST         STATUS_LED ├── BOOL
+                  BOOL ──┤ TOGGLE                     │
+                  BOOL ──┤ P_LONG                     │
+                  BOOL ──┤ PRIO_HIGH                  │
+                  BOOL ──┤ PRIO_LOW                   │
+                         └────────────────────────────┘
 ```
-
-> This diagram is a frozen snapshot of the archived export, not generated from `PLCopen.xml` like the other function blocks — the block is no longer in the project to generate it from.
 
 ### **Interface**
 
@@ -47,7 +77,7 @@ TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `BALLAST` | typBallast | The `typBallast` this function block drives. |
+| `BALLAST` | WagoAppDALI.typBallast | The `typBallast` this function block drives. |
 | `TOGGLE` | BOOL | Connect to one or more `SINGLE` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
 | `P_LONG` | BOOL | Connect to one or more `P_LONG` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
 | `PRIO_HIGH` | BOOL | When high the light is set to maximum brightness, overriding the other inputs. |
@@ -61,6 +91,13 @@ TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
 
 ### **Methods**
 
+**`ConfigureFunctionBlock`** — Overrides the default behaviour characteristics. Only needed when the defaults do not suit.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `FadeTime` | BYTE |  | Driver fade time, see the table below. |
+| `FadeRate` | BYTE |  | Driver fade rate, see the table below. |
+
 **`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
 
 | Parameter | Type | Default | Description |
@@ -70,14 +107,21 @@ TYPBALLAST ──┤ BALLAST         STATUS_LED ├── BOOL
 | `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 | `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
 
-**`ConfigureFunctionBlock`** — Overrides the default behaviour characteristics. Only needed when the defaults do not suit.
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `FadeTime` | BYTE |  | Driver fade time, see the table below. |
-| `FadeRate` | BYTE |  | Driver fade rate, see the table below. |
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 
 **`PublishReceived`** — Callback invoked by the callback collector when a message arrives on the subscribed topic. Not called directly.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Data` | MQTT.CALLBACK_DATA |  | Received message, supplied by the callback collector. |
+<!-- fb-interface:end -->
 
 ### Fade Time and Fade Rate 
 
@@ -134,7 +178,7 @@ Note that the function block also accepts float values for setting the dimmer ou
 - DALI global variable initiation:
 ```
 VAR_GLOBAL
-	M1_Light1: typBallast:=(bAddress:=0,xIsGroup:=FALSE,bPortDALI:=1);
+	M1_Light1: WagoAppDALI.typBallast:=(bAddress:=0,xIsGroup:=FALSE,bPortDALI:=1);
 END_VAR
 ```
 
@@ -142,7 +186,7 @@ END_VAR
 ```
 MqttPubDimmerPrefix			:STRING(100) := 'Devices/PLC/Lab/Out/Dimmers/';
 MqttSubDimmerPrefix			:STRING(100) := 'Devices/PLC/Lab/In/Dimmers/';
-M1_DALIMASTER				    :FbDaliMaster;
+M1_DALIMASTER				    :WagoAppDALI.FbDaliMaster;
 FB_DALI_1_ADR0				  :FB_OUTPUT_DIMMER_DALI_MQTT;
 ```
 
@@ -180,26 +224,4 @@ FB_DALI_1_ADR0.InitMqttDiscovery(
     name := '001. Office strip cold',				(* The name shown in the Home Assistant front-end *)
     Device := ADR(PLC_Device),							(* The device shown in Home Assistant *)
 );
-```
-
-### **Home Assistant YAML**
-If [MQTT discovery](../AdditionalFunctionality/MQTT_Discovery.md) is not working for you, you can use the YAML code below in your [MQTT lights](https://www.home-assistant.io/components/light.mqtt/) config:
-
-```YAML
-mqtt:
-  light:
-  - name: "Kitchen"
-    state_topic: "Devices/PLC/Lab/Out/Dimmers/FB_DALI_1_ADR0"
-    command_topic: "Devices/PLC/Lab/In/Dimmers/FB_DALI_1_ADR0"
-    brightness_command_topic: "Devices/PLC/Lab/In/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
-    brightness_state_topic: "Devices/PLC/Lab/Out/Dimmers/FB_DALI_1_ADR0/BRIGHTNESS"
-    on_command_type: "brightness"
-    payload_on: "ON"
-    payload_off: "OFF"
-    optimistic: false
-    brightness_scale: 100
-    qos: 2
-    availability: "Devices/PLC/Lab/availability"
-    payload_not_available: "offline"
-    payload_available: "online"
 ```

@@ -1,0 +1,12 @@
+{attribute 'qualified_only'}
+VAR_GLOBAL CONSTANT
+	// The only two members FB_MQTT_BASE and FB_MqttPublishQueue read, and so the
+	// only two this application needs: it exists to compile the DALI chain, not
+	// to speak MQTT. The real MqttVariables lives in Wago_PFC200_G1_Lab's application,
+	// and a GVL cannot be shared between applications.
+	//
+	// If these drift from the real ones nothing breaks here - they only size
+	// strings, and this application is never downloaded.
+	MQTT_TOPIC_LEN : INT := 160;
+	MQTT_SUFFIX_LEN : INT := 64;
+END_VAR

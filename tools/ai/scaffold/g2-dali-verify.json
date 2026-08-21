@@ -1,0 +1,42 @@
+{
+  "_comment": [
+    "Builds the DALI verification application on the Wago_PFC200_G2_Virtual device.",
+    "That device exists to be compiled, never downloaded: FbDaliMaster binds to a",
+    "WagoTypesModule_753_647.I_Port_753_647, which only WAGO's own device",
+    "description creates, and that description does not fit the G1 lab device's bus.",
+    "",
+    "Run it with:",
+    "  ./tools/ai/codesys.ps1 scaffold -Scaffold tools/ai/scaffold/g2-dali-verify.json -Force",
+    "",
+    "It needs ONE thing done in the IDE first, once, because the ScriptEngine",
+    "cannot reach the setting: on the application's Properties, enable",
+    "'Use dynamic memory allocation' under 'Dynamic memory settings'. Without it",
+    "the build fails with 'No memory for dynamic object creation defined for",
+    "application' in the MQTT library's CallbackCollector, which the DALI block",
+    "reaches through FB_MQTT_BASE.",
+    "",
+    "priority 15 is not a preference: the WAGO G2 device description caps",
+    "maxtaskpriority at 15, and CODESYS reports anything higher as 'The task",
+    "priority is invalid' without mentioning the range."
+  ],
+  "objects": [
+    {
+      "application": "Wago_PFC200_G2_Virtual",
+      "gvl": "MqttVariables",
+      "decl_file": "g2-dali-verify.mqttvars.decl"
+    },
+    {
+      "application": "Wago_PFC200_G2_Virtual",
+      "program": "PRG_DALI_VERIFY",
+      "decl_file": "g2-dali-verify.decl",
+      "body_file": "g2-dali-verify.st"
+    },
+    {
+      "application": "Wago_PFC200_G2_Virtual",
+      "task": "DaliVerify",
+      "interval": "T#200ms",
+      "priority": 15,
+      "calls": ["PRG_DALI_VERIFY"]
+    }
+  ]
+}
