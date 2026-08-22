@@ -93,6 +93,8 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 | `./tools/ai/codesys.ps1 verify` | Import `.ai/candidates/*.xml` into a sandbox copy, build, report. |
 | `./tools/ai/codesys.ps1 simulate` | Download to a simulated PLC and run a test spec. **Currently blocked — see below.** |
 | `./tools/ai/codesys.ps1 apply -Force` | Import candidates into the **real** project and save. |
+| `./tools/ai/codesys.ps1 rename -Map <map.json> -DryRun` | Report what a rename would touch. Writes nothing, builds nothing. |
+| `./tools/ai/codesys.ps1 rename -Map <map.json> -Force` | Rename objects and identifiers, rewriting every reference. Refuses to save unless it builds. |
 | `./tools/ai/codesys.ps1 probe` | Dump real .NET signatures of the scripting API. |
 | `./tools/ai/codesys.ps1 info` | Read-only: IDE version, libraries, devices, and a hash of every object's code. |
 | `./tools/ai/codesys.ps1 compare -Project A -Against B` | CODESYS's own object-level diff between two projects. |
@@ -131,8 +133,8 @@ lifted out of another project needs both.
 
 2. **Record a baseline** once per session: `verify -Baseline`. The project builds
    with 9 pre-existing warnings — three OSCAT `CONSTANTS_SETUP` string-length
-   warnings, three `IP_CONTROL2` sign conversions, `PersistentVars`, one genuine
-   sign conversion in `DMX_SEND` line 70, and one for
+   warnings, three `IP_CONTROL2` sign conversions, `GVL_PERSISTENT`, one genuine
+   sign conversion in `PRG_DMX_SEND` line 70, and one for
    `PRG_DALI_VERIFY.Dimmer.DimValue` having no persistent list on
    `Wago_PFC200_G2_Virtual`. That last one is **load-bearing**: it is only
    reported because the DALI block really is compiled there, so if it ever
@@ -175,8 +177,8 @@ ScriptEngine's textual API and is applied by both `verify` and `apply`:
       "skip_if_contains": "FriendlyName" },
     { "pou": "FB_OUTPUT_BINARY_MQTT", "body_prepend_file": "prologue.st",
       "skip_if_contains": "self-wiring prologue" },
-    { "pou": "PLC_PRG_MAIN",  "decl_replace_file": "main.decl" },
-    { "pou": "PLC_PRG_MAIN",  "member": "MAIN_INIT", "body_replace_file": "main_init.st" }
+    { "pou": "PRG_MAIN",  "decl_replace_file": "main.decl" },
+    { "pou": "PRG_MAIN",  "member": "MAIN_INIT", "body_replace_file": "main_init.st" }
 ] }
 ```
 
@@ -197,7 +199,7 @@ Notes that cost real time to rediscover:
 - `*_file` paths resolve relative to the spec file, then to the repo root. Keep
   fragments in `.ai/edits/` — **never `.ai/work`, which `verify` deletes.**
 - **A name stops identifying a POU as soon as a project has two controllers.**
-  An installation with two PFCs has two `PLC_PRG_MAIN`, both real, both owning
+  An installation with two PFCs has two `PRG_MAIN`, both real, both owning
   text, and every edit addressed by name alone is then refused as ambiguous.
   `"path": "Wago_G1_Annex/"` picks one. The refusal is the useful behaviour —
   the alternative is a coin flip over which building gets rewritten — so do not
@@ -206,7 +208,7 @@ Notes that cost real time to rediscover:
 - `insert()` takes the **offset first**, the reverse of the shipped stub. Same trap
   as `export_xml`.
 - **`create_method` works on an INTERFACE too**, which is how a method reaches
-  `RS485Device` or `RS485Transport` without hand-authoring interface XML: the
+  `I_RS485_DEVICE` or `I_RS485_TRANSPORT` without hand-authoring interface XML: the
   interface object owns text, so `create_method` plus `decl_replace` is the whole
   job. Every implementer then needs the same method or the build fails by name —
   which is the useful failure, and how the six RS485 device blocks were kept in
@@ -222,6 +224,58 @@ Notes that cost real time to rediscover:
   standalone as a control. A `verify -Baseline` never applies edits.
 - Generating the fragments from a script (see `.ai/edits/gen.ps1` in history) beats
   hand-writing 14 near-identical prologues.
+
+## Renaming: `rename`, not edits
+
+Renaming is its own task because `node.rename()` renames an object and updates
+**nothing** that refers to it — CODESYS's IDE refactoring is not exposed to the
+ScriptEngine. The references are the harness's job:
+
+```powershell
+./tools/ai/codesys.ps1 rename -Map tools/ai/rename/179-objects.json -DryRun
+./tools/ai/codesys.ps1 rename -Map tools/ai/rename/179-objects.json -Force
+```
+
+The map holds `objects` (a type, block, program or GVL — the name is
+project-unique, so every occurrence of the token is that object) and
+`identifiers` (variables inside one declaring object). An identifier group's
+`mode` decides how far it reaches:
+
+| mode | rewrites | right for |
+|:--|:--|:--|
+| `local` | the declaring object and its methods and actions | a program's own instances, a block's internals |
+| `qualified` | also `Owner.name` project-wide | GVL members, enumeration values |
+| `loose` | also `.name` and `name :=` project-wide | a function block's pins, whose qualifier is an instance name nothing can enumerate |
+
+Five things learned building it, all of which cost a run:
+
+- **A program rename is two renames.** The task configuration calls a program
+  through a separate object that carries the program's name and owns no code, so
+  every text-owning filter misses it. Renaming the program alone gives
+  `Identifier 'PLC_PRG_MAIN' not defined <.../Task Configuration/MainTask>`. The
+  task now renames the call twin too, and reports it as `(task call)`.
+- **One name can mean several objects.** Two applications mean two
+  `MqttVariables`, and `FB_MQTT_BASE` declares
+  `STRING(GVL_MQTT.MQTT_TOPIC_LEN)`, so the name has to resolve in both.
+  Ambiguity is refused unless the map says `{"new": ..., "all": true}` — or
+  `"path"` to pick one.
+- **A shadow is the one mistake that compiles.** `PRG_DALI_VERIFY` declared an
+  instance called `Dimmer` while the enumeration `Dimmer` was becoming
+  `E_DIMMER`; a blind sweep renames the instance too, consistently, and the
+  build stays clean with a variable now called `E_DIMMER`. The task refuses an
+  object rename whose old name is also declared as a variable, and identifier
+  groups run **first** so one map can move the variable out of the way.
+- **Dry-run counts are an upper bound.** Passes do not compose without writing,
+  so a map that renames both a variable and an object of the same name
+  double-counts: 515 references in `-DryRun` versus 473 actually rewritten.
+- **String literals are never touched, comments always are.** Topics, discovery
+  keys and JSON live in literals; a comment still naming the old object is worse
+  than no comment.
+
+Afterwards: `verify -Baseline` (object paths moved, so the old baseline reads
+every unchanged warning as NEW), `export`, then `update-fb-docs`. The docs
+generator keys the GVL region on the list's name, so a GVL rename means editing
+`gen_fb_docs.py` too.
 
 ## Authoring candidates: what the importer actually accepts
 
@@ -275,9 +329,9 @@ Established by compile probe, not by reading documentation:
   malformed `FB_init` that failed in four different ways at once. For `FB_init`
   that means `<returnType><BOOL /></returnType>` plus `bInitRetains`,
   `bInCopyCode` and your own parameters as `<inputVars>`.
-- **`qualified_only` is set on every GVL here** (`MqttVariables`,
-  `DALIVariables`, `PersistentVars`, `DMXVariables`, `RS485Variables`), so a POU
-  body must write `MqttVariables.fbMqttPublishQueue`, never the bare name.
+- **`qualified_only` is set on every GVL here** (`GVL_MQTT`,
+  `GVL_DALI`, `GVL_PERSISTENT`, `GVL_DMX`, `GVL_RS485`), so a POU
+  body must write `GVL_MQTT.fbMqttPublishQueue`, never the bare name.
 
 ### FB_init and inheritance, as this compiler actually behaves
 
@@ -290,7 +344,7 @@ Established by compile probe, not by reading documentation:
   another POU is not something the compiler checks. Prefer storing only literals
   passed into `FB_init` and doing GVL-dependent wiring lazily on the first cycle,
   which is order-proof.
-- Precedent worth copying: `MqttVariables.PLC_Device` is declared inside the GVL
+- Precedent worth copying: `GVL_MQTT.PLC_Device` is declared inside the GVL
   with a full `FB_init` argument list including `pMqttPublishQueue := ADR(fbMqttPublishQueue)`.
 
 ## Instantiating a block the harness cannot
@@ -416,7 +470,7 @@ Four things learned building that, each of which cost a run:
   second application referenced `WagoAppDALI` and `FB_OUTPUT_DIMMER_DALI_MQTT`
   with no library reference of its own and compiled. What does *not* carry over
   is a GVL: those belong to an application, so the second one needs its own
-  `MqttVariables` — only the two constants `FB_MQTT_BASE` actually reads.
+  `GVL_MQTT` — only the two constants `FB_MQTT_BASE` actually reads.
 - **`dir()` on a ScriptEngine object returns nothing**, so the usual way of
   finding an undocumented member does not work here. `probe` dumps it anyway, and
   it comes back empty; a name has to be tried and read back instead. That is what
@@ -513,8 +567,8 @@ The spec format, for when it is usable — or as the model for a device-side tes
 
 ```json
 { "steps": [
-    { "label": "press",  "write": {"MqttVariables.clientID": "'test'"}, "delay_ms": 300 },
-    { "label": "assert", "expect": {"MqttVariables.clientID": "test"} }
+    { "label": "press",  "write": {"GVL_MQTT.clientID": "'test'"}, "delay_ms": 300 },
+    { "label": "assert", "expect": {"GVL_MQTT.clientID": "test"} }
 ] }
 ```
 
@@ -552,9 +606,9 @@ before and is absent now means an entity Home Assistant still shows and nothing
 publishes to any more — exactly the silent regression an `EntityType` mistake
 causes, and exactly what a clean compile cannot tell you.
 
-Broker for this project is `10.101.1.11:1883` (`MqttVariables.broker`), and the
+Broker for this project is `10.101.1.11:1883` (`GVL_MQTT.broker`), and the
 trees worth watching are `homeassistant/#` and `Devices/PLC/Lab/#`
-(`MqttVariables.MqttBaseTopic`). Credentials via `-User` / `-Password` if the
+(`GVL_MQTT.MqttBaseTopic`). Credentials via `-User` / `-Password` if the
 broker needs them.
 
 ## Downloading to the real PLC

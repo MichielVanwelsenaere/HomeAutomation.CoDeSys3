@@ -1,0 +1,74 @@
+{
+  "_comment": [
+    "Issue #179, object renames. Every object matches docs/CodingStyle.md after this:",
+    "PREFIX_ + SCREAMING_SNAKE, with the prefix naming the kind.",
+    "",
+    "Not in here, deliberately:",
+    "  - The 23 documented FB_* blocks. They already comply, which is why the",
+    "    SCREAMING_SNAKE choice was made: their names are the project's public API,",
+    "    their doc filenames and every installation's references.",
+    "  - The 19 MQTT_DISCOVERY_* structs. They are wire format - STRUCT_TO_JSON",
+    "    publishes their member names as Home Assistant discovery keys - so they are",
+    "    exempt from the convention both ways. See docs/CodingStyle.md.",
+    "  - The 12 SFC action names. They already comply, and an SFC chart cannot be",
+    "    edited by script at all.",
+    "",
+    "MqttVariables carries \"all\": true because there are two of them - the G1 lab",
+    "application and the G2 verification application each have one, and FB_MQTT_BASE",
+    "declares STRING(MqttVariables.MQTT_TOPIC_LEN), so the name has to resolve in",
+    "both. Renaming one and not the other would break whichever was left behind.",
+    "",
+    "The two identifier groups are not stylistic tidying, they are prerequisites:",
+    "both variables shadow an object about to take their name, and a blind sweep",
+    "would rename the variable too - consistently enough to compile. They take the",
+    "instance form the convention asks for, which is where they were headed anyway."
+  ],
+  "objects": {
+    "MQTT_MESSAGE": "ST_MQTT_MESSAGE",
+    "RS485_CommissionRequest": "ST_RS485_COMMISSION_REQUEST",
+    "RS485_Step": "ST_RS485_STEP",
+
+    "Dimmer": "E_DIMMER",
+    "DIMMER_CURVE": "E_DIMMER_CURVE",
+    "HvacModes": "E_HVAC_MODE",
+    "RS485_EASTRON_SDM_Devices": "E_RS485_EASTRON_SDM_DEVICE",
+    "RS485_StepState": "E_RS485_STEP_STATE",
+    "RS485_WorkLevel": "E_RS485_WORK_LEVEL",
+
+    "RS485_ReadBuffer": "A_RS485_READ_BUFFER",
+    "RS485_StepList": "A_RS485_STEP_LIST",
+
+    "RS485Device": "I_RS485_DEVICE",
+    "RS485Transport": "I_RS485_TRANSPORT",
+
+    "FC_StripJsonRoot": "F_STRIP_JSON_ROOT",
+    "SwapWordsToReal": "F_SWAP_WORDS_TO_REAL",
+
+    "FB_MqttPublishQueue": "FB_MQTT_PUBLISH_QUEUE",
+    "FB_MqttPublishWorker": "FB_MQTT_PUBLISH_WORKER",
+
+    "MqttVariables": { "new": "GVL_MQTT", "all": true },
+    "DMXVariables": "GVL_DMX",
+    "DALIVariables": "GVL_DALI",
+    "RS485Variables": "GVL_RS485",
+    "PersistentVars": "GVL_PERSISTENT",
+
+    "PLC_PRG_MAIN": "PRG_MAIN",
+    "PLC_PRG_HVAC": "PRG_HVAC",
+    "PLC_PRG_MQTT": "PRG_MQTT",
+    "PLC_PRG_RS485": "PRG_RS485",
+    "DMX_SEND": "PRG_DMX_SEND"
+  },
+  "identifiers": [
+    {
+      "object": "PLC_PRG_RS485",
+      "mode": "local",
+      "map": { "RS485Transport": "fbRs485Transport" }
+    },
+    {
+      "object": "PRG_DALI_VERIFY",
+      "mode": "local",
+      "map": { "Dimmer": "fbDimmer" }
+    }
+  ]
+}

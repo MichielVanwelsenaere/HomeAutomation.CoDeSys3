@@ -7,13 +7,13 @@ DMX is a lighting protocol (an alternative to DALI). It is used in stage lightin
 ### **Setup**
 
 <ins>Global parameters</ins></br>
-In `DMXVariables` you can set an IP. This depends on your topology. Multicast works if the PLC and Art-Net node share the subnet mask.
+In `GVL_DMX` you can set an IP. This depends on your topology. Multicast works if the PLC and Art-Net node share the subnet mask.
 
     // unicast: 10.1.1.4
     // multicast: 10.1.1.255
     // broadcast: 255.255.255.255
 
-In `DMX_SEND` you can set the universe. `0` is not recommended for Art-Net, so the default is `1`.
+In `PRG_DMX_SEND` you can set the universe. `0` is not recommended for Art-Net, so the default is `1`.
 
 ### **Debug**
 

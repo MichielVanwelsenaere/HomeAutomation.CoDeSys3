@@ -17,12 +17,12 @@
 | `availabilityOffline` | STRING |  | The word to publish when the PLC is offline. |
 | `MqttDiscoveryPrefix` | STRING |  | The discovery prefix the home automation system listens on (`homeassistant/` by default). |
 | `MqttDiagnosticTopic` | STRING |  | Topic used to publish diagnostic entities for the device. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the MQTT queue to publish messages. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the MQTT queue to publish messages. |
 <!-- fb-interface:end -->
 
 ### **Code example**
 
-- variables initiation, in the `MqttVariables` global variable list:
+- variables initiation, in the `GVL_MQTT` global variable list:
 ```
 PLC_Device : FB_PLC_MQTT_DISCOVERY_DEVICE(
 	friendlyName		:= 'PLC Lab',
@@ -37,13 +37,13 @@ PLC_Device : FB_PLC_MQTT_DISCOVERY_DEVICE(
 );
 ```
 
-Because the block is declared inside `MqttVariables`, the other variables in that list are referenced unqualified. Declared elsewhere, qualify them as `MqttVariables.MqttAvailabilityTopic` and so on.
+Because the block is declared inside `GVL_MQTT`, the other variables in that list are referenced unqualified. Declared elsewhere, qualify them as `GVL_MQTT.MqttAvailabilityTopic` and so on.
 
 No further call is needed at startup. Pass the instance to the function blocks that publish discovery config, for example:
 
 ```
 FB_DO_SW_001.InitMqttDiscoveryAsLight(
-	Device	:= ADR(MqttVariables.PLC_Device),
+	Device	:= ADR(GVL_MQTT.PLC_Device),
 	Name	:= 'light 001'
 );
 ```

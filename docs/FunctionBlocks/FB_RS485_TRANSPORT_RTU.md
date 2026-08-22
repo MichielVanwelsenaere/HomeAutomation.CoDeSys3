@@ -4,7 +4,7 @@
 
 ### **General**
 Speaks Modbus RTU over the PFC's onboard serial port, using `SysCom` directly. It implements
-`RS485Transport`, so [`FB_RS485_BUSCONTROLLER`](FB_RS485_BUSCONTROLLER.md) drives it without
+`I_RS485_TRANSPORT`, so [`FB_RS485_BUSCONTROLLER`](FB_RS485_BUSCONTROLLER.md) drives it without
 knowing anything about framing, and a different Modbus implementation could be substituted
 without touching the controller or any device block.
 
@@ -140,7 +140,7 @@ on this hardware, not a fault.**
 | `LastFailLen` | UDINT | How many bytes were in the buffer of the most recent reply that would not frame. Zero here with `CrcFail` climbing would be a contradiction; a small number is a truncated reply, a large one is two replies collected together. |
 | `LastFailAddr` | BYTE | Slave address the failed exchange was addressed to. Without it the captured bytes are unattributable — a frame that looks like another device's traffic is exactly the case worth telling apart from a mangled reply. |
 | `LastFailFunc` | BYTE | Function code of that exchange, for the same reason. |
-| `LastFailBytes` | STRING(120) | The first 24 bytes as decimal numbers. A counter can say a reply did not check out; only the bytes can say whether it was half a reply, two replies, an echo of the request, or a mangled address — and those want different fixes. Published to `.../RS485/BUS_COUNTERS` by `PLC_PRG_RS485`, because reading it over an online session means having a working online session. |
+| `LastFailBytes` | STRING(120) | The first 24 bytes as decimal numbers. A counter can say a reply did not check out; only the bytes can say whether it was half a reply, two replies, an echo of the request, or a mangled address — and those want different fixes. Published to `.../RS485/BUS_COUNTERS` by `PRG_RS485`, because reading it over an online session means having a working online session. |
 
 ### **Methods**
 
@@ -180,19 +180,19 @@ on this hardware, not a fault.**
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `pStep` | POINTER TO RS485_Step |  | The exchange to carry. Copied on entry, so the caller may reuse its buffer. |
+| `pStep` | POINTER TO ST_RS485_STEP |  | The exchange to carry. Copied on entry, so the caller may reuse its buffer. |
 <!-- fb-interface:end -->
 
 ### **Code example**
 
 - variables initiation:
 ```
-RS485Transport : FB_RS485_TRANSPORT_RTU;
+I_RS485_TRANSPORT : FB_RS485_TRANSPORT_RTU;
 ```
 
 - Init call (called once during startup, before the bus controller's `Init`):
 ```
-RS485Transport.Init(
+I_RS485_TRANSPORT.Init(
 	Port			:= SysCom.SYS_COM_PORTS.SYS_COMPORT1,
 	Baudrate		:= 9600,
 	Parity			:= SysCom.SYS_COM_PARITY.SYS_NOPARITY,
@@ -205,7 +205,7 @@ RS485Transport.Init(
 - Handing it to the bus controller, which then calls `Service` every cycle. **The transport
   instance needs no cyclic call of its own:**
 ```
-RS485BusController.Init(Transport := RS485Transport, ...);
+RS485BusController.Init(Transport := I_RS485_TRANSPORT, ...);
 ```
 
 ### **Notes**

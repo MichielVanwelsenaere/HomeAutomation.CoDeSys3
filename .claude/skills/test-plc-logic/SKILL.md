@@ -54,7 +54,7 @@ events in particular are only visible this way.
 
 ## Commanding it
 
-Topic roots come from `MqttVariables` (`MqttMain` + `MqttType` + `MqttDevice`), so
+Topic roots come from `GVL_MQTT` (`MqttMain` + `MqttType` + `MqttDevice`), so
 everything below assumes `Devices/PLC/Lab/`. Change `MqttDevice` and it all shifts.
 
 ```powershell
@@ -103,10 +103,10 @@ Spec shape (see `tools/ai/codesys_task.py` `run_steps`):
 ```json
 {"steps": [
   {"label": "why this step exists",
-   "write":    {"PLC_PRG_HVAC.FB_THERMOSTAT_2.DESIRED_TEMP": "22"},
+   "write":    {"PRG_HVAC.FB_THERMOSTAT_2.DESIRED_TEMP": "22"},
    "delay_ms": 2000,
-   "expect":   {"PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "TRUE"},
-   "read":     ["PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.PUMP"]}
+   "expect":   {"PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "TRUE"},
+   "read":     ["PRG_HVAC.FB_PUMP_2_COLLECTOR.PUMP"]}
 ]}
 ```
 
@@ -116,7 +116,7 @@ expectation the way the PLC spells it, or the step fails for the wrong reason.
 
 Two that catch people: a `BYTE` comes back **decimal** (`BYTE#1`), not as the hex
 you probably wrote it as in the declaration; and an enum comes back fully
-qualified (`RS485_EASTRON_SDM_Devices.SDM220`). When in doubt put the variable in
+qualified (`E_RS485_EASTRON_SDM_DEVICE.SDM220`). When in doubt put the variable in
 `read` first, run once, and copy the spelling out of the report into `expect`.
 
 Finish with a diff, which catches damage you were not looking for:
@@ -148,7 +148,7 @@ path end to end before you debug anything harder.
 Assert in the same run that the output really moved, not just the topic:
 
 ```json
-{"expect": {"PLC_PRG_MAIN.FB_DO_BIN_001.OUT": "TRUE"}}
+{"expect": {"PRG_MAIN.FB_DO_BIN_001.OUT": "TRUE"}}
 ```
 
 **If the state topic never changes:** the block is not subscribed. Check
@@ -186,9 +186,9 @@ across a delay long enough to cross that threshold:
 ```json
 {"steps": [
   {"write": {"DI_001": "TRUE"}, "delay_ms": 150,
-   "read":  ["PLC_PRG_MAIN.FB_DI_PB_001.P_SHORT", "PLC_PRG_MAIN.FB_DI_PB_001.P_LONG"]},
+   "read":  ["PRG_MAIN.FB_DI_PB_001.P_SHORT", "PRG_MAIN.FB_DI_PB_001.P_LONG"]},
   {"write": {"DI_001": "FALSE"}, "delay_ms": 200,
-   "read":  ["PLC_PRG_MAIN.FB_DI_PB_001.P_SHORT"]}
+   "read":  ["PRG_MAIN.FB_DI_PB_001.P_SHORT"]}
 ]}
 ```
 
@@ -293,9 +293,9 @@ If it is `TRUE`, either fix the sensor — the commented-out `RegisterDevice` in
 `RS485_INIT` is the first place to look — or force it for the test:
 
 ```json
-{"write": {"RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
-           "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
-           "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"}}
+{"write": {"GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
+           "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
+           "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"}}
 ```
 
 Whether that sticks depends on whether the RS485 block writes those outputs every
@@ -326,8 +326,8 @@ valve travel in source can reach an installation with real pipes.
 `specs/hvac-fast-chain.json` does:
 
 ```json
-{"write": {"PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5S",
-           "PLC_PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10S"}}
+{"write": {"PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5S",
+           "PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10S"}}
 ```
 
 They are plain `VAR` members that only `FB_init` assigns, so the write sticks for the
@@ -466,9 +466,9 @@ than the PLC. Assert both halves, because they fail independently:
 
 ```json
 {"expect": {
-  "RS485Variables.FB_RS485_EASTRON_SDM220_1.InitMqttDone": "TRUE",
-  "RS485Variables.FB_RS485_EASTRON_SDM220_1.initMqttDiscoveryDone": "TRUE",
-  "RS485Variables.FB_RS485_EASTRON_SDM220_1.TopicTruncated": "FALSE"}}
+  "GVL_RS485.FB_RS485_EASTRON_SDM220_1.InitMqttDone": "TRUE",
+  "GVL_RS485.FB_RS485_EASTRON_SDM220_1.initMqttDiscoveryDone": "TRUE",
+  "GVL_RS485.FB_RS485_EASTRON_SDM220_1.TopicTruncated": "FALSE"}}
 ```
 
 `TopicTruncated` is the one people forget. IEC cuts an over-long `CONCAT` short
@@ -502,7 +502,7 @@ To check that a device block decodes a register correctly, point a *second* bloc
 at the same register of the same meter and compare readings.
 
 **This one is permanent, not a fixture you have to build.**
-`RS485Variables.FB_RS485_EASTRON_SDM_POWER_1` is registered on the bus against the
+`GVL_RS485.FB_RS485_EASTRON_SDM_POWER_1` is registered on the bus against the
 lab SDM220 at address 1, declared as an `SDM220`, alongside
 `FB_RS485_EASTRON_SDM220_1` reading the same meter. Both publish `/ACTP` from
 register `30013`, so the comparison is available on the broker at any time without

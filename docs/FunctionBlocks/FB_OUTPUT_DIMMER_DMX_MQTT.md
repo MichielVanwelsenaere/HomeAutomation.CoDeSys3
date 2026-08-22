@@ -81,7 +81,7 @@ BOOL ──┤ RST                       │
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
 | `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 | `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
 | `OutputDimmer` | BOOL |  | Set TRUE to publish the dimmer value as MQTT events. |
 | `Qos_Dimm` | MQTT.QoS |  | MQTT QoS used for the dimmer value events. |
@@ -91,7 +91,7 @@ BOOL ──┤ RST                       │
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
 | `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
@@ -154,10 +154,10 @@ FB_AO_DIMMER_001			:FB_OUTPUT_DIMMER_MQTT;
 
 - Init MQTT method call (called once during startup):
 ```
-FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPrefix),     (* pointer to string prefix for the MQTT publish topic *)
-    MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubDimmerPrefix),                         (* pointer to string prefix for the MQTT subscribe topic *)
+FB_AO_DIMMER_001.InitMQTT(MQTTPublishPrefix:= ADR(GVL_MQTT.MqttPubDimmerPrefix),     (* pointer to string prefix for the MQTT publish topic *)
+    MQTTSubscribePrefix:= ADR(GVL_MQTT.MqttSubDimmerPrefix),                         (* pointer to string prefix for the MQTT subscribe topic *)
     pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),             (* pointer to MQTTPublishQueue to send a new MQTT event *)
-    pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT),  (* pointer to CallbackCollector to receive Mqtt subscription events *)
+    pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_DIMMER_MQTT),  (* pointer to CallbackCollector to receive Mqtt subscription events *)
     TRUE,                                                                   (* specify whether dimmer value should be outputted on MQTT topic *)
     MQTT.QoS.ExactlyOnce,                                                (* specify the QoS for the dimmer mqtt events (values 0-255) *)
     5                                                                       (* specify the resolution for the dimmer mqtt events *)
@@ -217,7 +217,7 @@ The above illustrates an integration with [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_
 FB_AO_DMX_DIMMER_001.InitDmx(
     DmxChannel := 1,
     DmxWidth:=1,
-    pDmxValues := ADR(DMXVariables.DMX.BUFFER)
+    pDmxValues := ADR(GVL_DMX.DMX.BUFFER)
     dmxUniverse := 1,
 );
 ```

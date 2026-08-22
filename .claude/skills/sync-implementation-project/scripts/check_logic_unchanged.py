@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import re
 import sys
 from typing import Any
 
@@ -72,6 +73,53 @@ def declaration_lines(obj: dict[str, Any]) -> list[str]:
     return [line.strip() for line in (obj.get("decl") or "").splitlines() if line.strip()]
 
 
+COMMENT_BLOCK = re.compile(r"\(\*.*?\*\)", re.DOTALL)
+
+
+def code_only(text: str) -> list[str]:
+    """The code of a declaration or body, with everything CODESYS is free to
+    reshape on import taken out: comments in either form, blank lines, and an
+    empty VAR/END_VAR pair. Returned sorted, because the importer also reorders
+    VAR sections - a block whose VAR_OUTPUT moved above its VAR is the same
+    block.
+
+    Deliberately blunt: it answers "is this the same code", not "is this the same
+    file". Anything it cannot see is something the compiler cannot see either.
+    """
+    text = COMMENT_BLOCK.sub(" ", text or "")
+    lines = []
+    for line in text.splitlines():
+        line = re.sub(r"//.*$", "", line).strip()
+        if line:
+            lines.append(line)
+    out = []
+    for line in lines:
+        if out and out[-1].upper() == "VAR" and line.upper() == "END_VAR":
+            out.pop()               # an empty VAR block the importer dropped
+            continue
+        out.append(line)
+    return sorted(out)
+
+
+def same_code(left: dict[str, Any], right: dict[str, Any]) -> bool:
+    """True when two objects are the same code, ignoring import reshaping."""
+    if code_only(left.get("decl")) != code_only(right.get("decl")):
+        return False
+    if code_only(left.get("impl")) != code_only(right.get("impl")):
+        return False
+    lm = {m["name"]: m for m in left.get("members") or []}
+    rm = {m["name"]: m for m in right.get("members") or []}
+    if set(lm) != set(rm):
+        return False
+    for name, member in lm.items():
+        other = rm[name]
+        if code_only(member.get("decl")) != code_only(other.get("decl")):
+            return False
+        if code_only(member.get("impl")) != code_only(other.get("impl")):
+            return False
+    return True
+
+
 def load(path: str) -> dict[str, Any]:
     with io.open(path, encoding="utf-8") as handle:
         return json.load(handle)
@@ -88,8 +136,16 @@ def main() -> int:
              "here are allowed to have changed, and each is listed in the output "
              "so the change is never invisible.",
     )
+    parser.add_argument(
+        "--reference",
+        help="info report of the reference project. With it, a planned object "
+             "that did not change is compared against the reference before being "
+             "reported: one that already matches it had nothing to import, which "
+             "is not the same failure as an import that silently did nothing.",
+    )
     args = parser.parse_args()
 
+    reference = load(args.reference) if args.reference else None
     before = load(args.before)
     after = load(args.after)
     plan = load(args.plan)
@@ -100,9 +156,13 @@ def main() -> int:
     # instance list and a rewrite would be catastrophic and silent.
     additive = {entry["gvl"] for entry in (plan.get("gvl_additions") or [])}
     migrated: set[str] = set()
+    deletions: set[str] = set()
     if args.migrations:
         for edit in load(args.migrations).get("edits", []):
-            migrated.add(edit["pou"])
+            if edit.get("delete_pou"):
+                deletions.add(edit["pou"])
+            else:
+                migrated.add(edit["pou"])
 
     b_objects, _ = index_by_name(before)
     a_objects, _ = index_by_name(after)
@@ -127,7 +187,8 @@ def main() -> int:
             continue
         if a is None:
             removed.append(name)
-            findings.append("REMOVED by the sync: %s (%s)" % (name, b.get("top")))
+            if name not in deletions:
+                findings.append("REMOVED by the sync: %s (%s)" % (name, b.get("top")))
             continue
         if b.get("top") != a.get("top"):
             moved.append(name)
@@ -179,8 +240,49 @@ def main() -> int:
     # failure mode the reference project's own notes warn about - an edit that
     # reports success and does not take effect.
     inert = sorted(planned - set(expected_changed) - set(added))
+    # ...unless it did not change because it was already the same code. That is
+    # not hypothetical: an installation that has just had the reference's rename
+    # maps applied to it holds byte-equal blocks, and CODESYS's importer leaves
+    # them alone. It also normalises on import - it reorders VAR sections, drops
+    # an empty VAR/END_VAR pair, and stores a /// doc comment as structured
+    # documentation that exports as (* *) - so three kinds of difference here are
+    # provably not code. Comparing against the reference with those normalised
+    # away separates "the import silently did nothing", which is a real and
+    # dangerous failure, from "there was nothing to do", which is fine. Without
+    # this the one check that gates a promote cries wolf on every sync.
+    in_step = []
+    if reference is not None:
+        ref_objects = {
+            o["name"]: o for o in reference["objects"] if not o.get("is_task_call")
+        }
+        after_objects = {
+            o["name"]: o for o in after["objects"] if not o.get("is_task_call")
+        }
+        still_inert = []
+        for name in inert:
+            if name in ref_objects and name in after_objects and same_code(
+                ref_objects[name], after_objects[name]
+            ):
+                in_step.append(name)
+            else:
+                still_inert.append(name)
+        inert = still_inert
     for name in inert:
         findings.append("PLANNED but unchanged - the import did not take: %s" % name)
+
+    gone = sorted(n for n in deletions if n not in a_objects)
+    if gone:
+        print("deleted deliberately            : %d  %s" % (len(gone), ", ".join(gone)))
+        print("  Named with delete_pou in the migrations, and confirmed absent.")
+        print("")
+
+    if in_step:
+        print("already in step with the reference : %d  %s"
+              % (len(in_step), ", ".join(in_step)))
+        print("  Nothing to import: same code, differing only in what CODESYS")
+        print("  reshapes on import - VAR section order, an empty VAR block, or a")
+        print("  /// comment stored as structured documentation.")
+        print("")
 
     print("before : %s" % before["info"]["path"])
     print("after  : %s" % after["info"]["path"])
@@ -200,6 +302,12 @@ def main() -> int:
             print("  %s" % name)
         print("  These must be behaviour-preserving. Review them before promoting.")
         print("")
+    # A deletion that did happen needs no further proof; one that did NOT is a
+    # finding, because the object is still there and something still expects it
+    # to be gone.
+    for name in sorted(deletions):
+        if name in a_objects:
+            findings.append("DELETION listed but the object is still there: %s" % name)
     unmigrated = sorted(migrated - set(migrations_seen))
     for name in unmigrated:
         findings.append("MIGRATION listed but the object did not change: %s" % name)

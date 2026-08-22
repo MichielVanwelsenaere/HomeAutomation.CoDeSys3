@@ -104,14 +104,14 @@ WagoAppDALI.typBallast ──┤ BALLAST         STATUS_LED ├── BOOL
 |:--|:--|:--|:--|
 | `MQTTPublishPrefix` | POINTER TO STRING |  | Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically. |
 | `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
-| `pMqttPublishQueue` | POINTER TO FB_MqttPublishQueue |  | Pointer to the shared MQTT queue that carries messages to the broker. |
+| `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 | `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
 
 **`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `MqttVariables.PLC_Device`. |
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
 | `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
@@ -192,10 +192,10 @@ FB_DALI_1_ADR0				  :FB_OUTPUT_DIMMER_DALI_MQTT;
 
 - Init MQTT method call (called once during startup):
 ```
-FB_DALI_1_ADR0.InitMqtt(MQTTPublishPrefix:= ADR(MqttVariables.MqttPubDimmerPrefix),				
-	MQTTSubscribePrefix:= ADR(MqttVariables.MqttSubDimmerPrefix),									
-	pMqttPublishQueue := ADR(MqttVariables.fbMqttPublishQueue),						
-	pMqttCallbackCollector := ADR(MqttVariables.collector_FB_DIMMER_MQTT)						
+FB_DALI_1_ADR0.InitMqtt(MQTTPublishPrefix:= ADR(GVL_MQTT.MqttPubDimmerPrefix),				
+	MQTTSubscribePrefix:= ADR(GVL_MQTT.MqttSubDimmerPrefix),									
+	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),						
+	pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_DIMMER_MQTT)						
 );
 ```
 
@@ -210,7 +210,7 @@ M1_DALIMASTER(
 	
 // Run individual DALI FB
 FB_DALI_1_ADR0(
-	BALLAST := DALIVariables.M1_Light1,
+	BALLAST := GVL_DALI.M1_Light1,
 	TOGGLE := FB_DI_PB_002.SINGLE,
 	P_LONG := FB_DI_PB_002.P_LONG,
 	STATUS_LED => DO_002);

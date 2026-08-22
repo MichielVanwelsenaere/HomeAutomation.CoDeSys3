@@ -45,11 +45,11 @@ Three blocks, each with one job:
 
 | | |
 |:--|:--|
-| [`FB_RS485_TRANSPORT_RTU`](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) | Builds and judges Modbus RTU frames over `SysCom`. Implements `RS485Transport`. |
+| [`FB_RS485_TRANSPORT_RTU`](../FunctionBlocks/FB_RS485_TRANSPORT_RTU.md) | Builds and judges Modbus RTU frames over `SysCom`. Implements `I_RS485_TRANSPORT`. |
 | [`FB_RS485_BUSCONTROLLER`](../FunctionBlocks/FB_RS485_BUSCONTROLLER.md) | Decides whose turn it is and runs one device's transaction at a time. |
 | [device blocks](RS485Device_Interface.md) | Say what they want read or written, and interpret what comes back. |
 
-`PLC_PRG_RS485` wires them together in `RS485_INIT` and calls the controller in `RS485_RUN`. A
+`PRG_RS485` wires them together in `RS485_INIT` and calls the controller in `RS485_RUN`. A
 worked example lives there.
 
 ### **How fast the bus goes, and what actually decides it**
@@ -123,11 +123,11 @@ flowchart LR
   Y --> E["RestoreTuning<br/>publish the result"] --> Z
 ```
 
-`PLC_PRG_RS485` calls the commissioner in `RS485_RUN` and holds the bus controller off until it
+`PRG_RS485` calls the commissioner in `RS485_RUN` and holds the bus controller off until it
 reports `Done`. Four things about it are deliberate:
 
 - **The device decides, not the program.** What to probe, which register to write and what value
-  to put in it come back from `RS485Device.GetCommissioning`; the program that owns the bus names
+  to put in it come back from `I_RS485_DEVICE.GetCommissioning`; the program that owns the bus names
   no device and no register. Before this the sweep lived here as two hundred lines that knew one
   sensor's slave address — which is exactly the kind of thing that stops a bus being reusable.
 - **It scans rather than assumes.** The first version wrote the new baud rate blind at the
@@ -196,4 +196,4 @@ climbing in step with `Ok` is the **normal healthy picture** on this hardware, n
 
 Whether `ModbusFB.ClientSerial` tolerates the same bytes has not been established — that is
 [#181](https://github.com/MichielVanwelsenaere/HomeAutomation.CoDeSys3/issues/181). Because the
-protocol sits behind `RS485Transport`, adopting it would be an adapter rather than a redesign.
+protocol sits behind `I_RS485_TRANSPORT`, adopting it would be an adapter rather than a redesign.

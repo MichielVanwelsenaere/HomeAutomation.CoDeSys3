@@ -11,7 +11,7 @@ The following libraries should be present:
 
 ### **U1: MQTT broker connection**
 
-Live in the `MQTT_PUBLISH` action of `PLC_PRG_MQTT`. The LED turns green when the client connects to the broker and flashes red when it disconnects. Both are driven by edge triggers rather than by polling the connection flag, so the LED is only written when the state actually changes:
+Live in the `MQTT_PUBLISH` action of `PRG_MQTT`. The LED turns green when the client connects to the broker and flashes red when it disconnects. Both are driven by edge triggers rather than by polling the connection flag, so the LED is only written when the state actually changes:
 
 ```
 (* set user led green if connected to MQTT broker, flashing red if not *)
@@ -29,7 +29,7 @@ Live in `PRG_PING_DMX`. The LED turns green when the Art-Net node answers a ping
 
 ```
 PFC.SetLed(which:=PFC.LED.U3, how:=PFC.LedState.STATIC_GRN);
-MqttVariables.PLC_Device.SendLogMessage('DMX ping OK');
+GVL_MQTT.PLC_Device.SendLogMessage('DMX ping OK');
 ```
 
 ### **Adding your own**

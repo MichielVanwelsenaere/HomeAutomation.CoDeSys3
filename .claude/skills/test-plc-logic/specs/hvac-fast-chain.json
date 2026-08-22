@@ -6,28 +6,28 @@
       "label": "shrink the timings at runtime, and prove the writes actually stuck",
       "delay_ms": 1500,
       "write": {
-        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5S",
-        "PLC_PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10S",
-        "PLC_PRG_HVAC.FB_PUMP_2.MIN_OFFTIME": "TIME#5S",
-        "PLC_PRG_HVAC.FB_BURNER_GAS.MIN_ONTIME": "TIME#10S",
-        "PLC_PRG_HVAC.FB_BURNER_GAS.MIN_OFFTIME": "TIME#5S"
+        "PRG_HVAC.fbPump2Collector.ValveCycleTime": "TIME#5S",
+        "PRG_HVAC.fbPump2.MIN_ONTIME": "TIME#10S",
+        "PRG_HVAC.fbPump2.MIN_OFFTIME": "TIME#5S",
+        "PRG_HVAC.fbBurnerGas.MIN_ONTIME": "TIME#10S",
+        "PRG_HVAC.fbBurnerGas.MIN_OFFTIME": "TIME#5S"
       },
       "expect": {
-        "PLC_PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5s",
-        "PLC_PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10s"
+        "PRG_HVAC.fbPump2Collector.ValveCycleTime": "TIME#5s",
+        "PRG_HVAC.fbPump2.MIN_ONTIME": "TIME#10s"
       }
     },
     {
       "label": "and make the sensor trustworthy so a thermostat can call for heat at all",
       "write": {
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
-        "RS485Variables.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"
       },
       "delay_ms": 2000,
       "expect": {
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.SensorFault": "FALSE",
-        "PLC_PRG_HVAC.FB_THERMOSTAT_2.OUT": "FALSE"
+        "PRG_HVAC.fbThermostat2.bSensorFault": "FALSE",
+        "PRG_HVAC.fbThermostat2.OUT": "FALSE"
       }
     }
   ]

@@ -28,6 +28,7 @@ from __future__ import annotations
 
 import argparse
 import pathlib
+import json
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -72,7 +73,7 @@ HIDDEN_METHODS = {
                              #   body and PublishReceived; the API is the pins
                              #   and the MQTT topics.
     # NOT hidden, deliberately: HasWork, BuildTransaction, OnStepResult and
-    # OnTransactionDone are the RS485Device contract itself. This set is keyed
+    # OnTransactionDone are the I_RS485_DEVICE contract itself. This set is keyed
     # by bare name and so applies to every block, which is exactly why they
     # must stay out of it.
 }
@@ -109,7 +110,7 @@ GLOSSARY = {
                "instance declaration, not by calling a method, and are applied "
                "once at startup.",
 
-    # --- the RS485Device contract ------------------------------------------
+    # --- the I_RS485_DEVICE contract ------------------------------------------
     # Identical on every RS485 device block, so it lives here rather than being
     # written out five times and drifting four ways.
     "HasWork": "Asked by the bus controller whether this device wants the bus, "
@@ -144,12 +145,12 @@ GLOSSARY = {
                                   "wholly good outcome.",
     "InitRS485": "Configures the Modbus RTU device address and the polling "
                  "interval(s) for the read command(s).",
-    "RequestBusTime": "`RS485Device` interface method. See the "
-                      "[RS485Device interface docs](../RS485/RS485Device_Interface.md).",
-    "GetRtuQuery": "`RS485Device` interface method. See the "
-                   "[RS485Device interface docs](../RS485/RS485Device_Interface.md).",
-    "ProcessDataArray": "`RS485Device` interface method. See the "
-                        "[RS485Device interface docs](../RS485/RS485Device_Interface.md).",
+    "RequestBusTime": "`I_RS485_DEVICE` interface method. See the "
+                      "[I_RS485_DEVICE interface docs](../RS485/RS485Device_Interface.md).",
+    "GetRtuQuery": "`I_RS485_DEVICE` interface method. See the "
+                   "[I_RS485_DEVICE interface docs](../RS485/RS485Device_Interface.md).",
+    "ProcessDataArray": "`I_RS485_DEVICE` interface method. See the "
+                        "[I_RS485_DEVICE interface docs](../RS485/RS485Device_Interface.md).",
     "SetValue": "Sets the virtual value. Only effective in output mode.",
     "ConfigureFunctionBlockAsVirtualInput":
         "Configures the block as a virtual input, so a value can be pushed into "
@@ -170,7 +171,7 @@ GLOSSARY = {
     "MqttRetain": "MQTT retain flag used for messages published by this block.",
     # --- discovery parameters ---------------------------------------------
     "Device": "Pointer to the discovery device this entity belongs to, normally "
-              "`MqttVariables.PLC_Device`.",
+              "`GVL_MQTT.PLC_Device`.",
     "Name": "Name shown in the Home Assistant front-end.",
     "RelayType": "Which way round the driven contact sits: `E_RELAY_TYPE.NO` "
                  "(the default) means the load is live when the output is TRUE, "
@@ -525,10 +526,10 @@ GVL_DOC = REPO / "docs" / "AdditionalFunctionality" / "MQTT_General.md"
 
 
 def render_gvl(root) -> str:
-    """The MqttVariables global variable list, straight from the export."""
+    """The GVL_MQTT global variable list, straight from the export."""
     gvl = next((g for g in root.iter()
                 if g.tag.split("}")[-1] == "globalVars"
-                and g.get("name") == "MqttVariables"), None)
+                and g.get("name") == "GVL_MQTT"), None)
     if gvl is None:
         return None
     lines = ["```ST", "VAR_GLOBAL"]
@@ -581,6 +582,145 @@ SCAFFOLD = """## {name}
 {todo}
 ```
 """
+
+
+# ------------------------------------------------- scaffold fidelity
+
+SCAFFOLD_DIR = REPO / "tools" / "ai" / "scaffold"
+
+# `name : TYPE;` from a scaffold fragment, allowing a leading pragma.
+FRAGMENT_DECL = re.compile(
+    r"^[ \t]*(?:\{[^}]*\}[ \t]*)?([A-Za-z_]\w*)[ \t]*:[ \t]*([^;:=]+?)[ \t]*(?::=[^;]*)?;",
+    re.MULTILINE)
+
+SECTION_WORDS = {"VAR", "END_VAR", "PROGRAM", "TYPE", "STRUCT", "VAR_GLOBAL"}
+
+
+def strip_comments(text: str) -> str:
+    # A byte-order mark counts as a line of its own otherwise, and any Windows
+    # editor that touches one of these fragments can add one. It is not drift.
+    text = (text or "").replace("﻿", "")
+    text = re.sub(r"\(\*.*?\*\)", " ", text, flags=re.DOTALL)
+    return "\n".join(re.sub(r"//.*$", "", line) for line in text.splitlines())
+
+
+def fragment_declarations(text: str) -> dict:
+    """lowercased name -> (name as written, type), per fragment declaration.
+
+    Keyed case-insensitively because IEC is, but the spelling is kept so a
+    finding can quote the fragment as its author wrote it.
+    """
+    out = {}
+    for m in FRAGMENT_DECL.finditer(strip_comments(text)):
+        name, kind = m.group(1), " ".join(m.group(2).split())
+        if name.upper() in SECTION_WORDS:
+            continue
+        out[name.lower()] = (name, kind)
+    return out
+
+
+def object_declarations(el) -> dict:
+    """name -> type, for every variable an exported POU or GVL declares."""
+    out = {}
+    for var in el.iter():
+        if var.tag.split("}")[-1] != "variable" or not var.get("name"):
+            continue
+        out[var.get("name").lower()] = " ".join(
+            type_str(var.find("p:type", NS)).split())
+    return out
+
+
+def code_lines(text: str) -> list:
+    return [" ".join(l.split())
+            for l in strip_comments(text).splitlines() if l.strip()]
+
+
+def body_text(el) -> str:
+    """Every ST body inside an exported object, concatenated."""
+    return "\n".join(node.text or "" for node in el.iter()
+                     if node.tag.split("}")[-1] == "xhtml")
+
+
+def scaffold_findings(root) -> list:
+    """Has a scaffold spec drifted from the project it builds?
+
+    These specs are the only readable record of how an application inside the
+    binary was assembled - the DALI verification device is one program, one GVL
+    and one task, none of which can be read without opening CODESYS. A spec that
+    no longer reproduces what is there is worse than no spec, and it drifts in
+    silence: nothing compiles these files, nothing imports them, and until now
+    the doc build never looked at them.
+
+    It had already happened. A project-wide rename carried `Dimmer` into these
+    fragments and missed `DaliMaster`, so the committed recipe named an instance
+    the project no longer had. No build, no verify and no check noticed; someone
+    asked whether the folder was meant to be checked in.
+
+    The comparison is a SUBSET, not equality: every declaration and every
+    statement in the fragment must still be present in the object it builds. That
+    catches a rename - which is the failure mode - without failing on the GVL
+    fragments, which are appends by design and are meant to be a small part of a
+    much larger list.
+
+    Declarations are compared by name and type rather than as text, because the
+    export carries no plaintext declaration for a program, only structured XML.
+    """
+    findings = []
+    if not SCAFFOLD_DIR.is_dir():
+        return findings
+
+    pous = {}
+    for pou in root.findall(".//p:pou", NS):
+        pous.setdefault(pou.get("name"), []).append(pou)
+    gvls = {}
+    for node in root.iter():
+        if node.tag.split("}")[-1] == "globalVars" and node.get("name"):
+            gvls.setdefault(node.get("name"), []).append(node)
+
+    for spec_path in sorted(SCAFFOLD_DIR.glob("*.json")):
+        try:
+            spec = json.loads(spec_path.read_text(encoding="utf-8"))
+        except ValueError as exc:
+            findings.append("%s: not valid JSON (%s)" % (spec_path.name, exc))
+            continue
+        for item in spec.get("objects") or []:
+            name = item.get("program") or item.get("gvl")
+            if not name:
+                continue                      # a task entry declares no text
+            candidates = pous.get(name) or gvls.get(name) or []
+            if not candidates:
+                findings.append("%s: builds %s, which is not in the export"
+                                % (spec_path.name, name))
+                continue
+            for key, kind in (("decl_file", "declaration"), ("body_file", "body")):
+                rel = item.get(key)
+                if not rel:
+                    continue
+                frag_path = SCAFFOLD_DIR / rel
+                if not frag_path.exists():
+                    findings.append("%s: %s is missing" % (spec_path.name, rel))
+                    continue
+                frag = frag_path.read_text(encoding="utf-8")
+                # Any object of that name may satisfy it: this project has two
+                # applications and therefore two GVL_MQTT, both legitimate.
+                gap = None
+                for el in candidates:
+                    if kind == "declaration":
+                        have = object_declarations(el)
+                        gap = ["%s : %s" % (written, t)
+                               for key, (written, t) in
+                               fragment_declarations(frag).items()
+                               if have.get(key) != t]
+                    else:
+                        have_lines = code_lines(body_text(el))
+                        gap = [l for l in code_lines(frag) if l not in have_lines]
+                    if not gap:
+                        break
+                if gap:
+                    findings.append(
+                        "%s: %d line(s) no longer in %s's %s - e.g. %r"
+                        % (rel, len(gap), name, kind, gap[0]))
+    return findings
 
 
 def main() -> int:
@@ -643,9 +783,11 @@ def main() -> int:
         if fb.has_discovery and "### **Home Assistant YAML**" in final:
             yaml_hits.append(name)
 
+    drift = scaffold_findings(root)
+
     gvl_changed = update_gvl_doc(root, args.check)
     if gvl_changed:
-        (stale if args.check else wrote).append("MQTT_General.md (MqttVariables)")
+        (stale if args.check else wrote).append("MQTT_General.md (GVL_MQTT)")
 
     for label, items, note in (
         ("ORPHANED - documented but no longer in the export", orphaned,
@@ -654,6 +796,9 @@ def main() -> int:
          "Fill in the _TODO_ rows; they are carried across regenerations."),
         ("HA YAML on a discovery-capable block", yaml_hits,
          "Discovery covers these; the YAML fallback can be removed."),
+        ("SCAFFOLD DRIFT - a spec no longer builds what the project contains", drift,
+         "Update the fragment under tools/ai/scaffold/, or re-run the scaffold. "
+         "Nothing else looks at these files."),
     ):
         if items:
             print(f"{label}:")
@@ -667,7 +812,10 @@ def main() -> int:
             for s in stale:
                 print("  -", s)
             print("\nRun: python3 " + str(pathlib.Path(__file__).relative_to(REPO)))
-        return 1 if (stale or orphaned) else 0
+        return 1 if (stale or orphaned or drift) else 0
+
+    if drift:
+        print("scaffold drift is listed above and is NOT fixed by this run.\n")
 
     print(f"updated {len(wrote)} page(s)")
     for w in wrote:

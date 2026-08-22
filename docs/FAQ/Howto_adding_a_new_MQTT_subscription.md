@@ -1,7 +1,7 @@
 ## How-to: Adding a new MQTT subscription
 This page describes the steps required to add a new MQTT subscription in the reference project. 
 
-1. Add a new subscriber function block in the *PLC_PRG_MQTT* program variable declaration. Example below:
+1. Add a new subscriber function block in the *PRG_MQTT* program variable declaration. Example below:
 ```
 (* variables for MQTT subscribing *)
 subscriber_FB_OUTPUT_SWITCH_MQTT:MQTT.MQTTSubscribe;
@@ -9,7 +9,7 @@ subscriber_FB_OUTPUT_COVER_MQTT:MQTT.MQTTSubscribe;
 subscriber_FB_DIMMER_MQTT:MQTT.MQTTSubscribe;
 ```
 
-2. Add a new callback function block in the *MqttVariables* global variables. Example below:
+2. Add a new callback function block in the *GVL_MQTT* global variables. Example below:
 ```
 (* Shared Variables for MQTT subscribe communication *)
 collector_FB_OUTPUT_SWITCH_MQTT		:MQTT.CallbackCollector;		
@@ -18,7 +18,7 @@ collector_FB_DIMMER_MQTT			:MQTT.CallbackCollector;
 ```
 These function blocks are created in a global variable list so they are accessible from all PRGs. This is necessary because function blocks require access to the callback collector in order to register themselves for an MQTT subscription.
 
-3. Initialize the subscriber function block in the *MQTT_INIT* action in the *PLC_PRG_MQTT* program. Example below:
+3. Initialize the subscriber function block in the *MQTT_INIT* action in the *PRG_MQTT* program. Example below:
 ```
 (* INIT MQTT SUBSCRIBE STUFF *)
 subscriber_FB_OUTPUT_SWITCH_MQTT.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));	
@@ -27,14 +27,14 @@ subscriber_FB_DIMMER_MQTT.SetMqttInOut(MQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 ```
 The *MQTT_IN_OUT* is the object that links the subscribers to the MQTT Client.
 
-4. Call the subscriber function block in the *MQTT_SUBSCRIBE* action in the *PLC_PRG_MQTT* program. Example below:
+4. Call the subscriber function block in the *MQTT_SUBSCRIBE* action in the *PRG_MQTT* program. Example below:
 ```
 subscriber_FB_OUTPUT_SWITCH_MQTT(
 	Subscribe:= TRUE, 
 	Topic:= ADR('Devices/PLC/Lab/In/DigitalOutputs/+'), 
 	QoSSubscribe:= MQTT.QoS.ExactlyOnce, 
 	ExpectingString:= TRUE, 
-	Callback:= MqttVariables.collector_FB_OUTPUT_SWITCH_MQTT,
+	Callback:= GVL_MQTT.collector_FB_OUTPUT_SWITCH_MQTT,
 );
 	
 subscriber_FB_OUTPUT_COVER_MQTT(
@@ -42,7 +42,7 @@ subscriber_FB_OUTPUT_COVER_MQTT(
 	Topic:= ADR('Devices/PLC/Lab/In/Covers/+'), 
 	QoSSubscribe:= MQTT.QoS.ExactlyOnce, 
 	ExpectingString:= TRUE, 
-	Callback:= MqttVariables.collector_FB_OUTPUT_COVER_MQTT,
+	Callback:= GVL_MQTT.collector_FB_OUTPUT_COVER_MQTT,
 );
 ```
 

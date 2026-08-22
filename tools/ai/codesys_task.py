@@ -1096,6 +1096,49 @@ def find_editable(proj, name, member=None, path=None):
     return None, "%s has no method or action named %s that owns text" % (name, member)
 
 
+def find_all_editable(proj, name, path=None):
+    """Every text-owning object of that name, narrowed by `path` if given.
+
+    `find_editable` refuses ambiguity, which is right for an edit - rewriting the
+    wrong controller's program is unrecoverable. A rename sometimes genuinely
+    means all of them: this project has two applications and therefore two
+    `MqttVariables`, and the convention applies to both. So the ambiguity is
+    surfaced here and the map decides, rather than being resolved by guesswork.
+    """
+    def owns_text(obj):
+        return bool(safe(lambda: obj.has_textual_declaration, False)) or bool(
+            safe(lambda: obj.has_textual_implementation, False)
+        )
+
+    hits = [m for m in list(safe(lambda: proj.find(name, True), []) or []) if owns_text(m)]
+    if path:
+        needle = u(path).lower().replace(u"\\", u"/")
+        hits = [h for h in hits
+                if needle in u(object_path(h)).lower().replace(u"\\", u"/")]
+    return hits
+
+
+def find_task_calls(proj, name):
+    """The task configuration's call entries for a program of that name.
+
+    A task calls a program through a separate object that carries the program's
+    name and owns no code, so it is invisible to every text-owning filter here -
+    and renaming the program without it leaves the task pointing at a name that no
+    longer exists:
+
+        Identifier 'PLC_PRG_MAIN' not defined   <.../Task Configuration/MainTask>
+
+    That is a build failure rather than a silent one, so it costs a run rather
+    than a project. It is still the reason a program rename is two renames.
+    """
+    out = []
+    for hit in list(safe(lambda: proj.find(name, True), []) or []):
+        kind = str(safe(lambda: hit.type, u""))
+        if kind.startswith(TASK_CALL_TYPE):
+            out.append(hit)
+    return out
+
+
 def find_deletable(proj, name):
     """Locate one object to remove: a POU, a DUT, an enum, or a folder.
 
@@ -1545,6 +1588,438 @@ def do_apply(cfg, result):
             return
         proj.save()
         result["saved"] = True
+    finally:
+        safe(lambda: proj.close())
+
+
+# ---------------------------------------------------------------- rename
+
+
+# IEC string literals: single-quoted STRING, double-quoted WSTRING, `$` escapes.
+# A rename must never reach inside one. MQTT topics, Home Assistant discovery
+# keys and JSON fragments all live in literals, and "fixing" a topic string would
+# be invisible here and visible only as a broker going quiet.
+LITERAL_RE = re.compile(r"'(?:\$.|[^'\n])*'|\"(?:\$.|[^\"\n])*\"")
+
+# Comments are deliberately NOT protected. A comment still naming MqttVariables
+# after the GVL became GVL_MQTT is worse than no comment, because the next reader
+# believes it.
+TOKEN_RE = re.compile(r"[A-Za-z_]\w*")
+
+
+def literal_spans(text):
+    """Half-open [start, end) ranges of every string literal in `text`."""
+    return [(m.start(), m.end()) for m in LITERAL_RE.finditer(text)]
+
+
+def ctx_member_or_named_arg(text, match):
+    """True for `foo.NAME` and for `NAME :=`.
+
+    Those are the two ways one POU reaches another POU's member: qualified access
+    through an instance, and a named argument at a call site. An FB's input pin is
+    reached through instance names this tool cannot enumerate, so the shape of the
+    reference is the only handle there is. Both shapes fail loudly at compile time
+    when the guess is wrong, which is what makes them safe to use.
+    """
+    before = text[max(0, match.start() - 8):match.start()]
+    if before.rstrip().endswith(u"."):
+        return True
+    after = text[match.end():match.end() + 8]
+    return after.lstrip().startswith(u":=")
+
+
+def qualified_context(qualifiers):
+    """True only for `Qualifier.NAME`, for one of the given qualifier names.
+
+    Tighter than `ctx_member_or_named_arg` and preferred wherever the qualifier is
+    known - a GVL member or an enumeration value is always reached through the
+    list or the type, so nothing else can be caught by accident.
+    """
+    names = [re.escape(u(q)) for q in qualifiers if q]
+    if not names:
+        return lambda text, match: False
+    pattern = re.compile(r"(?:%s)\s*\.\s*$" % u"|".join(names), re.IGNORECASE)
+
+    def ctx(text, match):
+        window = text[max(0, match.start() - 80):match.start()]
+        return bool(pattern.search(window))
+
+    return ctx
+
+
+def rewrite_tokens(text, mapping, protect=(), context=None):
+    """Rename whole identifiers in `text`, outside string literals.
+
+    Token-walking rather than one alternation regex: word characters include `_`,
+    so `MQTT_DISCOVERY_LIGHT_DIMMER` is a single token and a rename of `Dimmer`
+    cannot eat half of it, and there is no longest-match-first ordering to get
+    wrong. Matching is case-insensitive because IEC is: `PersistentVars` refers to
+    `HVACMODES` for a type declared `HvacModes`, and a case-sensitive pass would
+    leave that reference dangling and the build broken in a way that reads like a
+    missing type.
+
+    Returns (new_text, hits).
+    """
+    if not text or not mapping:
+        return text, 0
+    lookup = {}
+    for old in mapping:
+        lookup[u(old).lower()] = u(mapping[old])
+    blocked = set([u(p).lower() for p in (protect or ())])
+    spans = literal_spans(text)
+    hits = [0]
+
+    def in_literal(index):
+        for start, end in spans:
+            if start <= index < end:
+                return True
+            if index < start:
+                break
+        return False
+
+    def replace(match):
+        token = match.group(0)
+        key = token.lower()
+        if key not in lookup or key in blocked:
+            return token
+        if in_literal(match.start()):
+            return token
+        if context is not None and not context(text, match):
+            return token
+        hits[0] += 1
+        return lookup[key]
+
+    return TOKEN_RE.sub(replace, text), hits[0]
+
+
+# A variable or struct member declaration: `name : TYPE;`, allowing a leading
+# pragma. Anchored per line, so `TYPE ST_X :` and `METHOD Foo : BOOL` - which are
+# object headers, not declarations - do not match.
+DECLARED_RE = re.compile(r"^[ \t]*(?:\{[^}]*\}[ \t]*)?([A-Za-z_]\w*)[ \t]*:", re.MULTILINE)
+
+
+def declared_variable_names(nodes):
+    """Every name declared as a variable or struct member, lowercased.
+
+    Used to catch the one mistake an object rename can make that still compiles.
+    `PRG_DALI_VERIFY` declares an instance called `Dimmer`; the enumeration
+    `Dimmer` is renamed to `E_DIMMER`. A blind token sweep renames the instance
+    too - consistently, in its declaration and at its call site - so the project
+    builds and a variable is now called `E_DIMMER`. Nothing downstream would ever
+    report it.
+    """
+    names = {}
+    for node in nodes:
+        decl = text_of(node, "declaration")
+        if not decl:
+            continue
+        for match in DECLARED_RE.finditer(decl):
+            key = match.group(1).lower()
+            names.setdefault(key, []).append(object_path(node))
+    return names
+
+
+def text_nodes(proj):
+    """Every node in the project, methods and actions included.
+
+    Members own text too, and a rewrite that skipped them would half-land - which
+    on a rename is the worst outcome available, because the half that landed
+    compiles.
+    """
+    out = []
+
+    def recurse(node):
+        for child in list(safe(lambda: node.get_children(False), []) or []):
+            out.append(child)
+            recurse(child)
+
+    recurse(proj)
+    return out
+
+
+def rewrite_node(node, mapping, protect, context, dry):
+    """Apply one rewrite to a node's declaration and implementation. Returns hits."""
+    total = 0
+    for which in ("declaration", "implementation"):
+        current = text_of(node, which)
+        if not current:
+            continue
+        new_text, hits = rewrite_tokens(current, mapping, protect, context)
+        if not hits:
+            continue
+        total += hits
+        if dry:
+            continue
+        holder = safe(lambda: getattr(node, "textual_" + which), None)
+        if holder is None:
+            continue
+        holder.replace(new_text)
+    return total
+
+
+def sweep(nodes, mapping, protect, context, dry, skip=()):
+    """Rewrite every node, reporting where the hits landed.
+
+    The per-object counts are the point, not decoration: a rename that reports
+    zero hits outside the declaring object either is not referenced anywhere - fine
+    - or is referenced in a form this pass does not recognise, which is the failure
+    worth catching before the compiler has to.
+    """
+    hits = {}
+    for node in nodes:
+        name = u(safe(lambda: node.get_name(), u"?"))
+        if name.lower() in skip:
+            continue
+        count = rewrite_node(node, mapping, protect, context, dry)
+        if count:
+            hits[object_path(node)] = hits.get(object_path(node), 0) + count
+    return hits
+
+
+def top_hits(hits, limit=12):
+    """The busiest objects, so a report stays readable when 60 files changed."""
+    ranked = sorted(hits.items(), key=lambda pair: (-pair[1], pair[0]))
+    return [{"object": u(path), "hits": count} for path, count in ranked[:limit]]
+
+
+def do_rename(cfg, result):
+    """Rename objects and identifiers, rewriting every reference to them.
+
+    CODESYS's IDE refactoring is not reachable from the ScriptEngine, so
+    `node.rename()` renames an object and updates nothing that refers to it. The
+    references are therefore ours to rewrite, which is the whole reason this task
+    exists rather than being a loop around `rename()`.
+
+    Two shapes of rename, because they carry different risk:
+
+    - **objects** - a type, block, program or GVL. The name is unique in the
+      project, so every occurrence of the token anywhere is that object.
+    - **identifiers** - variables inside one declaring object. `mode` decides how
+      far the rewrite reaches: `local` stays inside the declaring object,
+      `qualified` also rewrites `Owner.name` project-wide (right for GVL members
+      and enumeration values), `loose` also rewrites `.name` and `name :=`
+      project-wide (the only handle on a function block's pins, whose qualifier is
+      an instance name that cannot be enumerated).
+
+    Identifier groups run first, and name their object **as the project spells it
+    today** - so one map can rename a variable out of the way of an object about to
+    take its name.
+
+    Two failures the compiler cannot catch, both refused rather than risked:
+
+    - **A collision.** Renaming to a name that already exists binds silently to the
+      wrong thing, where everything else fails loudly.
+    - **A shadow.** An object whose old name is also a variable somewhere gets that
+      variable renamed too, consistently enough to compile - see
+      `declared_variable_names`. Rename the variable in the same map, or accept it
+      explicitly through `allow_shadow`.
+
+    Nothing is written unless the whole map applied and the project still builds,
+    which is what makes a wrong map cost a run rather than a project.
+    """
+    # The map is read here rather than handed over as a converted object:
+    # PowerShell's ConvertTo-Json truncates below this structure's depth by
+    # default, and a silently truncated map renames half a project.
+    spec = cfg.get("rename") or {}
+    map_path = cfg.get("rename_map")
+    if map_path:
+        try:
+            spec = json.loads(read_text(map_path))
+        except Exception:
+            result["errors"].append(
+                "could not read the rename map %s:\n%s" % (map_path, traceback.format_exc()))
+            return
+    if isinstance(spec, list):
+        spec = spec[0] if spec else {}
+    dry = bool(cfg.get("dry_run"))
+    objects_map = dict(spec.get("objects") or {})
+    entries = spec.get("identifiers") or []
+    if isinstance(entries, dict):
+        entries = [entries]
+    entries = [e for e in list(entries) if isinstance(e, dict)]
+    protect = tuple([u(p) for p in (spec.get("protect") or ())])
+    skip = set([u(s).lower() for s in (spec.get("skip_objects") or ())])
+    if not objects_map and not entries:
+        result["errors"].append(
+            "nothing to rename: the map has neither \"objects\" nor \"identifiers\"")
+        return
+
+    report = {
+        "dry_run": dry,
+        "objects": [],
+        "identifiers": [],
+        "protected": len(protect),
+        "skipped_objects": sorted(skip),
+    }
+    result["renames"] = report
+    log("rename: %d object(s), %d identifier group(s)%s"
+        % (len(objects_map), len(entries), " (dry run)" if dry else ""))
+
+    proj = projects.open(cfg["project"])  # noqa: F821
+    try:
+        # 1. Validate every object rename before applying any of them.
+        planned = []
+        sweep_map = {}
+        for old in sorted(objects_map):
+            # A value is either the new name, or {"new": ..., "all": true, "path": ...}
+            # when one name has to reach more than one object - two applications
+            # mean two MqttVariables, and the convention applies to both.
+            request = objects_map[old]
+            if isinstance(request, dict):
+                new = u(request.get("new") or u"")
+                want_all = bool(request.get("all"))
+                path_filter = request.get("path")
+            else:
+                new, want_all, path_filter = u(request), False, None
+            if not new:
+                result["errors"].append("rename %s: no new name given" % old)
+                continue
+            victims = find_all_editable(proj, old, path_filter)
+            if not victims:
+                where = " under %r" % path_filter if path_filter else ""
+                result["errors"].append(
+                    "rename %s: no object of that name owns text%s" % (old, where))
+                continue
+            if len(victims) > 1 and not want_all:
+                result["errors"].append(
+                    "rename %s is ambiguous: %s - add \"path\" to pick one, or "
+                    "\"all\": true to rename every one of them"
+                    % (old, ", ".join([object_path(v) for v in victims])))
+                continue
+            clash = list(safe(lambda: proj.find(new, True), []) or [])
+            if clash:
+                result["errors"].append(
+                    "rename %s -> %s refused: %s already exists (%s)"
+                    % (old, new, new, ", ".join([object_path(c) for c in clash])))
+                continue
+            sweep_map[old] = new
+            for victim in victims:
+                planned.append((old, new, victim))
+            # A program is called from the task configuration through a nameless
+            # twin that owns no code. It has to follow the rename or the task
+            # points at nothing.
+            for call in find_task_calls(proj, old):
+                planned.append((old, new, call))
+        if result["errors"]:
+            result["errors"].append("nothing was renamed: fix the map and re-run")
+            return
+
+        nodes = text_nodes(proj)
+        # Read the declared names up front, so the shadow check below behaves the
+        # same in a dry run - where no identifier rewrite has actually been
+        # written - as in a real one. A group that renames the shadowing variable
+        # clears the shadow either way, which is the whole point of running the
+        # groups first.
+        declared_before = declared_variable_names(nodes)
+        cleared = {}
+
+        # 2. Identifier groups, one declaring object at a time. These run BEFORE
+        #    the object renames so that a group can rename a variable out of the
+        #    way of an object taking its name, in a single run - and so that a
+        #    group names its object as it is spelled in the project today rather
+        #    than as it will be spelled afterwards.
+        for group in entries:
+            name = u(group.get("object") or u"")
+            mapping = dict(group.get("map") or {})
+            mode = u(group.get("mode") or u"local").lower()
+            if not name or not mapping:
+                result["errors"].append(
+                    "identifier group needs \"object\" and a non-empty \"map\": %r" % group)
+                continue
+            owner, problem = find_editable(proj, name, None, group.get("path"))
+            if owner is None:
+                result["errors"].append("rename in %s: %s" % (name, problem))
+                continue
+            # Members of the declaring object are part of its scope: a method's
+            # body references the block's variables, so the local pass has to
+            # include them.
+            family = [owner] + list(safe(lambda: owner.get_children(False), []) or [])
+            local = sweep(family, mapping, protect, None, dry)
+            # Whatever this group renamed is no longer available to shadow an
+            # object taking the same name.
+            family_paths = set([object_path(n) for n in family])
+            for old_name in mapping:
+                key = u(old_name).lower()
+                cleared.setdefault(key, set()).update(family_paths)
+            entry = {
+                "object": u(object_path(owner)),
+                "mode": mode,
+                "names": len(mapping),
+                "local_hits": sum(local.values()),
+                "cross_hits": 0,
+            }
+            if mode in ("qualified", "loose"):
+                # In a dry run the text still carries the old object name, so
+                # accept either spelling as the qualifier rather than reporting a
+                # confident zero.
+                aliases = [name] + [o for o in sweep_map if sweep_map[o] == name]
+                context = (qualified_context(aliases) if mode == "qualified"
+                           else ctx_member_or_named_arg)
+                elsewhere = [n for n in nodes if n not in family]
+                cross = sweep(elsewhere, mapping, protect, context, dry, skip)
+                entry["cross_hits"] = sum(cross.values())
+                entry["cross_top"] = top_hits(cross)
+            elif mode != "local":
+                result["errors"].append(
+                    "unknown mode %r for %s: use local, qualified or loose" % (mode, name))
+                continue
+            report["identifiers"].append(entry)
+            log("rename in %s: %d name(s), %d local, %d elsewhere (%s)"
+                % (name, len(mapping), entry["local_hits"], entry["cross_hits"], mode))
+
+        # 3. Refuse an object rename whose old name is also a variable somewhere.
+        #    See declared_variable_names: this is the failure that compiles.
+        if planned:
+            allowed = set([u(a).lower() for a in (spec.get("allow_shadow") or ())])
+            for old, new, victim in planned:
+                key = u(old).lower()
+                remaining = set(declared_before.get(key, [])) - cleared.get(key, set())
+                if remaining and key not in allowed:
+                    result["errors"].append(
+                        "rename %s -> %s refused: %s is also declared as a variable in %s. "
+                        "Rename that variable in the same map (an \"identifiers\" group), or "
+                        "list %s in \"allow_shadow\" to rewrite both."
+                        % (old, new, old, ", ".join(sorted(remaining)[:4]), old))
+            if result["errors"]:
+                result["errors"].append("nothing was saved: fix the map and re-run")
+                return
+
+        # 4. Rename the objects themselves, then rewrite every reference. Object
+        #    names are project-unique, so no context filter is wanted here: a type
+        #    used only inside an otherwise-exempt struct still has to follow it.
+        for old, new, victim in planned:
+            entry = {
+                "old": u(old),
+                "new": u(new),
+                "path": u(object_path(victim)),
+                "task_call": str(safe(lambda: victim.type, u"")).startswith(TASK_CALL_TYPE),
+            }
+            if not dry:
+                try:
+                    victim.rename(new)
+                except Exception:
+                    trace = traceback.format_exc()
+                    result["errors"].append("renaming %s to %s failed:\n%s" % (old, new, trace))
+                    log("rename %s FAILED:\n%s" % (old, trace))
+                    return
+            report["objects"].append(entry)
+            log("rename object: %s -> %s" % (old, new))
+
+        if sweep_map:
+            hits = sweep(nodes, sweep_map, protect, None, dry)
+            total = sum(hits.values())
+            report["object_references"] = {"total": total, "top": top_hits(hits)}
+            log("rename: rewrote %d object reference(s) across %d object(s)"
+                % (total, len(hits)))
+
+        if dry:
+            log("dry run: nothing written, nothing built")
+            return
+        if result["errors"]:
+            result["errors"].append(
+                "project NOT saved: the rename map was only partly applicable")
+            return
+        save_if_it_builds(cfg, result, proj, "the renamed project does not build")
     finally:
         safe(lambda: proj.close())
 
@@ -2044,8 +2519,12 @@ def rename_node(cfg, result, proj):
     Worth knowing what a device's name reaches: the object paths in every
     compiler message, and so the object paths recorded in a baseline. Rename a
     device and the next `verify` reads its unchanged warnings as NEW until the
-    baseline is re-recorded. Persistent instance paths would matter too, but this
-    project's `PersistentVars` list is empty.
+    baseline is re-recorded.
+
+    This renames a node in the DEVICE tree. For a POU, DUT, GVL or program, use
+    the `rename` task instead - it rewrites the references too, which this does
+    not, and it knows that a program's name is also the prefix of every persistent
+    instance path in the persistent variable list.
 
     Returns True when a node was renamed.
     """
@@ -2782,6 +3261,7 @@ TASKS = {
     "export": do_export,
     "verify": do_verify,
     "apply": do_apply,
+    "rename": do_rename,
     "probe": do_probe,
     "libs": do_libs,
 }

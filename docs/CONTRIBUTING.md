@@ -27,6 +27,18 @@ In case your specific project differs too much from the reference project in thi
 
 * Ask any question about how to use the source code in the [Gitter chat](https://gitter.im/MichielVanwelsenaere/HomeAutomation.CoDeSys3).
 
+#### **What do I name it?**
+
+* Read [the coding style](CodingStyle.md). It decides the name of every object and
+every variable, so there is nothing to weigh up: objects are `PREFIX_` +
+`SCREAMING_SNAKE` (`FB_`, `E_`, `ST_`, `I_`, `A_`, `GVL_`, `PRG_`, `F_`) and
+variables are a type prefix plus `PascalCase` (`bStartup`, `sFriendlyName`,
+`pMqttPublishQueue`).
+
+* Two details that catch people: `b` is `BOOL` and `by` is `BYTE`, following the
+CODESYS guide rather than TwinCAT habit — and the `MQTT_DISCOVERY_*` structs are
+exempt, because their member names are published as Home Assistant discovery keys.
+
 # Merge request (pull request)
 
 ## **GIT side**
@@ -54,7 +66,7 @@ The export is a PLCopen XML file that others import to pick up your changes. The
 
      <img src="_img/GettingStartedGuide/Export_all_except_POU.png" height="400">
 
-     So no `*variables`, `PRGs` and `PersistenceVars`
+     So no `GVL_*` lists, `PRG's` and `GVL_PERSISTENT`
    - You can export Variables/Library if you see fit
    - Export as PLCopen XML to [Exports\PLCopen.xml](../src/Exports/PLCopen.xml)
 
@@ -68,7 +80,7 @@ The export is a PLCopen XML file that others import to pick up your changes. The
 
 The block diagrams, interface tables and method tables in
 `docs/FunctionBlocks/*.md` are **generated** from `src/Exports/PLCopen.xml`, as
-is the `MqttVariables` listing in `MQTT_General.md`. Don't write them by hand and
+is the `GVL_MQTT` listing in `MQTT_General.md`. Don't write them by hand and
 don't edit between the `<!-- fb-badge -->`, `<!-- fb-interface -->` or
 `<!-- gvl -->` markers — descriptions inside those regions are preserved across
 regenerations, everything else is rebuilt from the export.
