@@ -83,9 +83,40 @@ Two mechanisms cut the amount of hand-writing, both in the script:
    - `HA YAML on a discovery-capable block` — blocks that publish discovery
      configs do not need the hand-written YAML fallback; it is schema-volatile
      and drifts. Remove the `### **Home Assistant YAML**` section.
+   - `SCAFFOLD DRIFT` — see below. Not fixed automatically, and it fails
+     `--check`.
 
 4. **Verify.** Re-run with `--check`; it should pass. Confirm nothing outside
    the markers moved: `git diff -- docs/`.
+
+## Scaffold specs are checked against the project too
+
+`tools/ai/scaffold/*.json` build applications *inside* the binary — the DALI
+verification device is one program, one GVL and one task, none of which can be
+read without opening CODESYS. Those specs are the only readable record of how
+that was assembled, so this generator also checks that they still describe what
+is there, and fails `--check` when they do not.
+
+It is a **subset** test: every declaration and every statement in a fragment must
+still be present in the object it builds. That catches a rename — the failure
+mode — without failing on the GVL fragments, which are appends by design.
+Declarations are compared by name and type rather than as text, because the
+export carries no plaintext declaration for a program, only structured XML.
+
+Two things follow from that:
+
+- **The generator will not fix it.** It cannot rewrite a declaration it can only
+  read structurally. Update the fragment by hand, or re-run the scaffold.
+- **A fragment may be a subset and still be wrong** in the other direction: if
+  the project gained a variable the fragment never had, re-running the scaffold
+  would produce a smaller object. The check does not catch that, and nothing
+  does.
+
+Why it exists: a project-wide rename carried `Dimmer` into these fragments and
+missed `DaliMaster`, so the committed recipe named an instance the project no
+longer had. No build, no `verify` and no check noticed, because nothing compiles
+or imports these files. It surfaced when somebody asked whether the folder was
+meant to be checked in at all.
 
 ## Adding a new function block
 
