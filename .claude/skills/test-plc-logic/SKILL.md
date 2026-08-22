@@ -119,6 +119,33 @@ you probably wrote it as in the declaration; and an enum comes back fully
 qualified (`E_RS485_EASTRON_SDM_DEVICE.SDM220`). When in doubt put the variable in
 `read` first, run once, and copy the spelling out of the report into `expect`.
 
+**`write` and `expect` do not use the same spelling for an enum.** A write takes
+the **ordinal** — `"2"` for `E_HVAC_MODE.heat` — while the read back is qualified,
+so one variable needs two spellings in the same step:
+
+```json
+{"write":  {"PRG_HVAC.fbThermostat2.eHvacMode": "2"},
+ "expect": {"PRG_HVAC.fbThermostat2.eHvacMode": "E_HVAC_MODE.heat"}}
+```
+
+Writing the qualified name fails the whole step with
+`'E_HVAC_MODE#E_HVAC_MODE.heat' is not a valid Integer` — loud, at least. Get the
+ordinals from the export rather than counting the declaration: they may be
+explicit.
+
+**`delay_ms` is a floor, not the elapsed time.** Every `read` and every `expect`
+is a round trip to the PLC and costs real time on top of it, so a step with ten
+assertions adds about a second of its own. Do not put an assertion within a
+second or two of a timer edge — the interlock spec first did, against a 5 s
+`ValveCycleTime`, and drifted past it in a run where the code was perfect. Leave
+several seconds of margin on both sides of every edge you assert.
+
+**And force the state you are about to drive, not just the state around it.**
+`eHvacMode` and `rDesiredTemp` are PERSISTENT and survive a download's cold reset,
+so a thermostat can arrive already demanding. Setting the *other* thermostats off
+is not enough: the one under test has to be put in a known state too, before the
+sensor is made healthy, or the chain starts before the spec thinks it did.
+
 Finish with a diff, which catches damage you were not looking for:
 
 ```powershell
@@ -411,6 +438,19 @@ The commanded valve state is what this asserts, which is the honest limit: a ben
 has no manifold, so nothing here measures real valve travel. `ValveCycleTime`
 describes a valve **opening** and no block models how long one takes to shut, so on
 real hardware wire the interlock *and* fit a differential bypass.
+
+Verified 9/9 on the lab PFC200 (`00E8`), with the broker at 480 retained topics
+before and after and nothing in `NEW` or `GONE`. The interesting line of the run:
+
+```
+[ok] 5. THE REGRESSION.
+     fbThermostat2.OUT=FALSE  bHeatRequest=FALSE
+     fbPump2.PUMP=TRUE  MIN_ONTIME_ACTIVE=TRUE
+     fbPump2Collector.PUMP=FALSE  PUMP_MIN_ONTIME_ACTIVE=TRUE
+     fbPump2Collector.VALVE[1]=TRUE
+```
+
+No demand, no request from the collector, pump still turning, valve still open.
 
 ### Also worth asserting
 
