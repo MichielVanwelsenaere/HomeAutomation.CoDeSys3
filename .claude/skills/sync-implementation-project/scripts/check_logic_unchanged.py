@@ -156,9 +156,13 @@ def main() -> int:
     # instance list and a rewrite would be catastrophic and silent.
     additive = {entry["gvl"] for entry in (plan.get("gvl_additions") or [])}
     migrated: set[str] = set()
+    deletions: set[str] = set()
     if args.migrations:
         for edit in load(args.migrations).get("edits", []):
-            migrated.add(edit["pou"])
+            if edit.get("delete_pou"):
+                deletions.add(edit["pou"])
+            else:
+                migrated.add(edit["pou"])
 
     b_objects, _ = index_by_name(before)
     a_objects, _ = index_by_name(after)
@@ -183,7 +187,8 @@ def main() -> int:
             continue
         if a is None:
             removed.append(name)
-            findings.append("REMOVED by the sync: %s (%s)" % (name, b.get("top")))
+            if name not in deletions:
+                findings.append("REMOVED by the sync: %s (%s)" % (name, b.get("top")))
             continue
         if b.get("top") != a.get("top"):
             moved.append(name)
@@ -265,6 +270,12 @@ def main() -> int:
     for name in inert:
         findings.append("PLANNED but unchanged - the import did not take: %s" % name)
 
+    gone = sorted(n for n in deletions if n not in a_objects)
+    if gone:
+        print("deleted deliberately            : %d  %s" % (len(gone), ", ".join(gone)))
+        print("  Named with delete_pou in the migrations, and confirmed absent.")
+        print("")
+
     if in_step:
         print("already in step with the reference : %d  %s"
               % (len(in_step), ", ".join(in_step)))
@@ -291,6 +302,12 @@ def main() -> int:
             print("  %s" % name)
         print("  These must be behaviour-preserving. Review them before promoting.")
         print("")
+    # A deletion that did happen needs no further proof; one that did NOT is a
+    # finding, because the object is still there and something still expects it
+    # to be gone.
+    for name in sorted(deletions):
+        if name in a_objects:
+            findings.append("DELETION listed but the object is still there: %s" % name)
     unmigrated = sorted(migrated - set(migrations_seen))
     for name in unmigrated:
         findings.append("MIGRATION listed but the object did not change: %s" % name)
