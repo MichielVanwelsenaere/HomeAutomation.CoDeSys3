@@ -203,11 +203,25 @@ def classify(obj: dict[str, Any], devices: set[str]) -> str:
     return "unclassified"
 
 
-def compatibility(ref: dict[str, Any], impl: dict[str, Any]) -> dict[str, Any]:
+def compatibility(
+    ref: dict[str, Any],
+    impl: dict[str, Any],
+    selected: list[str] | None = None,
+    ref_objects: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """Can the reference's blocks compile inside this implementation project?
 
     Everything checked here is a precondition that a build would only report as
     a confusing downstream error, so it is worth failing early and by name.
+
+    Both set comparisons here are asymmetric on purpose, and they used to be
+    equalities. The reference project carries a second controller that is never
+    downloaded - a virtual G2 whose only job is to compile-check the DALI block -
+    and it brought WagoAppDALI, seven WagoSys placeholders and four device ids
+    with it. Against equality, that made the reference read as INCOMPATIBLE with
+    every installation on earth, for libraries and devices that no block being
+    synced has any use for. The question worth asking is not "are these projects
+    the same" but "does this installation have what THIS sync needs".
 
     Note what is deliberately NOT checked: the CODESYS compiler version stored
     in the project. It is not reachable from the scripting API. The empirical
@@ -236,11 +250,29 @@ def compatibility(ref: dict[str, Any], impl: dict[str, Any]) -> dict[str, Any]:
     ref_libs = {lib["name"] for lib in ref["info"]["libraries"]}
     impl_libs = {lib["name"] for lib in impl["info"]["libraries"]}
     missing = sorted(ref_libs - impl_libs)
-    check(
-        "libraries the reference uses are present",
-        not missing,
-        "all %d present" % len(ref_libs) if not missing else "MISSING: " + ", ".join(missing),
-    )
+
+    # A missing library only blocks the sync if something being synced names it.
+    # The namespace is the library name without the placeholder '#' and without
+    # the version suffix: "WagoAppDALI, 1.3.1.15 (WAGO)" is reached in ST as
+    # "WagoAppDALI.". A library used WITHOUT a namespace (Standard's TON, SysMem's
+    # SysMemMove) cannot be detected this way, which is why an undetected one is
+    # reported rather than dismissed - and why the sandbox build in §6, not this
+    # check, is the real gate.
+    def namespace(lib_name: str) -> str:
+        return lib_name.lstrip("#").split(",")[0].strip()
+
+    corpus = ""
+    if selected and ref_objects:
+        corpus = "\n".join(source_of(ref_objects[n]) for n in selected if n in ref_objects)
+    needed = [m for m in missing if not corpus or (namespace(m) + ".") in corpus]
+    unused = [m for m in missing if m not in needed]
+    detail = "all %d present" % len(ref_libs)
+    if needed:
+        detail = "MISSING and named by a synced block: " + ", ".join(needed)
+    elif unused:
+        detail = ("%d missing, none named by any synced block: %s"
+                  % (len(unused), ", ".join(unused)))
+    check("libraries the synced blocks need are present", not needed, detail)
     extra = sorted(impl_libs - ref_libs)
     check(
         "no unexpected extra libraries",
@@ -262,11 +294,23 @@ def compatibility(ref: dict[str, Any], impl: dict[str, Any]) -> dict[str, Any]:
 
     ref_ctl = controllers(ref)
     impl_ctl = controllers(impl)
+    # Subset, not equality: every controller the installation runs has to be one
+    # the reference also targets, because that is what says the shared blocks are
+    # built for this runtime. The reference having MORE - a virtual verification
+    # controller, a module the building does not own - says nothing about the
+    # installation.
+    unsupported = sorted(impl_ctl - ref_ctl)
+    extra_ref = sorted(ref_ctl - impl_ctl)
+    detail = "installation %s, all targeted by the reference" % (sorted(impl_ctl) or "?")
+    if unsupported:
+        detail = ("installation runs %s, which the reference does not target"
+                  % (unsupported,))
+    elif extra_ref:
+        detail += "; reference also has %s, not used here" % (extra_ref,)
     check(
-        "same controller type and version",
-        bool(ref_ctl) and ref_ctl == impl_ctl,
-        "reference %s / implementation %s"
-        % (sorted(ref_ctl) or "?", sorted(impl_ctl) or "?"),
+        "the installation's controllers are targeted by the reference",
+        bool(impl_ctl) and not unsupported,
+        detail,
     )
 
     fatal = [c for c in checks if not c["ok"] and c["fatal"]]
@@ -460,7 +504,7 @@ def main() -> int:
         "reference": ref["info"]["path"],
         "gvl_additions": gvl_additions,
         "implementation": impl["info"]["path"],
-        "compatibility": compatibility(ref, impl),
+        "compatibility": compatibility(ref, impl, selected, ref_objects),
         # The export list for `codesys.ps1 export -Only`.
         "export": sorted(selected),
         "update": update,

@@ -1,0 +1,48 @@
+{
+  "_comment": [
+    "Issue #179, the part of the rename an INSTALLATION project has to do.",
+    "",
+    "Run this against the installation, with -Project, BEFORE syncing blocks. Until",
+    "it has run, the installation still holds the shared objects under their old",
+    "names, so a sync import with -ImportConflict replace matches nothing and files",
+    "a second copy of every block beside the old one.",
+    "",
+    "Everything here is either shared code, or named by shared code:",
+    "  - the 10 objects are the reference's own types and blocks, which live in the",
+    "    installation as copies and are replaced by the sync.",
+    "  - MqttVariables is the installation's GVL, but 20 shared blocks name it -",
+    "    FB_MQTT_BASE declares STRING(GVL_MQTT.MQTT_TOPIC_LEN) and the self-wiring",
+    "    prologue reaches into GVL_MQTT.fbMqttPublishQueue - so it has to follow or",
+    "    every synced block fails with Identifier 'GVL_MQTT' not defined. Its",
+    "    MEMBERS keep their names; only the list is renamed. \"all\": true because a",
+    "    project with two controllers has two of them and both are compiled.",
+    "",
+    "NOT here, on purpose - these are the installation's own and renaming them",
+    "changes what its PLC does rather than what it compiles against:",
+    "  - PLC_PRG_* programs. Renaming one changes every persistent instance path",
+    "    under it, so the building's retained state resets.",
+    "  - PersistentVars, RS485Variables, DMXVariables, DALIVariables. No shared",
+    "    block names them.",
+    "  - instance names. They are the Home Assistant entity ids.",
+    "An owner who wants those too should start from 179-objects.json instead and",
+    "read docs/NamingConventionMigration.md first.",
+    "",
+    "Objects the installation does not have are simply reported as absent, so this",
+    "map is safe to run against any installation regardless of which subsystems it",
+    "uses - trim the ones it reports missing if you prefer a silent run."
+  ],
+  "objects": {
+    "MqttVariables": { "new": "GVL_MQTT", "all": true },
+
+    "MQTT_MESSAGE": "ST_MQTT_MESSAGE",
+    "Dimmer": "E_DIMMER",
+    "DIMMER_CURVE": "E_DIMMER_CURVE",
+    "HvacModes": "E_HVAC_MODE",
+    "RS485_EASTRON_SDM_Devices": "E_RS485_EASTRON_SDM_DEVICE",
+    "RS485Device": "I_RS485_DEVICE",
+    "FC_StripJsonRoot": "F_STRIP_JSON_ROOT",
+    "SwapWordsToReal": "F_SWAP_WORDS_TO_REAL",
+    "FB_MqttPublishQueue": "FB_MQTT_PUBLISH_QUEUE",
+    "FB_MqttPublishWorker": "FB_MQTT_PUBLISH_WORKER"
+  }
+}
