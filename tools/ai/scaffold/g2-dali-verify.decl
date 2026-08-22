@@ -6,6 +6,6 @@ VAR
 	Ballast : WagoAppDALI.typBallast := (bAddress := 0, xIsGroup := FALSE, bPortDALI := 1);
 
 	// The master, and the block under test.
-	DaliMaster : WagoAppDALI.FbDaliMaster;
+	fbDaliMaster : WagoAppDALI.FbDaliMaster;
 	fbDimmer : FB_OUTPUT_DIMMER_DALI_MQTT;
 END_VAR

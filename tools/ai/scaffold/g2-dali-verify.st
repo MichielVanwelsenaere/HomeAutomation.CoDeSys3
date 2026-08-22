@@ -2,7 +2,7 @@
 // K-bus. This binding is the whole point of the second controller: I_Port wants a
 // WagoTypesModule_753_647.I_Port_753_647, which only WAGO's device description
 // creates, and that description does not fit the G1 lab device's bus.
-DaliMaster(
+fbDaliMaster(
 	bPortDALI := 1,
 	I_Port := IoConfig_Globals.DALI_753_647);
 
