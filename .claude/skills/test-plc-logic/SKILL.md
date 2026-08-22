@@ -65,14 +65,14 @@ function Cmd($topic, $payload) { & $mp -h $B -t "Devices/PLC/Lab/In/$topic" -m $
 
 | What | Command topic (under `In/`) | Payload | State topic (under `Out/`) |
 |:--|:--|:--|:--|
-| Binary light | `DigitalOutputs/FB_DO_BIN_001` | `TRUE` / `FALSE` | `DigitalOutputs/FB_DO_BIN_001` |
-| Bistable light | `DigitalOutputs/FB_DO_BISTABLE_001` | `TRUE` / `FALSE` | `DigitalOutputs/FB_DO_BISTABLE_001` |
-| Cover | `Covers/FB_DO_COVER_001` | `OPEN` / `STOP` / `CLOSE` | `Covers/FB_DO_COVER_001` |
-| Cover with position | `Covers/FB_DO_COVER_002` | `OPEN` / `STOP` / `CLOSE` | `Covers/FB_DO_COVER_002` |
-| ... its position | `Covers/FB_DO_COVER_002/POSITION` | `0`..`100` | `Covers/FB_DO_COVER_002/POSITION` |
-| Dimmer | `Dimmers/FB_AO_DIMMER_001/...` | see the block's page | `Dimmers/FB_AO_DIMMER_001/OUT`, `/Q` |
-| Thermostat mode | `HVAC/FB_THERMOSTAT_2/MODE` | `off` / `heat` / `auto` | `HVAC/FB_THERMOSTAT_2/MODE` |
-| Thermostat setpoint | `HVAC/FB_THERMOSTAT_2/DESIRED_TEMP` | e.g. `22` | `HVAC/FB_THERMOSTAT_2/DESIRED_TEMP` |
+| Binary light | `DigitalOutputs/fbDoBin001` | `TRUE` / `FALSE` | `DigitalOutputs/fbDoBin001` |
+| Bistable light | `DigitalOutputs/fbDoBistable001` | `TRUE` / `FALSE` | `DigitalOutputs/fbDoBistable001` |
+| Cover | `Covers/fbDoCover001` | `OPEN` / `STOP` / `CLOSE` | `Covers/fbDoCover001` |
+| Cover with position | `Covers/fbDoCover002` | `OPEN` / `STOP` / `CLOSE` | `Covers/fbDoCover002` |
+| ... its position | `Covers/fbDoCover002/POSITION` | `0`..`100` | `Covers/fbDoCover002/POSITION` |
+| Dimmer | `Dimmers/fbAoDimmer001/...` | see the block's page | `Dimmers/fbAoDimmer001/OUT`, `/Q` |
+| Thermostat mode | `HVAC/fbThermostat2/MODE` | `off` / `heat` / `auto` | `HVAC/fbThermostat2/MODE` |
+| Thermostat setpoint | `HVAC/fbThermostat2/DESIRED_TEMP` | e.g. `22` | `HVAC/fbThermostat2/DESIRED_TEMP` |
 
 Two things the thermostat does that will confuse you if you do not expect them:
 
@@ -103,10 +103,10 @@ Spec shape (see `tools/ai/codesys_task.py` `run_steps`):
 ```json
 {"steps": [
   {"label": "why this step exists",
-   "write":    {"PRG_HVAC.FB_THERMOSTAT_2.DESIRED_TEMP": "22"},
+   "write":    {"PRG_HVAC.fbThermostat2.DESIRED_TEMP": "22"},
    "delay_ms": 2000,
-   "expect":   {"PRG_HVAC.FB_PUMP_2_COLLECTOR.VALVE[1]": "TRUE"},
-   "read":     ["PRG_HVAC.FB_PUMP_2_COLLECTOR.PUMP"]}
+   "expect":   {"PRG_HVAC.fbPump2Collector.VALVE[1]": "TRUE"},
+   "read":     ["PRG_HVAC.fbPump2Collector.PUMP"]}
 ]}
 ```
 
@@ -140,15 +140,15 @@ lost its discovery config.
 The straightforward one, and worth running first because it proves the whole MQTT
 path end to end before you debug anything harder.
 
-1. Command on: `Cmd 'DigitalOutputs/FB_DO_BIN_001' 'TRUE'`
-2. Within a second or two, `Out/DigitalOutputs/FB_DO_BIN_001` should read `TRUE`.
+1. Command on: `Cmd 'DigitalOutputs/fbDoBin001' 'TRUE'`
+2. Within a second or two, `Out/DigitalOutputs/fbDoBin001` should read `TRUE`.
 3. Command off and confirm it returns to `FALSE`.
-4. Repeat for `FB_DO_BISTABLE_001`.
+4. Repeat for `fbDoBistable001`.
 
 Assert in the same run that the output really moved, not just the topic:
 
 ```json
-{"expect": {"PRG_MAIN.FB_DO_BIN_001.OUT": "TRUE"}}
+{"expect": {"PRG_MAIN.fbDoBin001.OUT": "TRUE"}}
 ```
 
 **If the state topic never changes:** the block is not subscribed. Check
@@ -156,7 +156,7 @@ Assert in the same run that the output really moved, not just the topic:
 self-wired blocks wire themselves on their *first cyclic call*, so an instance whose
 body never runs is silently absent from Home Assistant.
 
-**`FB_DO_BISTABLE_001` will look broken on a bench and is not.** It drives an
+**`fbDoBistable001` will look broken on a bench and is not.** It drives an
 impulse relay: `OUT` is a short pulse to the coil (`OUT := HoldTimer.Q`) and the
 state it publishes is `FEEDBACK` — the relay's own contact, read back from an input.
 With no relay wired, pulsing the coil changes nothing observable, so the state topic
@@ -167,7 +167,7 @@ tested.
 
 **Both of these announce as `light`, not `switch`.** If Home Assistant shows
 `switch.` entities, `EntityType` was lost on the declaration; the retained
-`homeassistant/light/..._FB_DO_BIN_001/config` will have been orphaned.
+`homeassistant/light/..._fbDoBin001/config` will have been orphaned.
 
 ## 2. Pushbuttons — hardware in, MQTT out
 
@@ -177,7 +177,7 @@ never show them. This suite needs either a finger or a forced input.
 
 **With hardware:** start `-Watch`, press the button on the 750-440 module, and
 confirm events appear under
-`Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001`.
+`Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/fbDiPb001`.
 
 **Without:** force the digital input in a spec and read the block's outputs. The
 pushbutton block distinguishes a short press from a long one, so hold the input
@@ -186,20 +186,20 @@ across a delay long enough to cross that threshold:
 ```json
 {"steps": [
   {"write": {"DI_001": "TRUE"}, "delay_ms": 150,
-   "read":  ["PRG_MAIN.FB_DI_PB_001.P_SHORT", "PRG_MAIN.FB_DI_PB_001.P_LONG"]},
+   "read":  ["PRG_MAIN.fbDiPb001.P_SHORT", "PRG_MAIN.fbDiPb001.P_LONG"]},
   {"write": {"DI_001": "FALSE"}, "delay_ms": 200,
-   "read":  ["PRG_MAIN.FB_DI_PB_001.P_SHORT"]}
+   "read":  ["PRG_MAIN.fbDiPb001.P_SHORT"]}
 ]}
 ```
 
-Substitute the real input variable — check what `FB_DI_PB_001` is actually wired to
+Substitute the real input variable — check what `fbDiPb001` is actually wired to
 in `READ_PUSHBUTTONS` rather than trusting `DI_001` here.
 
 **A written input may be overwritten.** If the program assigns that variable every
 cycle from the bus, a one-shot write lasts one cycle. If the value will not stick,
 say so and press the button instead — do not report a pass you did not get.
 
-Note that `FB_DI_PB_001.P_LONG` drives the cover in `MOVE_COVERS`, so a long press
+Note that `fbDiPb001.P_LONG` drives the cover in `MOVE_COVERS`, so a long press
 here is also a cover test.
 
 ### The position-capable cover
@@ -211,7 +211,7 @@ here is also a cover test.
 ./tools/ai/codesys.ps1 download -Force -Address 00E8 -Spec .claude/skills/test-plc-logic/specs/cover-position.json
 ```
 
-`FB_DO_COVER_002.MU` and `MD` are wired to `DO_005` and `DO_006` on the second
+`fbDoCover002.MU` and `MD` are wired to `DO_005` and `DO_006` on the second
 750-540, so the LEDs on that module are the test you can watch from across the room.
 Read both the coil and the block output, never just one: **the two disagreeing is the
 failure worth catching** — a block that believes it is driving while nothing reaches
@@ -247,8 +247,8 @@ The position path cannot be driven from a download spec - a spec writes variable
 not MQTT - so drive it from the broker and watch the cover's own topics:
 
 ```powershell
-mosquitto_pub -h 10.101.1.11 -t Devices/PLC/Lab/In/Covers/FB_DO_COVER_002/POSITION -m 35 -q 2
-mosquitto_sub -h 10.101.1.11 -v -t 'Devices/PLC/Lab/Out/Covers/FB_DO_COVER_002/#' -W 22
+mosquitto_pub -h 10.101.1.11 -t Devices/PLC/Lab/In/Covers/fbDoCover002/POSITION -m 35 -q 2
+mosquitto_sub -h 10.101.1.11 -v -t 'Devices/PLC/Lab/Out/Covers/fbDoCover002/#' -W 22
 ```
 
 A healthy run steps in `PublishStep` increments while travelling and lands on the
@@ -267,11 +267,16 @@ exactly like a block that ignores the slider.
 The chain, and the one worth understanding before testing:
 
 ```
-thermostat OUT  →  collector THERMOSTAT[n]  →  VALVE[n]  →  PUMP  →  FB_PUMP_2  →  HEAT_REQUEST  →  burner
-                                                     (after ValveCycleTime)      (own min run / run-on)
+thermostat OUT  →  collector THERMOSTAT[n]  →  VALVE[n]  →  PUMP  →  fbPump2  →  HEAT_REQUEST  →  burner
+                                     ↑               (after ValveCycleTime)      (own min run / run-on)
+                                     └── PUMP_MIN_ONTIME_ACTIVE ───── MIN_ONTIME_ACTIVE ─┘
 ```
 
-`FB_THERMOSTAT_2` drives circuit 1 (`Radiator 1`, `DO_006`), `FB_THERMOSTAT_3`
+That feedback arrow is the interlock: while the pump is running out its minimum
+on-time the collector holds the circuits that were flowing open, so the pump is
+never left turning against a shut manifold. It has its own spec below.
+
+`fbThermostat2` drives circuit 1 (`Radiator 1`, `DO_006`), `fbThermostat3`
 drives circuit 2 (`Radiator 2`, `DO_007`). Circuits 3-8 are unwired: their valves
 stay closed and they announce no Home Assistant entity.
 
@@ -286,7 +291,7 @@ On the bench unit that sensor is not delivering, so **all three thermostats sit 
 `/FAULT TRUE` and no MQTT command can make one call for heat.** Check first:
 
 ```
-Devices/PLC/Lab/Out/HVAC/FB_THERMOSTAT_2/FAULT   → must be FALSE to proceed
+Devices/PLC/Lab/Out/HVAC/fbThermostat2/FAULT   → must be FALSE to proceed
 ```
 
 If it is `TRUE`, either fix the sensor — the commented-out `RegisterDevice` in
@@ -299,18 +304,24 @@ If it is `TRUE`, either fix the sensor — the commented-out `RegisterDevice` in
 ```
 
 Whether that sticks depends on whether the RS485 block writes those outputs every
-cycle. **Verify it stuck** by reading `FB_THERMOSTAT_2.SENSOR_VALID` back before
+cycle. **Verify it stuck** by reading `fbThermostat2.SENSOR_VALID` back before
 concluding anything about the valve.
 
 **The pump is slow on purpose.** `ValveCycleTime` is `T#3M`: the pump only starts
 three minutes after heat is first requested, so a valve can open fully before there
-is flow. `FB_PUMP_2` then has its own minimum run and run-on times (2 min / 1 min),
+is flow. `fbPump2` then has its own minimum run and run-on times (2 min / 1 min),
 so it will not stop the moment demand goes away. A test that waits two seconds and
 reports "pump did not start" is measuring the wrong thing.
 
+That run-on is also why **a valve does not close the instant its thermostat is
+satisfied.** While `fbPump2.MIN_ONTIME_ACTIVE` is set, the collector holds the
+circuits that were flowing open — so a valve still reading `TRUE` seconds after you
+commanded `MODE off` is the interlock working, not a stuck valve. Read
+`fbPump2.PUMP` before calling it a fault.
+
 **Setpoint and mode are PERSISTENT RETAIN, so another thermostat may already be
 asking for heat.** On the first run here, forcing the sensor healthy immediately put
-`FB_THERMOSTAT_3` into demand — it still held `MODE heat` and a setpoint of 18.5 from
+`fbThermostat3` into demand — it still held `MODE heat` and a setpoint of 18.5 from
 a previous session, and 18.0 measured is below that. `HeatRequest TRUE` before you
 have commanded anything is that, not a bug. Read every thermostat's `/MODE` and
 `/DESIRED_TEMP` before concluding a valve opened on its own.
@@ -326,8 +337,8 @@ valve travel in source can reach an installation with real pipes.
 `specs/hvac-fast-chain.json` does:
 
 ```json
-{"write": {"PRG_HVAC.FB_PUMP_2_COLLECTOR.ValveCycleTime": "TIME#5S",
-           "PRG_HVAC.FB_PUMP_2.MIN_ONTIME": "TIME#10S"}}
+{"write": {"PRG_HVAC.fbPump2Collector.ValveCycleTime": "TIME#5S",
+           "PRG_HVAC.fbPump2.MIN_ONTIME": "TIME#10S"}}
 ```
 
 They are plain `VAR` members that only `FB_init` assigns, so the write sticks for the
@@ -343,23 +354,63 @@ pump.
 1. **Establish the sensor is trusted.** `/FAULT` must be `FALSE`.
 2. **Ask for heat.** With `MEASURED_TEMP` around 18:
    ```powershell
-   Cmd 'HVAC/FB_THERMOSTAT_2/MODE' 'heat'
-   Cmd 'HVAC/FB_THERMOSTAT_2/DESIRED_TEMP' '22'
+   Cmd 'HVAC/fbThermostat2/MODE' 'heat'
+   Cmd 'HVAC/fbThermostat2/DESIRED_TEMP' '22'
    ```
    18 is below 22 − hysteresis, so the thermostat should call for heat.
 3. **Thermostat picks it up** — within a cycle or two:
-   `Out/HVAC/FB_THERMOSTAT_2` → `TRUE`, `/MODE` → `heat`, `/DESIRED_TEMP` → `22`.
+   `Out/HVAC/fbThermostat2` → `TRUE`, `/MODE` → `heat`, `/DESIRED_TEMP` → `22`.
 4. **Valve opens immediately** — the collector assigns `VALVE[i] := THERMOSTAT[i]`
-   with no delay: `Out/HVAC/FB_PUMP_2_COLLECTOR/Valves/VALVE_1` → `TRUE`.
+   with no delay: `Out/HVAC/fbPump2Collector/Valves/VALVE_1` → `TRUE`.
    `VALVE_2` must stay `FALSE`: circuit 2 has its own thermostat, and a valve
    opening on its own would be a real bug.
 5. **Pump starts after `ValveCycleTime`.** Wait past three minutes, then
-   `Out/HVAC/FB_PUMP_2` → `TRUE`. Read `FB_PUMP_2_COLLECTOR.PUMP` and `PumpDelay.Q`
+   `Out/HVAC/fbPump2` → `TRUE`. Read `fbPump2Collector.PUMP` and `PumpDelay.Q`
    too — they tell you whether you are early or actually broken.
-6. **Burner follows the pump:** `FB_PUMP_2.HEAT_REQUEST` → `Out/HVAC/FB_BURNER_GAS`.
-7. **Reverse it.** `Cmd 'HVAC/FB_THERMOSTAT_2/MODE' 'off'` → thermostat `FALSE`,
-   `VALVE_1` `FALSE` promptly; the pump lingers for its minimum cycle. Confirm it
-   *does* stop rather than assuming.
+6. **Burner follows the pump:** `fbPump2.HEAT_REQUEST` → `Out/HVAC/fbBurnerGas`.
+7. **Reverse it.** `Cmd 'HVAC/fbThermostat2/MODE' 'off'` → thermostat `FALSE`.
+   The pump lingers for its minimum cycle, and `VALVE_1` **stays `TRUE` while it
+   does** — the interlock. Both then clear, valve after pump. Confirm they *do*
+   rather than assuming, and see the interlock spec below for the version of this
+   with assertions on it.
+
+### The valve/pump interlock — `specs/hvac-valve-pump-interlock.json`
+
+The one HVAC test that is a **regression test** rather than a walk through the
+chain, and the only one that fails on purpose against older code.
+
+```powershell
+./tools/ai/codesys.ps1 download -Force -Address 00E8 `
+    -Spec .claude/skills/test-plc-logic/specs/hvac-valve-pump-interlock.json
+```
+
+What it pins down: `fbPump2` holds its output for `MIN_ONTIME` after `IN` drops, so
+withdrawing demand does not stop the pump. The collector used to close every valve
+in that same cycle, leaving the pump turning against a shut manifold. Step 5 is the
+assertion — pump `TRUE`, `bHeatRequest` `FALSE`, and `VALVE[1]` **still `TRUE`** —
+and it reads `FALSE` on the code before `PUMP_MIN_ONTIME_ACTIVE` was wired.
+
+Three things about it are deliberate and easy to undo by accident:
+
+- **`MIN_ONTIME` (20 s) is set longer than `ValveCycleTime` (5 s).** That is the
+  configuration where the fault appears. At the production values — 2 min against
+  3 min — the pump stops before the valves finish closing anyway, so the same test
+  passes on broken code. **A test at production timings proves nothing here.**
+- **Thermostats 1 and 3 are forced off first.** Their mode and setpoint are
+  PERSISTENT and they share the sensor, so either may already be demanding from a
+  previous session. An open `VALVE[2]` gives the pump a real path and masks
+  precisely what step 5 looks for.
+- **Step 7 matters as much as step 5.** The interlock re-opens valves, so a latch —
+  valves held open for ever, pump never permitted to stop — is the failure the fix
+  itself could introduce. Step 7 waits the minimum on-time out and asserts the pump
+  stops *and* the valve then closes. It cannot latch, because `bHeatRequest` is
+  built from `THERMOSTAT` and not from `VALVE`, but the test proves that rather than
+  trusting it.
+
+The commanded valve state is what this asserts, which is the honest limit: a bench
+has no manifold, so nothing here measures real valve travel. `ValveCycleTime`
+describes a valve **opening** and no block models how long one takes to shut, so on
+real hardware wire the interlock *and* fit a differential bypass.
 
 ### Also worth asserting
 

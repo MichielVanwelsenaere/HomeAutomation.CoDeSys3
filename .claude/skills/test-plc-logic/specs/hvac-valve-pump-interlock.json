@@ -1,0 +1,148 @@
+{
+  "_what": "Regression test for the valve/pump interlock. FB_HVAC_PUMP_MQTT holds its output for MIN_ONTIME after IN drops; FB_HVAC_COLLECTOR_MQTT used to close every valve in the cycle demand ended, so the pump ran on against a shut manifold. Wiring MIN_ONTIME_ACTIVE into PUMP_MIN_ONTIME_ACTIVE holds the circuits that were flowing open until the pump actually stops.",
+  "_the_assertion": "Step 5 is the test. It reads the pump running (fbPump2.PUMP TRUE) with no demand left (bHeatRequest FALSE) and asserts VALVE[1] is STILL TRUE. On the code before the fix that valve reads FALSE, which is the dead-head in commanded terms: pump turning, manifold shut.",
+  "_and_the_other_half": "Step 6 asserts the hold RELEASES. The interlock re-opens valves, so a latch - valves held open for ever, pump never allowed to stop - is the failure the fix itself could introduce. It cannot happen because bHeatRequest is built from THERMOSTAT and not from VALVE, and step 6 is what proves that rather than asserting it.",
+  "_why_these_timings": "MIN_ONTIME (20 s) is deliberately set LONGER than ValveCycleTime (5 s). That is the configuration in which the bug bites, and it is the inequality nothing in the code enforces. At the production values - 2 min against 3 min - the fault is masked, so a test at production timings proves nothing.",
+  "_runtime_writes": "Timings are written at runtime, never in the source: an existing FB_init argument changed from a script updates the declaration text while the compiler keeps reading the old InputAssignments (see CLAUDE.md). It also keeps 5-second valve travel out of anything an installation could inherit.",
+  "_fabricated": "This forces the 1-Wire sensor's health flags, because on the bench that sensor does not deliver and every thermostat sits at FAULT. It proves the logic downstream of the sensor and nothing about the sensor itself.",
+  "steps": [
+    {
+      "label": "1. shrink the timings so the chain runs in half a minute, and prove the writes stuck - a silently-failed write here would leave the whole run measuring the 3-minute production delay",
+      "delay_ms": 1500,
+      "write": {
+        "PRG_HVAC.fbPump2Collector.ValveCycleTime": "TIME#5S",
+        "PRG_HVAC.fbPump2.MIN_ONTIME": "TIME#20S",
+        "PRG_HVAC.fbPump2.MIN_OFFTIME": "TIME#1S",
+        "PRG_HVAC.fbBurnerGas.MIN_ONTIME": "TIME#5S",
+        "PRG_HVAC.fbBurnerGas.MIN_OFFTIME": "TIME#1S"
+      },
+      "expect": {
+        "PRG_HVAC.fbPump2Collector.ValveCycleTime": "TIME#5s",
+        "PRG_HVAC.fbPump2.MIN_ONTIME": "TIME#20s",
+        "PRG_HVAC.fbPump2.MIN_OFFTIME": "TIME#1s"
+      }
+    },
+    {
+      "label": "2. one circuit only. Thermostats 1 and 3 share the same sensor and their mode and setpoint are PERSISTENT, so either may already be asking for heat from a previous session - and an open VALVE[2] would give the pump a legitimate path and mask exactly what this tests",
+      "write": {
+        "PRG_HVAC.fbThermostat1.eHvacMode": "E_HVAC_MODE.off",
+        "PRG_HVAC.fbThermostat3.eHvacMode": "E_HVAC_MODE.off",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable": "TRUE",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error": "FALSE",
+        "GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE": "18.0"
+      },
+      "delay_ms": 2000,
+      "expect": {
+        "PRG_HVAC.fbThermostat2.bSensorFault": "FALSE",
+        "PRG_HVAC.fbThermostat3.OUT": "FALSE",
+        "PRG_HVAC.fbPump2Collector.VALVE[2]": "FALSE",
+        "PRG_HVAC.fbPump2Collector.PUMP": "FALSE",
+        "PRG_HVAC.fbPump2.PUMP": "FALSE",
+        "PRG_HVAC.fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE": "FALSE"
+      },
+      "read": [
+        "PRG_HVAC.fbThermostat2.eHvacMode",
+        "PRG_HVAC.fbThermostat2.rDesiredTemp",
+        "PRG_HVAC.fbThermostat2.MEASURED_TEMP"
+      ]
+    },
+    {
+      "label": "3. circuit 1 asks for heat: the valve opens at once and the pump must NOT start yet - it waits out ValveCycleTime so the valve can travel before there is flow",
+      "write": {
+        "PRG_HVAC.fbThermostat2.rDesiredTemp": "22.0",
+        "PRG_HVAC.fbThermostat2.eHvacMode": "E_HVAC_MODE.heat"
+      },
+      "delay_ms": 2000,
+      "expect": {
+        "PRG_HVAC.fbThermostat2.OUT": "TRUE",
+        "PRG_HVAC.fbPump2Collector.bHeatRequest": "TRUE",
+        "PRG_HVAC.fbPump2Collector.VALVE[1]": "TRUE",
+        "PRG_HVAC.fbPump2Collector.VALVE[2]": "FALSE",
+        "PRG_HVAC.fbPump2Collector.PUMP": "FALSE",
+        "PRG_HVAC.fbPump2.PUMP": "FALSE"
+      }
+    },
+    {
+      "label": "4. past ValveCycleTime the pump runs, and its minimum on-time is now unsatisfied - which is the window the interlock exists for",
+      "delay_ms": 6000,
+      "expect": {
+        "PRG_HVAC.fbPump2Collector.PUMP": "TRUE",
+        "PRG_HVAC.fbPump2.PUMP": "TRUE",
+        "PRG_HVAC.fbPump2.MIN_ONTIME_ACTIVE": "TRUE",
+        "PRG_HVAC.fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE": "TRUE",
+        "PRG_HVAC.fbPump2Collector.VALVE[1]": "TRUE"
+      },
+      "read": [
+        "PRG_HVAC.fbPump2Collector.abValveHeld[1]",
+        "PRG_HVAC.fbBurnerGas.OUT"
+      ]
+    },
+    {
+      "label": "5. THE REGRESSION. Demand is withdrawn 2 s into a 20 s minimum on-time. The pump is still turning, so VALVE[1] must still be open. This step reads VALVE[1] FALSE on the code before the interlock, and that is the dead-head: pump running, manifold shut.",
+      "write": {
+        "PRG_HVAC.fbThermostat2.eHvacMode": "E_HVAC_MODE.off"
+      },
+      "delay_ms": 2000,
+      "expect": {
+        "PRG_HVAC.fbThermostat2.OUT": "FALSE",
+        "PRG_HVAC.fbPump2Collector.bHeatRequest": "FALSE",
+        "PRG_HVAC.fbPump2Collector.PUMP": "FALSE",
+        "PRG_HVAC.fbPump2.PUMP": "TRUE",
+        "PRG_HVAC.fbPump2.MIN_ONTIME_ACTIVE": "TRUE",
+        "PRG_HVAC.fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE": "TRUE",
+        "PRG_HVAC.fbPump2Collector.VALVE[1]": "TRUE"
+      }
+    },
+    {
+      "label": "6. still held, 10 s in. Confirms the hold is a hold and not a one-scan artefact of the write - and that fbPump2Collector.PUMP stays FALSE throughout, so the held valves are not re-requesting the pump",
+      "delay_ms": 8000,
+      "expect": {
+        "PRG_HVAC.fbPump2.PUMP": "TRUE",
+        "PRG_HVAC.fbPump2Collector.PUMP": "FALSE",
+        "PRG_HVAC.fbPump2Collector.VALVE[1]": "TRUE"
+      }
+    },
+    {
+      "label": "7. the minimum on-time expires: the pump stops and only THEN does the valve close. If VALVE[1] were still TRUE here the interlock would have latched, which is the failure the fix itself could introduce.",
+      "delay_ms": 14000,
+      "expect": {
+        "PRG_HVAC.fbPump2.PUMP": "FALSE",
+        "PRG_HVAC.fbPump2.MIN_ONTIME_ACTIVE": "FALSE",
+        "PRG_HVAC.fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE": "FALSE",
+        "PRG_HVAC.fbPump2Collector.VALVE[1]": "FALSE",
+        "PRG_HVAC.fbPump2Collector.VALVE[2]": "FALSE"
+      },
+      "read": [
+        "PRG_HVAC.fbPump2Collector.abValveHeld[1]",
+        "PRG_HVAC.fbBurnerGas.OUT"
+      ]
+    },
+    {
+      "label": "8. and the interlock did not break the normal path: ask again, and the chain starts over from the beginning - valve open, pump waiting out ValveCycleTime",
+      "write": {
+        "PRG_HVAC.fbThermostat2.eHvacMode": "E_HVAC_MODE.heat"
+      },
+      "delay_ms": 2000,
+      "expect": {
+        "PRG_HVAC.fbPump2Collector.VALVE[1]": "TRUE",
+        "PRG_HVAC.fbPump2Collector.bHeatRequest": "TRUE",
+        "PRG_HVAC.fbPump2.PUMP": "FALSE"
+      }
+    },
+    {
+      "label": "9. leave the bench idle rather than heating: mode off, and the valve shut once the pump has finished",
+      "write": {
+        "PRG_HVAC.fbThermostat2.eHvacMode": "E_HVAC_MODE.off"
+      },
+      "delay_ms": 3000,
+      "expect": {
+        "PRG_HVAC.fbThermostat2.OUT": "FALSE",
+        "PRG_HVAC.fbPump2Collector.PUMP": "FALSE"
+      },
+      "read": [
+        "PRG_HVAC.fbPump2.PUMP",
+        "PRG_HVAC.fbPump2Collector.VALVE[1]"
+      ]
+    }
+  ]
+}

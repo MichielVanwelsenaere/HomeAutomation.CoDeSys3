@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-21T22:18:58.7799757" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-21T22:18:07.0716288">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-22T22:16:12.8796005" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-22T22:15:16.0978727">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -8502,6 +8502,22 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
  detail.</xhtml>
               </documentation>
             </variable>
+            <variable name="PUMP_MIN_ONTIME_ACTIVE">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE while the pump this manifold feeds is still running out its minimum
+ on-time after the demand that started it has gone. Wire it to the pump's
+ MIN_ONTIME_ACTIVE output: while it is set, the circuits that were last
+ flowing are held open so the pump always has somewhere to push water.
+
+ Optional, and FALSE is the old behaviour exactly - an existing call site that
+ does not wire it keeps compiling and keeps closing its valves the moment
+ demand ends. It is only safe to leave unwired if the pump's minimum on-time
+ is shorter than the time the valves take to close.</xhtml>
+              </documentation>
+            </variable>
           </inputVars>
           <outputVars>
             <variable name="VALVE">
@@ -8560,6 +8576,21 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
                 <TIME />
               </type>
             </variable>
+            <variable name="abValveHeld">
+              <type>
+                <array>
+                  <dimension lower="1" upper="ciValveCount" />
+                  <baseType>
+                    <BOOL />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Which circuits were flowing when the manifold last had demand. The hold
+ re-opens exactly these, so the water keeps going where it was already going
+ instead of through whichever circuit happens to be index 1.</xhtml>
+              </documentation>
+            </variable>
             <variable name="afbRTrigValve">
               <type>
                 <array>
@@ -8601,26 +8632,57 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">// Valves are NC: a valve is powered - open - exactly when its own circuit asks for
-// heat, and closed otherwise.
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">// What the circuits are asking for. Built from THERMOSTAT and deliberately NOT from
+// VALVE - see the interlock note below, where that distinction is the whole point.
 bHeatRequest := FALSE;
 FOR iI := 1 TO ciValveCount DO
-	VALVE[iI] := THERMOSTAT[iI];
 	bHeatRequest := bHeatRequest OR THERMOSTAT[iI];
 END_FOR
+
+// Valves are NC: a valve is powered - open - exactly when its own circuit asks for
+// heat, and closed otherwise.
+//
+// The exception is the interlock: FB_HVAC_PUMP_MQTT holds its output for MIN_ONTIME
+// after its IN drops, so a manifold that closes the instant demand ends leaves the
+// pump turning against shut valves. Whether that became a real dead-head depended on
+// two timings configured on two different blocks - ValveCycleTime here against the
+// pump's MIN_ONTIME there - with nothing in the code relating them. So while
+// PUMP_MIN_ONTIME_ACTIVE is set, the circuits that were last flowing stay open and
+// the pump keeps a path. This is requirement 2.3 in PRG_HVAC.HVAC_RUN, written down
+// when this chain was designed and not implemented until now.
+//
+// The hold cannot latch on. It re-opens valves, but bHeatRequest stays FALSE, so
+// this block never re-requests the pump: the pump's minimum on-time expires,
+// PUMP_MIN_ONTIME_ACTIVE clears and the valves close. Building bHeatRequest from
+// VALVE[] instead would close that loop and hold the pump on for ever. That used to
+// be an identity - every VALVE[iI] was THERMOSTAT[iI], so the two ORs were the same
+// value, and a comment here said so - and it is not an identity any more. Do not
+// simplify it back.
+IF bHeatRequest THEN
+	FOR iI := 1 TO ciValveCount DO
+		VALVE[iI] := THERMOSTAT[iI];
+		abValveHeld[iI] := THERMOSTAT[iI];
+	END_FOR
+ELSE
+	// No circuit is asking for heat: the valves are shut unless the pump is still
+	// running out its minimum on-time, in which case the ones that were flowing
+	// stay open until it stops.
+	FOR iI := 1 TO ciValveCount DO
+		VALVE[iI] := PUMP_MIN_ONTIME_ACTIVE AND abValveHeld[iI];
+	END_FOR
+END_IF
 
 // Pump should only start when valves had time to switch to their correct position
 fbPumpDelay(IN := bHeatRequest,
 	PT := ValveCycleTime);
 
-// This was written as (VALVE_1 OR VALVE_2 OR ... OR VALVE_8) AND fbPumpDelay.Q, which
-// is the same value: every VALVE[iI] has just been assigned THERMOSTAT[iI], so the OR
-// over the valves is exactly the OR over the thermostats that bHeatRequest holds.
 PUMP := bHeatRequest AND fbPumpDelay.Q;
 
 // Detect edges on valves for MQTT messaging, and publish only the ones that moved.
 // The topics are retained because Home Assistant reads them on reconnect, which is
 // also why bStartup forces a publish of all eight on the first cycle after init.
+// A valve held open by the interlock publishes TRUE for as long as it is held, which
+// is what Home Assistant should see: the valve really is open.
 FOR iI := 1 TO ciValveCount DO
 	afbRTrigValve[iI](CLK := VALVE[iI]);
 	afbFTrigValve[iI](CLK := VALVE[iI]);
@@ -25029,6 +25091,15 @@ fbThermostat3(MEASURED_TEMP := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATU
    VALVE_n names published to MQTT. *)
 fbPump2Collector.THERMOSTAT[1] := fbThermostat2.OUT;
 fbPump2Collector.THERMOSTAT[2] := fbThermostat3.OUT;
+
+(* Requirement 2.3 above: the manifold may not start closing while the pump is
+   still running out its minimum on-time, or the pump ends up turning against
+   shut valves. fbPump2 already computed the signal for it and nothing read it.
+
+   The collector is called before the pump, so it acts on last cycle's value -
+   one task cycle of lag on a two-minute timer, and the safe direction: the hold
+   is released a cycle late, never engaged a cycle late. *)
+fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE := fbPump2.MIN_ONTIME_ACTIVE;
 
 fbPump2Collector();
 

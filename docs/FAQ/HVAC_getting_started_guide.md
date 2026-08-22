@@ -31,3 +31,39 @@ Not all buildings leverage floor heating in every single room. In many setups ra
 ---
 
 <img src="../_img/HVAC_Getting_Started_Guide-ScenarioC.svg" width="1000">
+
+### **Getting the timings right**
+
+Three timings shape the chain, and they are set at three different declaration
+sites. Two of them interact, which is easy to miss because each one looks
+self-contained where it is written:
+
+| Timing | Where | What it does |
+|:--|:--|:--|
+| `ValveCycleTime` | `FB_HVAC_COLLECTOR_MQTT` `FB_init` | Holds the pump off after heat is first requested, so a valve can open before there is flow. |
+| `MIN_ONTIME` / `MIN_OFFTIME` | `FB_HVAC_PUMP_MQTT` `FB_init` | Minimum run and minimum pause, so the pump cannot short-cycle. |
+| `MIN_ONTIME` / `MIN_OFFTIME` | `FB_HVAC_BURNER_MQTT` `FB_init` | The same, for the heat source. |
+
+**The pump's minimum on-time outlives the demand that started it.** Once the pump
+is running it keeps running until `MIN_ONTIME` has elapsed, however quickly the
+thermostat is satisfied. So on a collector, whatever closes the valves has to wait
+for the pump rather than for the thermostat — otherwise the pump spends the rest of
+its minimum on-time pushing against a manifold that is closing.
+
+The fix is to wire it, not to tune it:
+
+```ST
+fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE := fbPump2.MIN_ONTIME_ACTIVE;
+```
+
+That is what requirement 2.3 in `PRG_HVAC.HVAC_RUN` asks for, and with it in place
+the two timings no longer have to be chosen relative to each other. Without it,
+`MIN_ONTIME` must be shorter than the time the valves take to close — and note that
+`ValveCycleTime` describes a valve **opening**; nothing in the blocks models how
+long one takes to shut, so that is a margin you are keeping in your head.
+
+Scenario A has no valve at all — the thermostat drives the pump directly — so it is
+not exposed to this. Scenario B and Scenario C are.
+
+:bulb: On real hardware, a differential bypass on the manifold is the belt to this
+braces: it gives the pump a path no matter what the control logic believes.

@@ -11,12 +11,12 @@ Designed to control multiple valves that share the same pump. Valves can be cont
 ### **Block diagram**
 
 ```text
-                                  ┌────────────────────────┐
-                                  │ FB_HVAC_COLLECTOR_MQTT │
-                                  ├────────────────────────┤
-ARRAY [1..ciValveCount] OF BOOL ──┤ THERMOSTAT       VALVE ├── ARRAY [1..ciValveCount] OF BOOL
-                                  │                   PUMP ├── BOOL
-                                  └────────────────────────┘
+                                  ┌────────────────────────────────┐
+                                  │     FB_HVAC_COLLECTOR_MQTT     │
+                                  ├────────────────────────────────┤
+ARRAY [1..ciValveCount] OF BOOL ──┤ THERMOSTAT               VALVE ├── ARRAY [1..ciValveCount] OF BOOL
+                           BOOL ──┤ PUMP_MIN_ONTIME_ACTIVE    PUMP ├── BOOL
+                                  └────────────────────────────────┘
 ```
 
 ### **Interface**
@@ -26,6 +26,7 @@ ARRAY [1..ciValveCount] OF BOOL ──┤ THERMOSTAT       VALVE ├── ARRAY
 | Pin | Type | Description |
 |:--|:--|:--|
 | `THERMOSTAT` | ARRAY [1..ciValveCount] OF BOOL | Heat demand, one element per manifold circuit. When high the valve should be opened and flow provided by the pump. |
+| `PUMP_MIN_ONTIME_ACTIVE` | BOOL | Wire to the pump's `MIN_ONTIME_ACTIVE`. While it is high the circuits that were last flowing are held open, so the pump is never left turning against a shut manifold. Optional: left unwired it reads FALSE and the block behaves as it did before. |
 
 **Outputs**
 
@@ -68,26 +69,72 @@ Home Assistant entities and orphans their retained discovery configs.
 Array elements cannot be named as formal parameters, so a caller assigns the
 inputs, calls the block, then reads the outputs. `NameValve` likewise travels as a
 whole array, so the caller needs somewhere to hold it — with a bound matching
-`VALVE_COUNT` in the block:
+`ciValveCount` in the block:
 
 ```ST
 // declaration
-CollectorValveNames : ARRAY[1..8] OF STRING(100);
+asCollectorValveNames : ARRAY[1..8] OF STRING(100);
 
 // once, at startup, after InitMqtt
-CollectorValveNames[1] := 'Radiator 1';
-CollectorValveNames[2] := 'Radiator 2';
-FB_PUMP_2_COLLECTOR.InitMqttDiscovery(ADR(GVL_MQTT.PLC_Device), CollectorValveNames);
+asCollectorValveNames[1] := 'Radiator 1';
+asCollectorValveNames[2] := 'Radiator 2';
+fbPump2Collector.InitMqttDiscovery(ADR(GVL_MQTT.PLC_Device), asCollectorValveNames);
 
 // every cycle
-FB_PUMP_2_COLLECTOR.THERMOSTAT[1] := FB_THERMOSTAT_2.OUT;
-FB_PUMP_2_COLLECTOR.THERMOSTAT[2] := FB_THERMOSTAT_3.OUT;
+fbPump2Collector.THERMOSTAT[1] := fbThermostat2.OUT;
+fbPump2Collector.THERMOSTAT[2] := fbThermostat3.OUT;
+fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE := fbPump2.MIN_ONTIME_ACTIVE;
 
-FB_PUMP_2_COLLECTOR();
+fbPump2Collector();
 
-DO_006 := FB_PUMP_2_COLLECTOR.VALVE[1];
-DO_007 := FB_PUMP_2_COLLECTOR.VALVE[2];
+DO_006 := fbPump2Collector.VALVE[1];
+DO_007 := fbPump2Collector.VALVE[2];
+
+fbPump2(IN := fbPump2Collector.PUMP);
 ```
+
+### **The pump interlock — wire `PUMP_MIN_ONTIME_ACTIVE`**
+
+`FB_HVAC_PUMP_MQTT` holds its output for `MIN_ONTIME` after its `IN` drops, to stop
+the pump short-cycling. This block, left to itself, closes every valve in the cycle
+demand ends. Put those two together and the pump spends the rest of its minimum
+on-time turning against a manifold that is closing — running dry, with nowhere for
+the water to go.
+
+Whether it actually got there depended on two timings configured on two different
+blocks, with nothing in the code relating them:
+
+> dead-head if the valves close in less than the pump's `MIN_ONTIME`
+
+The reference project sits on the safe side of that by a minute — `ValveCycleTime`
+`T#3M` against `MIN_ONTIME` `T#2M` — but nothing defended the margin, and
+`ValveCycleTime` is the time a valve takes to **open**. Closing time is not modelled
+anywhere, so the margin rested on a physical property the code never sees.
+
+Wiring `PUMP_MIN_ONTIME_ACTIVE` removes the coupling: while the pump is running out
+its minimum on-time, the circuits that were last flowing stay open, and they close
+once it stops. It is requirement 2.3 of the chain as designed:
+
+    2.2 The heating valve can only turn on the pump once it's fully open
+    2.3 The heating valve can only start closing once the pump has completed its
+        minimum cycle time
+
+Three things worth knowing about the hold:
+
+- **It cannot latch the pump on.** The hold re-opens valves, but `PUMP` is built
+  from `THERMOSTAT`, not from `VALVE`, so the block never re-requests the pump: the
+  minimum on-time expires, the input clears, the valves close. Rebuilding `PUMP`
+  from `VALVE[]` would close that loop and hold the pump on for ever. That used to
+  be an identity and is not one any more.
+- **It holds the circuits that were flowing**, not an arbitrary one, so the water
+  keeps going where it was already going.
+- **It publishes.** A held valve reports `TRUE` on MQTT for as long as it is held,
+  which is what Home Assistant should see — the valve really is open.
+
+If you leave it unwired, keep the pump's `MIN_ONTIME` shorter than the time the
+valves take to close, and be aware that nothing checks it for you. On real hardware
+the robust answer is both: wire the interlock **and** fit a differential bypass on
+the manifold.
 
 ### **MQTT publish behavior**
 
