@@ -50,17 +50,11 @@ thermostat is satisfied. So on a collector, whatever closes the valves has to wa
 for the pump rather than for the thermostat — otherwise the pump spends the rest of
 its minimum on-time pushing against a manifold that is closing.
 
-The fix is to wire it, not to tune it:
+The approach is to wire it, not to tune it:
 
 ```ST
 fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE := fbPump2.MIN_ONTIME_ACTIVE;
 ```
-
-That is what requirement 2.3 in `PRG_HVAC.HVAC_RUN` asks for, and with it in place
-the two timings no longer have to be chosen relative to each other. Without it,
-`MIN_ONTIME` must be shorter than the time the valves take to close — and note that
-`ValveCycleTime` describes a valve **opening**; nothing in the blocks models how
-long one takes to shut, so that is a margin you are keeping in your head.
 
 Scenario A has no valve at all — the thermostat drives the pump directly — so it is
 not exposed to this. Scenario B and Scenario C are.
