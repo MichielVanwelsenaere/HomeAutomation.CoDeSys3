@@ -1,0 +1,71 @@
+{
+  "_what": "Regression test for the U1 broker-health LED, both branches. Two faults are pinned here. (1) PRG_MQTT declared stMQTTInfo : MQTT.MQTT_INFO and read MQTT_CONNECTED off it, but nothing ever populated the struct, so the flag was FALSE for the whole history of the project and U1 never went green. (2) The falling-edge detector that was supposed to turn U1 red was called only from MQTT_INIT, which runs once, so its Q could never become TRUE. Both edge detectors are gone: U1 is written from a remembered state, bLedShowsHealthy, so there is one code path instead of two and no half of it can be left uncalled.",
+  "_why_two_flags": "bBrokerHealthy is MQTT_CONNECTED AND GVL_MQTT.bBrokerReachable, and the second half is not redundant - it is the part a human found by pulling the cable. MQTT_CONNECTED does not notice a pulled network cable: TCP has nothing to report until a retransmit gives up, so the client holds a dead socket open for minutes and goes on claiming a session. Measured on this bench - LAN cable out, MQTT_CONNECTED still TRUE, U1 still green. PRG_PING_DMX now pings the broker every 10 s and writes bBrokerReachable.",
+  "_the_led_itself_is_not_readable": "PFC.SetLed is a runtime call and no variable holds a colour, so bLedShowsHealthy is the closest thing to a read-back: it is what the code last wrote to U1. A person at the cabinet is still the only witness for the light. Verified by eye on the lab PFC200: cable out, U1 blinks red; cable back in, U1 returns to steady green.",
+  "_how_the_red_branch_is_driven": "By pointing GVL_MQTT.broker at 192.0.2.1, which is RFC 5737 TEST-NET-1 and guaranteed never to be a real host, so the ping genuinely fails. That exercises the whole shipping path - ICMP, the debounce, the flag, the health AND, the change detector and the real SetLed call - with nothing forced. It also reproduces the pulled-cable case faithfully, because the client ignores a URL change while its socket is up (tried and measured), so the MQTT session stays up and only reachability goes away.",
+  "_do_not_write_the_flag_instead": "Writing GVL_MQTT.bBrokerReachable FALSE from the harness was the first attempt and it is racy: the Ping task rewrites the flag every 10 s, so the assertion is chasing a value another task owns. It failed exactly that way once. Drive the input, not the output.",
+  "_the_debounce_sets_the_waits": "cuiBrokerPingFailsForRed is 2, so the red branch needs two failed 10 s cycles - hence 32 s in step 2, and 22 s in step 3 for the one success that clears it. uiBrokerPingFails is asserted at the threshold in step 2 to prove the counter saturates rather than running away.",
+  "steps": [
+    {
+      "label": "1. THE GREEN BRANCH. Twelve seconds after a cold start the client has a session and the broker answers, so U1 is steady green. MQTT_CONNECTED reads FALSE here on the code before this fix - permanently, because nothing assigned stMQTTInfo. sBrokerHost also proves the port got stripped off GVL_MQTT.broker.",
+      "delay_ms": 12000,
+      "expect": {
+        "PRG_MQTT.initMqtt": "TRUE",
+        "PRG_MQTT.stMQTTInfo.MQTT_CONNECTED": "TRUE",
+        "PRG_MQTT.MQTT_IN_OUT.clientFB.CONNECTED": "TRUE",
+        "GVL_MQTT.bBrokerReachable": "TRUE",
+        "PRG_MQTT.bBrokerHealthy": "TRUE",
+        "PRG_MQTT.bLedShowsHealthy": "TRUE",
+        "PRG_PING_DMX.sBrokerHost": "'10.101.1.11'"
+      },
+      "read": [
+        "PRG_PING_DMX.udiBrokerReachable",
+        "PRG_PING_DMX.udiBrokerPingTime",
+        "PRG_PING_DMX.uiBrokerPingFails",
+        "PRG_MQTT.fbMQTTConnectTrigger.M",
+        "PRG_MQTT.stMQTTInfo.MQTT_ERROR",
+        "GVL_MQTT.fbMqttPublishQueue.DroppedCount"
+      ]
+    },
+    {
+      "label": "2. THE RED BRANCH. Point the ping at an address that cannot exist and U1 must go to blinking red - while the MQTT session is untouched and still reads connected, which is exactly what a pulled cable looks like and exactly what the old condition could not see.",
+      "write": {
+        "GVL_MQTT.broker": "'192.0.2.1:1883'"
+      },
+      "delay_ms": 32000,
+      "expect": {
+        "PRG_PING_DMX.sBrokerHost": "'192.0.2.1'",
+        "PRG_PING_DMX.uiBrokerPingFails": "UINT#2",
+        "GVL_MQTT.bBrokerReachable": "FALSE",
+        "PRG_MQTT.bBrokerHealthy": "FALSE",
+        "PRG_MQTT.bLedShowsHealthy": "FALSE",
+        "PRG_MQTT.stMQTTInfo.MQTT_CONNECTED": "TRUE"
+      },
+      "read": [
+        "PRG_PING_DMX.udiBrokerReachable",
+        "PRG_MQTT.MQTT_IN_OUT.clientFB.CONNECTED"
+      ]
+    },
+    {
+      "label": "3. and it heals on its own. One successful ping clears the counter, so the LED returns to steady green rather than latching red - and because nothing here writes the flag, a TRUE is the Ping task doing it, which makes this the test that the broker ping runs at all.",
+      "write": {
+        "GVL_MQTT.broker": "'10.101.1.11:1883'"
+      },
+      "delay_ms": 22000,
+      "expect": {
+        "PRG_PING_DMX.sBrokerHost": "'10.101.1.11'",
+        "PRG_PING_DMX.uiBrokerPingFails": "UINT#0",
+        "GVL_MQTT.bBrokerReachable": "TRUE",
+        "PRG_MQTT.bBrokerHealthy": "TRUE",
+        "PRG_MQTT.bLedShowsHealthy": "TRUE",
+        "PRG_MQTT.stMQTTInfo.MQTT_CONNECTED": "TRUE"
+      },
+      "read": [
+        "PRG_PING_DMX.udiBrokerReachable",
+        "PRG_PING_DMX.udiBrokerPingTime",
+        "PRG_MQTT.stMQTTInfo.MQTT_ERROR",
+        "GVL_MQTT.fbMqttPublishQueue.DroppedCount"
+      ]
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-22T22:16:12.8796005" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-22T22:15:16.0978727">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-23T15:11:29.5756089" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-23T15:10:49.111342">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -22668,6 +22668,28 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                 <simpleValue value="CONCAT(MqttSubHVACPrefix, '#')" />
               </initialValue>
             </variable>
+            <variable name="bBrokerReachable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE while the broker host answers an ICMP ping. Written by PRG_PING_DMX,
+ read by PRG_MQTT, which ANDs it with the client's own MQTT_CONNECTED before
+ deciding what U1 shows.
+
+ It is not redundant. MQTT_CONNECTED does not notice a pulled network cable:
+ TCP has nothing to report until a retransmit gives up, so the client can
+ hold a dead socket open for minutes. Measured on the bench - cable out, U1
+ stayed green. ICMP notices within one cycle of the Ping task.
+
+ Starts TRUE so it means 'not known to be unreachable': until the Ping task
+ has an opinion, U1 follows MQTT_CONNECTED alone rather than blinking red
+ through a healthy startup.</xhtml>
+              </documentation>
+            </variable>
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                 <Attributes>
@@ -23093,6 +23115,28 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttSubHVACPrefix, '#')" />
                       </initialValue>
+                    </variable>
+                    <variable name="bBrokerReachable">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TRUE" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE while the broker host answers an ICMP ping. Written by PRG_PING_DMX,
+ read by PRG_MQTT, which ANDs it with the client's own MQTT_CONNECTED before
+ deciding what U1 shows.
+
+ It is not redundant. MQTT_CONNECTED does not notice a pulled network cable:
+ TCP has nothing to report until a retransmit gives up, so the client can
+ hold a dead socket open for minutes. Measured on the bench - cable out, U1
+ stayed green. ICMP notices within one cycle of the Ping task.
+
+ Starts TRUE so it means 'not known to be unreachable': until the Ping task
+ has an opinion, U1 follows MQTT_CONNECTED alone rather than blinking red
+ through a healthy startup.</xhtml>
+                      </documentation>
                     </variable>
                   </globalVars>
                 </MixedAttrsVarList>
@@ -24266,11 +24310,6 @@ END_CASE
               <pou name="PRG_MQTT" pouType="program">
                 <interface>
                   <localVars>
-                    <variable name="MQTTClient">
-                      <type>
-                        <derived name="MQTT.MQTTClient" />
-                      </type>
-                    </variable>
                     <variable name="MQTT_IN_OUT">
                       <type>
                         <derived name="MQTT.MQTT_IN_OUT" />
@@ -24296,10 +24335,22 @@ END_CASE
                         <derived name="Standard.R_TRIG" />
                       </type>
                     </variable>
-                    <variable name="fbMQTTDisconnectTrigger">
+                    <variable name="bBrokerHealthy">
                       <type>
-                        <derived name="Standard.F_TRIG" />
+                        <BOOL />
                       </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Broker health as U1 reports it: an MQTT session AND the broker reachable.</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="bLedShowsHealthy">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> What U1 is currently showing, so SetLed is called only when it changes.
+ FALSE after a cold reset, which is the state MQTT_INIT puts the LED in.</xhtml>
+                      </documentation>
                     </variable>
                     <variable name="bMQTTPublishBirth">
                       <type>
@@ -24397,18 +24448,45 @@ END_CASE
                   <action name="MQTT_PUBLISH">
                     <body>
                       <ST>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* set user led green if connected to MQTT broker, flashing red if not *)
-IF fbMQTTConnectTrigger.Q THEN
-     PFC.SetLed(which:=PFC.LED.U1, how:=PFC.LedState.STATIC_GRN);
-END_IF
-IF fbMQTTDisconnectTrigger.Q THEN
-     PFC.SetLed(which:=PFC.LED.U1, how:=PFC.LedState.BLINK_RED);
-END_IF 
-
-(* allow the device to do its work *)
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml">(* allow the device to do its work *)
 GVL_MQTT.PLC_Device();
 
-(* allow the rising edge detector to detect a connect/reconnect to the broker, used for  birth message *)
+(* The MQTT client reports its own state on an output, so copy it in before anything
+   looks at it. Nothing populated stMQTTInfo before this line existed, which is why
+   MQTT_CONNECTED was permanently FALSE: no edge could ever fire, so the U1 LED never
+   went green and the birth message was left to the heartbeat alone. *)
+stMQTTInfo := MQTT_IN_OUT.clientFB.MQTT_INFO;
+
+(* Healthy means the client has a session AND the broker is really reachable, and the
+   second half is not redundant: MQTT_CONNECTED does not notice a pulled network
+   cable. TCP has nothing to report until a retransmit finally gives up, so the client
+   holds a dead socket open for minutes and goes on claiming a session. Verified on
+   the bench: LAN cable out, MQTT_CONNECTED still TRUE, U1 still green.
+   GVL_MQTT.bBrokerReachable is an ICMP check owned by the Ping task. *)
+bBrokerHealthy := stMQTTInfo.MQTT_CONNECTED AND GVL_MQTT.bBrokerReachable;
+
+(* U1 makes broker health readable from the cabinet without a laptop: steady green
+   while it is healthy, blinking red while it is not.
+
+   Written only when it changes, because SetLed is a runtime call - but from a
+   remembered state rather than from a pair of edge detectors, so there is one code
+   path instead of two. Two is how this was broken before: the falling-edge detector
+   was called once, from MQTT_INIT, so its Q could never become TRUE and the LED
+   could never go red, while the rising-edge half looked perfectly fine.
+   bLedShowsHealthy also reports what the LED is showing, which a one-cycle Q cannot,
+   so a test can read the colour back. *)
+IF bBrokerHealthy &lt;&gt; bLedShowsHealthy THEN
+	IF bBrokerHealthy THEN
+		PFC.SetLed(which := PFC.LED.U1, how := PFC.LedState.STATIC_GRN);
+	ELSE
+		PFC.SetLed(which := PFC.LED.U1, how := PFC.LedState.BLINK_RED);
+	END_IF
+	bLedShowsHealthy := bBrokerHealthy;
+END_IF
+
+(* Rising edge of the MQTT session, which is what the birth message wants - not
+   bBrokerHealthy, because announcing availability is about having a session to
+   announce it on. *)
 fbMQTTConnectTrigger(CLK := stMQTTInfo.MQTT_CONNECTED);
 
 (* allow the pulse generator to generate a pulse, used for birth message hartbeat *)
@@ -24488,9 +24566,12 @@ IF NOT initMqtt THEN
 	stMQTTBirthMessage.Qos := GVL_MQTT.MQTT_QOS_EXACTLY_ONCE;
 	stMQTTBirthMessage.MqttRetain := FALSE;
 	
-	(* Configure the rising/falling edge detector to detect a connect/reconnect to the broker, used for  birth message *)
-	fbMQTTConnectTrigger(CLK := stMQTTInfo.MQTT_CONNECTED);
-	fbMQTTDisconnectTrigger(CLK := stMQTTInfo.MQTT_CONNECTED);
+	(* Nothing is connected yet, so start U1 from the disconnected state and record
+	   that that is what it shows. Without this the LED keeps whatever the runtime
+	   left on it, because MQTT_PUBLISH only writes on a change and at a cold start
+	   its remembered state and the real state already agree. *)
+	PFC.SetLed(which := PFC.LED.U1, how := PFC.LedState.BLINK_RED);
+	bLedShowsHealthy := FALSE;
 	
 	(* Configure the dedicated MQTTBirth publisher *)
 	fbMQTTBirthPublisher.Init(inputMQTT_IN_OUT:= ADR(MQTT_IN_OUT));
@@ -25809,6 +25890,73 @@ GVL_RS485.FB_RS485_SEN0492_1();
  differs from every SysSockPing return, so the first pass still logs.</xhtml>
                       </documentation>
                     </variable>
+                    <variable name="sBrokerHost">
+                      <type>
+                        <string />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> The broker's host without its port. GVL_MQTT.broker carries host:port and
+ SysSockPing wants the host on its own, so it is split here rather than
+ duplicated as a second constant that would drift. Assumes an address of the
+ form ip:port, which is what GVL_MQTT.broker has always held.</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="iColon">
+                      <type>
+                        <INT />
+                      </type>
+                    </variable>
+                    <variable name="udiBrokerPingTime">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="udiBrokerReachable">
+                      <type>
+                        <UDINT />
+                      </type>
+                    </variable>
+                    <variable name="bPreviousBrokerReachable">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="FALSE" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Last logged verdict, so the log fires on transitions only. Deliberately
+ initialised FALSE where bBrokerReachable starts TRUE, so the first verdict
+ is logged whichever way it goes.</xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="uiBrokerPingFails">
+                      <type>
+                        <UINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Consecutive failed broker pings. One lost ICMP packet must not turn a cabinet
+ LED red, and SysSockPing returns codes that are neither 0 nor 5 - the DMX ping
+ above has always ignored those rather than acting on them. Counting instead of
+ enumerating return codes means an unknown code is treated as a failure without
+ a single one of them being able to flip the light.</xhtml>
+                      </documentation>
+                    </variable>
+                  </localVars>
+                  <localVars constant="true">
+                    <variable name="cuiBrokerPingFailsForRed">
+                      <type>
+                        <UINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="2" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Failed pings in a row before the broker counts as unreachable. Two, against a
+ 10 s task, means U1 goes red within about 20 s of the cable coming out and
+ green again within 10 s of it going back in. Lower the Ping task period if
+ that is not quick enough; do not lower this to one.</xhtml>
+                      </documentation>
+                    </variable>
                   </localVars>
                 </interface>
                 <body>
@@ -25828,7 +25976,53 @@ ELSIF udiDMXnodeReachable = 5 THEN
 	END_IF
 END_IF
 
-udiPreviousReachable := udiDMXnodeReachable;</xhtml>
+udiPreviousReachable := udiDMXnodeReachable;
+
+(* Ping the MQTT broker as well, because U1 needs something the MQTT client cannot
+   tell it. MQTT_CONNECTED does not notice a pulled network cable: a TCP socket with
+   nothing to report stays open until a retransmit finally gives up, which is minutes
+   rather than seconds, so the client goes on believing it has a session. Verified on
+   the bench - LAN cable out, MQTT_CONNECTED still TRUE, U1 still green. ICMP notices
+   in one task cycle, and the debounce below spends one more, so U1 turns red within
+   about 20 s of the cable coming out and green within 10 s of it going back in.
+
+   PRG_MQTT owns the LED; this only reports what it found. *)
+iColon := FIND(GVL_MQTT.broker, ':');
+IF iColon &gt; 1 THEN
+	sBrokerHost := LEFT(GVL_MQTT.broker, iColon - 1);
+ELSE
+	(* No port in the address, so it is already just the host. FIND returns 0 when
+	   it matches nothing, which this also covers. *)
+	sBrokerHost := GVL_MQTT.broker;
+END_IF
+
+udiBrokerReachable := SysSockPing(szIPAddress := sBrokerHost, ulTimeout := 100,
+	pulReplyTime := ADR(udiBrokerPingTime));
+
+(* Debounced, because one lost packet is not an outage. A success clears the count
+   immediately, so recovery is as fast as the task; failures have to stack up. *)
+IF udiBrokerReachable = 0 THEN
+	uiBrokerPingFails := 0;
+ELSIF uiBrokerPingFails &lt; cuiBrokerPingFailsForRed THEN
+	uiBrokerPingFails := uiBrokerPingFails + 1;
+END_IF
+
+GVL_MQTT.bBrokerReachable := (uiBrokerPingFails &lt; cuiBrokerPingFailsForRed);
+
+(* Log the debounced verdict, not the raw return code - otherwise a run of odd
+   codes would log on every one of them. *)
+IF GVL_MQTT.bBrokerReachable &lt;&gt; bPreviousBrokerReachable THEN
+	IF GVL_MQTT.bBrokerReachable THEN
+		GVL_MQTT.PLC_Device.SendLogMessage('MQTT broker ping OK');
+	ELSE
+		(* This one cannot be delivered while the broker is away; it queues and
+		   arrives on reconnect, which is what makes the outage visible after the
+		   fact rather than not at all. *)
+		GVL_MQTT.PLC_Device.SendLogMessage('MQTT broker ping Error');
+	END_IF
+	bPreviousBrokerReachable := GVL_MQTT.bBrokerReachable;
+END_IF
+</xhtml>
                   </ST>
                 </body>
                 <addData>
