@@ -12,11 +12,11 @@
 | `friendlyName` | STRING |  | The device name shown in Home Assistant. |
 | `id` | STRING |  | The unique identifier of the device. |
 | `manufacturer` | STRING |  | The manufacturer shown in Home Assistant. |
-| `availabilityTopic` | STRING |  | Topic to publish availability on. |
+| `availabilityTopic` | STRING(GVL_MQTT.MQTT_TOPIC_LEN) |  | Topic to publish availability on. |
 | `availabilityOnline` | STRING |  | The word to publish when the PLC is online. |
 | `availabilityOffline` | STRING |  | The word to publish when the PLC is offline. |
 | `MqttDiscoveryPrefix` | STRING |  | The discovery prefix the home automation system listens on (`homeassistant/` by default). |
-| `MqttDiagnosticTopic` | STRING |  | Topic used to publish diagnostic entities for the device. |
+| `MqttDiagnosticTopic` | STRING(GVL_MQTT.MQTT_TOPIC_LEN) |  | Topic used to publish diagnostic entities for the device. |
 | `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the MQTT queue to publish messages. |
 <!-- fb-interface:end -->
 
