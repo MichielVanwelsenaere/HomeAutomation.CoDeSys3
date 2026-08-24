@@ -184,6 +184,7 @@ call, the prologue has nothing to wait for. Configuration through `FB_init` and
 self-wiring through `FriendlyName` are complementary: together they remove the
 whole init sequence rather than half of it.
 
-`FB_MQTT_LOG` extends the base and could self-wire, but it has no call site
-anywhere in the reference project and there is no log topic prefix in
-`GVL_MQTT`, so there was no existing behaviour to preserve. It was left alone.
+`FB_MQTT_LOG` used to be listed here as a block that could self-wire but had no
+call site. It had none for long enough that it was deleted instead: logging is a
+method on the discovery device (`SendLogMessage`), not a block anyone
+instantiates.

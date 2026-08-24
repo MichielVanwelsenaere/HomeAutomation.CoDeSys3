@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-23T15:11:29.5756089" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-23T15:10:49.111342">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-24T12:57:05.485805" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-24T12:56:27.9044372">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -1826,7 +1826,7 @@ block should not cost the others.</xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -2161,7 +2161,7 @@ SUPER^.InitBaseMqtt();
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -2631,7 +2631,7 @@ THIS^.Delta_Dimm:=Delta_Dimm;</xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -2935,7 +2935,7 @@ END_IF		</xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -3730,7 +3730,7 @@ END_IF
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -4492,7 +4492,7 @@ END_IF
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -5228,7 +5228,7 @@ THIS^.T_UD := T_UD;
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -5439,12 +5439,12 @@ THIS^.T_UD := T_UD;
             </variable>
             <variable name="PositionTopic">
               <type>
-                <string length="120" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="SetPositionTopic">
               <type>
-                <string length="120" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="iDiff">
@@ -6124,7 +6124,7 @@ pMqttCallbackCollector^.put(instance := THIS^); // register the FB against the c
             </variable>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -6803,7 +6803,7 @@ END_IF</xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -7281,7 +7281,7 @@ fbDaliSendFadeRate.bFadeRate := FadeRate;</xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -8113,7 +8113,7 @@ END_IF </xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -8539,7 +8539,7 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -8893,7 +8893,7 @@ code. You can evaluate the return value.</xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -9232,7 +9232,7 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -9798,7 +9798,7 @@ THIS^.Hysteresis := Hysteresis;</xhtml>
           <localVars>
             <variable name="_sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="psInstanceNamePt">
@@ -10075,197 +10075,6 @@ END_IF</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>11ae81d5-e6a0-421b-a61d-0c24db827330</ObjectId>
-          </data>
-        </addData>
-      </pou>
-      <pou name="FB_MQTT_LOG" pouType="functionBlock">
-        <interface>
-          <localVars>
-            <variable name="sInstancePath">
-              <type>
-                <string />
-              </type>
-              <initialValue>
-                <simpleValue value="'.plc_log'" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> should have a dot in the name</xhtml>
-              </documentation>
-            </variable>
-          </localVars>
-          <addData>
-            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
-              <Inheritance>
-                <Extends>FB_MQTT_BASE</Extends>
-              </Inheritance>
-            </data>
-          </addData>
-        </interface>
-        <body>
-          <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml" />
-          </ST>
-        </body>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqtt" ObjectId="24dab906-0e43-4db0-bac3-8a189ab8992b">
-              <interface>
-                <inputVars>
-                  <variable name="MQTTPublishPrefix">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <string />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="pMqttPublishQueue">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="MqttQos">
-                    <type>
-                      <derived name="MQTT.QoS" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="MQTT.QoS.ExactlyOnce" />
-                    </initialValue>
-                  </variable>
-                  <variable name="MqttRetain">
-                    <type>
-                      <BOOL />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="FALSE" />
-                    </initialValue>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._sInstancePath := THIS^.sInstancePath; // Due to reflection its location is important
-
-(*pass trough*)
-THIS^.pMqttPublishQueue := pMqttPublishQueue;
-THIS^.psMqttPublishTopicPrefix:=MQTTPublishPrefix;
-THIS^.pMqttPublishQueue:=pMqttPublishQueue;
-
-THIS^.MqttQos := MqttQos;
-THIS^.MqttRetain := MqttRetain;
-
-SUPER^.InitBaseMqtt();</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="send" ObjectId="8f085deb-393b-4e5b-9c2c-1a1f55b48b3d">
-              <interface>
-                <inputVars>
-                  <variable name="str">
-                    <type>
-                      <string length="128" />
-                    </type>
-                  </variable>
-                  <variable name="instance">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                </inputVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
-		Payload:= CONCAT(CONCAT(instance,' | '),str),
-		Topic := THIS^.sMQTTPublishTopic,
-		Qos := THIS^.MqttQos,
-		MqttRetain := THIS^.MqttRetain
-	);
-END_IF		</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
-            <Method name="InitMqttDiscovery" ObjectId="355551a5-8f0b-4161-8049-b71dff62d0a9">
-              <interface>
-                <inputVars>
-                  <variable name="Device">
-                    <type>
-                      <pointer>
-                        <baseType>
-                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
-                        </baseType>
-                      </pointer>
-                    </type>
-                  </variable>
-                  <variable name="Name">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="'plc_log'" />
-                    </initialValue>
-                  </variable>
-                  <variable name="overruleId">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                </inputVars>
-                <localVars>
-                  <variable name="id">
-                    <type>
-                      <string length="255" />
-                    </type>
-                  </variable>
-                </localVars>
-              </interface>
-              <body>
-                <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
-	
-	id := SUPER^.ResolveEntityId(overruleId);
-	
-	Device^.CreateSensorEntity(
-		Name := name,
-		Id := id,
-		Meta := meta,
-		StateTopic := THIS^.sMQTTPublishTopic);
-
-	bInitMqttDiscoveryDone := TRUE;
-END_IF		</xhtml>
-                </ST>
-              </body>
-              <addData />
-            </Method>
-          </data>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>9e2b5adf-8be7-4755-bf4b-d002c1aec1e0</ObjectId>
           </data>
         </addData>
       </pou>
@@ -10777,29 +10586,54 @@ F_STRIP_JSON_ROOT := TRUE;</xhtml>
                       <string />
                     </type>
                   </variable>
+                  <variable name="deviceAvailabilityTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="deviceDiagnosticTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
                 </inputVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInit THEN
-    bInit := FALSE;
-	
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* A 1-Wire sensor announces itself to Home Assistant as a device of its own, so
+   its diagnostics belong to the sensor and not to the controller: both the Log
+   entity and the diagnostic availability entity have to name the sensor's own
+   topics. Both arguments are optional, so a call site that does not know its own
+   topics keeps whatever FB_init supplied - which is the controller's. *)
+IF bInit THEN
+	bInit := FALSE;
+
+	IF deviceAvailabilityTopic &lt;&gt; '' THEN
+		THIS^.availabilityTopic2 := deviceAvailabilityTopic;
+	END_IF
+
+	IF deviceDiagnosticTopic &lt;&gt; '' THEN
+		THIS^.MqttDiagnosticTopic := deviceDiagnosticTopic;
+	END_IF
+
 	SUPER^.initBaseDevice(
 		Name := name,
 		Identifiers := id,
 		Manufacturer := Manufacturer,
 		availabilityTopic := availabilityTopic1,
-		availabilityTopic2 := availabilityTopic2,			
+		availabilityTopic2 := THIS^.availabilityTopic2,
 		availabilityOnline := availabilityOnline,
 		availabilityOffline := availabilityOffline,
 		MqttDiscoveryPrefix := MqttDiscoveryPrefix,
-		MqttDiagnosticTopic := MqttDiagnosticTopic,
+		MqttDiagnosticTopic := THIS^.MqttDiagnosticTopic,
 		pMqttPublishQueue := pMqttPublishQueue);
-		
 END_IF
-
-
-
 </xhtml>
                 </ST>
               </body>
@@ -10836,7 +10670,7 @@ END_IF
                   </variable>
                   <variable name="availabilityTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="availabilityOnline">
@@ -10856,7 +10690,7 @@ END_IF
                   </variable>
                   <variable name="MqttDiagnosticTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="pMqttPublishQueue">
@@ -10981,7 +10815,7 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
             </variable>
             <variable name="sInstanceName">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -11006,12 +10840,12 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
             </variable>
             <variable name="availabilityTopic1">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="availabilityTopic2">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="availabilityOnline">
@@ -11031,7 +10865,7 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
             </variable>
             <variable name="MqttDiagnosticTopic">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
             </variable>
             <variable name="stMqttDiscMsgBinSens">
@@ -11165,7 +10999,7 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -11225,7 +11059,7 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -11296,7 +11130,7 @@ END_IF
                   </variable>
                   <variable name="instance">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <initialValue>
                       <simpleValue value="''" />
@@ -11341,7 +11175,7 @@ END_IF
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -11359,7 +11193,7 @@ END_IF
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="StateOnPayload">
@@ -11399,7 +11233,7 @@ END_IF
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -11467,7 +11301,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -11485,17 +11319,17 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="BrightnessCommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="BrightnessStateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="BrightnessScale">
@@ -11560,7 +11394,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -11637,7 +11471,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -11703,7 +11537,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -11782,7 +11616,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -11800,7 +11634,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="StateOnPayload">
@@ -11835,7 +11669,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -11902,7 +11736,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -11920,7 +11754,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="StateLocked">
@@ -11955,7 +11789,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -12022,7 +11856,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -12040,7 +11874,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                 </inputVars>
@@ -12065,7 +11899,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -12178,12 +12012,12 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="availabilityTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="availabilityTopic2">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <initialValue>
                       <simpleValue value="''" />
@@ -12206,7 +12040,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="MqttDiagnosticTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="pMqttPublishQueue">
@@ -12251,7 +12085,7 @@ CreateBinarySensorEntityWithCategory(
 	Name := 'Availability',
 	Id := CONCAT(Identifiers,'_diag_availability'),
 	Meta := '',
-	StateTopic := availabilityTopic,
+	StateTopic := THIS^.availabilityTopic2,
 	PayloadOn := availabilityOnline,
 	PayloadOff := availabilityOffline,
 	DeviceClass := 'CONNECTIVITY',
@@ -12298,7 +12132,7 @@ CreateDiagnosticSensorEntity(
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -12321,7 +12155,7 @@ CreateDiagnosticSensorEntity(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="StateOpen">
@@ -12376,7 +12210,7 @@ CreateDiagnosticSensorEntity(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -12542,7 +12376,7 @@ IF bFoundUpdate THEN
 		Name := 'Availability',
 		Id := CONCAT(ids,'_diag_availability'),
 		Meta := '',
-		StateTopic := availabilityTopic1,
+		StateTopic := availabilityTopic2,
 		PayloadOn := availabilityOnline,
 		PayloadOff := availabilityOffline,
 		DeviceClass := 'CONNECTIVITY',
@@ -12577,7 +12411,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -12620,7 +12454,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -12691,7 +12525,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -12742,7 +12576,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -12814,7 +12648,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -12857,7 +12691,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -12925,7 +12759,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -12943,7 +12777,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="StateOpen">
@@ -12983,7 +12817,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -13062,32 +12896,32 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="CurrentTemperatureTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="CurrentHumidityTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="ModeCommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="ModeStateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="TemperatureCommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="TemperatureStateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="TempStep">
@@ -13117,7 +12951,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -13192,7 +13026,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -13235,7 +13069,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -13300,7 +13134,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific - command_topic is the only key Home Assistant requires</xhtml>
@@ -13318,12 +13152,12 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="PercentageCommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <initialValue>
                       <simpleValue value="''" />
@@ -13334,7 +13168,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="PercentageStateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <initialValue>
                       <simpleValue value="''" />
@@ -13358,7 +13192,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="OscillationCommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <initialValue>
                       <simpleValue value="''" />
@@ -13369,7 +13203,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="OscillationStateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <initialValue>
                       <simpleValue value="''" />
@@ -13397,7 +13231,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -13648,7 +13482,7 @@ ELSIF NOT (sMqttJSON = '') THEN
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT dicovery'), instance := sInstanceName);
+	SendLogMessage(str:=CONCAT(CONCAT('Added ',Id), ' as MQTT discovery'), instance := sInstanceName);
 	PublishEntityConfig := TRUE;
 END_IF</xhtml>
                 </ST>
@@ -13683,7 +13517,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="CommandTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> entity specific</xhtml>
@@ -13706,7 +13540,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="StateTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="StateOpen">
@@ -13741,7 +13575,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="PositionTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where the cover reports how far open it is.</xhtml>
@@ -13749,7 +13583,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="SetPositionTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <documentation>
                       <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where Home Assistant asks for a position. **Supplying this is what puts a
@@ -13800,7 +13634,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="sMqttTopic">
                     <type>
-                      <string length="100" />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="bStripJsonRootOk">
@@ -13930,12 +13764,12 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="availabilityTopic1">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="availabilityTopic2">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <initialValue>
                       <simpleValue value="''" />
@@ -13958,7 +13792,7 @@ THIS^.PublishEntityConfig(
                   </variable>
                   <variable name="MqttDiagnosticTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="pMqttPublishQueue">
@@ -14057,12 +13891,12 @@ END_IF
                   </variable>
                   <variable name="availabilityTopic1">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="availabilityTopic2">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                     <initialValue>
                       <simpleValue value="''" />
@@ -14085,7 +13919,7 @@ END_IF
                   </variable>
                   <variable name="MqttDiagnosticTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="pMqttPublishQueue">
@@ -14192,7 +14026,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="availabilityTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="availabilityOnline">
@@ -14212,7 +14046,7 @@ END_IF</xhtml>
                   </variable>
                   <variable name="MqttDiagnosticTopic">
                     <type>
-                      <string />
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                     </type>
                   </variable>
                   <variable name="pMqttPublishQueue">
@@ -15439,7 +15273,7 @@ bInitialised := TRUE;
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -16134,7 +15968,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
 		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
-		MqttDiagnosticTopic := GVL_MQTT.MqttDiagnosticTopic,
+		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
 	Device^.CreateSensorEntity(
@@ -16533,7 +16367,7 @@ GetCommissioning := TRUE;
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -17560,7 +17394,7 @@ END_IF
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -18085,7 +17919,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
 		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
-		MqttDiagnosticTopic := GVL_MQTT.MqttDiagnosticTopic,
+		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
 	Device^.CreateSensorEntity(
@@ -18155,7 +17989,7 @@ GetCommissioning := FALSE;
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -18825,7 +18659,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
 		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
-		MqttDiagnosticTopic := GVL_MQTT.MqttDiagnosticTopic,
+		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
 	(* --- register block 1: the instantaneous electrical values ------------- *)
@@ -19076,7 +18910,7 @@ GetCommissioning := FALSE;
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -19720,7 +19554,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
 		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
-		MqttDiagnosticTopic := GVL_MQTT.MqttDiagnosticTopic,
+		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
 	Device^.CreateSensorEntity(
@@ -20139,7 +19973,7 @@ GetCommissioning := FALSE;
           <localVars>
             <variable name="sInstancePath">
               <type>
-                <string />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <addData>
                 <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -20532,7 +20366,9 @@ END_IF
 	
 	Device^.init1WireDevice(
 		name := DeviceName,
-		id := id);
+		id := id,
+		deviceAvailabilityTopic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
+		deviceDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'));
 		
 	IF SupportsTemperature THEN
 		Device^.CreateSensorEntity(
@@ -22328,11 +22164,6 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                 <derived name="MQTT.CallbackCollector" />
               </type>
             </variable>
-            <variable name="collector_FB_MQTT_LOG">
-              <type>
-                <derived name="MQTT.CallbackCollector" />
-              </type>
-            </variable>
             <variable name="collector_FB_RS485_MQTT">
               <type>
                 <derived name="MQTT.CallbackCollector" />
@@ -22383,7 +22214,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttBaseTopic">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(CONCAT(MqttMain, MqttType), MqttDevice)" />
@@ -22394,7 +22225,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttDiagnosticTopic">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'diagnostic')" />
@@ -22402,7 +22233,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttAvailabilityTopic">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'availability')" />
@@ -22531,7 +22362,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttPushbuttonPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'Out/DigitalInputs/Pushbuttons/')" />
@@ -22542,7 +22373,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttPubSwitchPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'Out/DigitalOutputs/')" />
@@ -22550,7 +22381,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubSwitchPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'In/DigitalOutputs/')" />
@@ -22558,7 +22389,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttPubCoverPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Covers/')" />
@@ -22566,7 +22397,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubCoverPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'In/Covers/')" />
@@ -22574,7 +22405,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttPubDimmerPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Dimmers/')" />
@@ -22582,7 +22413,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubDimmerPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'In/Dimmers/')" />
@@ -22590,7 +22421,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttPubRS485Prefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'Out/RS485/')" />
@@ -22598,7 +22429,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubRS485Prefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'In/RS485/')" />
@@ -22606,7 +22437,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttPubHVACPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'Out/HVAC/')" />
@@ -22614,7 +22445,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubHVACPrefix">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'In/HVAC/')" />
@@ -22622,7 +22453,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubSwitchTopic">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttSubSwitchPrefix, '+')" />
@@ -22633,7 +22464,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubCoverTopic">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttSubCoverPrefix, '#')" />
@@ -22646,7 +22477,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubDimmerTopic">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttSubDimmerPrefix, '#')" />
@@ -22654,7 +22485,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubRS485Topic">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttSubRS485Prefix, '#')" />
@@ -22662,7 +22493,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="MqttSubHVACTopic">
               <type>
-                <string length="100" />
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
               </type>
               <initialValue>
                 <simpleValue value="CONCAT(MqttSubHVACPrefix, '#')" />
@@ -22776,11 +22607,6 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                         <derived name="MQTT.CallbackCollector" />
                       </type>
                     </variable>
-                    <variable name="collector_FB_MQTT_LOG">
-                      <type>
-                        <derived name="MQTT.CallbackCollector" />
-                      </type>
-                    </variable>
                     <variable name="collector_FB_RS485_MQTT">
                       <type>
                         <derived name="MQTT.CallbackCollector" />
@@ -22831,7 +22657,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttBaseTopic">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(CONCAT(MqttMain, MqttType), MqttDevice)" />
@@ -22842,7 +22668,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttDiagnosticTopic">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'diagnostic')" />
@@ -22850,7 +22676,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttAvailabilityTopic">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'availability')" />
@@ -22979,7 +22805,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttPushbuttonPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'Out/DigitalInputs/Pushbuttons/')" />
@@ -22990,7 +22816,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttPubSwitchPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'Out/DigitalOutputs/')" />
@@ -22998,7 +22824,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubSwitchPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'In/DigitalOutputs/')" />
@@ -23006,7 +22832,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttPubCoverPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Covers/')" />
@@ -23014,7 +22840,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubCoverPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'In/Covers/')" />
@@ -23022,7 +22848,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttPubDimmerPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Dimmers/')" />
@@ -23030,7 +22856,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubDimmerPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'In/Dimmers/')" />
@@ -23038,7 +22864,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttPubRS485Prefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'Out/RS485/')" />
@@ -23046,7 +22872,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubRS485Prefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'In/RS485/')" />
@@ -23054,7 +22880,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttPubHVACPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'Out/HVAC/')" />
@@ -23062,7 +22888,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubHVACPrefix">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'In/HVAC/')" />
@@ -23070,7 +22896,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubSwitchTopic">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttSubSwitchPrefix, '+')" />
@@ -23081,7 +22907,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubCoverTopic">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttSubCoverPrefix, '#')" />
@@ -23094,7 +22920,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubDimmerTopic">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttSubDimmerPrefix, '#')" />
@@ -23102,7 +22928,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubRS485Topic">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttSubRS485Prefix, '#')" />
@@ -23110,7 +22936,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="MqttSubHVACTopic">
                       <type>
-                        <string length="100" />
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
                       </type>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttSubHVACPrefix, '#')" />
@@ -27621,11 +27447,6 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           <Object Name="FB_MQTT_BASE" ObjectId="11ae81d5-e6a0-421b-a61d-0c24db827330">
             <Object Name="InitBaseMqtt" ObjectId="696a1eee-8df4-4314-bb24-f14ad040c6a2" />
             <Object Name="ResolveEntityId" ObjectId="83e9d81c-86b1-43ed-be1d-ca62a398dde6" />
-          </Object>
-          <Object Name="FB_MQTT_LOG" ObjectId="9e2b5adf-8be7-4755-bf4b-d002c1aec1e0">
-            <Object Name="InitMqtt" ObjectId="24dab906-0e43-4db0-bac3-8a189ab8992b" />
-            <Object Name="send" ObjectId="8f085deb-393b-4e5b-9c2c-1a1f55b48b3d" />
-            <Object Name="InitMqttDiscovery" ObjectId="355551a5-8f0b-4161-8049-b71dff62d0a9" />
           </Object>
         </Folder>
         <Folder Name="MQTT_DISCOVERY">
