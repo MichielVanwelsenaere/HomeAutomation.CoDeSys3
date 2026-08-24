@@ -25,10 +25,15 @@ broken, which is a failure mode this project has actually had.
 ```powershell
 ./tools/ai/codesys.ps1 doctor            # mosquitto_sub present?
 (Test-NetConnection 10.101.1.232 -Port 11740).TcpTestSucceeded   # runtime up?
-./tools/ai/Mqtt-Snapshot.ps1 -Topics 'Devices/PLC/Lab/availability' -Seconds 3
+./tools/ai/Mqtt-Snapshot.ps1 -Watch -Seconds 12 -Topics 'Devices/PLC/Lab/availability'
 ```
 
-**`availability` must read `online`.** If it reads `offline`, or port 11740 is
+**`availability` must publish `online` live, and it has to be `-Watch` that asks.**
+The birth message is published with `MqttRetain := FALSE` while the LWT is retained,
+so a *retained* snapshot of that topic reads `offline` whatever the PLC is doing — it
+is the last will the broker fired when the client last dropped, not a status. A
+healthy bench shows `online` about every five seconds; nothing in twelve means the
+application is not running or not connected. If that is silent, or port 11740 is
 closed while ping succeeds, the runtime is down — not your credentials, and not the
 network. On the bench unit that usually means **the two-hour demo licence expired**;
 it needs a restart, and a login failure mid-download is a symptom of it happening
@@ -624,6 +629,76 @@ Do not chase a decode bug without that control.
   at zero. Set it explicitly even if it already reports RS485.
 
 ---
+
+## 5. The U1 broker-health LED
+
+Steady green while the PLC can talk to the broker, blinking red while it cannot —
+see
+[User_leds_CODESYS3S_runtime.md](../../../docs/AdditionalFunctionality/User_leds_CODESYS3S_runtime.md).
+Two programs decide it: `PRG_PING_DMX` pings the broker every 10 s and writes
+`GVL_MQTT.bBrokerReachable`; `PRG_MQTT` owns the LED and ANDs that with the client's
+own `MQTT_CONNECTED`.
+
+**No variable holds an LED's colour.** `PFC.SetLed` is a runtime call, so the only
+witness for the light itself is a person at the controller. Say which half you
+tested. `PRG_MQTT.bLedShowsHealthy` is as close as software gets: it is what the code
+last wrote to U1, and it is what the change detector compares against.
+
+### `specs/mqtt-broker-led.json`
+
+```powershell
+./tools/ai/codesys.ps1 download -Force -Address 00E8 `
+    -Spec .claude/skills/test-plc-logic/specs/mqtt-broker-led.json
+```
+
+Three steps, both branches, fully automated, and a **regression test** on two counts:
+
+- `PRG_MQTT.stMQTTInfo.MQTT_CONNECTED` reads `TRUE`, and read `FALSE` for the entire
+  history of the project before the client's `MQTT_INFO` output was copied into that
+  struct. `MQTT.MQTT_INFO` is an *output* of the library's `MqttClient`, not a struct
+  that populates itself — declare one, read `MQTT_CONNECTED` off it, and it compiles
+  perfectly and is `FALSE` for ever.
+- the red branch existed only on paper: its falling-edge detector was called once,
+  from `MQTT_INIT`, so its `Q` could never become `TRUE`.
+
+Verified 3/3 on the lab PFC200 (`00E8`), broker at 480 retained topics before and
+after with nothing in `NEW` or `GONE`:
+
+```
+[ok] 2. THE RED BRANCH.
+     PRG_PING_DMX.sBrokerHost='192.0.2.1'   udiBrokerReachable=UDINT#5
+     PRG_PING_DMX.uiBrokerPingFails=UINT#2  GVL_MQTT.bBrokerReachable=FALSE
+     PRG_MQTT.bBrokerHealthy=FALSE          bLedShowsHealthy=FALSE
+     PRG_MQTT.stMQTTInfo.MQTT_CONNECTED=TRUE      <- session still believed up
+```
+
+That last line is the whole point of the test: the MQTT session reads connected while
+the host is unreachable, which is exactly what a pulled cable produces.
+
+### Driving the red branch — three routes, only one works
+
+- :white_check_mark: **Point `GVL_MQTT.broker` at `192.0.2.1`.** RFC 5737 reserves it,
+  so it can never be a host and the ping genuinely fails. Nothing is forced: ICMP, the
+  debounce, the flag, the health AND, the change detector and the real `SetLed` call
+  all run. And because the client ignores a URL change while its socket is up, the
+  session stays up — which is what makes it a faithful pulled-cable reproduction.
+- :x: **Writing `GVL_MQTT.bBrokerReachable` FALSE.** Racy, and it failed that way
+  once: the Ping task owns that flag and rewrites it every 10 s, so the assertion is
+  chasing another task's value. Drive the input, not the output.
+- :x: **Pointing `broker` at a dead *port* to break the MQTT session.** The write
+  lands and reads back, and 25 s later `MQTT_CONNECTED` is still `TRUE`. The client
+  does not act on a URL change while its socket is up.
+
+To cover ICMP itself — that a real cable pull is detected — pull the cable and watch
+U1. Confirmed by eye on this bench: red within ~20 s of unplugging, back to steady
+green within ~10 s of plugging in.
+
+:bulb: **`SysSockPing` returns `1` sometimes against a host that is answering.**
+`0` is success and `5` is unreachable, but a third value shows up intermittently on
+healthy hardware — which is why the U3 code has always ignored anything that is
+neither, and why the broker ping counts two consecutive failures before it believes
+one. A test that asserts on the raw return code will flake; assert on
+`bBrokerReachable`.
 
 ## Reporting
 

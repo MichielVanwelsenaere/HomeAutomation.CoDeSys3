@@ -52,6 +52,7 @@ VAR_GLOBAL
     MqttSubDimmerTopic : STRING(100) := CONCAT(MqttSubDimmerPrefix, '#');
     MqttSubRS485Topic : STRING(100) := CONCAT(MqttSubRS485Prefix, '#');
     MqttSubHVACTopic : STRING(100) := CONCAT(MqttSubHVACPrefix, '#');
+    bBrokerReachable : BOOL := TRUE;
 END_VAR
 ```
 <!-- gvl:end -->
@@ -117,3 +118,8 @@ Topic: `Devices/PLC/Lab/availability`</br>
 Payload: `offline`
 
 Note that the topics and payloads can be changed in the code. The Birth message is by default published during startup and after that every 5 seconds (heartbeat). This can be changed in the code as well.
+
+The Birth message is also published on connect and on **re**connect, off the rising
+edge of the client's `MQTT_CONNECTED` flag in `PRG_MQTT` - the same edge that drives
+the [U1 LED](User_leds_CODESYS3S_runtime.md).
+
