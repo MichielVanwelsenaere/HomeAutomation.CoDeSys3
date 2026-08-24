@@ -121,17 +121,5 @@ Note that the topics and payloads can be changed in the code. The Birth message 
 
 The Birth message is also published on connect and on **re**connect, off the rising
 edge of the client's `MQTT_CONNECTED` flag in `PRG_MQTT` - the same edge that drives
-the [U1 LED](User_leds_CODESYS3S_runtime.md). Until that flag was actually populated
-the edge could never fire and the heartbeat was doing all the work, so a reconnect
-went unannounced for up to five seconds.
-
-:bulb: **A retained snapshot of `availability` reads `offline` even while the PLC is
-online.** The Birth message is published with `MqttRetain := FALSE` while the LWT is
-retained, so the last retained value on that topic is whichever `offline` the broker
-published when the client last dropped. To find out whether the PLC is really
-connected, watch the topic live instead of reading the retained value:
-
-```powershell
-./tools/ai/Mqtt-Snapshot.ps1 -Watch -Seconds 12 -Topics 'Devices/PLC/Lab/availability'
-```
+the [U1 LED](User_leds_CODESYS3S_runtime.md).
 
