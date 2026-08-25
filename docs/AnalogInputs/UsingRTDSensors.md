@@ -197,6 +197,35 @@ Three things worth keeping from that:
 - **`0` is also what an unused 0-10 V channel reads**, so `0` on this bus means "nothing here"
   more often than it means zero.
 
+#### 1500 is an open circuit, and that is the whole story
+
+Three 750-463 modules, all channels configured, a block on each at 1 Hz, and **no sensor
+connected to any of them**:
+
+```
+RTD_001..RTD_012   1500 on every one of them, twice, six seconds apart
+```
+
+Twelve open-circuit channels, twelve times `1500`. So on this module, as configured, **`1500` is
+what a channel with nothing on its terminals reports** — and the three `0`s in the earlier
+reading were *disabled* channels, not unwired ones. `0` never meant "nothing here"; it meant
+"not switched on".
+
+That retires the mystery this page opened with. The very first reading — `1500`, rock steady, on
+a channel that had a Pt1000 wired to it — was the module reporting an open circuit. It was not a
+misconfigured channel inventing a number. The sensor was not being seen at all.
+
+:rotating_light: **And it is why the range check can never catch a broken wire on this hardware.**
+`1500` is 150.0 °C, comfortably inside the -200…850 °C a platinum RTD can produce, so
+`FB_INPUT_TEMPERATURE_RTD_MQTT` passes it and publishes it with `/FAULT OFF`. On a module that
+signals an open circuit by going *outside* the range the check works; on this one it cannot. The
+`StaleTimeout` check is what catches it here — an open circuit does not dither — which is the
+whole reason that second test exists.
+
+The useful consequence is that a sweep now has eleven controls. Move the one sensor into a
+terminal and exactly one channel should leave `1500` for something near ambient; the other eleven
+staying put is what makes the one that moves trustworthy.
+
 ### **Two 30-second tests before reaching for a laptop**
 
 Both change the sensor's electrical situation and ask whether the number follows. A channel that
