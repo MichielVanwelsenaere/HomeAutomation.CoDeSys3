@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-25T16:25:29.6035951" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-25T16:15:56.8535086">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-25T17:00:46.4459134" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-25T16:55:42.4371064">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -3274,22 +3274,33 @@ IF bInitMqttDone AND bInRange THEN
 	END_IF
 END_IF
 
-(* --- the fault flag ----------------------------------------------------------
-   Published on change, both ways, plus once at startup so a retained value
-   exists before anything has gone wrong. A channel that is working therefore
-   says so once and costs nothing after that. *)
+(* --- available, or not -------------------------------------------------------
+   Published on change, both ways, plus once at startup - and that startup
+   publish is not optional: Home Assistant treats a missing availability payload
+   as unavailable, so an entity whose topic has never been written stays greyed
+   out however healthy the channel is.
+
+   This is the whole fault surface. There is no separate problem entity to go
+   looking for: a channel that cannot be trusted greys out the temperature where
+   somebody is already reading it. The value itself keeps being published while
+   that happens, so a stuck channel's number is still on the broker for anyone
+   who wants to judge it - it is just no longer presented as a measurement.
+
+   The payloads come from GVL_MQTT rather than being spelled here, because they
+   have to match the pl_avail / pl_not_avail that the discovery device published
+   in the config, and that is where those come from. *)
 fbFaultEdge(CLK := Fault);
 fbHealEdge(CLK := Fault);
 
 IF bInitMqttDone AND (bStartup OR fbFaultEdge.Q OR fbHealEdge.Q) THEN
 	IF Fault THEN
-		sPayload := 'ON';
+		sPayload := GVL_MQTT.MqttAvailabilityOfflinePayload;
 	ELSE
-		sPayload := 'OFF';
+		sPayload := GVL_MQTT.MqttAvailabilityOnlinePayload;
 	END_IF
 	pMqttPublishQueue^.AddMessage(
 		Payload := sPayload,
-		Topic := CONCAT(THIS^.sMQTTPublishTopic, '/FAULT'),
+		Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE);
 	bStartup := FALSE;
@@ -3362,14 +3373,21 @@ END_IF
 
 	id := SUPER^.ResolveEntityId(overruleId);
 
-	(* The temperature itself. state_class measurement, so Home Assistant keeps
-	   long-term statistics: unlike a distance, a temperature is exactly the kind
-	   of thing worth graphing a mean of.
+	(* One entity, and it goes unavailable when the reading cannot be trusted.
 
-	   expire_after is three heartbeats. The block stops publishing when the
-	   channel stops reading a sensor, so this is what turns a pulled-out wire
-	   into an unavailable entity rather than a temperature that never changes
-	   again. Three, not one, so a single late scan does not blink the entity. *)
+	   AvailabilityTopic overrides this entity's second availability topic, and
+	   avty_mode is 'all', so Home Assistant shows the sensor only while the PLC
+	   says online AND this channel says online. A fault therefore greys out the
+	   temperature where somebody is already looking at it, rather than raising a
+	   separate problem entity somewhere else to be noticed.
+
+	   expire_after stays, at three heartbeats, as a backstop for the one case an
+	   availability topic cannot cover: a PLC that stops publishing without
+	   getting the chance to say so.
+
+	   state_class measurement, so Home Assistant keeps long-term statistics -
+	   unlike a distance, a temperature is exactly the kind of thing worth
+	   graphing a mean of. *)
 	Device^.CreateSensorEntity(
 		Name := Name,
 		Id := id,
@@ -3378,19 +3396,8 @@ END_IF
 		ExpiryAfter := UDINT_TO_INT(TIME_TO_UDINT(HeartbeatInterval) * 3 / 1000),
 		DeviceClass := 'temperature',
 		UnitOfMeasurement := '°C',
-		StateClass := 'measurement');
-
-	(* And the reason it went quiet, as a diagnostic rather than something on a
-	   dashboard: a wire out of a terminal is a maintenance fact, not a reading. *)
-	Device^.CreateBinarySensorEntityWithCategory(
-		Name := CONCAT(Name, ' sensor fault'),
-		Id := CONCAT(id, '_FAULT'),
-		Meta := meta,
-		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/FAULT'),
-		PayloadOn := 'ON',
-		PayloadOff := 'OFF',
-		DeviceClass := 'problem',
-		EntityCategory := 'diagnostic');
+		StateClass := 'measurement',
+		AvailabilityTopic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'));
 
 	bInitMqttDiscoveryDone := TRUE;
 END_IF
@@ -12043,6 +12050,19 @@ THIS^.PublishEntityConfig(
  reaches the energy dashboard.</xhtml>
                     </documentation>
                   </variable>
+                  <variable name="AvailabilityTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Overrides this entity's SECOND availability topic, so one entity can go
+ unavailable while the rest of the device stays up. Empty keeps the
+ device's own, which is what every other caller wants.</xhtml>
+                    </documentation>
+                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="EntityId">
@@ -12085,6 +12105,14 @@ THIS^.FillCommonFields(
 	Name := name,
 	Id := Id,
 	Meta := meta);
+
+(* One entity can be made to go unavailable on its own. The PLC's discovery
+   device fills both availability slots with the same topic, so slot 2 carries
+   nothing that is lost by overriding it - and avty_mode is 'all', so the entity
+   is shown only while the PLC and this topic both say online. *)
+IF AvailabilityTopic &lt;&gt; '' THEN
+	stMqttDiscMsgSensor.avty[2].topic.CharString := AvailabilityTopic;
+END_IF
 
 // Entity related: Specific
 //MqttDiscoverySensorMessage.ic.CharString := Icon;

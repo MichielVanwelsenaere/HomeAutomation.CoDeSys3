@@ -133,8 +133,9 @@ fbAiRtd001(Raw := RTD_001);
 ```
 
 That is the whole of it: the block wires itself from `GVL_MQTT`, publishes to
-`.../Out/AnalogInputs/fbAiRtd001/TEMP`, and announces a temperature sensor plus a diagnostic
-fault flag to Home Assistant. See
+`.../Out/AnalogInputs/fbAiRtd001/TEMP`, and announces one temperature sensor to Home Assistant —
+which goes unavailable, rather than raising a separate problem entity, whenever the reading cannot
+be trusted. See
 [`FB_INPUT_TEMPERATURE_RTD_MQTT`](../FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md).
 
 ### **Sweeping one sensor across every channel**
@@ -174,7 +175,7 @@ Read the channel word — online, or on the `/TEMP` topic — and compare agains
 |:--|:--|
 | ≈ ambient, one decimal, **dithering in the last digit** | Correct. A real channel is never still; that jitter is what `PublishDeadband` exists to absorb. |
 | Far out of range, `Fault` set | Open circuit, on a module that reports over-range. A lead is not in the terminal, or is in the wrong channel's. |
-| **Any value, dead still for minutes** | The channel is not measuring: switched off, configured for a fixed value, or clamped at the end of a range that has nothing to do with the sensor. `Stuck` and `/FAULT` catch this; the value itself will look perfectly reasonable. |
+| **Any value, dead still for minutes** | The channel is not measuring: switched off, configured for a fixed value, or clamped at the end of a range that has nothing to do with the sensor. `Stuck` catches this and takes the entity unavailable; the value itself will look perfectly reasonable. |
 | Plausible, moving, but roughly 2.6× the true value | The channel is set for Pt100 and a Pt1000 is connected. **Nothing automatic catches this** — it is in range and it tracks. Compare against a thermometer once. |
 | ≈ 0.26× the true value, moving | The reverse: a Pt100 on a channel set to Pt1000. |
 
@@ -243,7 +244,7 @@ misconfigured channel inventing a number. The sensor was not being seen at all.
 
 :rotating_light: **And it is why the range check can never catch a broken wire on this hardware.**
 `1500` is 150.0 °C, comfortably inside the -200…850 °C a platinum RTD can produce, so
-`FB_INPUT_TEMPERATURE_RTD_MQTT` passes it and publishes it with `/FAULT OFF`. On a module that
+`FB_INPUT_TEMPERATURE_RTD_MQTT` passes it and publishes it as a healthy reading. On a module that
 signals an open circuit by going *outside* the range the check works; on this one it cannot. The
 `StaleTimeout` check is what catches it here — an open circuit does not dither — which is the
 whole reason that second test exists.
