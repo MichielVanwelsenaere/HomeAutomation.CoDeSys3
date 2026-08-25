@@ -145,6 +145,21 @@ param(
     [string]$Under,
     [string]$NodeName,
 
+    # device -AddModule only: where in the parent's child list to plug it,
+    # 0-based. Omit to append. On a K-bus the tree order IS the physical order of
+    # terminals on the rail, so a module added anywhere but the far right end has
+    # to go in at its real position or it reads its neighbour's process image.
+    [int]$Index = -1,
+
+    # device only: JSON file naming the I/O channels to map, as
+    # { "map_io": [ { "node": "_75x_463_1",
+    #                 "channel": "Analog Input Channel 0",
+    #                 "variable": "RTD_005" } ] }
+    # An unqualified variable name is created, which is what typing one into the
+    # IDE's mapping editor does. A freshly added terminal is unusable until its
+    # channels are named, and this is the alternative to a double-click each.
+    [string]$MapIo,
+
     # scaffold only: JSON spec of objects to create inside an application - a
     # GVL, a program, or a task calling one. Adding a device gives you an
     # application with a Library Manager and nothing else, so this is what makes
@@ -494,25 +509,42 @@ switch ($Task) {
         $cfg.scaffold = Resolve-Scaffold
     }
     'device' {
-        if ($AddModule -or $AddDevice -or $RemoveNode -or $RenameNode) {
+        if ($AddModule -or $AddDevice -or $RemoveNode -or $RenameNode -or $MapIo) {
             if (-not $Force) {
-                throw "device -AddModule/-AddDevice/-RemoveNode/-RenameNode writes to $targetProject. Re-run with -Force."
+                throw "device -AddModule/-AddDevice/-RemoveNode/-RenameNode/-MapIo writes to $targetProject. Re-run with -Force."
             }
             if ($RenameNode -and -not $NodeName) {
                 throw 'device -RenameNode needs -NodeName <name>, the name to rename it to.'
             }
             if ($RemoveNode) { $cfg.node_remove = $RemoveNode }
             if ($RenameNode) { $cfg.node_rename = $RenameNode }
+            if ($MapIo) {
+                if (-not (Test-Path $MapIo)) { throw "I/O mapping spec not found: $MapIo" }
+                $mapIoSpec = Get-Content $MapIo -Raw | ConvertFrom-Json
+                $mapIoRules = @($mapIoSpec.map_io)
+                if (-not $mapIoRules -or $mapIoRules.Count -eq 0) {
+                    throw "$MapIo has no map_io array - nothing to map."
+                }
+                Write-Host "mappings  : $($mapIoRules.Count) channel(s) from $MapIo"
+            }
             if ($AddModule -and -not $Under) {
                 throw 'device -AddModule needs -Under <node>, the device tree node to plug it into.'
             }
             if ($AddDevice -and -not $NodeName) {
                 throw 'device -AddDevice needs -NodeName <name>, what to call the new device.'
             }
+            if ($Index -ge 0 -and -not $AddModule) {
+                throw 'device -Index only means anything with -AddModule.'
+            }
             if ($AddModule) { $cfg.module_add = $AddModule }
             if ($AddDevice) { $cfg.device_add = $AddDevice }
             if ($Under)     { $cfg.node_under = $Under }
             if ($NodeName)  { $cfg.node_name  = $NodeName }
+            if ($Index -ge 0) {
+                $cfg.node_index = $Index
+                Write-Host "position  : index $Index under $Under"
+            }
+            if ($MapIo) { $cfg.map_io = $mapIoRules }
             Write-Host 'mode      : editing the device tree (builds before saving)'
         }
         else {

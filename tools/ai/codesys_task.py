@@ -2617,8 +2617,31 @@ def add_module(cfg, result, proj):
         # added in the IDE.
         name = u"_" + module_id.split("_", 1)[-1] if "_" in module_id else module_id
 
+    # `add` appends, and on a K-bus the tree order IS the physical order: the
+    # driver hands the process image out in the order the terminals sit on the
+    # rail, so a module in the wrong slot of the tree reads its neighbour's
+    # words. A terminal added anywhere but at the end of the rail therefore has
+    # to be INSERTED, and `insert` takes the index second - name, index, then the
+    # same identification `add` takes.
+    #
+    # The stub documents `insert(name, index, type, id, version, module)` and that
+    # call is ACCEPTED AND IGNORED: two terminals asked for index 4 and 5 both
+    # landed at the end of the bus. Since the .pyi is known to have the argument
+    # order backwards elsewhere (`textual_implementation.insert` really takes the
+    # offset first), index-first is tried first here and the documented order is
+    # the fallback. Either way the achieved position is read back below, because
+    # an insert that quietly appends is the whole reason this exists.
+    index = cfg.get("node_index")
     try:
-        parent.add(name, dev_type, dev_id, dev_version, module_id)
+        if index is None:
+            parent.add(name, dev_type, dev_id, dev_version, module_id)
+        else:
+            try:
+                parent.insert(int(index), name, dev_type, dev_id, dev_version, module_id)
+                log("insert: index-first argument order accepted")
+            except Exception:
+                parent.insert(name, int(index), dev_type, dev_id, dev_version, module_id)
+                log("insert: index-first refused, used the documented name-first order")
     except Exception:
         trace = traceback.format_exc()
         result["errors"].append(
@@ -2626,10 +2649,116 @@ def add_module(cfg, result, proj):
         log("add_module failed:\n%s" % trace)
         return False
 
-    change = u"added %s (module %s) under %s" % (name, module_id, object_path(parent))
+    # Read the position back. On a K-bus the tree order IS the physical order, so
+    # "it was added" is not the useful fact - where it was added is.
+    siblings = [u(safe(lambda: c.get_name(), u""))
+                for c in list(safe(lambda: parent.get_children(False), []) or [])]
+    landed = siblings.index(name) if name in siblings else None
+    where = object_path(parent)
+    if landed is not None:
+        where = "%s at index %d of %d" % (where, landed, len(siblings))
+    change = u"added %s (module %s) under %s" % (name, module_id, where)
     result.setdefault("device_changes", []).append(change)
     log(change)
+    result.setdefault("device_order", {})[u(object_path(parent))] = siblings
+    if index is not None and landed is not None and landed != int(index):
+        result["errors"].append(
+            "asked for index %s but %s landed at %d - on a K-bus the tree order is "
+            "the physical order of terminals, so this project would read the wrong "
+            "process image. Reorder in the IDE." % (index, name, landed))
+        return False
     return True
+
+
+def channel_parameters(node):
+    """Every mappable I/O channel of a device node, keyed by its visible name.
+
+    A terminal's channels are not on the node itself but on its child connector's
+    host parameter set - which is why the export shows them under
+    <Connector role="child"><HostParameterSet>. `device_parameters` holds the
+    node's own settings and carries no channels for a 750-series terminal, so both
+    are walked and only the parameters answering `is_mappable_io` are kept.
+    """
+    found = {}
+    sets = []
+    for connector in list(safe(lambda: node.connectors, []) or []):
+        sets.append(safe(lambda: connector.host_parameters, None))
+    sets.append(safe(lambda: node.device_parameters, None))
+    for pset in sets:
+        if pset is None:
+            continue
+        for param in list(safe(lambda: list(pset), []) or []):
+            if not safe(lambda: bool(param.is_mappable_io), False):
+                continue
+            name = u(safe(lambda: param.name, u"")) or u(safe(lambda: param.visible_name, u""))
+            if name:
+                found[name] = param
+    return found
+
+
+def map_io(cfg, result, proj):
+    """Give a device's I/O channels IEC variable names.
+
+    Mapping a channel is a double-click per channel in the IDE, and it is what
+    makes a freshly added terminal usable at all: until it has a name, no IEC code
+    can read it. `ScriptIoMapping.variable` does it from a script - an unqualified
+    name creates the variable, which is exactly what the IDE's mapping editor does
+    when you type one in.
+
+    Each rule is {node, channel, variable}. A channel that does not exist is an
+    error rather than a skip: a mistyped channel name would otherwise leave a
+    terminal silently unmapped, and the build would fail later and elsewhere.
+
+    Returns True when at least one mapping was written.
+    """
+    rules = list(cfg.get("map_io") or [])
+    if not rules:
+        return False
+    wrote = 0
+    for rule in rules:
+        needle = u(rule.get("node") or u"")
+        channel = u(rule.get("channel") or u"")
+        variable = u(rule.get("variable") or u"")
+        if not (needle and channel and variable):
+            result["errors"].append(
+                "map_io rule needs node, channel and variable: %r" % (rule,))
+            continue
+        node = resolve_node(result, proj, needle)
+        if node is None:
+            continue
+        channels = channel_parameters(node)
+        param = channels.get(channel)
+        if param is None:
+            result["errors"].append(
+                "%s has no mappable channel %r - it has %s"
+                % (object_path(node), channel, ", ".join(sorted(channels)) or "none"))
+            continue
+        mapping = safe(lambda: param.io_mapping, None)
+        if mapping is None:
+            result["errors"].append(
+                "channel %r on %s exposes no io_mapping" % (channel, object_path(node)))
+            continue
+        try:
+            mapping.variable = variable
+        except Exception:
+            trace = traceback.format_exc()
+            result["errors"].append(
+                "mapping %r on %s to %r failed:\n%s"
+                % (channel, object_path(node), variable, trace))
+            log("map_io failed:\n%s" % trace)
+            continue
+        # The setter takes anything that parses as an IEC expression, so reading
+        # it back is the only confirmation that it landed as asked.
+        readback = u(safe(lambda: param.io_mapping.variable, u""))
+        entry = u"mapped %s / %s -> %s" % (object_path(node), channel, readback or variable)
+        result.setdefault("device_changes", []).append(entry)
+        log(entry)
+        if readback != variable:
+            result["errors"].append(
+                "mapping %r on %s reads back as %r, not %r"
+                % (channel, object_path(node), readback, variable))
+        wrote += 1
+    return wrote > 0
 
 
 def do_device(cfg, result):
@@ -2644,7 +2773,8 @@ def do_device(cfg, result):
     refuse to save a project that does not build.
     """
     mutating = bool(cfg.get("module_add") or cfg.get("device_add")
-                    or cfg.get("node_remove") or cfg.get("node_rename"))
+                    or cfg.get("node_remove") or cfg.get("node_rename")
+                    or cfg.get("map_io"))
     proj = projects.open(cfg["project"], allow_readonly=not mutating)  # noqa: F821
     try:
         if cfg.get("node_rename"):
@@ -2658,6 +2788,12 @@ def do_device(cfg, result):
                 return
         if cfg.get("module_add"):
             if not add_module(cfg, result, proj):
+                return
+        if cfg.get("map_io"):
+            # After any add, so one run can plug a terminal in and name its
+            # channels - which is the whole job, and neither half is any use
+            # alone: an unmapped channel has no name for IEC code to read.
+            if not map_io(cfg, result, proj):
                 return
         devices = []
         for node in list(safe(lambda: proj.get_children(True), []) or []):

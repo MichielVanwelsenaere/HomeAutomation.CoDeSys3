@@ -84,6 +84,7 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 | `./tools/ai/codesys.ps1 device -AddModule <ModuleId> -Under <node> -Force` | Plug a module into the device tree. Builds first and refuses to save a project that does not build. |
 | `./tools/ai/codesys.ps1 device -AddDevice <type:id:version> -NodeName <name> [-Under <node>] -Force` | Add a device — a module, or a whole second controller at the project root. |
 | `./tools/ai/codesys.ps1 device -RemoveNode <name> -Force` | Unplug a device or module. |
+| `./tools/ai/codesys.ps1 device -MapIo <spec.json> -Force` | Name a terminal's I/O channels, which is what makes a freshly added module readable from IEC code at all. `{ "map_io": [ { "node", "channel", "variable" } ] }`; each mapping is read back and a mismatch is an error. |
 | `./tools/ai/codesys.ps1 device -RenameNode <name> -NodeName <new> -Force` | Rename a device or module. Re-record the baseline afterwards: a device's name is in every message's object path. |
 | `./tools/ai/codesys.ps1 scaffold -Scaffold <spec.json> -Force` | Create GVLs, programs and tasks inside an application. |
 | `./tools/ai/codesys.ps1 scan` | List PLCs answering on each gateway. Read-only, needs no project. |
@@ -693,6 +694,24 @@ rather than a sign that something was hidden.
 
 ## Scripting API traps
 
+- **`ScriptDeviceObject.insert` accepts an index and ignores it.** The stub
+  documents `insert(name, index, type, id, version, module)`, that order is the
+  one the binding accepts (index-first is refused), and the module still lands at
+  the **end** of the parent's children. Two 750-463 terminals asked for index 4
+  and 5 both appended. This matters on a K-bus, where the tree order *is* the
+  physical order of terminals on the rail: a module in the wrong slot reads its
+  neighbour's process image. `add_module` therefore reads the achieved position
+  back out of `get_children(False)` and **fails the run** when it does not match
+  what was asked, rather than reporting a successful insert that appended. There
+  is no scripted fix - reordering a bus is IDE hand-work, so prefer moving the
+  terminal to the end of the rail if the choice is still open.
+- **I/O channel mapping IS scriptable**, which the skill assumed it was not.
+  A terminal's channels live on its *child connector's* `host_parameters`, not on
+  `device_parameters`, and each one that answers `is_mappable_io` carries an
+  `io_mapping` whose `variable` setter names it - an unqualified name creates the
+  variable, exactly as typing one into the IDE's mapping editor does. `device
+  -MapIo <spec.json>` does it in bulk. Read the value back afterwards: the setter
+  takes any expression that parses, so a typo is accepted quietly.
 - **The shipped `.pyi` stubs have wrong argument orders.** `export_xml` and
   `import_xml` really take `reporter` **first**, and the .NET binding rejects
   those names as keywords — pass them positionally.
