@@ -244,9 +244,41 @@ signals an open circuit by going *outside* the range the check works; on this on
 `StaleTimeout` check is what catches it here — an open circuit does not dither — which is the
 whole reason that second test exists.
 
-The useful consequence is that a sweep now has eleven controls. Move the one sensor into a
-terminal and exactly one channel should leave `1500` for something near ambient; the other eleven
-staying put is what makes the one that moves trustworthy.
+#### Except it was not an open circuit either — the bus was not running
+
+With a Pt1000 verified at 1092 Ω on channel 0 of the first module, every mapped input word read:
+
+```
+RTD_001..RTD_012   1500      twice, eight seconds apart
+AI_001, AI_002        0      the 0-10 V module's two words
+```
+
+**The sensor's value is in none of the fourteen words.** That is the reading that settles it: if
+any module were measuring 1092 Ω, the number would have to appear *somewhere* in the process
+image, and every word is accounted for. So no channel was measuring, and the wiring was never the
+problem.
+
+Two details name the cause. The values are constant to the digit across two reads — nothing is
+dithering, so nothing is being sampled. And they cluster by **configured module type**, not by
+position on the rail: `1500` on every word belonging to a configured 750-463 and `0` on both
+belonging to the 750-467. Real bus data cannot sort itself by what the *project* thinks is
+plugged in. These are the values the words hold when the driver never fills them.
+
+The cause was the device tree: it listed the terminals as
+`440, 540, 540_1, 463, 550, 467, 463, 463` while the rail carried
+`440, 540, 540_1, 463, 463, 463, 550, 467`. A K-bus is a shift register and the configured
+sequence has to match the physical one; when it does not, the driver cannot map the frame and no
+input is updated. Nothing warns about it in the IEC code, the build is clean, and every channel
+reports a plausible temperature.
+
+:bulb: **A constant that sorts itself by configured module type is a bus that is not running.**
+That is the signature to remember - it is not a sensor fault, not wiring, and not a module
+setting, and no amount of re-checking terminals will move it.
+
+The fix, given a tree order that cannot be changed from a script: **move the terminals so the rail
+matches the tree**, which is a minute's work and needs no IDE. Only then does a sweep mean
+anything - and then it has eleven controls, because moving the one sensor should take exactly one
+channel off its resting value.
 
 ### **Two 30-second tests before reaching for a laptop**
 
