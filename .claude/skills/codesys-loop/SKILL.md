@@ -694,17 +694,23 @@ rather than a sign that something was hidden.
 
 ## Scripting API traps
 
-- **`ScriptDeviceObject.insert` accepts an index and ignores it.** The stub
-  documents `insert(name, index, type, id, version, module)`, that order is the
-  one the binding accepts (index-first is refused), and the module still lands at
-  the **end** of the parent's children. Two 750-463 terminals asked for index 4
-  and 5 both appended. This matters on a K-bus, where the tree order *is* the
-  physical order of terminals on the rail: a module in the wrong slot reads its
-  neighbour's process image. `add_module` therefore reads the achieved position
-  back out of `get_children(False)` and **fails the run** when it does not match
-  what was asked, rather than reporting a successful insert that appended. There
-  is no scripted fix - reordering a bus is IDE hand-work, so prefer moving the
-  terminal to the end of the rail if the choice is still open.
+- **A script cannot position a module on a bus, and cannot see where one sits.**
+  Three separate attempts, so nobody repeats them:
+  `insert(name, index, ...)` is the order the binding accepts (index-first is
+  refused) and it **ignores the index** and appends; removing a terminal and
+  re-adding it does **not** move it either - the saved project reloads in exactly
+  the order it went in; and the order `get_children(False)` reports is **creation
+  order**, not rail position. The PLCopen export's `ProjectStructure` agrees with
+  `get_children`, so it is not independent confirmation of anything.
+
+  The trap this sets is the expensive part. The IDE showed three RTD terminals
+  side by side while both scripted views reported them split apart by two other
+  modules, and a guard built on the scripted view **refused a correct project**.
+  Position on a K-bus decides which process-image words a terminal reads, so
+  getting it wrong is silent and serious - but it can only be checked and fixed in
+  the IDE's device tree. `add_module` now prints an ADVISORY saying so whenever an
+  index is asked for, and reports the creation order labelled as such. Adding a
+  terminal at the far right of the rail avoids the question entirely.
 - **I/O channel mapping IS scriptable**, which the skill assumed it was not.
   A terminal's channels live on its *child connector's* `host_parameters`, not on
   `device_parameters`, and each one that answers `is_mappable_io` carries an

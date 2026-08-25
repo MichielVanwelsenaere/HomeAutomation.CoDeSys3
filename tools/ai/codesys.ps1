@@ -912,6 +912,14 @@ switch ($Task) {
             if ($d.gateway) { $note = "  gateway $($d.gateway) address $($d.address) simulation $($d.simulation)" }
             Write-Host ("  {0,-52}{1}" -f $d.path, $note)
         }
+        if ($report.device_order) {
+            Write-Host ''
+            Write-Host 'child order (CREATION order - NOT the order on the rail, see codesys-loop):'
+            foreach ($prop in $report.device_order.PSObject.Properties) {
+                Write-Host "  $($prop.Name)"
+                Write-Host "    $(@($prop.Value) -join ', ')"
+            }
+        }
         if (@($report.gateways).Count -gt 0) {
             Write-Host ''
             Write-Host 'gateways:'

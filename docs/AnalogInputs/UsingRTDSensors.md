@@ -76,9 +76,14 @@ it. The reference bench carries three 750-463 modules and maps all twelve channe
 
 :rotating_light: **The order of the modules in the device tree must match their order on the
 rail.** The K-bus hands the process image out in physical order, so a terminal in the wrong slot
-of the tree reads its neighbour's words. Adding a terminal anywhere but the far right end
-therefore means reordering the tree, and that is IDE hand-work: the ScriptEngine's `insert`
-accepts a position and appends anyway (see the `codesys-loop` skill).
+of the tree reads its neighbour's words — silently, with a plausible number, which is the failure
+this whole page is about.
+
+**Check it in the IDE, and only there.** A script can add a terminal but cannot place one, and
+cannot see where one sits: `insert` ignores the index it is given, remove-and-re-add does not move
+a node, and the order the ScriptEngine and the PLCopen export both report is *creation* order
+rather than rail position. The `codesys-loop` skill has the full account. Adding a terminal at the
+far right of the rail sidesteps the question, because then appending is correct.
 
 Naming the channels *is* scriptable, and doing it by hand is a double-click each:
 

@@ -2649,24 +2649,33 @@ def add_module(cfg, result, proj):
         log("add_module failed:\n%s" % trace)
         return False
 
-    # Read the position back. On a K-bus the tree order IS the physical order, so
-    # "it was added" is not the useful fact - where it was added is.
+    # Read the position back - but do not believe it means rail position. See the
+    # advisory below: `get_children` returns CREATION order, which is not the bus
+    # order the IDE shows and not something a script can change.
     siblings = [u(safe(lambda: c.get_name(), u""))
                 for c in list(safe(lambda: parent.get_children(False), []) or [])]
     landed = siblings.index(name) if name in siblings else None
     where = object_path(parent)
     if landed is not None:
-        where = "%s at index %d of %d" % (where, landed, len(siblings))
+        where = "%s at creation index %d of %d" % (where, landed, len(siblings))
     change = u"added %s (module %s) under %s" % (name, module_id, where)
     result.setdefault("device_changes", []).append(change)
     log(change)
     result.setdefault("device_order", {})[u(object_path(parent))] = siblings
-    if index is not None and landed is not None and landed != int(index):
-        result["errors"].append(
-            "asked for index %s but %s landed at %d - on a K-bus the tree order is "
-            "the physical order of terminals, so this project would read the wrong "
-            "process image. Reorder in the IDE." % (index, name, landed))
-        return False
+    if index is not None:
+        # Established the hard way: `insert` accepts an index and appends, and
+        # removing a terminal and re-adding it does not move it either - the saved
+        # project comes back in exactly the order it went in. So a script can add a
+        # terminal but cannot place it, and cannot even read where it sits on the
+        # rail. Refusing the save was worse than useless here: it blocked a correct
+        # project because a number that means something else did not match.
+        note = (u"%s: a script cannot position a module on a bus. `insert` ignores "
+                u"the index, remove-and-re-add does not move it, and the order "
+                u"reported here is CREATION order, not the order the IDE shows or "
+                u"the rail carries. If this terminal is not at the far right of the "
+                u"rail, check and fix the position in the IDE." % name)
+        result.setdefault("advisories", []).append(note)
+        log("ADVISORY %s" % note)
     return True
 
 
@@ -2808,6 +2817,26 @@ def do_device(cfg, result):
                 }
             )
         result["devices"] = devices
+        # Sibling order per node, which is CREATION order and NOT the order of
+        # terminals on the rail. Both were confused for each other once, at the cost
+        # of an afternoon: the IDE showed three RTD modules side by side while this
+        # list and the PLCopen export both reported them split apart, and two
+        # remove-and-re-add rounds could not change what either said. Report it
+        # because it is the only order a script can see; do not conclude a bus is
+        # misordered from it.
+        order = {}
+        for node in [None] + [n for n in list(safe(lambda: proj.get_children(True), []) or [])
+                              if safe(lambda: n.is_device, False)]:
+            if node is None:
+                continue
+            kids = [u(safe(lambda: c.get_name(), u""))
+                    for c in list(safe(lambda: node.get_children(False), []) or [])
+                    if safe(lambda: c.is_device, False)]
+            if kids:
+                order[u(object_path(node))] = kids
+        result["device_order"] = order
+        for where in sorted(order):
+            log("order %s: %s" % (where, ", ".join(order[where])))
         gateways = []
         for gateway in list(safe(lambda: online.gateways, []) or []):  # noqa: F821
             gateways.append(
