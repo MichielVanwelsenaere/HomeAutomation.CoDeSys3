@@ -22,9 +22,31 @@ module number printed on the front before wiring anything.
 ### **Wiring**
 
 A Pt1000 element is a resistor, so **it has no polarity** — either lead may go to either terminal
-of the pair. What matters is using *one channel's pair* and not straying into a neighbouring
-channel or a shield terminal. The channel-to-terminal assignment is printed on the module's own
-front label and in its data sheet; on the 750-463 each channel is a 2-conductor pair.
+of the pair. What matters is landing on *one channel's pair*.
+
+Each channel is a `+R`/`−R` pair, and the terminal numbers do **not** run in channel order:
+
+| Terminal | Label | Sensor | CODESYS channel | First module | Second | Third |
+|:--|:--|:--|:--|:--|:--|:--|
+| 1 + 2 | `+R1` / `−R1` | 1 | Analog Input Channel 0 | `RTD_001` | `RTD_005` | `RTD_009` |
+| 5 + 6 | `+R2` / `−R2` | 2 | Analog Input Channel 1 | `RTD_002` | `RTD_006` | `RTD_010` |
+| 3 + 4 | `+R3` / `−R3` | 3 | Analog Input Channel 2 | `RTD_003` | `RTD_007` | `RTD_011` |
+| 7 + 8 | `+R4` / `−R4` | 4 | Analog Input Channel 3 | `RTD_004` | `RTD_008` | `RTD_012` |
+
+:rotating_light: **The pair next to sensor 1 is not sensor 2.** Terminals 3 and 4 are sensor
+**3**; sensor 2 is on 5 and 6. Wire "the next pair along" and the reading appears on a channel two
+places from the one being watched — which looks exactly like a dead channel if only one topic is
+being watched, and is why the sweep watches all twelve at once.
+
+Go by the `+R`/`−R` labels moulded into the module front rather than by counting terminals, and
+note that CODESYS numbers its channels from **0** while WAGO numbers the sensors from **1**: WAGO's
+sensor 1 is CODESYS's *Analog Input Channel 0*, which this project maps to `RTD_001`.
+
+Two more points:
+
+- **No jumper is needed.** The 750-463 measures 2-conductor only, so unlike the 3-wire-capable
+  Pt100 modules there is nothing to bridge — the pair is the whole connection.
+- **Use shielded cable** and land the screen on the DIN-rail shield clamp, at one end only.
 
 Three practical points:
 
