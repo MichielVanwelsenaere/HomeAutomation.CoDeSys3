@@ -40,7 +40,8 @@ module, not something IEC code can reach in this project's device configuration.
 REAL ──┤ PublishDeadband             Valid ├── BOOL
 TIME ──┤ HeartbeatInterval           Fault ├── BOOL
 TIME ──┤ StaleTimeout                Stuck ├── BOOL
-       │                     DataAvailable ├── BOOL
+REAL ──┤ PlausibleMin        DataAvailable ├── BOOL
+REAL ──┤ PlausibleMax                      │
        └───────────────────────────────────┘
 ```
 
@@ -52,8 +53,10 @@ TIME ──┤ StaleTimeout                Stuck ├── BOOL
 |:--|:--|:--|
 | `Raw` | INT | The mapped channel word of the RTD module, in tenths of a degree Celsius. Wire it to the channel variable — `Raw := RTD_001` — and nothing else is needed to make the block work. |
 | `PublishDeadband` | REAL | Degrees Celsius of change required before the value is published again. Defaults to 0.2. The last digit of an RTD channel jitters continuously, and nobody wants 0.1 °C of noise in their history; zero publishes every change. |
-| `HeartbeatInterval` | TIME | Republish even when nothing changed, so a reader can tell a steady temperature from a PLC that has stopped. Defaults to 5 minutes, and the discovery config's `expire_after` is set to three of these — so changing it changes both, but only for entities announced after the change. |
+| `HeartbeatInterval` | TIME | Republish even when nothing changed, so a reader can tell a steady temperature from a PLC that has stopped. Defaults to **1 minute**, and the discovery config's `expire_after` is set to three of these — so changing it changes both, but only for entities announced after the change. |
 | `StaleTimeout` | TIME | How long the channel word may go without changing by even one digit before the reading is called into question. Defaults to 15 minutes; zero disables the check. See *[a wrong number that holds still](#a-wrong-number-that-holds-still)* — this is not a theoretical safeguard, it is what the bench module needed. |
+| `PlausibleMin` | REAL | Bottom of the range this sensor could plausibly be measuring, in °C. Defaults to -40. |
+| `PlausibleMax` | REAL | Top of that range; defaults to 80. **This is the check that earns its keep.** The IEC 60751 bounds only ask whether a platinum RTD could produce a reading at all, which a 750-463's open-circuit `150.0 °C` passes comfortably — it is a legal Pt1000 temperature. No room, buffer tank or floor loop reaches it, so saying what the sensor is *for* rejects an open circuit on the first scan instead of waiting out `StaleTimeout`. Widen it deliberately for a flue, a solar collector or a freezer; set `Max <= Min` to switch the check off. |
 
 **Outputs**
 
@@ -63,7 +66,7 @@ TIME ──┤ StaleTimeout                Stuck ├── BOOL
 | `Valid` | BOOL | The channel is reading a real sensor, within the range this sensor type can measure. |
 | `Fault` | BOOL | **Do not trust this reading.** Set when the value is outside what a platinum RTD can produce — usually a wire out of a terminal — and when the channel has stopped moving. This is what drives the entity's availability: while it is set, Home Assistant shows the sensor as unavailable. |
 | `Stuck` | BOOL | The channel has not moved a digit for `StaleTimeout`. Kept separate from `Fault` so a debugger can tell *impossible number* from *not measuring*; both set `Fault`. |
-| `DataAvailable` | BOOL | High once a plausible reading has been seen. Low only at startup — and it stays low on a channel that has never been wired. |
+| `DataAvailable` | BOOL | High once a plausible reading has been seen, and it **latches**: it answers *has this channel ever worked*, not *is it working now* — `Valid` is that one. One wart, found by a bench assertion that expected better: a mapped channel reads `0` for the first cycles before the K-bus fills the process image, and `0.0 °C` is perfectly plausible, so this latches TRUE (and `Temperature` holds `0.0`) even on a channel that goes on to measure nothing at all. Do not read it as proof a sensor is connected. |
 
 ### **Methods**
 
@@ -137,6 +140,14 @@ What follows from that:
 - `/availability` goes `offline` immediately, so the entity greys out where somebody is already
   looking at it — no waiting for `expire_after`, and no separate problem entity to notice.
 
+:rotating_light: **On this hardware the IEC 60751 range never fires, and that is why
+`PlausibleMin`/`PlausibleMax` exist.** A 750-463 reports an open circuit as `1500` — 150.0 °C —
+which is inside -200…850 °C and therefore *passes*. Before the plausible range was added, twelve
+open-circuit channels published as healthy `150.0 °C` readings for the fifteen minutes it took
+`StaleTimeout` to catch them, and every restart bought another fifteen. With the default
+-40…80 °C the same twelve went unavailable **34 seconds** after a restart, which is as fast as the
+startup publish allows.
+
 ### **A wrong number that holds still**
 
 The range check above catches a number no sensor could produce. It does not catch the worse case,
@@ -162,6 +173,11 @@ holding:
 Verified on hardware against the misconfigured channel, with `StaleTimeout` written down to 30 s
 for the test: `Stuck=TRUE`, `Fault=TRUE`, `/availability offline`, and `/TEMP` still carrying
 `150.0`.
+
+:bulb: **`StaleTimeout` is the second line of defence now, not the first.** A plausible range
+catches an implausible constant at once; the stale check remains for the harder case — a value
+that *is* plausible and still is not being measured, such as a channel frozen at a believable
+room temperature.
 
 :bulb: **A slow-moving process can be genuinely still for minutes** — a large water buffer, a
 cellar. Fifteen minutes of *zero* movement is still implausible on a 0.1 °C channel, but if a

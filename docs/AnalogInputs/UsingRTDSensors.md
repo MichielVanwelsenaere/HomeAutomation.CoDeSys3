@@ -146,12 +146,13 @@ all of them at once. The reference project does exactly that: twelve instances i
 called from `READ_PUSHBUTTONS`, each handed the sweep interval:
 
 ```
-fbAiRtd001(Raw := RTD_001, HeartbeatInterval := tRtdSweepPublish);
+fbAiRtd001(Raw := RTD_001, HeartbeatInterval := tRtdPublishInterval);
 ```
 
-`tRtdSweepPublish` is `T#1S` — one place to change it for all twelve. The block's own default is
-five minutes, which is right for a commissioned sensor and useless for watching a value move as a
-probe goes in.
+`tRtdPublishInterval` is one place to change it for all twelve, and it matches the block's own
+default of one minute. Drop it to `T#1S` while a probe is actually being moved from terminal to
+terminal — but note the block sets each entity's `expire_after` to three heartbeats, so a
+one-second interval also means Home Assistant gives up on a silent channel after three.
 
 ```powershell
 mosquitto_sub -h 10.101.1.11 -v -t 'Devices/PLC/Lab/Out/AnalogInputs/+/TEMP'
@@ -243,11 +244,15 @@ a channel that had a Pt1000 wired to it — was the module reporting an open cir
 misconfigured channel inventing a number. The sensor was not being seen at all.
 
 :rotating_light: **And it is why the range check can never catch a broken wire on this hardware.**
-`1500` is 150.0 °C, comfortably inside the -200…850 °C a platinum RTD can produce, so
-`FB_INPUT_TEMPERATURE_RTD_MQTT` passes it and publishes it as a healthy reading. On a module that
-signals an open circuit by going *outside* the range the check works; on this one it cannot. The
-`StaleTimeout` check is what catches it here — an open circuit does not dither — which is the
-whole reason that second test exists.
+`1500` is 150.0 °C, comfortably inside the -200…850 °C a platinum RTD can produce, so the range
+check passes it. On a module that signals an open circuit by going *outside* the range the check
+works; on this one it cannot.
+
+That is what `PlausibleMin`/`PlausibleMax` were added for. Their -40…80 °C default is what a room,
+a buffer tank or a floor loop can actually be, and 150 °C is not, so an open circuit on this module
+is rejected on the first scan. Before that the twelve channels published as healthy `150.0 °C` for
+the fifteen minutes `StaleTimeout` took to notice — and every restart bought another fifteen, which
+is why the sensors kept looking fine every time anybody checked.
 
 #### Except it was not an open circuit either — the bus was not running
 
