@@ -264,21 +264,48 @@ position on the rail: `1500` on every word belonging to a configured 750-463 and
 belonging to the 750-467. Real bus data cannot sort itself by what the *project* thinks is
 plugged in. These are the values the words hold when the driver never fills them.
 
-The cause was the device tree: it listed the terminals as
+The device tree looked like the culprit: it listed the terminals as
 `440, 540, 540_1, 463, 550, 467, 463, 463` while the rail carried
 `440, 540, 540_1, 463, 463, 463, 550, 467`. A K-bus is a shift register and the configured
-sequence has to match the physical one; when it does not, the driver cannot map the frame and no
-input is updated. Nothing warns about it in the IEC code, the build is clean, and every channel
-reports a plausible temperature.
+sequence has to match the physical one, so a mismatch is a real fault and would explain a process
+image full of values that never move.
 
-:bulb: **A constant that sorts itself by configured module type is a bus that is not running.**
-That is the signature to remember - it is not a sensor fault, not wiring, and not a module
-setting, and no amount of re-checking terminals will move it.
+**It was not the cause.** The 750-550 and 750-467 were unplugged from the rail and removed from
+the tree, leaving `440, 540, 540_1, 463, 463, 463` on both sides — matched, verified — and all
+twelve channels still read exactly `1500`. So the tree order was a genuine defect worth fixing and
+it was not what made the channels read a constant. Both things were true at once, which is what
+made it convincing.
 
-The fix, given a tree order that cannot be changed from a script: **move the terminals so the rail
-matches the tree**, which is a minute's work and needs no IDE. Only then does a sweep mean
-anything - and then it has eleven controls, because moving the one sensor should take exactly one
-channel off its resting value.
+:bulb: **Two faults at once is the normal case on a bench, not the exception.** Fixing one and
+re-testing is the only way to tell which one you were looking at; the mistake here was writing
+down a cause before re-testing.
+
+#### Where that leaves it
+
+Established, and not in doubt:
+
+- Three separate 750-463 modules, twelve channels, all reading exactly `1500`, constant to the
+  digit across reads seconds apart.
+- A Pt1000 measuring 1092 Ω at the terminals — 23.6 °C, so the channel owes `236` — changes
+  nothing, on whichever channel it is connected to.
+- The value appears in no other word of the process image either, so nothing is measuring it and
+  reading it somewhere unexpected.
+- The device tree now matches the rail, so terminal order is not it.
+
+Which points at the modules rather than the wiring or the project, and **weakens this page's own
+claim that a 750-463 is plug-and-play for a Pt1000**. Three modules that have never seen
+WAGO-I/O-CHECK all report the same constant and none responds to a sensor; the simplest reading of
+that is that `1500` is what an unconfigured channel reports, and that these do not measure until
+they are configured.
+
+Before accepting that, two tests separate it from the remaining alternative — that the K-bus is not
+delivering data at all:
+
+1. **Press a pushbutton on the 750-440** and watch `DI_001`. Digital input responding proves the
+   bus is alive and the analog modules really are reporting a constant. Nothing responding means
+   the bus is the problem and the RTD channels are a red herring.
+2. **Short a channel's terminals.** A channel that is measuring drops to the bottom of its scale
+   at once. One that stays at `1500` is not looking at its terminals.
 
 ### **Two 30-second tests before reaching for a laptop**
 
