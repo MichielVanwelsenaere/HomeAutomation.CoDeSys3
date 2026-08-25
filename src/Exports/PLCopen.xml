@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-24T12:57:05.485805" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-24T12:56:27.9044372">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-25T14:12:15.3831376" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-25T14:11:29.6364158">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2920,6 +2920,534 @@ END_IF		</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>2c780f1f-5812-460d-8451-0ca306f5b2cf</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_INPUT_TEMPERATURE_RTD_MQTT" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="Temperature">
+              <type>
+                <REAL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Degrees Celsius. Held at the last trustworthy reading while Fault is set,
+ rather than following the channel into whatever it reports for a broken
+ wire.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Valid">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The channel is reading a real sensor within the range this type can measure.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Fault">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Do not trust this reading. Set when the value is outside what the sensor
+ type can physically produce, and when the channel has gone StaleTimeout
+ without moving a digit. This is what /FAULT publishes.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Stuck">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The specific reason, when the reason is that nothing is moving. Kept apart
+ from Fault so a debugger can tell "impossible number" from "not measuring".</xhtml>
+              </documentation>
+            </variable>
+            <variable name="DataAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> High once a plausible reading has been seen. Low only at startup, and it
+ stays low on a channel that has never been wired.</xhtml>
+              </documentation>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="sInstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="noinit" />
+                    <Attribute Name="instance-path" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="rPublished">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="bPublishedValid">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="fbHeartbeat">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="fbFaultEdge">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="fbHealEdge">
+              <type>
+                <derived name="Standard.F_TRIG" />
+              </type>
+            </variable>
+            <variable name="bStartup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="bInRange">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="iLastRaw">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="fbStaleTimer">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="bFirstSample">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="sPayload">
+              <type>
+                <string length="20" />
+              </type>
+            </variable>
+            <variable name="iWhole">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="iTenth">
+              <type>
+                <INT />
+              </type>
+            </variable>
+          </localVars>
+          <localVars constant="true">
+            <variable name="ciRtdMinRaw">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-2000" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> What a platinum RTD can physically report, per IEC 60751: -200 C to 850 C.
+ Anything outside it is the module telling you about the wiring rather than
+ the temperature, whatever value it happens to use to say so - which is why
+ the check is a range in engineering units and not a magic fault code.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ciRtdMaxRaw">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="8500" />
+              </initialValue>
+            </variable>
+          </localVars>
+          <inputVars>
+            <variable name="Raw">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The mapped channel word of an RTD input module, in tenths of a degree
+ Celsius - which is what a WAGO 750-463 and its relatives put in the process
+ image, two's complement, so -105 is -10.5 C. Wire it straight to the
+ channel variable: Raw := RTD_001.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="PublishDeadband">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0.2" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Degrees Celsius of change needed before the value is published again. The
+ last digit of an RTD channel jitters continuously and nobody wants 0.1 C of
+ noise in their history; zero publishes every change.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="HeartbeatInterval">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#5m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Republish even when nothing changed, so a reader can tell a steady
+ temperature from a PLC that has stopped. Paired with the discovery config's
+ expire_after, which is set to three of these.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="StaleTimeout">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#15m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long the channel word may go without changing by even one digit before
+ the reading is called into question.
+
+ A channel that is really measuring dithers in its last digit continuously -
+ 0.1 C is well inside the noise of any real installation. One that has not
+ moved a single digit in a quarter of an hour is not measuring: it is
+ switched off, configured for a fixed substitute value, or reporting a
+ constant of the module's own. That is not a hypothetical - it is what the
+ bench module did, and what cost an afternoon to spot, because a wrong number
+ that holds still looks exactly like a good one. Zero disables the check.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Set FriendlyName at the declaration and this block wires itself from GVL_MQTT
+   on its first cyclic call, then announces itself to Home Assistant. Same idiom,
+   and the same reasons, as every other block here: see
+   FB_INPUT_BINARYSENSOR_MQTT.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs stays unwired and never appears in Home Assistant, and nothing warns
+   about it. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT bInitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubAnalogInputPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
+	END_IF
+
+	IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(GVL_MQTT.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+(* --- is this a temperature or a loose wire? ----------------------------------
+   The module reports a broken sensor by driving the channel to the end of its
+   range, and which end - and which exact value - depends on the module and on
+   how it was configured. Rather than hard-code a fault code, this asks the only
+   question that has a stable answer: could a platinum RTD produce this reading
+   at all? *)
+bInRange := (Raw &gt;= ciRtdMinRaw) AND (Raw &lt;= ciRtdMaxRaw);
+Valid := bInRange;
+
+IF bInRange THEN
+	(* Tenths of a degree, so the scaling is exact rather than a calibration. *)
+	Temperature := INT_TO_REAL(Raw) / 10.0;
+	DataAvailable := TRUE;
+END_IF
+
+(* --- and is it moving? -------------------------------------------------------
+   The range check above catches a number no sensor could produce. It does not
+   catch the worse case: a plausible number that is not a measurement at all.
+   This bench's own module sat at exactly 1500 - a confident 150.0 C - for as
+   long as anyone cared to watch, because it had been configured for something
+   other than the sensor plugged into it.
+
+   Nothing in the process image says so. What says so is that a real channel is
+   never still: the last digit of an RTD reading dithers continuously, and 0.1 C
+   is far below the noise floor of any room. So a channel that has not moved a
+   single digit in StaleTimeout is not trusted, whatever value it is holding.
+
+   Deliberately not a range check, and deliberately not fatal to the reading:
+   the number may well be right, so it keeps being published while the fault
+   flag says not to lean on it. *)
+IF bFirstSample THEN
+	iLastRaw := Raw;
+	bFirstSample := FALSE;
+END_IF
+
+IF Raw &lt;&gt; iLastRaw THEN
+	iLastRaw := Raw;
+	fbStaleTimer(IN := FALSE, PT := StaleTimeout);
+END_IF
+fbStaleTimer(IN := StaleTimeout &gt; TIME#0s, PT := StaleTimeout);
+Stuck := fbStaleTimer.Q;
+
+Fault := (NOT bInRange) OR Stuck;
+
+(* Self-restarting, so the heartbeat is a floor on how often the value is
+   published rather than a timer anything has to remember to reset. *)
+fbHeartbeat(IN := NOT fbHeartbeat.Q, PT := HeartbeatInterval);
+
+(* --- publishing --------------------------------------------------------------
+   Three reasons to publish and no others: the value moved by more than the
+   deadband, the heartbeat elapsed, or this is the first reading.
+
+   While the value is out of range nothing is published, deliberately: Temperature
+   holds the last trustworthy reading, and the discovery config's expire_after lets
+   Home Assistant retire the entity on its own if the silence lasts - a truer signal
+   than publishing a made-up number, or the module's fault code dressed up as a
+   temperature.
+
+   A stuck channel is different and keeps publishing. Its number may be perfectly
+   correct; what is in doubt is whether anything is measuring it, and /FAULT is
+   where that doubt belongs. *)
+IF bInitMqttDone AND bInRange THEN
+	IF NOT bPublishedValid
+		OR fbHeartbeat.Q
+		OR ABS(Temperature - rPublished) &gt;= PublishDeadband
+	THEN
+		(* Formatted from the integer rather than through REAL_TO_STRING, which
+		   would publish 21.299999 for a channel reading 213. One decimal is all
+		   the module has, and all anyone should be told it has. *)
+		iWhole := Raw / 10;
+		iTenth := ABS(Raw MOD 10);
+		sPayload := INT_TO_STRING(iWhole);
+		IF (Raw &lt; 0) AND (iWhole = 0) THEN
+			sPayload := CONCAT('-', sPayload);
+		END_IF
+		sPayload := CONCAT(sPayload, '.');
+		sPayload := CONCAT(sPayload, INT_TO_STRING(iTenth));
+
+		pMqttPublishQueue^.AddMessage(
+			Payload := sPayload,
+			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/TEMP'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE);
+
+		rPublished := Temperature;
+		bPublishedValid := TRUE;
+	END_IF
+END_IF
+
+(* --- the fault flag ----------------------------------------------------------
+   Published on change, both ways, plus once at startup so a retained value
+   exists before anything has gone wrong. A channel that is working therefore
+   says so once and costs nothing after that. *)
+fbFaultEdge(CLK := Fault);
+fbHealEdge(CLK := Fault);
+
+IF bInitMqttDone AND (bStartup OR fbFaultEdge.Q OR fbHealEdge.Q) THEN
+	IF Fault THEN
+		sPayload := 'ON';
+	ELSE
+		sPayload := 'OFF';
+	END_IF
+	pMqttPublishQueue^.AddMessage(
+		Payload := sPayload,
+		Topic := CONCAT(THIS^.sMQTTPublishTopic, '/FAULT'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE);
+	bStartup := FALSE;
+END_IF
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="89f42edd-399b-4977-8303-148a3159263e">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the discovery device this entity belongs to, normally GVL_MQTT.PLC_Device. An RTD channel is part of the PLC rather than a device of its own.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Name of the entity in Home Assistant. The self-wiring prologue passes FriendlyName.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Overrides the generated entity id. Leave empty to derive it from the function block name.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Extra JSON merged into the discovery config. Rarely needed.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Publishes the Home Assistant MQTT discovery configs - a temperature sensor and a diagnostic fault flag - so both entities are created automatically. Call once at startup, after InitMqtt.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+
+	id := SUPER^.ResolveEntityId(overruleId);
+
+	(* The temperature itself. state_class measurement, so Home Assistant keeps
+	   long-term statistics: unlike a distance, a temperature is exactly the kind
+	   of thing worth graphing a mean of.
+
+	   expire_after is three heartbeats. The block stops publishing when the
+	   channel stops reading a sensor, so this is what turns a pulled-out wire
+	   into an unavailable entity rather than a temperature that never changes
+	   again. Three, not one, so a single late scan does not blink the entity. *)
+	Device^.CreateSensorEntity(
+		Name := Name,
+		Id := id,
+		Meta := meta,
+		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/TEMP'),
+		ExpiryAfter := UDINT_TO_INT(TIME_TO_UDINT(HeartbeatInterval) * 3 / 1000),
+		DeviceClass := 'temperature',
+		UnitOfMeasurement := '°C',
+		StateClass := 'measurement');
+
+	(* And the reason it went quiet, as a diagnostic rather than something on a
+	   dashboard: a wire out of a terminal is a maintenance fact, not a reading. *)
+	Device^.CreateBinarySensorEntityWithCategory(
+		Name := CONCAT(Name, ' sensor fault'),
+		Id := CONCAT(id, '_FAULT'),
+		Meta := meta,
+		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/FAULT'),
+		PayloadOn := 'ON',
+		PayloadOff := 'OFF',
+		DeviceClass := 'problem',
+		EntityCategory := 'diagnostic');
+
+	bInitMqttDiscoveryDone := TRUE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt" ObjectId="c9218a71-bd22-426a-ae8a-b28c0b98615d">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the shared MQTT queue that carries messages to the broker.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Enables MQTT on the function block. Call once at startup. Not needed when FriendlyName is set at the declaration: the block then wires itself.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._sInstancePath := THIS^.sInstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.psMqttPublishTopicPrefix := MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>0b5f67f0-1d06-40c9-a1b0-e55e67270658</ObjectId>
           </data>
         </addData>
       </pou>
@@ -22443,6 +22971,19 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'Out/HVAC/')" />
               </initialValue>
             </variable>
+            <variable name="MqttPubAnalogInputPrefix">
+              <type>
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+              </type>
+              <initialValue>
+                <simpleValue value="CONCAT(MqttBaseTopic, 'Out/AnalogInputs/')" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> On-board analog inputs: an RTD channel on a 750-463, and anything else
+	   measured by the PLC itself rather than over a bus. Publish only - there
+	   is nothing to command on an input. </xhtml>
+              </documentation>
+            </variable>
             <variable name="MqttSubHVACPrefix">
               <type>
                 <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
@@ -22885,6 +23426,19 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'Out/HVAC/')" />
                       </initialValue>
+                    </variable>
+                    <variable name="MqttPubAnalogInputPrefix">
+                      <type>
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/AnalogInputs/')" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> On-board analog inputs: an RTD channel on a 750-463, and anything else
+	   measured by the PLC itself rather than over a bus. Publish only - there
+	   is nothing to command on an input. </xhtml>
+                      </documentation>
                     </variable>
                     <variable name="MqttSubHVACPrefix">
                       <type>
@@ -23434,6 +23988,25 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
 	   still needs its explicit InitMqtt call in MAIN_INIT. </xhtml>
                       </documentation>
                     </variable>
+                    <variable name="fbAiRtd001">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 1'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> ANALOG INPUT FUNCTION BLOCKS 
+ Channel 1 of the 750-463 RTD module, wired to a Pt1000. The module puts
+	   tenths of a degree in RTD_001, so the block needs no scaling factor and
+	   no FB_init arguments: the channel word is an input, and everything else
+	   is a default that can be changed while the PLC runs. </xhtml>
+                      </documentation>
+                    </variable>
                     <variable name="fbDoBin001">
                       <type>
                         <derived name="FB_OUTPUT_BINARY_MQTT" />
@@ -23585,7 +24158,16 @@ fbDoCover002(
                     <body>
                       <ST>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">fbDiPb001(PB:= DI_001); (* Provide the input FB the correct phyical input to validate each cyclus *)
-fbDiPb002(PB:= DI_002);</xhtml>
+fbDiPb002(PB:= DI_002);
+(* The RTD channel is read here because this action is the one the chart runs
+   every cycle to take the physical inputs in, and an analog channel is a
+   physical input. It would sit better in an action of its own - the name of
+   this one is now half a lie - but an action has to be associated with a step
+   in the SFC chart to be called at all, and a chart cannot be edited from a
+   script. Moving it is an IDE job worth doing the next time this program is
+   open. *)
+fbAiRtd001(Raw := RTD_001);
+</xhtml>
                       </ST>
                     </body>
                     <addData>
@@ -27388,6 +27970,10 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="PublishReceived" ObjectId="7660e274-cedc-4962-a02f-fe20c8879450" />
             <Object Name="InitMqttDiscovery" ObjectId="786503f0-f9eb-490e-adc0-b29811e12890" />
             <Object Name="InitMqtt" ObjectId="4ebaeee1-77a3-4a44-9453-83e6e27c497e" />
+          </Object>
+          <Object Name="FB_INPUT_TEMPERATURE_RTD_MQTT" ObjectId="0b5f67f0-1d06-40c9-a1b0-e55e67270658">
+            <Object Name="InitMqttDiscovery" ObjectId="89f42edd-399b-4977-8303-148a3159263e" />
+            <Object Name="InitMqtt" ObjectId="c9218a71-bd22-426a-ae8a-b28c0b98615d" />
           </Object>
         </Folder>
         <Folder Name="DALI">
