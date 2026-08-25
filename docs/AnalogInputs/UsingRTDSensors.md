@@ -66,14 +66,25 @@ the same way: the channels are not measuring what is connected to them. See
 ### **Mapping the channel in CODESYS**
 
 Each channel needs a variable name in the module's **I/O mapping** tab before any code can read
-it. The reference project maps all four:
+it. The reference bench carries three 750-463 modules and maps all twelve channels:
 
-| Channel | Variable |
-|:--|:--|
-| Analog Input Channel 0 | `RTD_001` |
-| Analog Input Channel 1 | `RTD_002` |
-| Analog Input Channel 2 | `RTD_003` |
-| Analog Input Channel 3 | `RTD_004` |
+| Module on the rail | Node | Channel 0 | Channel 1 | Channel 2 | Channel 3 |
+|:--|:--|:--|:--|:--|:--|
+| first | `_75x_463` | `RTD_001` | `RTD_002` | `RTD_003` | `RTD_004` |
+| second | `_75x_463_1` | `RTD_005` | `RTD_006` | `RTD_007` | `RTD_008` |
+| third | `_75x_463_2` | `RTD_009` | `RTD_010` | `RTD_011` | `RTD_012` |
+
+:rotating_light: **The order of the modules in the device tree must match their order on the
+rail.** The K-bus hands the process image out in physical order, so a terminal in the wrong slot
+of the tree reads its neighbour's words. Adding a terminal anywhere but the far right end
+therefore means reordering the tree, and that is IDE hand-work: the ScriptEngine's `insert`
+accepts a position and appends anyway (see the `codesys-loop` skill).
+
+Naming the channels *is* scriptable, and doing it by hand is a double-click each:
+
+```powershell
+./tools/ai/codesys.ps1 device -MapIo .ai/edits/rtd-map.json -Force
+```
 
 Each is an `INT` carrying **tenths of a degree Celsius**, two's complement: `213` is 21.3 °C,
 `-105` is -10.5 °C. That is the module's own scaling — there is nothing to calibrate in software.
@@ -95,6 +106,34 @@ That is the whole of it: the block wires itself from `GVL_MQTT`, publishes to
 fault flag to Home Assistant. See
 [`FB_INPUT_TEMPERATURE_RTD_MQTT`](../FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md).
 
+### **Sweeping one sensor across every channel**
+
+The fastest way to find out which channels on a rail are really measuring is to put a block on
+every one of them, publish fast, and move a single probe from terminal to terminal while watching
+all of them at once. The reference project does exactly that: twelve instances in `PRG_MAIN`,
+called from `READ_PUSHBUTTONS`, each handed the sweep interval:
+
+```
+fbAiRtd001(Raw := RTD_001, HeartbeatInterval := tRtdSweepPublish);
+```
+
+`tRtdSweepPublish` is `T#1S` — one place to change it for all twelve. The block's own default is
+five minutes, which is right for a commissioned sensor and useless for watching a value move as a
+probe goes in.
+
+```powershell
+mosquitto_sub -h 10.101.1.11 -v -t 'Devices/PLC/Lab/Out/AnalogInputs/+/TEMP'
+```
+
+Read it as a table: eleven values that never change and one that follows the probe is the answer.
+Two channels moving together means the probe is bridging a pair. Nothing moving anywhere means
+the modules are configured for something other than what is plugged in.
+
+:bulb: **The 1 s heartbeat also shortens `expire_after`**, which the block sets to three
+heartbeats — so a channel that stops publishing goes unavailable in Home Assistant within
+seconds rather than a quarter of an hour. During a sweep that is useful; put the interval back
+before treating any of these as a commissioned sensor.
+
 ### **Commissioning: what the reading tells you**
 
 Read the channel word — online, or on the `/TEMP` topic — and compare against a room thermometer.
@@ -107,6 +146,28 @@ Read the channel word — online, or on the `/TEMP` topic — and compare agains
 | **Any value, dead still for minutes** | The channel is not measuring: switched off, configured for a fixed value, or clamped at the end of a range that has nothing to do with the sensor. `Stuck` and `/FAULT` catch this; the value itself will look perfectly reasonable. |
 | Plausible, moving, but roughly 2.6× the true value | The channel is set for Pt100 and a Pt1000 is connected. **Nothing automatic catches this** — it is in range and it tracks. Compare against a thermometer once. |
 | ≈ 0.26× the true value, moving | The reverse: a Pt100 on a channel set to Pt1000. |
+
+:bulb: **Measure the element with a multimeter and you know what the channel ought to say.** A
+Pt1000 follows IEC 60751, so resistance converts straight to a temperature and to the channel
+word the module should be reporting:
+
+| Measured | Temperature | Channel word |
+|:--|:--|:--|
+| 1000 Ω | 0.0 °C | `0` |
+| 1039 Ω | 10.0 °C | `100` |
+| 1078 Ω | 20.0 °C | `200` |
+| 1092 Ω | 23.6 °C | `236` |
+| 1097 Ω | 25.0 °C | `250` |
+| 1194 Ω | 50.0 °C | `500` |
+
+The element moves at about 3.9 Ω/°C, so `(R - 1000) / 3.9` is good to a few hundredths of a
+degree at room temperature and a quarter of a degree by 50 °C — far more than enough to judge a
+reading by.
+
+This is the check that needs no second thermometer and no tooling, and on this bench it is
+conclusive: **1092 Ω at the terminals means the channel should report `236`, and it reports
+`1500`.** Those are not the same measurement, and no amount of staring at a plausible-looking
+150.0 °C would have said so.
 
 ### **What the readings actually said**
 
