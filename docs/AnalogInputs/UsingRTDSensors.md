@@ -306,12 +306,10 @@ they are configured.
 bus is delivering in both directions and the analog modules really are reporting a constant of
 their own.
 
-Which leaves one test worth doing, and it is conclusive rather than suggestive:
-
-**Short a channel's terminals** with a scrap of wire. Zero ohms is below the bottom of every range
-a 750-463 can be set to, so a channel that is measuring *must* move. One that stays at `1500` is
-not looking at its terminals at all — and at that point the module needs WAGO-I/O-CHECK over the
-service cable, with no route to it from the PLC, the IDE or this project.
+**And the terminals were shorted.** A scrap of wire across a channel is zero ohms, below the
+bottom of every range a 750-463 can be set to, so a channel that is measuring *must* move. `TEMP`
+did not change. That is the end of the diagnosis: the channel is not looking at its terminals, and
+the module needs WAGO-I/O-CHECK. There is no route to it from the PLC, the IDE or this project.
 
 :bulb: **Three modules behaving identically is worth a thought about provenance.** Three
 independent ADCs agreeing to the digit is what you would expect from a shared default *or* from
@@ -333,20 +331,30 @@ is really measuring cannot ignore either.
 ### **Reconfiguring the module, if it comes to that**
 
 If neither test moves the number, the channel's settings have to be changed in the module, and
-that means **WAGO-I/O-CHECK**. Two things to know before planning for it:
+that means **WAGO-I/O-CHECK**. Three things to know before planning for it:
 
 - **It is chargeable.** WAGO's own download-center entry for 3.25.03 says so in as many words:
   *"Please note that this software package is chargeable... A download link will only be sent
-  after the proof of purchase has been verified."* The licence is article **759-920** (or
-  759-302/000-923); the download is requested at
+  after the proof of purchase has been verified."* The download is requested at
   [wago.com/de/d/6599903](https://www.wago.com/de/d/6599903) and the manual is
   [wago.com/global/d/388](https://www.wago.com/global/d/388). It is not on winget and there is no
-  free installer — the one `winget search wago` hit is *wago.io*, a World of Warcraft addon
+  free installer - the one `winget search wago` hit is *wago.io*, a World of Warcraft addon
   manager, and emphatically not this.
+- **What to order.** One item covers both halves:
+
+  | Item number | WAGO's product name | What it is |
+  |:--|:--|:--|
+  | **759-302/000-923** | WAGO-I/O-CHECK; USB-Set | the software **and** the USB service cable |
+  | 759-302 | WAGO-I/O-CHECK | software only |
+  | 759-920 | WAGO-I/O-CHECK | software only, listed cheaper than 759-302 |
+  | 750-923 | Configuration cable; USB connector; Length: 2.5 m | cable only, 4-pole to USB-A |
+  | 750-920 | Configuration cable | cable only, RS-232 rather than USB |
+  | 750-921 | Radio adapter | wireless alternative to the cable |
+
+  The USB-Set is the one to buy unless a cable is already on the shelf.
 - **It needs a cable, not a network.** The PFC200 talks to it through the 4-pin service header
-  under the front flap, using
-  [750-923](https://www.wago.com/global/accessories/configuration-cable/p/750-923/) (USB, 2.5 m)
-  or 750-920 (serial). That interface exists for I/O-CHECK, I/O-PRO and firmware download.
+  under the front flap. That interface exists for I/O-CHECK, I/O-PRO and firmware download, and
+  750-920, 750-921 and 750-923 are the three ways into it.
 
 :rotating_light: **I/O-CHECK cannot reach a PFC200 over Ethernet. It is the cable or nothing.**
 Scanning the controller's IP returns *"the communication protocol is not supported by this device
@@ -366,9 +374,21 @@ work.
 
 Then, with the cable in the 4-pin header:
 
-1. **Stop the PLC application.** The CODESYS runtime owns the K-bus — the firmware is built with
-   `PTXCONF_CDS3_IODRVKBUS=y` — and it does not share it. `codesys.ps1 download -Force -NoStart`
-   leaves the controller loaded but stopped; a normal `download` afterwards puts it back.
+1. **Release the K-bus, and do not assume a stopped application is enough.** The 750-8202 manual
+   requires the PLC runtime to be stopped or deactivated before I/O-CHECK can reach the I/O
+   modules, because the runtime owns the K-bus - the firmware is built with
+   `PTXCONF_CDS3_IODRVKBUS=y`. That is about the runtime *process*, not the IEC application, so
+   `codesys.ps1 download -Force -NoStart`, which leaves the application loaded but stopped, may
+   well not be sufficient: the K-bus driver belongs to the runtime, and the runtime is still up.
+   Stopping the runtime service itself is the certain version - the WBM's *PLC Runtime* page, or
+   stopping `codesyscontrol` over SSH - and either is reversible.
+
+   **Which runtime is selected does not matter.** The service interface is a firmware-level
+   service: `iocheckd`, started on demand, bound to localhost and fed by the serial port. It is
+   not part of any PLC runtime, so I/O-CHECK behaves the same whether the controller is set up
+   for e!RUNTIME or, as the bench units are, for CODESYS Control for PFC200 SL - `scan` reports
+   those as *"CODESYS GmbH CODESYS Control for PFC200 SL"*. The only requirement either way is
+   that whatever owns the K-bus lets go of it.
 2. Point I/O-CHECK at the **virtual COM port** the USB cable presents, not at an IP, and let it
    identify the node.
 3. Select the 750-463 and set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**. Write the
