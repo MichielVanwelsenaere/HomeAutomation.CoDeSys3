@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-25T15:18:48.5288598" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-25T15:17:54.5365365">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-25T16:25:29.6035951" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-25T16:15:56.8535086">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -27153,108 +27153,6 @@ END_IF
                           </data>
                         </addData>
                       </configuration>
-                      <configuration name="_75x_550">
-                        <addData>
-                          <data name="Device" handleUnknown="discard">
-                            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
-                              <DeviceType>
-                                <ModuleIdentification>
-                                  <Type>288</Type>
-                                  <Id>0000 0001</Id>
-                                  <Version>4.19.0.0</Version>
-                                  <ModuleId>0226_75x_550(/0.._000)</ModuleId>
-                                </ModuleIdentification>
-                                <Connector moduleType="289" role="child" interface="PFC200.Bus" connectorId="0">
-                                  <HostParameterSet>
-                                    <Parameter ParameterId="100" type="std:WORD" IndexInDevDesc="0">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_00" visiblename="Modulecode" offlineaccess="none" onlineaccess="none">16#226</Value>
-                                      <Name>Modulecode</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="20000" type="std:INT" IndexInDevDesc="2">
-                                      <Attributes channel="output" />
-                                      <Value name="_x0032_0000" visiblename="Analog Output Channel 0" />
-                                      <Name>Analog Output Channel 0</Name>
-                                      <Mapping>AO_001</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="20001" type="std:INT" IndexInDevDesc="4">
-                                      <Attributes channel="output" />
-                                      <Value name="_x0032_0001" visiblename="Analog Output Channel 1" />
-                                      <Name>Analog Output Channel 1</Name>
-                                      <Mapping>AO_002</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="21000" type="std:WORD" IndexInDevDesc="1">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0032_1000" visiblename="Analog Output Channel 0" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Output Channel 0</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="21001" type="std:WORD" IndexInDevDesc="3">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0032_1001" visiblename="Analog Output Channel 1" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Output Channel 1</Name>
-                                    </Parameter>
-                                  </HostParameterSet>
-                                </Connector>
-                                <DeviceParameterSet />
-                              </DeviceType>
-                            </Device>
-                          </data>
-                          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-                            <ObjectId>33351c91-ae9c-4c69-9aff-874e3858aa5b</ObjectId>
-                          </data>
-                        </addData>
-                      </configuration>
-                      <configuration name="_75x_467">
-                        <addData>
-                          <data name="Device" handleUnknown="discard">
-                            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
-                              <DeviceType>
-                                <ModuleIdentification>
-                                  <Type>288</Type>
-                                  <Id>0000 0001</Id>
-                                  <Version>4.19.0.0</Version>
-                                  <ModuleId>01D3_75x_467(/0.._000)</ModuleId>
-                                </ModuleIdentification>
-                                <Connector moduleType="289" role="child" interface="PFC200.Bus" connectorId="0">
-                                  <HostParameterSet>
-                                    <Parameter ParameterId="100" type="std:WORD" IndexInDevDesc="0">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_00" visiblename="Modulecode" offlineaccess="none" onlineaccess="none">16#1D3</Value>
-                                      <Name>Modulecode</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="10000" type="std:INT" IndexInDevDesc="2">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0000" visiblename="Analog Input Channel 0" />
-                                      <Name>Analog Input Channel 0</Name>
-                                      <Mapping>AI_001</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="10001" type="std:INT" IndexInDevDesc="4">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0001" visiblename="Analog Input Channel 1" />
-                                      <Name>Analog Input Channel 1</Name>
-                                      <Mapping>AI_002</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="11000" type="std:WORD" IndexInDevDesc="1">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1000" visiblename="Analog Input Channel 0" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 0</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="11001" type="std:WORD" IndexInDevDesc="3">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1001" visiblename="Analog Input Channel 1" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 1</Name>
-                                    </Parameter>
-                                  </HostParameterSet>
-                                </Connector>
-                                <DeviceParameterSet />
-                              </DeviceType>
-                            </Device>
-                          </data>
-                          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-                            <ObjectId>24398a47-f502-46a5-9720-a47008f147b0</ObjectId>
-                          </data>
-                        </addData>
-                      </configuration>
                     </configurations>
                   </data>
                   <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
@@ -28590,8 +28488,6 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="_75x_540" ObjectId="73cc08d4-71ab-4258-b3f8-89cb83a3ca0c" />
             <Object Name="_75x_540_1" ObjectId="de3c5e5c-1bcd-4852-aa48-5db6ba864880" />
             <Object Name="_75x_463" ObjectId="48d949c7-9a12-4fea-af77-395e1684b2eb" />
-            <Object Name="_75x_550" ObjectId="33351c91-ae9c-4c69-9aff-874e3858aa5b" />
-            <Object Name="_75x_467" ObjectId="24398a47-f502-46a5-9720-a47008f147b0" />
             <Object Name="_75x_463_1" ObjectId="4b991834-12ad-4fb9-ab25-720933bd104d" />
             <Object Name="_75x_463_2" ObjectId="1186a511-17eb-4f96-9b3a-aad8c7244f7a" />
           </Object>
