@@ -281,6 +281,30 @@ generator keys the GVL region on the list's name, so a GVL rename means editing
 
 Established by compile probe, not by reading documentation:
 
+- **A hand-written candidate CAN file itself into a folder.** The skill's own
+  advice used to be that a candidate with no folders lands at the project root,
+  which is true only because nobody had put folders in one. Add a
+  `projectstructure` `<addData>` block naming the target folder and the object,
+  **with no `ObjectId` attributes at all**, and the default import path honours
+  it - the report then reads `added: BASIC/FB_YOUR_NAME` rather than a bare
+  name. Worth doing: folder placement is cosmetic to the compiler, but there is
+  no scripted way to move an object afterwards, so the alternative is IDE
+  hand-work.
+
+      <addData>
+        <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+          <ProjectStructure>
+            <Folder Name="BASIC">
+              <Object Name="FB_YOUR_NAME">
+                <Object Name="InitMqtt" />
+              </Object>
+            </Folder>
+          </ProjectStructure>
+        </data>
+      </addData>
+
+  The methods are listed as nested `<Object>`s; the import adds each and reports
+  it. `FB_INPUT_TEMPERATURE_RTD_MQTT` landed in `BASIC/` this way.
 - **Plaintext declarations work for a NEW POU, but do not reliably override an
   existing one.** Authoring a brand-new block with a plaintext declaration and an
   empty `<interface />` works (proven). But taking an existing POU out of the
