@@ -19,6 +19,9 @@ There are multiple generations of the WAGO PFC100/200 series, the documentation 
 
 - [Choosing and preparing your WAGO PFC device](./docs/WagoPfcPrep.md)
 - [Getting started guide](./docs/FAQ/Getting_started_guide_CODESYS_3S.md)
+- [Configuring an I/O module with WAGO-I/O-CHECK](./docs/WagoIoCheck.md) — for the settings that
+  live inside a terminal rather than in CODESYS, and how to make the PLC release the K-bus so the
+  tool can reach them
 
 # Architecture
 Core processing logic is executed in the (robust) PLC. Meaning that events like reading pushbuttons/switches, updating outputs are executed in the PLC software. To enable integration with external software the PLC sends out events to an MQTT broker when events occur (like pushbutton events, outputs that change state). MQTT subscriptions are enabled as well to allow the external software to control -for example- outputs.

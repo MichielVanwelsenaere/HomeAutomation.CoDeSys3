@@ -80,14 +80,17 @@ code in this project can perform:
   enable in the IDE either. Its own description calls the module *"parameterizable"* — just not
   from here.
 
-So: a factory-default 750-463 with a Pt1000 is plug-and-play. Anything else is a WAGO-I/O-CHECK
-job at a laptop, and the symptom that says so is described below.
+So: a factory-default 750-463 with a Pt1000 is plug-and-play. Anything else is a
+[WAGO-I/O-CHECK](../WagoIoCheck.md) job at a laptop, and the symptom that says so is described
+below.
 
-:rotating_light: **The reference bench's own module is not factory default, and this is what that
-looks like.** Channel 0, with a Pt1000 connected, reads exactly `1500` — 150.0 °C — and has never
-moved a digit. The other three channels read `0` rather than an over-range value. Both facts point
-the same way: the channels are not measuring what is connected to them. See
-[what the readings said](#what-the-readings-actually-said).
+:rotating_light: **The reference bench's own modules are broken, and configuration was never the
+problem.** Channel 0, with a Pt1000 connected, reads exactly `1500` — 150.0 °C — and has never
+moved a digit. This page spent a long time assuming that meant they had been set up for some other
+sensor. They had not: WAGO-I/O-CHECK eventually showed every parameter already correct and the
+analog front end producing no conversion at all. See
+[where that leaves it](#where-that-leaves-it), and
+[configuring a module with WAGO-I/O-CHECK](../WagoIoCheck.md) for how that was established.
 
 ### **Mapping the channel in CODESYS**
 
@@ -225,7 +228,7 @@ Three things worth keeping from that:
 - **`0` is also what an unused 0-10 V channel reads**, so `0` on this bus means "nothing here"
   more often than it means zero.
 
-#### 1500 is an open circuit, and that is the whole story
+#### 1500 is the top of the range — which is what an open circuit looks like
 
 Three 750-463 modules, all channels configured, a block on each at 1 Hz, and **no sensor
 connected to any of them**:
@@ -242,6 +245,12 @@ reading were *disabled* channels, not unwired ones. `0` never meant "nothing her
 That retires the mystery this page opened with. The very first reading — `1500`, rock steady, on
 a channel that had a Pt1000 wired to it — was the module reporting an open circuit. It was not a
 misconfigured channel inventing a number. The sensor was not being seen at all.
+
+:bulb: **Why `1500` and not some other constant.** The module's own description, read off its
+front page in WAGO-I/O-CHECK much later, is `4AI RTD -30 °C - 150 °C`. So `1500` is not an
+arbitrary value and not a fault code — it is *exactly the top of the range*, and an RTD input
+saturates high when it sees infinite resistance. Knowing the range would have named this on day
+one. **Read the module's stated range before theorising about its readings.**
 
 :rotating_light: **And it is why the range check can never catch a broken wire on this hardware.**
 `1500` is 150.0 °C, comfortably inside the -200…850 °C a platinum RTD can produce, so the range
@@ -302,25 +311,43 @@ Established, and not in doubt:
   reading it somewhere unexpected.
 - The device tree now matches the rail, so terminal order is not it.
 
-Which points at the modules rather than the wiring or the project, and **weakens this page's own
-claim that a 750-463 is plug-and-play for a Pt1000**. Three modules that have never seen
-WAGO-I/O-CHECK all report the same constant and none responds to a sensor; the simplest reading of
-that is that `1500` is what an unconfigured channel reports, and that these do not measure until
-they are configured.
-
-**The K-bus is not the alternative any more.** Switching a digital output moved its LED, so the
-bus is delivering in both directions and the analog modules really are reporting a constant of
-their own.
+**The K-bus is not the alternative.** Switching a digital output moved its LED, so the bus is
+delivering in both directions and the analog modules really are reporting a constant of their own.
 
 **And the terminals were shorted.** A scrap of wire across a channel is zero ohms, below the
 bottom of every range a 750-463 can be set to, so a channel that is measuring *must* move. `TEMP`
-did not change. That is the end of the diagnosis: the channel is not looking at its terminals, and
-the module needs WAGO-I/O-CHECK. There is no route to it from the PLC, the IDE or this project.
+did not change.
 
-:bulb: **Three modules behaving identically is worth a thought about provenance.** Three
-independent ADCs agreeing to the digit is what you would expect from a shared default *or* from
-three modules that were configured the same way before you owned them. If they came from one
-second-hand batch, "factory default" may not be what any of them holds.
+#### The verdict: the modules are faulty
+
+WAGO-I/O-CHECK ended it. The full account of that session, and how to run one, is on
+[configuring a module with WAGO-I/O-CHECK](../WagoIoCheck.md); the findings are:
+
+| What was checked | What it showed |
+|:--|:--|
+| Channel 1 parameters | `Pt1000 (IEC751)`, 2-wire, two's complement — **already correct** |
+| Manufacturer calibration | offset `88`, gain `16380` — intact factory data, not a wiped module |
+| Module description | `4AI RTD -30 °C - 150 °C` |
+| Process value | `150.00 °C`, i.e. the top of that range |
+| A/D raw value | `9999998976` — an all-nines sentinel, not a measurement |
+| A/D raw value with the terminals shorted | `9999998976`, **unchanged** |
+
+So the analog front end is not converting, and no setting is going to fix that. **The modules are
+faulty.** The parameters were right the whole time.
+
+:rotating_light: **This page was wrong about the cause for weeks, and the wrong theory was
+plausible at every step.** It read a rock-steady constant as a misconfigured channel; it then read
+three modules agreeing to the digit as three modules configured alike before we owned them. Both
+survived because nothing available at the time could see *upstream of the scaling stage*. What
+settled it was one number no amount of process-image staring can produce — the A/D raw value —
+and a second instrument agreeing with the first. **When two theories both fit, go and find an
+instrument that only one of them survives.**
+
+:bulb: **What to do instead, if a temperature is actually needed.** The sensor does not have to be
+on this module at all. A 1-Wire probe on the ESERA gateway
+([`FB_RS485_ESERA_OWD_MQTT`](../FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)) publishes a
+temperature over the RS485 bus that is already commissioned, and needs no module configuration
+whatsoever.
 
 ### **Three 30-second tests before reaching for a laptop**
 
@@ -341,125 +368,29 @@ channel that is really measuring cannot ignore either.
 
 ### **Reconfiguring the module, if it comes to that**
 
-If neither test moves the number, the channel's settings have to be changed in the module, and
-that means **WAGO-I/O-CHECK**. Three things to know before planning for it:
+If neither of the first two tests moves the number, the channel's settings have to be changed
+inside the module, and that means **WAGO-I/O-CHECK** over the service cable — it is chargeable,
+it cannot be reached over Ethernet, and something has to make the PLC let go of the K-bus first.
 
-- **It is chargeable.** WAGO's own download-center entry for 3.25.03 says so in as many words:
-  *"Please note that this software package is chargeable... A download link will only be sent
-  after the proof of purchase has been verified."* The download is requested at
-  [wago.com/de/d/6599903](https://www.wago.com/de/d/6599903) and the manual is
-  [wago.com/global/d/388](https://www.wago.com/global/d/388). It is not on winget and there is no
-  free installer - the one `winget search wago` hit is *wago.io*, a World of Warcraft addon
-  manager, and emphatically not this.
-- **What to order.** One item covers both halves:
+**All of that now has its own page: [configuring an I/O module with
+WAGO-I/O-CHECK](../WagoIoCheck.md).** What to order, why a network scan cannot work, how to hand
+the bus over with `PRG_MAIN.bKbusEnableIoCheck`, and how to read a module's pages once you are in.
 
-  | Item number | WAGO's product name | What it is |
-  |:--|:--|:--|
-  | **759-302/000-923** | WAGO-I/O-CHECK; USB-Set | the software **and** the USB service cable |
-  | 759-302 | WAGO-I/O-CHECK | software only |
-  | 759-920 | WAGO-I/O-CHECK | software only, listed cheaper than 759-302 |
-  | 750-923 | Configuration cable; USB connector; Length: 2.5 m | cable only, 4-pole to USB-A |
-  | 750-920 | Configuration cable | cable only, RS-232 rather than USB |
-  | 750-921 | Radio adapter | wireless alternative to the cable |
+Two things from it worth having in front of you before a session on an RTD module:
 
-  The USB-Set is the one to buy unless a cable is already on the shelf.
-- **It needs a cable, not a network.** The PFC200 talks to it through the 4-pin service header
-  under the front flap. That interface exists for I/O-CHECK, I/O-PRO and firmware download, and
-  750-920, 750-921 and 750-923 are the three ways into it.
+- **The flag is `bKbusEnableIoCheck` in `PRG_MAIN`**, written every cycle from
+  `PRG_MAIN.READ_PUSHBUTTONS`, and it is **`FALSE` by default**. Set it `TRUE`, pulse
+  `bKbusRestart`, do the work, then set it `FALSE` and pulse `bKbusRestart` again. The restart is
+  what applies it, both ways.
+- **Turn on `Diagnosis: Wire Break / Short-Circuit` while you are in there.** It is off from the
+  factory, and it is the whole reason an open circuit on this module publishes a confident
+  `150.0 °C` instead of announcing itself.
 
-:rotating_light: **I/O-CHECK cannot reach a PFC200 over Ethernet. It is the cable or nothing.**
-Scanning the controller's IP returns *"the communication protocol is not supported by this device
-or it's deactivated in the device"*, and that message is accurate rather than a hint to go looking
-for a switch. WAGO's own firmware config for this family
-([pfc-firmware-sdk](https://github.com/WAGO/pfc-firmware-sdk/blob/master/configs/wago-pfcXXX/ptxconfig_generic))
-starts the service like this:
-
-```
-PTXCONF_IO_CHECK_RS232=y
-PTXCONF_IO_CHECK_RS232_STARTLINE="localhost:wago-serv-ser stream tcp nowait.3 root /usr/bin/iocheckd iocheckd serial"
-```
-
-`iocheckd` is an on-demand service **bound to localhost**, fed by the serial service interface.
-Nothing network-facing serves the I/O-Check protocol, so no WBM setting will make an Ethernet scan
-work.
-
-Then, with the cable in the 4-pin header:
-
-1. **Hand the K-bus over from inside the application** - `Pfc200Bus.EnableIoCheck`. The K-bus
-   driver has a property for exactly this, and it is the cheap and reversible route, with no
-   service stopped and nothing to reinstate afterwards but a flag:
-
-   > Enables the control mode for Wago I/O check software if set to true. In this case the K-Bus
-   > transmission cycle is controlled by the PFC software and not by CODESYS therefore the K-Bus
-   > bus cycle time is independent of the CODESYS bus cycle. It should be only enabled if the
-   > WAGO I/O Check software is used for the time of setting special parameters in the modules.
-
-   That is `IoDrvPfc200`'s own library documentation, which the PFC200 SL package already
-   installed on this machine - `C:\ProgramData\CODESYS\LibDoc\CODESYS\IoDrvPfc200\4.10.0.0\`,
-   `enableiocheck.html`. The device tree declares `Pfc200Bus` as an `IoDrvPfc200_Diag`, which
-   inherits the property and the `xRestart` input from `IoDrvPfc200`.
-
-   `PRG_MAIN` carries the two flags, written every cycle from `READ_PUSHBUTTONS`, so nothing has
-   to be added before a session. Log in, open `PRG_MAIN`, and in the online view:
-
-   | Step | Set | Then |
-   |:--|:--|:--|
-   | hand over | `bKbusEnableIoCheck := TRUE` | pulse `bKbusRestart` |
-   | | *configure the modules from I/O-CHECK* | |
-   | hand back | `bKbusEnableIoCheck := FALSE` | pulse `bKbusRestart` |
-
-   :rotating_light: **The restart is not optional, and neither is handing it back.** The property
-   changes nothing until the bus restarts, so setting it and going straight to I/O-CHECK looks
-   exactly like the property not working. And leaving it `TRUE` leaves the K-bus cycling on the
-   firmware's clock instead of the application's for as long as the PLC runs.
-
-   `bKbusRestart` on its own, with `bKbusEnableIoCheck` left `FALSE`, is the plain bus restart.
-   That is worth a pulse before anything else whenever the I/O LED is not steady green, and it
-   costs nothing to try.
-
-   :bulb: **Not yet proven on this bench.** The code compiles and is in the project; whether the
-   handover actually lets I/O-CHECK in has to wait for the cable, and until it does, the runtime
-   stop below is the documented-by-WAGO answer rather than the second choice.
-
-2. **If the handover does not do it, stop the runtime - and do not assume a stopped application
-   is enough.** The 750-8202 manual
-   requires the PLC runtime to be stopped or deactivated before I/O-CHECK can reach the I/O
-   modules, because the runtime owns the K-bus - the firmware is built with
-   `PTXCONF_CDS3_IODRVKBUS=y`. That is about the runtime *process*, not the IEC application, so
-   `codesys.ps1 download -Force -NoStart`, which leaves the application loaded but stopped, may
-   well not be sufficient: the K-bus driver belongs to the runtime, and the runtime is still up.
-   Stopping the runtime service itself is the certain version - the WBM's *PLC Runtime* page, or
-   stopping `codesyscontrol` over SSH - and either is reversible.
-
-   Note that this and `EnableIoCheck` are alternatives, not a sequence: the property is written
-   by the running application, so stopping the runtime is exactly what stops anything from
-   writing it.
-
-   **Which runtime is selected does not matter.** The service interface is a firmware-level
-   service: `iocheckd`, started on demand, bound to localhost and fed by the serial port. It is
-   not part of any PLC runtime, so I/O-CHECK behaves the same whether the controller is set up
-   for e!RUNTIME or, as the bench units are, for CODESYS Control for PFC200 SL - `scan` reports
-   those as *"CODESYS GmbH CODESYS Control for PFC200 SL"*. The only requirement either way is
-   that whatever owns the K-bus lets go of it.
-3. Point I/O-CHECK at the **virtual COM port** the USB cable presents, not at an IP, and let it
-   identify the node.
-4. Select the 750-463 and set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**. Write the
-   settings into the module, power-cycle the node, and hand the K-bus back - either
-   `bKbusEnableIoCheck := FALSE` plus a `bKbusRestart` pulse, or restarting the runtime service.
-
-:rotating_light: **Do not touch *Ports and Services → Serial Interface* in the WBM.** That page
-governs the onboard RS232/485 port, which on this bench carries the Modbus bus at 9600 and had to
-be assigned to the PLC runtime with `serialmode RS485` before any of the meters worked. The
-service interface under the flap is a different connector and needs nothing configured.
+Then set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**, write it into the module, and
+power-cycle the node.
 
 **IEC code can hand the bus over, but it cannot do the configuring.** `EnableIoCheck` gets
 I/O-CHECK access to the modules; it does not give the application any. The CODESYS device
 description for `01CF_75x_463` offers a single layout of four input words, with no control/status
-byte, so there is no mailbox to write a sensor type through - which is why the licence and the
+byte, so there is no mailbox to write a sensor type through — which is why the licence and the
 cable are still the only way to change one.
-
-:bulb: **Cheaper than the licence, if this is a one-off:** the sensor does not have to be on this
-module at all. A 1-Wire probe on the ESERA gateway
-([`FB_RS485_ESERA_OWD_MQTT`](../FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)) publishes a
-temperature over the RS485 bus that is already commissioned, and needs no module configuration
-whatsoever.

@@ -27,6 +27,15 @@ channel measures — Pt1000, Ni1000, KTY81, or a plain resistance range — is a
 module, not something IEC code can reach in this project's device configuration. See
 [wiring an RTD sensor](../AnalogInputs/UsingRTDSensors.md).
 
+Changing one of those settings, or finding out what a channel is really doing, needs
+**WAGO-I/O-CHECK** over the service cable — and the PLC has to let go of the K-bus first. That is
+a flag in this project: **`bKbusEnableIoCheck` in `PRG_MAIN`**, `FALSE` by default and written
+every cycle from `PRG_MAIN.READ_PUSHBUTTONS`. See
+[configuring an I/O module with WAGO-I/O-CHECK](../WagoIoCheck.md), which is also where to look
+when this block reports a channel that will not move: the module's **A/D raw value** is the one
+number that says whether the front end is converting at all, and no amount of reading the process
+image can produce it.
+
 ----------------------------
 
 <!-- fb-interface:start -->
