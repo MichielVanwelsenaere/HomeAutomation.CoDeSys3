@@ -322,10 +322,10 @@ independent ADCs agreeing to the digit is what you would expect from a shared de
 three modules that were configured the same way before you owned them. If they came from one
 second-hand batch, "factory default" may not be what any of them holds.
 
-### **Two 30-second tests before reaching for a laptop**
+### **Three 30-second tests before reaching for a laptop**
 
-Both change the sensor's electrical situation and ask whether the number follows. A channel that
-is really measuring cannot ignore either.
+The first two change the sensor's electrical situation and ask whether the number follows. A
+channel that is really measuring cannot ignore either.
 
 1. **Move the sensor to another channel.** If only one channel was reconfigured, a neighbour may
    be untouched and will simply work — and the answer arrives without any tooling. Change the
@@ -333,6 +333,11 @@ is really measuring cannot ignore either.
 2. **Short the terminals**, briefly, with a bit of wire. A measuring channel drops to the bottom
    of its scale immediately. A channel that stays where it was is not looking at its terminals at
    all, which is conclusive.
+3. **Restart the K-bus** - pulse `PRG_MAIN.bKbusRestart` from an online view, with
+   `bKbusEnableIoCheck` left `FALSE`. It costs one click, it needs no cable, and it is the answer
+   whenever the I/O LED is anything but steady green. It asks a different question from the other
+   two: not whether the channel is measuring, but whether the bus is delivering at all. See
+   [reconfiguring the module](#reconfiguring-the-module-if-it-comes-to-that) for the flags.
 
 ### **Reconfiguring the module, if it comes to that**
 
@@ -380,7 +385,44 @@ work.
 
 Then, with the cable in the 4-pin header:
 
-1. **Release the K-bus, and do not assume a stopped application is enough.** The 750-8202 manual
+1. **Hand the K-bus over from inside the application** - `Pfc200Bus.EnableIoCheck`. The K-bus
+   driver has a property for exactly this, and it is the cheap and reversible route, with no
+   service stopped and nothing to reinstate afterwards but a flag:
+
+   > Enables the control mode for Wago I/O check software if set to true. In this case the K-Bus
+   > transmission cycle is controlled by the PFC software and not by CODESYS therefore the K-Bus
+   > bus cycle time is independent of the CODESYS bus cycle. It should be only enabled if the
+   > WAGO I/O Check software is used for the time of setting special parameters in the modules.
+
+   That is `IoDrvPfc200`'s own library documentation, which the PFC200 SL package already
+   installed on this machine - `C:\ProgramData\CODESYS\LibDoc\CODESYS\IoDrvPfc200\4.10.0.0\`,
+   `enableiocheck.html`. The device tree declares `Pfc200Bus` as an `IoDrvPfc200_Diag`, which
+   inherits the property and the `xRestart` input from `IoDrvPfc200`.
+
+   `PRG_MAIN` carries the two flags, written every cycle from `READ_PUSHBUTTONS`, so nothing has
+   to be added before a session. Log in, open `PRG_MAIN`, and in the online view:
+
+   | Step | Set | Then |
+   |:--|:--|:--|
+   | hand over | `bKbusEnableIoCheck := TRUE` | pulse `bKbusRestart` |
+   | | *configure the modules from I/O-CHECK* | |
+   | hand back | `bKbusEnableIoCheck := FALSE` | pulse `bKbusRestart` |
+
+   :rotating_light: **The restart is not optional, and neither is handing it back.** The property
+   changes nothing until the bus restarts, so setting it and going straight to I/O-CHECK looks
+   exactly like the property not working. And leaving it `TRUE` leaves the K-bus cycling on the
+   firmware's clock instead of the application's for as long as the PLC runs.
+
+   `bKbusRestart` on its own, with `bKbusEnableIoCheck` left `FALSE`, is the plain bus restart.
+   That is worth a pulse before anything else whenever the I/O LED is not steady green, and it
+   costs nothing to try.
+
+   :bulb: **Not yet proven on this bench.** The code compiles and is in the project; whether the
+   handover actually lets I/O-CHECK in has to wait for the cable, and until it does, the runtime
+   stop below is the documented-by-WAGO answer rather than the second choice.
+
+2. **If the handover does not do it, stop the runtime - and do not assume a stopped application
+   is enough.** The 750-8202 manual
    requires the PLC runtime to be stopped or deactivated before I/O-CHECK can reach the I/O
    modules, because the runtime owns the K-bus - the firmware is built with
    `PTXCONF_CDS3_IODRVKBUS=y`. That is about the runtime *process*, not the IEC application, so
@@ -389,25 +431,32 @@ Then, with the cable in the 4-pin header:
    Stopping the runtime service itself is the certain version - the WBM's *PLC Runtime* page, or
    stopping `codesyscontrol` over SSH - and either is reversible.
 
+   Note that this and `EnableIoCheck` are alternatives, not a sequence: the property is written
+   by the running application, so stopping the runtime is exactly what stops anything from
+   writing it.
+
    **Which runtime is selected does not matter.** The service interface is a firmware-level
    service: `iocheckd`, started on demand, bound to localhost and fed by the serial port. It is
    not part of any PLC runtime, so I/O-CHECK behaves the same whether the controller is set up
    for e!RUNTIME or, as the bench units are, for CODESYS Control for PFC200 SL - `scan` reports
    those as *"CODESYS GmbH CODESYS Control for PFC200 SL"*. The only requirement either way is
    that whatever owns the K-bus lets go of it.
-2. Point I/O-CHECK at the **virtual COM port** the USB cable presents, not at an IP, and let it
+3. Point I/O-CHECK at the **virtual COM port** the USB cable presents, not at an IP, and let it
    identify the node.
-3. Select the 750-463 and set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**. Write the
-   settings into the module, power-cycle the node, and start the application again.
+4. Select the 750-463 and set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**. Write the
+   settings into the module, power-cycle the node, and hand the K-bus back - either
+   `bKbusEnableIoCheck := FALSE` plus a `bKbusRestart` pulse, or restarting the runtime service.
 
 :rotating_light: **Do not touch *Ports and Services → Serial Interface* in the WBM.** That page
 governs the onboard RS232/485 port, which on this bench carries the Modbus bus at 9600 and had to
 be assigned to the PLC runtime with `serialmode RS485` before any of the meters worked. The
 service interface under the flap is a different connector and needs nothing configured.
 
-There is no route to this from IEC code as this project is configured, and it is not a matter of
-enabling something: the CODESYS device description for `01CF_75x_463` offers a single layout of
-four input words, with no control/status byte, so there is no mailbox to write registers through.
+**IEC code can hand the bus over, but it cannot do the configuring.** `EnableIoCheck` gets
+I/O-CHECK access to the modules; it does not give the application any. The CODESYS device
+description for `01CF_75x_463` offers a single layout of four input words, with no control/status
+byte, so there is no mailbox to write a sensor type through - which is why the licence and the
+cable are still the only way to change one.
 
 :bulb: **Cheaper than the licence, if this is a one-off:** the sensor does not have to be on this
 module at all. A 1-Wire probe on the ESERA gateway

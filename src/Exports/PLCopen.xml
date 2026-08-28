@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-25T17:39:48.7192186" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-25T17:39:12.1163028">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-28T20:12:17.742974" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-28T20:11:11.7222185">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -24375,6 +24375,40 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                         <WORD />
                       </type>
                     </variable>
+                    <variable name="bKbusEnableIoCheck">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="FALSE" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> K-BUS CONTROL
+	   Pfc200Bus is the K-bus driver instance the device tree declares - an
+	   IoDrvPfc200, which offers exactly one input and one property worth
+	   reaching from IEC code. Both are wired in READ_PUSHBUTTONS.
+
+	   Neither is written by anything in this project. They are here to be set
+	   by hand from an online view, which is the only way they are ever meant
+	   to be used. 
+ Hands the K-bus transmission cycle to the PFC firmware instead of
+	   CODESYS, which is what lets WAGO-I/O-CHECK reach the modules over the
+	   service cable while the runtime keeps running. Set it TRUE, pulse
+	   bKbusRestart to make it take effect, configure the modules, then put it
+	   back to FALSE and pulse bKbusRestart again - otherwise CODESYS never
+	   gets its bus cycle back. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="bKbusRestart">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> A rising edge restarts the K-bus. On its own - with bKbusEnableIoCheck
+	   left FALSE - that is the recovery for a bus that has stopped exchanging
+	   process data; the I/O LED should come back to steady green. </xhtml>
+                      </documentation>
+                    </variable>
                   </localVars>
                   <addData>
                     <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -24441,6 +24475,15 @@ fbAiRtd009(Raw := RTD_009, HeartbeatInterval := tRtdPublishInterval);
 fbAiRtd010(Raw := RTD_010, HeartbeatInterval := tRtdPublishInterval);
 fbAiRtd011(Raw := RTD_011, HeartbeatInterval := tRtdPublishInterval);
 fbAiRtd012(Raw := RTD_012, HeartbeatInterval := tRtdPublishInterval);
+
+
+(* K-BUS CONTROL. Written every cycle so that setting either flag in an online
+   view is enough; see their declarations for what they do and in which order.
+   Pfc200Bus() is called explicitly because that is what reads xRestart - the
+   implicit bus cycle call does not. *)
+Pfc200Bus.EnableIoCheck := bKbusEnableIoCheck;
+Pfc200Bus.xRestart := bKbusRestart;
+Pfc200Bus();
 </xhtml>
                       </ST>
                     </body>
