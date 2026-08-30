@@ -21,9 +21,7 @@ degree Celsius* in the process image, two's complement, so `213` is 21.3 °C and
 fbAiRtd001(Raw := RTD_001);
 ```
 
-Everything else is a default that can be changed while the PLC runs, which is deliberate — none
-of it lives in `FB_init`, so none of it is stuck behind the IDE (see
-[CLAUDE.md](../../CLAUDE.md) for why that matters here).
+Everything else is an input with a default, and can be changed while the PLC is running.
 
 :bulb: **This block reads a channel; it does not configure the module.** Which sensor type a
 channel measures — Pt1000, Ni1000, KTY81, or a plain resistance range — is a setting inside the
@@ -65,7 +63,7 @@ REAL ──┤ PlausibleMax                      │
 |:--|:--|:--|
 | `Raw` | INT | The mapped channel word of the RTD module, in tenths of a degree Celsius. Wire it to the channel variable — `Raw := RTD_001` — and nothing else is needed to make the block work. |
 | `LeadResistance` | REAL | Round-trip resistance of the sensor leads, in ohms; defaults to 0, which corrects nothing. The 750-451 and 750-463 both measure **2-conductor**, so the leads sit in series with the element and the channel reads *high* by them. A Pt1000 moves about 3.9 Ω/°C near room temperature, so the error is `LeadResistance / 3.9` °C — about 0.18 °C down 2×10 m of 0.5 mm², and 1.8 °C down 2×50 m of 0.25 mm². Measure it with the sensor disconnected, by shorting the far end of the pair and reading the loop at the terminals. :rotating_light: **Correct this in one place only** — see below. |
-| `PublishDeadband` | REAL | Degrees Celsius of change required before the value is published again. Defaults to 0.2. The last digit of an RTD channel jitters continuously, and nobody wants 0.1 °C of noise in their history; zero publishes every change. |
+| `PublishDeadband` | REAL | Degrees Celsius of change required before the value is published again, measured against the **last published** value so a slow drift still accumulates to a publish. Defaults to 0.2. It bounds how often a *moving* channel publishes — without it, every 0.1 °C step is another retained message and another point in the history. On a still channel it changes nothing, because `HeartbeatInterval` republishes anyway. Zero publishes every change. |
 | `HeartbeatInterval` | TIME | Republish even when nothing changed, so a reader can tell a steady temperature from a PLC that has stopped. Defaults to **1 minute**, and the discovery config's `expire_after` is set to three of these — so changing it changes both, but only for entities announced after the change. |
 | `PlausibleMin` | REAL | Bottom of the range this sensor could plausibly be measuring, in °C. Defaults to -40. |
 | `PlausibleMax` | REAL | Top of that range; defaults to 80. **This is the check that earns its keep.** The IEC 60751 bounds only ask whether a platinum RTD could produce a reading at all, which a 750-463's open-circuit `150.0 °C` passes comfortably — it is a legal Pt1000 temperature. No room, buffer tank or floor loop reaches it, so saying what the sensor is *for* rejects an open circuit on the first scan. Widen it deliberately for a flue, a solar collector or a freezer; set `Max <= Min` to switch the check off. |
@@ -124,7 +122,7 @@ it.
 
 | output | MQTT topic suffix | Unit | Published |
 |:--|:--|:--|:--|
-| `Temperature` | `/TEMP` | °C | on a change beyond `PublishDeadband`, on the heartbeat, and once at startup — **never while the value is out of range**, but a stuck channel keeps publishing |
+| `Temperature` | `/TEMP` | °C | on a change beyond `PublishDeadband`, on the heartbeat, and once at startup — **never while the reading is out of range or implausible**, where the last good value is held instead |
 | `Fault` | `/availability` | — | `offline` / `online`, **only when it changes**, plus once at startup — and that startup publish is required, because Home Assistant treats a missing availability payload as unavailable |
 
 One decimal, always, formatted from the integer rather than through `REAL_TO_STRING` — which
