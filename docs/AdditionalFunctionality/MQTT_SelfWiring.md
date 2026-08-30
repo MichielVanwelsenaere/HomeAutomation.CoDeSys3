@@ -133,10 +133,10 @@ methods do nothing until `InitMqtt` has run.
 
 ## Which blocks self-wire
 
-**Self-wiring**, driven by `FriendlyName`: the pushbutton, binary sensor and RTD
-temperature inputs, the binary, bistable, cover and dimmer outputs, the HVAC
-thermostat, pump and burner, the DMX dimmer, and all three Eastron meter blocks
-— the SDM630, the SDM220 and the SDM_POWER.
+**Self-wiring**, driven by `FriendlyName`: the pushbutton, pushbutton dimmer,
+binary sensor and RTD temperature inputs, the binary, bistable, cover and dimmer
+outputs, the HVAC thermostat, pump and burner, the DMX dimmer, and all three
+Eastron meter blocks — the SDM630, the SDM220 and the SDM_POWER.
 
 `FB_RS485_EASTRON_SDM630_MQTT` is the first RS485 block to self-wire, and it shows
 what the others would need. Its discovery announces a Home Assistant device of its
@@ -159,16 +159,19 @@ a block's first body call — so self-wiring them while leaving discovery in the
 action would make that discovery call fire too early and silently announce
 nothing.
 
-**Not self-wired.** These two *do* extend `FB_MQTT_BASE`, so `FriendlyName` is
-already on them. What they lack is an `InitMqttDiscovery` method — a prologue could
-wire their MQTT publishing but would have nothing to announce:
+**Not self-wired.** `FB_RS485_DUCO_DUCOBOX_MQTT` *does* extend `FB_MQTT_BASE`, so
+`FriendlyName` is already on it. What it lacks is an `InitMqttDiscovery` method — a
+prologue could wire its MQTT publishing but would have nothing to announce. Giving it
+discovery is the worthwhile follow-up, and the three Eastron meter blocks are the
+worked examples of what that looks like for an RS485 block. Until then its call site
+is untouched and keeps working exactly as before.
 
-- `FB_INPUT_PUSHBUTTON_DIMMER_MQTT`
-- `FB_RS485_DUCO_DUCOBOX_MQTT`
-
-Giving them discovery is the worthwhile follow-up, and the three Eastron meter blocks
-are the worked examples of what that looks like for an RS485 block. Until then their
-call sites are untouched and keep working exactly as before.
+`FB_INPUT_PUSHBUTTON_DIMMER_MQTT` was the other one on this list. It now announces an
+event entity for the button and a sensor for the dim level, and self-wires like the
+plain pushbutton — see
+[its page](../FunctionBlocks/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.md). Adding discovery
+changed its three press payloads from bare words to `{"event_type": "..."}`, because
+that is what a Home Assistant event entity reads.
 
 All three Eastron meters now take their Modbus address, poll rate and — for the
 SDM_POWER block — the meter model through `FB_init`, so their whole configuration

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T14:58:57.5728621" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T14:58:20.5930677">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T20:28:15.0593827" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T20:27:32.853239">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2345,6 +2345,18 @@ SUPER^.InitBaseMqtt();
               </type>
             </variable>
           </inputVars>
+          <localVars>
+            <variable name="bDimPublished">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE once the dim level has been published at least once. Without it a
+ freshly discovered sensor sits at "unknown" until somebody touches the
+ pushbutton, because a level that has not moved is never published.</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
@@ -2360,7 +2372,41 @@ SUPER^.InitBaseMqtt();
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">fbDimmer(
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from GVL_MQTT on its first
+   cyclic call, then announces itself to Home Assistant.
+
+   Deliberately in the body rather than in FB_init: it dereferences GVL members
+   and reads the reflection instance path, and doing that during initialisation
+   would rely on an ordering nothing enforces and the compiler cannot check.
+
+   Dormant while FriendlyName is empty, so existing call sites that still make
+   the explicit InitMqtt call keep working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is now unwired and absent from Home Assistant, where an init action used
+   to wire it regardless. Nothing warns about that. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT bInitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPushbuttonPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			OutputDimmer := TRUE,
+			Qos_Dimm := MQTT.QoS.ExactlyOnce,
+			Delta_Dimm := 5);
+	END_IF
+
+	IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(GVL_MQTT.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+fbDimmer(
 	IN:= PB,
 	SET:= SET,
 	VAL:= VAL,
@@ -2388,14 +2434,28 @@ fbDetectpush(
 	
 fbPLongRTrig(CLK:=fbDetectpush.LONG);
 fbPLongFTrig(CLK:=fbDetectpush.LONG);
-	
-IF (ABS(BYTE_TO_INT(byPreviousDim) - BYTE_TO_INT(DIM)) &gt;= Delta_Dimm OR PB = FALSE) AND DIM &lt;&gt; byPreviousDim AND OutputDimmer AND bInitMqttDone  THEN
-	byPreviousDim:=DIM;
+
+(* The dim level is state, not an event, so it is published retained: after a
+   Home Assistant restart the sensor gets its value back from the broker instead
+   of reading "unknown" until somebody dims something.
+
+   Published once as soon as MQTT is up, whatever it reads, so a newly
+   discovered entity has a value at all - a level that has not moved would
+   otherwise never be published. After that it is Delta_Dimm that decides, with
+   the value on release always sent so MQTT and the output cannot drift apart.
+
+   Qos_Dimm is the QoS for this stream, which is what its name and the
+   documentation have always said; it used to be applied to Q instead. *)
+IF bInitMqttDone AND OutputDimmer
+	AND (NOT bDimPublished
+		OR ((ABS(BYTE_TO_INT(byPreviousDim) - BYTE_TO_INT(DIM)) &gt;= Delta_Dimm OR PB = FALSE) AND DIM &lt;&gt; byPreviousDim)) THEN
+	byPreviousDim := DIM;
+	bDimPublished := TRUE;
 	pMqttPublishQueue^.AddMessage(		
 		Payload := BYTE_TO_STRING(DIM),
-		Topic := CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/DIM'),
-		Qos := MQTT.QoS.ExactlyOnce,
-		MqttRetain := FALSE
+		Topic := CONCAT(sMQTTPublishTopic, '/DIM'),
+		Qos := Qos_Dimm,
+		MqttRetain := TRUE
 	);
 END_IF
 
@@ -2403,8 +2463,8 @@ IF fbDimmer.Q &lt;&gt; bPreviousQ AND bInitMqttDone THEN
 	bPreviousQ:=fbDimmer.Q;
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(fbDimmer.Q),
-		Topic := CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/Q'),
-		Qos := Qos_Dimm,
+		Topic := CONCAT(sMQTTPublishTopic, '/Q'),
+		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
 END_IF
@@ -2413,16 +2473,19 @@ IF fbDimmer.DBL &lt;&gt; bPreviousDBL AND bInitMqttDone THEN
 	bPreviousDBL:=fbDimmer.DBL;
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(fbDimmer.DBL),
-		Topic := CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/DBL'),
+		Topic := CONCAT(sMQTTPublishTopic, '/DBL'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
 END_IF
 
+(* The three press payloads are JSON because the entity announced for them is a
+   Home Assistant event entity, which reads event_type out of the payload. A
+   bare 'SINGLE' would arrive and be discarded. *)
 IF fbDetectpush.SINGLE AND bInitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
-		Payload := 'SINGLE',
-		Topic := CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Payload := '{"event_type": "SINGLE"}',
+		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := FALSE
 	);
@@ -2430,8 +2493,8 @@ END_IF
 
 IF fbDetectpush.DOUBLE AND bInitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
-		Payload := 'DOUBLE',
-		Topic := CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Payload := '{"event_type": "DOUBLE"}',
+		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := FALSE
 	);
@@ -2439,8 +2502,8 @@ END_IF
 
 IF fbDetectpush.TP_LONG AND bInitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
-		Payload := 'LONG',
-		Topic := CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Payload := '{"event_type": "LONG"}',
+		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := FALSE
 	);
@@ -2449,11 +2512,12 @@ END_IF
 IF (fbPLongRTrig.Q OR fbPLongFTrig.Q) AND bInitMqttDone THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload := BOOL_TO_STRING(fbDetectpush.LONG),
-		Topic := CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix),'/P_LONG'),
+		Topic := CONCAT(sMQTTPublishTopic,'/P_LONG'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
-END_IF</xhtml>
+END_IF
+</xhtml>
           </ST>
         </body>
         <addData>
@@ -2594,6 +2658,123 @@ SUPER^.InitBaseMqtt();
 THIS^.OutputDimmer:=OutputDimmer;
 THIS^.Qos_Dimm:=Qos_Dimm;
 THIS^.Delta_Dimm:=Delta_Dimm;</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="c253e819-f905-4977-9f68-732f5609c734">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="eventTypes">
+                    <type>
+                      <array>
+                        <dimension lower="1" upper="3" />
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </array>
+                    </type>
+                    <initialValue>
+                      <arrayValue>
+                        <value>
+                          <simpleValue value="'SINGLE'" />
+                        </value>
+                        <value>
+                          <simpleValue value="'DOUBLE'" />
+                        </value>
+                        <value>
+                          <simpleValue value="'LONG'" />
+                        </value>
+                      </arrayValue>
+                    </initialValue>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Two entities, because this block is two things on one topic tree: a wall
+   pushbutton and a dim level.
+
+   The button is announced exactly as FB_INPUT_PUSHBUTTON_MQTT announces one -
+   an event entity carrying SINGLE, DOUBLE and LONG. That is why the three
+   press payloads below are JSON: Home Assistant's event platform reads
+   event_type out of the payload, and a bare 'SINGLE' is not a payload it can
+   read.
+
+   The level is a sensor, not a light. A light entity would have to be
+   commandable, and this block has no subscribe side at all - no callback
+   collector, no command topics. FB_OUTPUT_DIMMER_MQTT is the block that does
+   have those, and it is what to reach for when Home Assistant has to set the
+   level rather than watch it.
+
+   ExpiryAfter is 0 on purpose. There is no heartbeat here: DIM publishes on
+   change, gated by Delta_Dimm, so any positive expiry would grey out a level
+   that is merely steady.
+
+   No per-entity availability topic either. Nothing in this block can be
+   individually untrustworthy the way an RTD channel can, so both availability
+   slots stay with the PLC device. *)
+IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+
+	id := SUPER^.ResolveEntityId(overruleId);
+
+	Device^.CreateEventEntity(
+		Name := Name,
+		Id := id,
+		Meta := meta,
+		StateTopic := THIS^.sMQTTPublishTopic,
+		EventTypes := eventTypes,
+		Deviceclass := 'button');
+
+	Device^.CreateSensorEntity(
+		Name := CONCAT(Name, ' level'),
+		Id := CONCAT(id, '_DIM'),
+		Meta := meta,
+		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/DIM'),
+		ExpiryAfter := 0);
+
+	bInitMqttDiscoveryDone := TRUE;
+END_IF
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -24205,10 +24386,13 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                       <type>
                         <derived name="FB_INPUT_PUSHBUTTON_DIMMER_MQTT" />
                       </type>
-                      <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> FB_INPUT_PUSHBUTTON_DIMMER_MQTT does not extend FB_MQTT_BASE yet, so it
-	   still needs its explicit InitMqtt call in MAIN_INIT. </xhtml>
-                      </documentation>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Button number 002'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
                     </variable>
                     <variable name="fbAiRtd001">
                       <type>
@@ -24579,19 +24763,7 @@ Pfc200Bus();
    its first cyclic call and announces itself to Home Assistant, driven by the
    FriendlyName set on its declaration above. What remains in this action is the
    behavioural configuration that genuinely is per-instance and is not MQTT, which
-   is now only the E_DIMMER's timings.
-
-   The one exception is fbDiPb002: FB_INPUT_PUSHBUTTON_DIMMER_MQTT does not
-   extend FB_MQTT_BASE, so it cannot self-wire yet and keeps its explicit call. *)
-
-fbDiPb002.InitMqtt(
-	MQTTPublishPrefix:= ADR(GVL_MQTT.MqttPushbuttonPrefix),
-	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
-    TRUE,                                                               (* specify whether E_DIMMER value should be outputted on MQTT topic *)
-    MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the E_DIMMER mqtt events (values 0-255) *)
-    5                                                                   (* specify the resolution for the E_DIMMER mqtt events *)
-);
-
+   is now only the E_DIMMER's timings. *)
 
 (* ALTER THE E_DIMMER OUTPUT DEFAULT BEHAVIOR *)
 fbAoDimmer001.ConfigureFunctionBlock(
@@ -28361,6 +28533,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           <Object Name="FB_INPUT_PUSHBUTTON_DIMMER_MQTT" ObjectId="cee6657b-ce1d-475c-9bd7-9c4e540ea0f1">
             <Object Name="ConfigureFunctionBlock" ObjectId="09bd0ce4-8d72-4e90-9f95-150e5465bbdc" />
             <Object Name="InitMqtt" ObjectId="819df5e7-af19-437b-8d60-981ad65336f6" />
+            <Object Name="InitMqttDiscovery" ObjectId="c253e819-f905-4977-9f68-732f5609c734" />
           </Object>
           <Object Name="FB_INPUT_PUSHBUTTON_MQTT" ObjectId="2c780f1f-5812-460d-8451-0ca306f5b2cf">
             <Object Name="ConfigureFunctionBlock" ObjectId="1277c0ca-b36f-4e86-aa34-31027b43ef1d" />
