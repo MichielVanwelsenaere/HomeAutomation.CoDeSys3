@@ -297,6 +297,33 @@ someone will want to change does not live in an initialiser at all.
 And whatever you do, **confirm with `export` and `structValue`, never with `info`**
 — `info` returns the text, which is exactly the half that lies.
 
+## A `STRING(255)` function silently narrows a wider argument
+
+`LEN`, `LEFT`, `RIGHT`, `MID`, `CONCAT`, `FIND`, `INSERT`, `DELETE` and `REPLACE`
+are declared over `STRING(255)`. Hand one a `STRING(1500)` and CODESYS truncates
+the argument on the way in. It compiles, it warns about nothing, and it answers
+confidently about the first 255 bytes.
+
+`FB_BASE_MQTT_DISCOVERY_DEVICE.PublishEntityConfig` guarded against a truncated
+discovery config with `RIGHT(sMqttJSON, 1) = '}'` on a `STRING(1500)`. It read
+character 255, which is never a closing brace, so it rejected **every** config -
+and the lab PLC published no Home Assistant discovery at all for weeks while the
+broker stayed full of retained configs that looked perfectly healthy. The buffer
+was never the constraint (1500 bytes, 665 in use); the function signature was, in
+a check whose whole job was detecting values that got cut short.
+
+Read the end of a wide string through a pointer instead, as `F_STRIP_JSON_ROOT`
+and the fixed `PublishEntityConfig` do. Two checks exist because the compiler
+cannot see either half of this:
+
+```powershell
+py tools/ai/check_string_widths.py      # any narrowing call, from the export
+py tools/ai/check_mqtt_discovery.py     # what the broker actually received
+```
+
+`PRG_RS485.sDiagReport` at `STRING(400)` and `FB_MQTT_PUBLISH_QUEUE`'s `Payload`
+at `STRING(1500)` are the other places this can happen.
+
 ## An application's dynamic-memory setting is IDE-only
 
 Adding a device, and filling its application with a GVL, a program and a task,
