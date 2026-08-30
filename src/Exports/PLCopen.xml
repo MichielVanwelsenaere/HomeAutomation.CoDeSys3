@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T13:23:52.4813948" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T13:23:14.888412">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T14:11:36.8011252" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T14:11:00.6745492">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2957,15 +2957,6 @@ END_IF		</xhtml>
  Assistant shows the sensor as unavailable.</xhtml>
               </documentation>
             </variable>
-            <variable name="Stuck">
-              <type>
-                <BOOL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The specific reason, when the reason is that nothing is moving. Kept apart
- from Fault so a debugger can tell "impossible number" from "not measuring".</xhtml>
-              </documentation>
-            </variable>
             <variable name="DataAvailable">
               <type>
                 <BOOL />
@@ -3046,24 +3037,6 @@ END_IF		</xhtml>
               <type>
                 <REAL />
               </type>
-            </variable>
-            <variable name="iLastRaw">
-              <type>
-                <INT />
-              </type>
-            </variable>
-            <variable name="fbStaleTimer">
-              <type>
-                <derived name="Standard.TON" />
-              </type>
-            </variable>
-            <variable name="bFirstSample">
-              <type>
-                <BOOL />
-              </type>
-              <initialValue>
-                <simpleValue value="TRUE" />
-              </initialValue>
             </variable>
             <variable name="sPayload">
               <type>
@@ -3204,26 +3177,6 @@ END_IF		</xhtml>
  Assistant gives up on a silent channel after three.</xhtml>
               </documentation>
             </variable>
-            <variable name="StaleTimeout">
-              <type>
-                <TIME />
-              </type>
-              <initialValue>
-                <simpleValue value="TIME#15m0s0ms" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long the channel word may go without changing by even one digit before
- the reading is called into question.
-
- A channel that is really measuring dithers in its last digit continuously -
- 0.1 C is well inside the noise of any real installation. One that has not
- moved a single digit in a quarter of an hour is not measuring: it is
- switched off, configured for a fixed substitute value, or reporting a
- constant of the module's own. That is not a hypothetical - it is what the
- bench module did, and what cost an afternoon to spot, because a wrong number
- that holds still looks exactly like a good one. Zero disables the check.</xhtml>
-              </documentation>
-            </variable>
             <variable name="PlausibleMin">
               <type>
                 <REAL />
@@ -3332,39 +3285,16 @@ IF Valid THEN
 	DataAvailable := TRUE;
 END_IF
 
-(* --- and is it moving? -------------------------------------------------------
-   The range check above catches a number no sensor could produce. It does not
-   catch the worse case: a plausible number that is not a measurement at all.
-   This bench's own module sat at exactly 1500 - a confident 150.0 C - for as
-   long as anyone cared to watch, because it had been configured for something
-   other than the sensor plugged into it.
-
-   Nothing in the process image says so. What says so is that a real channel is
-   never still: the last digit of an RTD reading dithers continuously, and 0.1 C
-   is far below the noise floor of any room. So a channel that has not moved a
-   single digit in StaleTimeout is not trusted, whatever value it is holding.
-
-   Deliberately not a range check, and deliberately not fatal to the reading:
-   the number may well be right, so it keeps being published while the fault
-   flag says not to lean on it.
-
-   Deliberately Raw and not iCorrectedRaw. The correction is a constant, so it
-   cannot change whether the channel is moving - and if somebody edits
-   LeadResistance while the PLC is running, the one-off jump that produces must
-   not be mistaken for a sign of life. *)
-IF bFirstSample THEN
-	iLastRaw := Raw;
-	bFirstSample := FALSE;
-END_IF
-
-IF Raw &lt;&gt; iLastRaw THEN
-	iLastRaw := Raw;
-	fbStaleTimer(IN := FALSE, PT := StaleTimeout);
-END_IF
-fbStaleTimer(IN := StaleTimeout &gt; TIME#0s, PT := StaleTimeout);
-Stuck := fbStaleTimer.Q;
-
-Fault := (NOT Valid) OR Stuck;
+(* Out of range or implausible is the whole of the fault surface. There was a
+   movement check here too - a channel that had not changed a digit for
+   StaleTimeout was called Stuck and faulted - and it was removed because it does
+   not survive contact with a quiet room. Measured on the bench, a Pt1000 moved
+   one digit every 75 minutes or so and sat perfectly still in between, which any
+   plausible timeout reads as a dead channel. A false fault takes a WORKING sensor
+   out of Home Assistant, which is worse than the case it was guarding against -
+   and that case, an open circuit parked at an end of scale, is caught on the
+   first scan by PlausibleMin/PlausibleMax anyway. *)
+Fault := NOT Valid;
 
 (* Self-restarting, so the heartbeat is a floor on how often the value is
    published rather than a timer anything has to remember to reset. *)
@@ -3378,11 +3308,7 @@ fbHeartbeat(IN := NOT fbHeartbeat.Q, PT := HeartbeatInterval);
    holds the last trustworthy reading, and the discovery config's expire_after lets
    Home Assistant retire the entity on its own if the silence lasts - a truer signal
    than publishing a made-up number, or the module's fault code dressed up as a
-   temperature.
-
-   A stuck channel is different and keeps publishing. Its number may be perfectly
-   correct; what is in doubt is whether anything is measuring it, and /FAULT is
-   where that doubt belongs. *)
+   temperature. *)
 IF bInitMqttDone AND Valid THEN
 	IF NOT bPublishedValid
 		OR fbHeartbeat.Q

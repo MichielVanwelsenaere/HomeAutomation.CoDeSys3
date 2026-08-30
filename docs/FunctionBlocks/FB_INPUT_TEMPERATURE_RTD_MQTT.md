@@ -51,8 +51,7 @@ image can produce it.
  INT ──┤ Raw                   Temperature ├── REAL
 REAL ──┤ LeadResistance              Valid ├── BOOL
 REAL ──┤ PublishDeadband             Fault ├── BOOL
-TIME ──┤ HeartbeatInterval           Stuck ├── BOOL
-TIME ──┤ StaleTimeout        DataAvailable ├── BOOL
+TIME ──┤ HeartbeatInterval   DataAvailable ├── BOOL
 REAL ──┤ PlausibleMin                      │
 REAL ──┤ PlausibleMax                      │
        └───────────────────────────────────┘
@@ -68,18 +67,16 @@ REAL ──┤ PlausibleMax                      │
 | `LeadResistance` | REAL | Round-trip resistance of the sensor leads, in ohms; defaults to 0, which corrects nothing. The 750-451 and 750-463 both measure **2-conductor**, so the leads sit in series with the element and the channel reads *high* by them. A Pt1000 moves about 3.9 Ω/°C near room temperature, so the error is `LeadResistance / 3.9` °C — about 0.18 °C down 2×10 m of 0.5 mm², and 1.8 °C down 2×50 m of 0.25 mm². Measure it with the sensor disconnected, by shorting the far end of the pair and reading the loop at the terminals. :rotating_light: **Correct this in one place only** — see below. |
 | `PublishDeadband` | REAL | Degrees Celsius of change required before the value is published again. Defaults to 0.2. The last digit of an RTD channel jitters continuously, and nobody wants 0.1 °C of noise in their history; zero publishes every change. |
 | `HeartbeatInterval` | TIME | Republish even when nothing changed, so a reader can tell a steady temperature from a PLC that has stopped. Defaults to **1 minute**, and the discovery config's `expire_after` is set to three of these — so changing it changes both, but only for entities announced after the change. |
-| `StaleTimeout` | TIME | How long the channel word may go without changing by a single digit before the reading is called into question. Defaults to 15 minutes; **zero disables the check**. :rotating_light: A quiet room can genuinely hold one tenth of a degree for far longer than that — see *[a wrong number that holds still](#a-wrong-number-that-holds-still)* for how to size it, and why too short a value takes a working sensor out of Home Assistant. |
 | `PlausibleMin` | REAL | Bottom of the range this sensor could plausibly be measuring, in °C. Defaults to -40. |
-| `PlausibleMax` | REAL | Top of that range; defaults to 80. **This is the check that earns its keep.** The IEC 60751 bounds only ask whether a platinum RTD could produce a reading at all, which a 750-463's open-circuit `150.0 °C` passes comfortably — it is a legal Pt1000 temperature. No room, buffer tank or floor loop reaches it, so saying what the sensor is *for* rejects an open circuit on the first scan instead of waiting out `StaleTimeout`. Widen it deliberately for a flue, a solar collector or a freezer; set `Max <= Min` to switch the check off. |
+| `PlausibleMax` | REAL | Top of that range; defaults to 80. **This is the check that earns its keep.** The IEC 60751 bounds only ask whether a platinum RTD could produce a reading at all, which a 750-463's open-circuit `150.0 °C` passes comfortably — it is a legal Pt1000 temperature. No room, buffer tank or floor loop reaches it, so saying what the sensor is *for* rejects an open circuit on the first scan. Widen it deliberately for a flue, a solar collector or a freezer; set `Max <= Min` to switch the check off. |
 
 **Outputs**
 
 | Pin | Type | Description |
 |:--|:--|:--|
-| `Temperature` | REAL | Degrees Celsius. **Held** at the last in-range reading while the channel is out of range, rather than following it into whatever the module reports for a broken wire. A *stuck* channel keeps updating it — the number may be right; what is in doubt is whether anything measured it. |
+| `Temperature` | REAL | Degrees Celsius, with `LeadResistance` already taken off. **Held** at the last trustworthy reading while the channel is out of range or implausible, rather than following it into whatever the module reports for a broken wire. |
 | `Valid` | BOOL | The channel is reading a real sensor, within the range this sensor type can measure. |
-| `Fault` | BOOL | **Do not trust this reading.** Set when the value is outside what a platinum RTD can produce — usually a wire out of a terminal — and when the channel has stopped moving. This is what drives the entity's availability: while it is set, Home Assistant shows the sensor as unavailable. |
-| `Stuck` | BOOL | The channel has not moved a digit for `StaleTimeout`. Kept separate from `Fault` so a debugger can tell *impossible number* from *not measuring*; both set `Fault`. |
+| `Fault` | BOOL | **Do not trust this reading.** The inverse of `Valid`: set when the value is outside what a platinum RTD can produce, or outside `PlausibleMin`…`PlausibleMax` — usually a wire out of a terminal. This is what drives the entity's availability: while it is set, Home Assistant shows the sensor as unavailable. |
 | `DataAvailable` | BOOL | High once a plausible reading has been seen, and it **latches**: it answers *has this channel ever worked*, not *is it working now* — `Valid` is that one. One wart, found by a bench assertion that expected better: a mapped channel reads `0` for the first cycles before the K-bus fills the process image, and `0.0 °C` is perfectly plausible, so this latches TRUE (and `Temperature` holds `0.0`) even on a channel that goes on to measure nothing at all. Do not read it as proof a sensor is connected. |
 
 ### **Methods**
@@ -204,50 +201,30 @@ What follows from that:
 `PlausibleMax` exist.** A module signals an open circuit by driving the channel to an end of its
 scale, and both ends are legal platinum temperatures: a 750-463 reports `1500` — 150.0 °C — and a
 750-451 reports `8500` — 850.0 °C. Both sit inside -200…850 °C, so the range check passes them.
-With the default -40…80 °C plausible range, an open circuit is rejected on the **first scan**
-instead of waiting out `StaleTimeout` — about 34 seconds after a restart, which is as fast as the
-startup publish allows.
+With the default -40…80 °C plausible range, an open circuit is rejected on the **first scan** —
+about 34 seconds after a restart, which is as fast as the startup publish allows.
 
-### **A wrong number that holds still**
+### **What is not guarded, and why**
 
-The range checks above catch a number no sensor could produce, and an implausible one. Neither
-catches the worst case: a **plausible** number that is not a measurement at all — a channel frozen
-at a believable room temperature because its front end has stopped converting.
+A channel can still lie in two ways this block does not catch, and it is better to name them than
+to imply otherwise.
 
-`StaleTimeout` is the guard for that. A channel whose word has not moved by a single digit for
-that long sets `Stuck`, which sets `Fault`:
+**A plausible number that is not a measurement.** A front end that has stopped converting can park
+the channel at a believable room temperature, and nothing in the process image says so. There was
+a movement check here — a channel that had not moved a digit for `StaleTimeout` was flagged
+`Stuck` — and it was **removed**, because it does not survive contact with a quiet room. Measured
+on the bench, a Pt1000 moved one digit every 75 minutes or so and sat perfectly still in between;
+any timeout short enough to be useful reads that as a dead channel. A false fault publishes
+`availability: offline` and takes a **working** sensor out of Home Assistant, which is a worse
+outcome than the case it guarded against — and that case, an open circuit parked at an end of
+scale, is caught on the first scan by `PlausibleMin`/`PlausibleMax` anyway.
 
-- `/availability` publishes `offline`, so the entity goes unavailable rather than showing a number
-  nothing stands behind.
-- **The value keeps being published** to `/TEMP`. It may be perfectly correct; what is in doubt is
-  whether anything measured it. So it stays on the broker for anyone who wants to judge it, and
-  stops being presented as a measurement.
+**A wrong sensor type that still moves.** Configure a channel for Pt100, connect a Pt1000, and the
+reading tracks the temperature while being roughly 2.6 times too high in the middle of the scale
+— in range, plausible, and moving. Compare against a second thermometer once, at commissioning.
 
-Set `StaleTimeout` to zero to switch the check off.
-
-:rotating_light: **Choose the timeout from how fast the process really moves, and be generous.**
-The tempting assumption is that a live channel always dithers in its last digit, so any long
-stillness is suspicious. That is not true of a quiet room. Measured on the reference bench, a
-Pt1000 on a 750-451 moved from `259` to `262` over about three and a half hours — roughly **one
-digit every 75 minutes**, holding each value dead still in between. A fifteen-minute timeout on
-that channel would spend most of its life reporting `Stuck`, and the entity would be unavailable
-in Home Assistant far more often than not.
-
-So the check is only useful when the timeout is comfortably longer than the process's own quiet
-periods. A draughty hallway may move every minute; a large water buffer or a cellar may not move
-for half a day. **A false `Stuck` is not harmless** — it takes a working sensor out of Home
-Assistant — so if you cannot name a period the value certainly cannot stay still for, leave the
-check off rather than guessing.
-
-:bulb: **`StaleTimeout` is the second line of defence, not the first.** `PlausibleMin`/
-`PlausibleMax` catch the common case — an open circuit parked at an end of scale — on the first
-scan, without waiting for any timeout. What is left for the stale check is the narrower case of a
-value that is plausible *and* not being measured.
-
-:bulb: **The remaining blind spot is a wrong sensor type that still moves.** Configure a channel
-for Pt100, connect a Pt1000, and the reading tracks the temperature while being roughly 2.6 times
-too high in the middle of the scale — in range, plausible, and moving. Nothing here catches that.
-Compare against a second thermometer once, at commissioning.
+Both are commissioning problems, and both are answered by looking at the number once with a
+thermometer in your hand rather than by any amount of logic in the PLC.
 
 ### **Home Assistant**
 

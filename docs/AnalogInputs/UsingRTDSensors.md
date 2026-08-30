@@ -164,7 +164,7 @@ Read the channel word — online, or on the `/TEMP` topic — and compare agains
 |:--|:--|
 | ≈ ambient, one decimal, **dithering in the last digit** | Correct. A real channel is never still; that jitter is what `PublishDeadband` exists to absorb. |
 | Far out of range, `Fault` set | Open circuit, on a module that reports over-range. A lead is not in the terminal, or is in the wrong channel's. **On the 750-451 that is `8500`** — 850.0 °C, the top of the platinum scale — on every unwired channel. |
-| **Any value, dead still for minutes** | The channel is not measuring: switched off, configured for a fixed value, or clamped at the end of a range that has nothing to do with the sensor. `Stuck` catches this and takes the entity unavailable; the value itself will look perfectly reasonable. |
+| **A plausible value that never moves at all** | Possibly a front end that has stopped converting, and possibly just a very quiet room — a Pt1000 in still air can hold one tenth of a degree for over an hour. Nothing in the block catches this, because nothing can tell the two apart. Short the terminals briefly: a channel that is measuring drops to the bottom of its scale at once. |
 | Plausible, moving, but roughly 2.6× the true value | The channel is set for Pt100 and a Pt1000 is connected. **Nothing automatic catches this** — it is in range and it tracks. Compare against a thermometer once. |
 | ≈ 0.26× the true value, moving | The reverse: a Pt100 on a channel set to Pt1000. |
 
@@ -195,7 +195,7 @@ Measured on the reference bench, PFC200 + 750-451, one Pt1000 on `R1` and nothin
 seven, immediately after a download:
 
 ```
-RTD_001    259     25.9 °C     Valid  Fault=FALSE  Stuck=FALSE  DataAvailable=TRUE
+RTD_001    259     25.9 °C     Valid  Fault=FALSE  DataAvailable=TRUE
 RTD_002..008  8500  850.0 °C   the seven unwired channels, all identical
 ```
 
