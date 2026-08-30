@@ -9,9 +9,9 @@ Publishes a temperature read by an **RTD input module** and announces it to Home
 **one** temperature sensor, which goes unavailable whenever the reading cannot be trusted.
 
 It works with any WAGO 750-series RTD module that puts tenths of a degree in the process image —
-the **750-450**, **750-451**, **75x-461** and **750-463** all do. The block reads a single channel
-word, so how many channels the module has and which sensor it is set for are the module's
-business, not the block's.
+the **750-450**, **750-451**, **75x-460**, **75x-461** and **750-463** all do. The block reads a
+single channel word, so how many channels the module has, and which sensor its ordering variant is
+built for, are the module's business rather than the block's.
 
 **There is no scaling to configure and no calibration to do.** The module puts *tenths of a
 degree Celsius* in the process image, two's complement, so `213` is 21.3 °C and `-105` is

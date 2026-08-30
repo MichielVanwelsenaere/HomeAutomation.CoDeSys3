@@ -13,6 +13,7 @@ reference bench uses a **750-451** and a Pt1000 on `R1`; the same steps apply to
 |:--|:--|:--|:--|
 | 750-450 | 4 | RTD, adjustable | 2-, 3- and 4-conductor |
 | [750-451](https://www.wago.com/global/i-o-systems/8-channel-analog-input/p/750-451) | 8 | RTD, adjustable — the bench's module, set for **Pt1000** | 2-conductor |
+| 75x-460 | 4 | RTD, parameterizable. **The ordering variant fixes the sensor**: `/000-003` is Pt1000, `/000-005` Ni1000. | 2-conductor |
 | 75x-461 | 2 | RTD. **The ordering variant fixes the sensor**: `/000-003` is Pt1000, `/000-006` Pt100, `/000-005` and `/000-009` Ni1000. Plain `75x-461` is adjustable. | 2- and 3-conductor |
 | [750-463](https://www.wago.com/global/i-o-systems/4-channel-analog-input/p/750-463) | 4 | RTD, adjustable | 2-conductor |
 
