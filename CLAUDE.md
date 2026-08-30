@@ -60,7 +60,7 @@ Two things worth knowing before you start, both covered in detail by
   | CODESYS 3.5 SP21 (3.5.21.30) + PFC200 SL package | everything | No licence needed for `--noUI` scripting. |
   | WAGO Device Support Package 2.0.8.9 | the build itself, since the DALI block landed | Supplies `WagoAppDALI`. **Not vendored** — WAGO's licence forbids redistributing it, so it is installed per machine: `docs/WagoPfcPrep.md#installing-the-wago-libraries-dali`. The version is pinned to the CODESYS patch level. |
   | Python 3.12 | `update-fb-docs` only | **Installed** at `C:\Program Files\Python312-arm64`. Invoke it as **`py`**. |
-  | mosquitto clients | `Mqtt-Snapshot.ps1` — the only runtime check there is | Not on `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
+  | mosquitto clients | `Mqtt-Snapshot.ps1` and `check_mqtt_discovery.py` — the runtime checks | Not on `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
 
   **Trust `doctor`, not a bare `python3`.** Windows ships an App Execution Alias
   stub at `WindowsApps\python3.exe` that prints *"Python was not found; run

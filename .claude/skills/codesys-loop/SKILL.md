@@ -33,7 +33,7 @@ Fast, does not launch CODESYS. Required:
 | CODESYS Control for PFC200 SL | The project's device. Without it the device will not resolve and the build fails. |
 | WAGO Device Support Package 2.0.8.9 | Supplies `WagoAppDALI`, which `FB_OUTPUT_DIMMER_DALI_MQTT` needs. Without it the build fails on that block, not just on DALI. It is not vendored — WAGO's licence forbids redistribution — so install it per machine: `docs/WagoPfcPrep.md#installing-the-wago-libraries-dali`. **`WagoAppDALI` is qualified-only**, unlike in e!COCKPIT: its types are `WagoAppDALI.typBallast`, `WagoAppDALI.FbDaliSendDimValue` and so on, so ST lifted out of an e!COCKPIT project does not compile until it is qualified. |
 | Windows PowerShell 5.1 | The scripts avoid PowerShell 7-only syntax, so either works. |
-| mosquitto clients | **Optional but the only runtime check available.** `winget install --id EclipseFoundation.Mosquitto --scope machine`. The installer registers a broker service that is not needed here (leave it stopped) and does **not** add itself to `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
+| mosquitto clients | **Optional, and what every runtime check here runs on.** `winget install --id EclipseFoundation.Mosquitto --scope machine`. The installer registers a broker service that is not needed here (leave it stopped) and does **not** add itself to `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
 
 Override discovery with `-Exe` / `-CodesysProfile`, or set `$env:CODESYS_EXE`.
 
@@ -611,8 +611,8 @@ kind — and each retry is a full download, so it costs three minutes to learn t
 ## Verifying runtime behaviour over MQTT
 
 The compiler is the only automated gate on the PLC side, but **the broker sees
-everything the PLC publishes** — which is the one runtime check available here.
-Use it around every download:
+everything the PLC publishes** — which is where the runtime checks live. Use them
+around every download:
 
 ```powershell
 ./tools/ai/Mqtt-Snapshot.ps1 -Out .ai/mqtt/before.txt      # BEFORE the download
@@ -630,6 +630,42 @@ Read the diff's **GONE** section first. A discovery config that was retained
 before and is absent now means an entity Home Assistant still shows and nothing
 publishes to any more — exactly the silent regression an `EntityType` mistake
 causes, and exactly what a clean compile cannot tell you.
+
+### Did the discovery configs actually get republished?
+
+A snapshot diff cannot answer that, and the difference matters: a retained config
+looks identical whether the PLC wrote it a second ago or a year ago. So a broken
+publish path is invisible to a diff — the broker stays fully populated with stale
+configs while the PLC announces nothing. That is not hypothetical; it is what a
+`RIGHT()` on a `STRING(1500)` did to every entity on the lab PLC for weeks.
+
+`check_mqtt_discovery.py` answers both halves. It validates the structure of every
+config (valid JSON, not truncated, `uniq_id` present, unique, and matching its own
+topic, a device with ids, something to talk to), and it separates a genuine publish
+from the retained backlog using the **retain flag** — live traffic arrives with
+retain=0, the broker's replay with retain=1.
+
+```powershell
+# 1. record what Home Assistant currently knows
+py tools/ai/check_mqtt_discovery.py --device Wago_PFC200_G1_Lab \
+    --snapshot .ai/mqtt/expect.json
+
+# 2. watch, and download while it runs (background one of them)
+py tools/ai/check_mqtt_discovery.py --watch 240 --expect .ai/mqtt/expect.json \
+    --device Wago_PFC200_G1_Lab
+
+# structure only, against whatever is retained now - needs no PLC
+py tools/ai/check_mqtt_discovery.py
+```
+
+It also fails on a `composed truncated json` / `failed json root strip` /
+`had empty MqttJSON` line appearing live on the diagnostic log topic, because that
+is how the PLC reports a config it refused to publish — and nothing else reads it.
+
+**`%r` is the retain flag; `%R` is the response topic.** Getting that wrong makes
+every message parse as a live publish, so a watch against a powered-down PLC
+reports full coverage and passes. The tool now refuses a flag that is not `0`
+or `1` rather than guessing.
 
 Broker for this project is `10.101.1.11:1883` (`GVL_MQTT.broker`), and the
 trees worth watching are `homeassistant/#` and `Devices/PLC/Lab/#`
