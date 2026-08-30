@@ -75,7 +75,7 @@ REAL ──┤ PlausibleMax                      │
 | `Temperature` | REAL | Degrees Celsius, with `LeadResistance` already taken off. **Held** at the last trustworthy reading while the channel is out of range or implausible, rather than following it into whatever the module reports for a broken wire. |
 | `Valid` | BOOL | The channel is reading a real sensor, within the range this sensor type can measure. |
 | `Fault` | BOOL | **Do not trust this reading.** The inverse of `Valid`: set when the value is outside what a platinum RTD can produce, or outside `PlausibleMin`…`PlausibleMax` — usually a wire out of a terminal. This is what drives the entity's availability: while it is set, Home Assistant shows the sensor as unavailable. |
-| `DataAvailable` | BOOL | High once a trustworthy reading has been seen, and it **latches**: it answers *has this channel ever worked*, not *is it working now* — `Valid` is that one. It used to latch on the zero a mapped channel reads before the K-bus fills the process image; the startup gate below fixed that, so it no longer latches on a reading nothing produced. It is still not proof a sensor is connected — only that the channel once read something plausible. |
+| `DataAvailable` | BOOL | High once a trustworthy reading has been seen, and it **latches**: it answers *has this channel ever worked*, not *is it working now* — `Valid` is that one. It is not proof a sensor is connected, only that the channel once read something plausible. |
 
 ### **Methods**
 
@@ -242,14 +242,11 @@ A channel can still lie in two ways this block does not catch, and it is better 
 to imply otherwise.
 
 **A plausible number that is not a measurement.** A front end that has stopped converting can park
-the channel at a believable room temperature, and nothing in the process image says so. There was
-a movement check here — a channel that had not moved a digit for `StaleTimeout` was flagged
-`Stuck` — and it was **removed**, because it does not survive contact with a quiet room. Measured
-on the bench, a Pt1000 moved one digit every 75 minutes or so and sat perfectly still in between;
-any timeout short enough to be useful reads that as a dead channel. A false fault publishes
-`availability: offline` and takes a **working** sensor out of Home Assistant, which is a worse
-outcome than the case it guarded against — and that case, an open circuit parked at an end of
-scale, is caught on the first scan by `PlausibleMin`/`PlausibleMax` anyway.
+the channel at a believable room temperature, and nothing in the process image says so. It cannot
+be caught here, because it is indistinguishable from a quiet room: a Pt1000 in still air holds the
+same tenth of a degree for an hour at a time, so "not changing" is normal rather than suspicious.
+Short the terminals briefly instead — a channel that is measuring drops to the bottom of its scale
+at once, and one that does not is not looking at its terminals.
 
 **A wrong sensor type that still moves.** Configure a channel for Pt100, connect a Pt1000, and the
 reading tracks the temperature while being roughly 2.6 times too high in the middle of the scale
@@ -267,10 +264,9 @@ PLC's own device:
 |:--|:--|:--|:--|:--|
 | *FriendlyName* | — | `temperature` | `measurement` | °C |
 
-**There is deliberately no diagnostic entity.** An earlier version published a `problem` binary
-sensor alongside the reading, which put the fault in the diagnostics section of the device page —
-somewhere nobody looks while reading a temperature. Instead the config carries two availability
-topics with `avty_mode: all`:
+**The fault is carried by availability rather than by a separate entity**, so it greys out the
+temperature where somebody is already reading it instead of hiding in the diagnostics section of
+the device page. The config carries two availability topics with `avty_mode: all`:
 
 ```
 "avty": [ {"topic": "Devices/PLC/Lab/availability"},
@@ -280,11 +276,6 @@ topics with `avty_mode: all`:
 so the sensor is shown only while the PLC **and** the channel both say `online`. The second slot
 is free to use because a PLC discovery device fills both with the same topic, so overriding one
 loses nothing — see `CreateSensorEntity`'s `AvailabilityTopic`.
-
-:rotating_light: **Removing the diagnostic entity orphans its retained config.** Anything that
-published the old `problem` entity leaves `homeassistant/binary_sensor/<id>_FAULT/config` retained
-on the broker, and Home Assistant goes on showing that entity forever. Clear it with an empty
-retained message, along with the old `/FAULT` state topic.
 
 `state_class: measurement` is set on purpose, unlike on the rangefinder: a temperature is
 exactly the kind of quantity whose mean, minimum and maximum are worth keeping, so Home
