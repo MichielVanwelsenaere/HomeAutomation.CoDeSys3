@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T11:16:19.705997" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T11:14:04.4406832">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T13:23:52.4813948" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T13:23:14.888412">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -3080,6 +3080,23 @@ END_IF		</xhtml>
                 <INT />
               </type>
             </variable>
+            <variable name="iLeadOffset">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> LeadResistance expressed in the module's own units - tenths of a degree.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iCorrectedRaw">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Raw with the lead correction taken off. Everything downstream reads this
+ rather than Raw, except the movement check.</xhtml>
+              </documentation>
+            </variable>
           </localVars>
           <localVars constant="true">
             <variable name="ciRtdMinRaw">
@@ -3104,6 +3121,20 @@ END_IF		</xhtml>
                 <simpleValue value="8500" />
               </initialValue>
             </variable>
+            <variable name="crPt1000OhmsPerDegree">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="3.9" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> dR/dT of a Pt1000 near room temperature, per IEC 60751. The local slope at
+ 0 C is 3.9083; 3.85 is the mean coefficient over 0..100 C and is the wrong
+ number here, because a lead correction is applied where the sensor is, not
+ averaged over its whole span.</xhtml>
+              </documentation>
+            </variable>
           </localVars>
           <inputVars>
             <variable name="Raw">
@@ -3115,6 +3146,35 @@ END_IF		</xhtml>
  Celsius - which is what a WAGO 750-463 and its relatives put in the process
  image, two's complement, so -105 is -10.5 C. Wire it straight to the
  channel variable: Raw := RTD_001.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="LeadResistance">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0.0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Round-trip resistance of the sensor leads, in ohms. Zero, and nothing is
+ corrected.
+
+ A 750-451 and a 750-463 both measure 2-conductor, so nothing compensates
+ for the wire: the leads sit in series with the element and the channel
+ reads HIGH by them. Near room temperature a Pt1000 moves about 3.9 ohms
+ per degree, so the error is LeadResistance / 3.9 degrees - about 0.18 C
+ down 2x10 m of 0.5 mm2, and 1.8 C down 2x50 m of 0.25 mm2. Ignorable on a
+ bench, not ignorable on a long run.
+
+ Measure it with the sensor disconnected, by shorting the far end of the
+ pair and reading the loop at the terminals.
+
+ CORRECT THIS IN ONE PLACE ONLY. The module carries its own user scaling
+ and user calibration, written with WAGO-I/O-CHECK and unreadable from
+ CODESYS - set an offset there as well and it is applied twice, with
+ nothing anywhere to say so. Prefer here: this is in source control, it
+ shows up in a diff and in the PLCopen export, and it survives swapping
+ the terminal, which a value in a module's flash does not.</xhtml>
               </documentation>
             </variable>
             <variable name="PublishDeadband">
@@ -3249,9 +3309,20 @@ END_IF
    healthy reading for the fifteen minutes it took StaleTimeout to notice. No
    room, buffer tank or floor loop ever reaches 150 C. Saying so rejects it on
    the first scan. *)
-bInRange := (Raw &gt;= ciRtdMinRaw) AND (Raw &lt;= ciRtdMaxRaw);
+(* --- lead resistance, on a module that cannot compensate for it --------------
+   2-conductor measurement puts the leads in series with the element, so the
+   channel reads high by LeadResistance / 3.9 degrees. Corrected here, in tenths
+   and in integers, so the single decimal the module actually has reaches the
+   payload unchanged rather than through a REAL round trip.
+
+   Zero by default and REAL_TO_INT(0.0) is 0, so a channel that names no lead
+   resistance behaves exactly as it did before this existed. *)
+iLeadOffset := REAL_TO_INT(LeadResistance / crPt1000OhmsPerDegree * 10.0);
+iCorrectedRaw := Raw - iLeadOffset;
+
+bInRange := (iCorrectedRaw &gt;= ciRtdMinRaw) AND (iCorrectedRaw &lt;= ciRtdMaxRaw);
 (* Tenths of a degree, so the scaling is exact rather than a calibration. *)
-rReading := INT_TO_REAL(Raw) / 10.0;
+rReading := INT_TO_REAL(iCorrectedRaw) / 10.0;
 bPlausible := (PlausibleMax &lt;= PlausibleMin)
 	OR ((rReading &gt;= PlausibleMin) AND (rReading &lt;= PlausibleMax));
 Valid := bInRange AND bPlausible;
@@ -3275,7 +3346,12 @@ END_IF
 
    Deliberately not a range check, and deliberately not fatal to the reading:
    the number may well be right, so it keeps being published while the fault
-   flag says not to lean on it. *)
+   flag says not to lean on it.
+
+   Deliberately Raw and not iCorrectedRaw. The correction is a constant, so it
+   cannot change whether the channel is moving - and if somebody edits
+   LeadResistance while the PLC is running, the one-off jump that produces must
+   not be mistaken for a sign of life. *)
 IF bFirstSample THEN
 	iLastRaw := Raw;
 	bFirstSample := FALSE;
@@ -3315,8 +3391,8 @@ IF bInitMqttDone AND Valid THEN
 		(* Formatted from the integer rather than through REAL_TO_STRING, which
 		   would publish 21.299999 for a channel reading 213. One decimal is all
 		   the module has, and all anyone should be told it has. *)
-		iWhole := Raw / 10;
-		iTenth := ABS(Raw MOD 10);
+		iWhole := iCorrectedRaw / 10;
+		iTenth := ABS(iCorrectedRaw MOD 10);
 		sPayload := INT_TO_STRING(iWhole);
 		IF (Raw &lt; 0) AND (iWhole = 0) THEN
 			sPayload := CONCAT('-', sPayload);

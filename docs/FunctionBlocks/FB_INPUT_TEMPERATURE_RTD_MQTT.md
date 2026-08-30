@@ -48,10 +48,11 @@ image can produce it.
        │   FB_INPUT_TEMPERATURE_RTD_MQTT   │
        ├───────────────────────────────────┤
  INT ──┤ Raw                   Temperature ├── REAL
-REAL ──┤ PublishDeadband             Valid ├── BOOL
-TIME ──┤ HeartbeatInterval           Fault ├── BOOL
-TIME ──┤ StaleTimeout                Stuck ├── BOOL
-REAL ──┤ PlausibleMin        DataAvailable ├── BOOL
+REAL ──┤ LeadResistance              Valid ├── BOOL
+REAL ──┤ PublishDeadband             Fault ├── BOOL
+TIME ──┤ HeartbeatInterval           Stuck ├── BOOL
+TIME ──┤ StaleTimeout        DataAvailable ├── BOOL
+REAL ──┤ PlausibleMin                      │
 REAL ──┤ PlausibleMax                      │
        └───────────────────────────────────┘
 ```
@@ -63,6 +64,7 @@ REAL ──┤ PlausibleMax                      │
 | Pin | Type | Description |
 |:--|:--|:--|
 | `Raw` | INT | The mapped channel word of the RTD module, in tenths of a degree Celsius. Wire it to the channel variable — `Raw := RTD_001` — and nothing else is needed to make the block work. |
+| `LeadResistance` | REAL | Round-trip resistance of the sensor leads, in ohms; defaults to 0, which corrects nothing. The 750-451 and 750-463 both measure **2-conductor**, so the leads sit in series with the element and the channel reads *high* by them. A Pt1000 moves about 3.9 Ω/°C near room temperature, so the error is `LeadResistance / 3.9` °C — about 0.18 °C down 2×10 m of 0.5 mm², and 1.8 °C down 2×50 m of 0.25 mm². Measure it with the sensor disconnected, by shorting the far end of the pair and reading the loop at the terminals. :rotating_light: **Correct this in one place only** — see below. |
 | `PublishDeadband` | REAL | Degrees Celsius of change required before the value is published again. Defaults to 0.2. The last digit of an RTD channel jitters continuously, and nobody wants 0.1 °C of noise in their history; zero publishes every change. |
 | `HeartbeatInterval` | TIME | Republish even when nothing changed, so a reader can tell a steady temperature from a PLC that has stopped. Defaults to **1 minute**, and the discovery config's `expire_after` is set to three of these — so changing it changes both, but only for entities announced after the change. |
 | `StaleTimeout` | TIME | How long the channel word may go without changing by even one digit before the reading is called into question. Defaults to 15 minutes; zero disables the check. See *[a wrong number that holds still](#a-wrong-number-that-holds-still)* — this is not a theoretical safeguard, it is what the bench module needed. |
@@ -130,6 +132,52 @@ it.
 One decimal, always, formatted from the integer rather than through `REAL_TO_STRING` — which
 would publish `21.299999` for a channel reading `213`. One decimal is all the module has, and
 all anyone should be told it has.
+
+### **Lead resistance, and the one place to correct it**
+
+Both RTD modules this block is used with measure **2-conductor**. Nothing compensates for the
+wire: the leads are in series with the element, so the channel reads high by their resistance.
+A Pt1000 moves about **3.9 Ω/°C** near room temperature, which sets the scale of the problem:
+
+| Cable | Loop resistance | Error |
+|:--|:--|:--|
+| 2×10 m of 0.5 mm² | ≈ 0.7 Ω | ≈ **0.18 °C** — ignorable |
+| 2×25 m of 0.5 mm² | ≈ 1.7 Ω | ≈ **0.44 °C** |
+| 2×50 m of 0.25 mm² | ≈ 6.8 Ω | ≈ **1.8 °C** — not ignorable |
+
+So on a bench it does not matter and on a real run it does. Set `LeadResistance` to the measured
+loop resistance and the block takes `LeadResistance / 3.9` degrees off the reading, in tenths and
+in integers, so the single decimal the module actually has survives to the payload unchanged.
+Leave it at 0 and the block behaves bit-for-bit as it did before the input existed.
+
+```
+fbAiRtd001(Raw := RTD_001, LeadResistance := 1.7);   (* 2x25 m of 0.5 mm2 *)
+```
+
+To measure it: disconnect the sensor, short the far end of the pair, and read the loop at the
+terminals.
+
+:rotating_light: **Correct it in exactly one place.** The module carries its own *user scaling*
+and *user calibration*, written with [WAGO-I/O-CHECK](../WagoIoCheck.md) and stored in the
+module's flash. The PLC cannot read them. Put an offset there **and** here and the correction is
+applied twice, with nothing anywhere to say so — a 1.8 °C fix becomes a 1.8 °C error in the other
+direction, and it will read as a badly calibrated sensor.
+
+Prefer the PLC, for three reasons that have nothing to do with taste:
+
+- the value is **in source control**, shows up in a diff and appears in the PLCopen export;
+- it **survives swapping the terminal** — a module-side offset does not, and is worse than absent
+  if the replacement module carries somebody else's;
+- module-side settings are **invisible from CODESYS**, which is the whole reason
+  [that page](../WagoIoCheck.md) had to be written.
+
+The one argument the other way: a module-side correction applies to everything reading that
+channel, not just this block. Nothing else reads it here.
+
+:bulb: **This corrects a systematic offset, not noise, and it is not a calibration.** It assumes
+the element itself is accurate — a Class B Pt1000 is ±0.3 °C at 0 °C on its own, which is larger
+than most lead corrections. If you need better than that, one point against a reference
+thermometer beats any amount of arithmetic.
 
 ### **A broken wire is not a temperature**
 

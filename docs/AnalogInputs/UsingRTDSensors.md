@@ -61,9 +61,16 @@ Three practical points:
 - **2, 3 or 4 leads on the sensor?** The 750-451 measures 2-conductor. A 3-wire or 4-wire probe
   works on it — join the doubled leads at the terminal, or simply use one lead of each pair. The
   third wire exists to compensate lead resistance, which the module cannot use; with a *Pt1000*
-  that hardly matters, because the element changes about 3.85 Ω/°C, so even a metre or two of
-  cable is worth a few hundredths of a degree. (On a Pt100 the same cable would be ten times as
-  significant, which is why the Pt100 modules offer 3-conductor.)
+  that hardly matters over a short run, because the element changes about 3.9 Ω/°C, so a metre or
+  two of cable is worth a few hundredths of a degree. (On a Pt100 the same cable would be ten
+  times as significant, which is why the Pt100 modules offer 3-conductor.)
+- **Over a long run it does matter, and the block can take it off.** 2×50 m of 0.25 mm² is about
+  6.8 Ω, which reads 1.8 °C high. Measure the loop with the sensor disconnected and the far end
+  shorted, then pass it as
+  [`LeadResistance`](../FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md#lead-resistance-and-the-one-place-to-correct-it):
+  `fbAiRtd001(Raw := RTD_001, LeadResistance := 6.8);`. **Do it there or in the module's user
+  scaling, never both** — the PLC cannot see what WAGO-I/O-CHECK wrote, so a correction in each
+  place is applied twice.
 - **Screened cable**: land the screen on the module's shield terminal or the DIN-rail shield
   clamp, at one end only.
 - **Keep it away from the switched outputs.** A temperature signal is a high-impedance
