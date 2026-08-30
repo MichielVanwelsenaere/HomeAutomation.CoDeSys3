@@ -44,7 +44,7 @@ flowchart TB
   TRS --> PORT
 ```
 
-The protocol lives behind a second interface, [`I_RS485_TRANSPORT`](#the-rs485transport-interface),
+The protocol lives behind a second interface, [`I_RS485_TRANSPORT`](#the-i_rs485_transport-interface),
 so the controller never sees a CRC, a function code or a serial handle — and so a different
 Modbus implementation can be substituted without touching a single device block.
 

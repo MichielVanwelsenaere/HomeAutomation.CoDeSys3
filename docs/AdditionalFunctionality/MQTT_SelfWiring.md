@@ -133,10 +133,10 @@ methods do nothing until `InitMqtt` has run.
 
 ## Which blocks self-wire
 
-**Self-wiring**, driven by `FriendlyName`: the pushbutton and binary sensor
-inputs, the binary, bistable, cover and dimmer outputs, the HVAC thermostat, pump
-and burner, the DMX dimmer, and all three Eastron meter blocks — the SDM630, the
-SDM220 and the SDM_POWER.
+**Self-wiring**, driven by `FriendlyName`: the pushbutton, binary sensor and RTD
+temperature inputs, the binary, bistable, cover and dimmer outputs, the HVAC
+thermostat, pump and burner, the DMX dimmer, and all three Eastron meter blocks
+— the SDM630, the SDM220 and the SDM_POWER.
 
 `FB_RS485_EASTRON_SDM630_MQTT` is the first RS485 block to self-wire, and it shows
 what the others would need. Its discovery announces a Home Assistant device of its

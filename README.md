@@ -19,6 +19,9 @@ There are multiple generations of the WAGO PFC100/200 series, the documentation 
 
 - [Choosing and preparing your WAGO PFC device](./docs/WagoPfcPrep.md)
 - [Getting started guide](./docs/FAQ/Getting_started_guide_CODESYS_3S.md)
+- [Configuring an I/O module with WAGO-I/O-CHECK](./docs/WagoIoCheck.md) — for the settings that
+  live inside a terminal rather than in CODESYS, and how to make the PLC release the K-bus so the
+  tool can reach them
 
 # Architecture
 Core processing logic is executed in the (robust) PLC. Meaning that events like reading pushbuttons/switches, updating outputs are executed in the PLC software. To enable integration with external software the PLC sends out events to an MQTT broker when events occur (like pushbutton events, outputs that change state). MQTT subscriptions are enabled as well to allow the external software to control -for example- outputs.
@@ -37,11 +40,15 @@ Basic function blocks for basic IO events and operations.
 - [FB_INPUT_PUSHBUTTON_MQTT](./docs/FunctionBlocks/FB_INPUT_PUSHBUTTON_MQTT.md)
 - [FB_INPUT_PUSHBUTTON_DIMMER_MQTT](./docs/FunctionBlocks/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.md)
 - [FB_INPUT_BINARYSENSOR_MQTT](./docs/FunctionBlocks/FB_INPUT_BINARYSENSOR_MQTT.md)
+- [FB_INPUT_TEMPERATURE_RTD_MQTT](./docs/FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md)
 - [FB_OUTPUT_BINARY_MQTT](./docs/FunctionBlocks/FB_OUTPUT_BINARY_MQTT.md)
 - [FB_OUTPUT_DIMMER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_DIMMER_MQTT.md)
 - [FB_OUTPUT_COVER_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_MQTT.md)
 - [FB_OUTPUT_COVER_POSITION_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_POSITION_MQTT.md)
 - [FB_OUTPUT_BISTABLE_MQTT](./docs/FunctionBlocks/FB_OUTPUT_BISTABLE_MQTT.md)
+
+A resistance temperature sensor - a Pt1000 on a WAGO 750-451 - needs the module wiring and
+one line of code; see [reading a temperature sensor](./docs/AnalogInputs/UsingRTDSensors.md).
 
 ## Modbus RTU over RS485
 With many PLCs having an onboard RS485 serial port it is a popular protocol to create a robust Modbus RTU sensor network.

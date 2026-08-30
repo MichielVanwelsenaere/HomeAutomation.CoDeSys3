@@ -33,7 +33,7 @@ Fast, does not launch CODESYS. Required:
 | CODESYS Control for PFC200 SL | The project's device. Without it the device will not resolve and the build fails. |
 | WAGO Device Support Package 2.0.8.9 | Supplies `WagoAppDALI`, which `FB_OUTPUT_DIMMER_DALI_MQTT` needs. Without it the build fails on that block, not just on DALI. It is not vendored — WAGO's licence forbids redistribution — so install it per machine: `docs/WagoPfcPrep.md#installing-the-wago-libraries-dali`. **`WagoAppDALI` is qualified-only**, unlike in e!COCKPIT: its types are `WagoAppDALI.typBallast`, `WagoAppDALI.FbDaliSendDimValue` and so on, so ST lifted out of an e!COCKPIT project does not compile until it is qualified. |
 | Windows PowerShell 5.1 | The scripts avoid PowerShell 7-only syntax, so either works. |
-| mosquitto clients | **Optional but the only runtime check available.** `winget install --id EclipseFoundation.Mosquitto --scope machine`. The installer registers a broker service that is not needed here (leave it stopped) and does **not** add itself to `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
+| mosquitto clients | **Optional, and what every runtime check here runs on.** `winget install --id EclipseFoundation.Mosquitto --scope machine`. The installer registers a broker service that is not needed here (leave it stopped) and does **not** add itself to `PATH`; the tooling also looks in `C:\Program Files\mosquitto`. |
 
 Override discovery with `-Exe` / `-CodesysProfile`, or set `$env:CODESYS_EXE`.
 
@@ -84,6 +84,7 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 | `./tools/ai/codesys.ps1 device -AddModule <ModuleId> -Under <node> -Force` | Plug a module into the device tree. Builds first and refuses to save a project that does not build. |
 | `./tools/ai/codesys.ps1 device -AddDevice <type:id:version> -NodeName <name> [-Under <node>] -Force` | Add a device — a module, or a whole second controller at the project root. |
 | `./tools/ai/codesys.ps1 device -RemoveNode <name> -Force` | Unplug a device or module. |
+| `./tools/ai/codesys.ps1 device -MapIo <spec.json> -Force` | Name a terminal's I/O channels, which is what makes a freshly added module readable from IEC code at all. `{ "map_io": [ { "node", "channel", "variable" } ] }`; each mapping is read back and a mismatch is an error. |
 | `./tools/ai/codesys.ps1 device -RenameNode <name> -NodeName <new> -Force` | Rename a device or module. Re-record the baseline afterwards: a device's name is in every message's object path. |
 | `./tools/ai/codesys.ps1 scaffold -Scaffold <spec.json> -Force` | Create GVLs, programs and tasks inside an application. |
 | `./tools/ai/codesys.ps1 scan` | List PLCs answering on each gateway. Read-only, needs no project. |
@@ -281,6 +282,30 @@ generator keys the GVL region on the list's name, so a GVL rename means editing
 
 Established by compile probe, not by reading documentation:
 
+- **A hand-written candidate CAN file itself into a folder.** The skill's own
+  advice used to be that a candidate with no folders lands at the project root,
+  which is true only because nobody had put folders in one. Add a
+  `projectstructure` `<addData>` block naming the target folder and the object,
+  **with no `ObjectId` attributes at all**, and the default import path honours
+  it - the report then reads `added: BASIC/FB_YOUR_NAME` rather than a bare
+  name. Worth doing: folder placement is cosmetic to the compiler, but there is
+  no scripted way to move an object afterwards, so the alternative is IDE
+  hand-work.
+
+      <addData>
+        <data name="http://www.3s-software.com/plcopenxml/projectstructure" handleUnknown="discard">
+          <ProjectStructure>
+            <Folder Name="BASIC">
+              <Object Name="FB_YOUR_NAME">
+                <Object Name="InitMqtt" />
+              </Object>
+            </Folder>
+          </ProjectStructure>
+        </data>
+      </addData>
+
+  The methods are listed as nested `<Object>`s; the import adds each and reports
+  it. `FB_INPUT_TEMPERATURE_RTD_MQTT` landed in `BASIC/` this way.
 - **Plaintext declarations work for a NEW POU, but do not reliably override an
   existing one.** Authoring a brand-new block with a plaintext declaration and an
   empty `<interface />` works (proven). But taking an existing POU out of the
@@ -586,8 +611,8 @@ kind — and each retry is a full download, so it costs three minutes to learn t
 ## Verifying runtime behaviour over MQTT
 
 The compiler is the only automated gate on the PLC side, but **the broker sees
-everything the PLC publishes** — which is the one runtime check available here.
-Use it around every download:
+everything the PLC publishes** — which is where the runtime checks live. Use them
+around every download:
 
 ```powershell
 ./tools/ai/Mqtt-Snapshot.ps1 -Out .ai/mqtt/before.txt      # BEFORE the download
@@ -605,6 +630,42 @@ Read the diff's **GONE** section first. A discovery config that was retained
 before and is absent now means an entity Home Assistant still shows and nothing
 publishes to any more — exactly the silent regression an `EntityType` mistake
 causes, and exactly what a clean compile cannot tell you.
+
+### Did the discovery configs actually get republished?
+
+A snapshot diff cannot answer that, and the difference matters: a retained config
+looks identical whether the PLC wrote it a second ago or a year ago. So a broken
+publish path is invisible to a diff — the broker stays fully populated with stale
+configs while the PLC announces nothing. That is not hypothetical; it is what a
+`RIGHT()` on a `STRING(1500)` did to every entity on the lab PLC for weeks.
+
+`check_mqtt_discovery.py` answers both halves. It validates the structure of every
+config (valid JSON, not truncated, `uniq_id` present, unique, and matching its own
+topic, a device with ids, something to talk to), and it separates a genuine publish
+from the retained backlog using the **retain flag** — live traffic arrives with
+retain=0, the broker's replay with retain=1.
+
+```powershell
+# 1. record what Home Assistant currently knows
+py tools/ai/check_mqtt_discovery.py --device Wago_PFC200_G1_Lab \
+    --snapshot .ai/mqtt/expect.json
+
+# 2. watch, and download while it runs (background one of them)
+py tools/ai/check_mqtt_discovery.py --watch 240 --expect .ai/mqtt/expect.json \
+    --device Wago_PFC200_G1_Lab
+
+# structure only, against whatever is retained now - needs no PLC
+py tools/ai/check_mqtt_discovery.py
+```
+
+It also fails on a `composed truncated json` / `failed json root strip` /
+`had empty MqttJSON` line appearing live on the diagnostic log topic, because that
+is how the PLC reports a config it refused to publish — and nothing else reads it.
+
+**`%r` is the retain flag; `%R` is the response topic.** Getting that wrong makes
+every message parse as a live publish, so a watch against a powered-down PLC
+reports full coverage and passes. The tool now refuses a flag that is not `0`
+or `1` rather than guessing.
 
 Broker for this project is `10.101.1.11:1883` (`GVL_MQTT.broker`), and the
 trees worth watching are `homeassistant/#` and `Devices/PLC/Lab/#`
@@ -669,6 +730,30 @@ rather than a sign that something was hidden.
 
 ## Scripting API traps
 
+- **A script cannot position a module on a bus, and cannot see where one sits.**
+  Three separate attempts, so nobody repeats them:
+  `insert(name, index, ...)` is the order the binding accepts (index-first is
+  refused) and it **ignores the index** and appends; removing a terminal and
+  re-adding it does **not** move it either - the saved project reloads in exactly
+  the order it went in; and the order `get_children(False)` reports is **creation
+  order**, not rail position. The PLCopen export's `ProjectStructure` agrees with
+  `get_children`, so it is not independent confirmation of anything.
+
+  The trap this sets is the expensive part. The IDE showed three RTD terminals
+  side by side while both scripted views reported them split apart by two other
+  modules, and a guard built on the scripted view **refused a correct project**.
+  Position on a K-bus decides which process-image words a terminal reads, so
+  getting it wrong is silent and serious - but it can only be checked and fixed in
+  the IDE's device tree. `add_module` now prints an ADVISORY saying so whenever an
+  index is asked for, and reports the creation order labelled as such. Adding a
+  terminal at the far right of the rail avoids the question entirely.
+- **I/O channel mapping IS scriptable**, which the skill assumed it was not.
+  A terminal's channels live on its *child connector's* `host_parameters`, not on
+  `device_parameters`, and each one that answers `is_mappable_io` carries an
+  `io_mapping` whose `variable` setter names it - an unqualified name creates the
+  variable, exactly as typing one into the IDE's mapping editor does. `device
+  -MapIo <spec.json>` does it in bulk. Read the value back afterwards: the setter
+  takes any expression that parses, so a typo is accepted quietly.
 - **The shipped `.pyi` stubs have wrong argument orders.** `export_xml` and
   `import_xml` really take `reporter` **first**, and the .NET binding rejects
   those names as keywords — pass them positionally.

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-24T12:57:05.485805" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-24T12:56:27.9044372">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T14:58:57.5728621" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T14:58:20.5930677">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2920,6 +2920,677 @@ END_IF		</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>2c780f1f-5812-460d-8451-0ca306f5b2cf</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_INPUT_TEMPERATURE_RTD_MQTT" pouType="functionBlock">
+        <interface>
+          <outputVars>
+            <variable name="Temperature">
+              <type>
+                <REAL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Degrees Celsius. Held at the last trustworthy reading while Fault is set,
+ rather than following the channel into whatever it reports for a broken
+ wire.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Valid">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The channel is reading a real sensor, within what the sensor type can measure
+ AND within what this sensor could plausibly be measuring.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Fault">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Do not trust this reading. Set when the value is outside what the sensor
+ type can physically produce, and when the channel has gone StaleTimeout
+ without moving a digit, and when it is outside PlausibleMin..PlausibleMax.
+ This is what drives the entity's availability: while it is set, Home
+ Assistant shows the sensor as unavailable.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="DataAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> High once a plausible reading has been seen, and it latches. It answers
+ "has this channel ever worked", not "is it working now" - Valid is that one.
+
+ One wart, found by a bench assertion that expected better: a mapped channel
+ reads 0 for the first cycles, before the K-bus has filled the process image,
+ and 0.0 C is a perfectly plausible reading. So this latches TRUE - and
+ Temperature holds 0.0 - even on a channel that goes on to measure nothing at
+ all. Do not read it as proof a sensor is connected.</xhtml>
+              </documentation>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="sInstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="noinit" />
+                    <Attribute Name="instance-path" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="fbFirstConversion">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="bZeroIsBelievable">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> FALSE only in the moments after the bus comes up, while the channel still
+ reads the zero the process image was cleared to.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iPublishedRaw">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The channel word as it was last published, so a repeat can be told from a
+ change. Kept as the INT rather than the REAL: two readings that came from
+ the same word are then equal by construction, with no float comparison.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bPublishedValid">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="fbHeartbeat">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="fbFaultEdge">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="fbHealEdge">
+              <type>
+                <derived name="Standard.F_TRIG" />
+              </type>
+            </variable>
+            <variable name="bStartup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="bInRange">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="bPlausible">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="rReading">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="sPayload">
+              <type>
+                <string length="20" />
+              </type>
+            </variable>
+            <variable name="iWhole">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="iTenth">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="iLeadOffset">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> LeadResistance expressed in the module's own units - tenths of a degree.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iCorrectedRaw">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Raw with the lead correction taken off. Everything downstream reads this
+ rather than Raw, except the movement check.</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <localVars constant="true">
+            <variable name="ciRtdMinRaw">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-2000" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> What a platinum RTD can physically report, per IEC 60751: -200 C to 850 C.
+ Anything outside it is the module telling you about the wiring rather than
+ the temperature, whatever value it happens to use to say so - which is why
+ the check is a range in engineering units and not a magic fault code.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ciRtdMaxRaw">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="8500" />
+              </initialValue>
+            </variable>
+            <variable name="ctFirstConversion">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#5s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long a channel may read exactly 0 after the bus comes up before 0 is
+ believed as a temperature.
+
+ ProcessImageValid is necessary and NOT sufficient: the bus reports process
+ data exchanging a little before an RTD module has delivered its first
+ conversion, and in that window the word is still the zeroed process image.
+ Measured on the bench, that window is well under a second - but 0 is 0.0 C,
+ a perfectly plausible temperature, so a block that believes it publishes a
+ fabricated zero on every restart.
+
+ Long enough for any 750-series RTD to convert, short enough that a sensor
+ genuinely sitting at 0.0 C is only briefly unavailable rather than wrong.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="crPt1000OhmsPerDegree">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="3.9" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> dR/dT of a Pt1000 near room temperature, per IEC 60751. The local slope at
+ 0 C is 3.9083; 3.85 is the mean coefficient over 0..100 C and is the wrong
+ number here, because a lead correction is applied where the sensor is, not
+ averaged over its whole span.</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <inputVars>
+            <variable name="Raw">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The mapped channel word of an RTD input module, in tenths of a degree
+ Celsius - which is what a WAGO 750-463 and its relatives put in the process
+ image, two's complement, so -105 is -10.5 C. Wire it straight to the
+ channel variable: Raw := RTD_001.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ProcessImageValid">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE once the K-bus has finished starting and is really exchanging process
+ data. Until then every mapped word reads 0, and 0 is 0.0 C - a perfectly
+ plausible temperature - so a block that trusts it publishes a fabricated
+ zero on every restart before the real value arrives a second later. That
+ happened, on this bench, and it is why this input exists.
+
+ Wire it to the bus driver's own answer, which is the only authoritative
+ one: ProcessImageValid := Pfc200Bus.xConfigFinished.
+
+ Defaults to FALSE, deliberately. Forget to wire it and the channel stays
+ unavailable, which is loud; the alternative default hands you a wrong
+ number once per restart, which is silent.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="LeadResistance">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="0.0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Round-trip resistance of the sensor leads, in ohms. Zero, and nothing is
+ corrected.
+
+ A 750-451 and a 750-463 both measure 2-conductor, so nothing compensates
+ for the wire: the leads sit in series with the element and the channel
+ reads HIGH by them. Near room temperature a Pt1000 moves about 3.9 ohms
+ per degree, so the error is LeadResistance / 3.9 degrees - about 0.18 C
+ down 2x10 m of 0.5 mm2, and 1.8 C down 2x50 m of 0.25 mm2. Ignorable on a
+ bench, not ignorable on a long run.
+
+ Measure it with the sensor disconnected, by shorting the far end of the
+ pair and reading the loop at the terminals.
+
+ CORRECT THIS IN ONE PLACE ONLY. The module carries its own user scaling
+ and user calibration, written with WAGO-I/O-CHECK and unreadable from
+ CODESYS - set an offset there as well and it is applied twice, with
+ nothing anywhere to say so. Prefer here: this is in source control, it
+ shows up in a diff and in the PLCopen export, and it survives swapping
+ the terminal, which a value in a module's flash does not.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="HeartbeatInterval">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Republish even when nothing changed, so a reader can tell a steady
+ temperature from a PLC that has stopped. Paired with the discovery config's
+ expire_after, which is set to three of these - so a minute here means Home
+ Assistant gives up on a silent channel after three.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="PlausibleMin">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="-40.0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The range this sensor could plausibly be measuring, in degrees Celsius.
+
+ The IEC 60751 bounds only ask whether a platinum RTD could produce a reading
+ at all, which turns out to be a very weak question: a WAGO 750-463 reports an
+ open circuit as 150.0 C, a legal Pt1000 temperature that passes the range
+ check and publishes as healthy until StaleTimeout eventually notices. No room,
+ buffer tank or floor loop reaches 150 C, so saying what this sensor is for
+ rejects that on the first scan instead of a quarter of an hour later.
+
+ Widen it deliberately for a flue, a solar collector or a freezer. Set Max &lt;=
+ Min to switch the check off.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="PlausibleMax">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="80.0" />
+              </initialValue>
+            </variable>
+          </inputVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Set FriendlyName at the declaration and this block wires itself from GVL_MQTT
+   on its first cyclic call, then announces itself to Home Assistant. Same idiom,
+   and the same reasons, as every other block here: see
+   FB_INPUT_BINARYSENSOR_MQTT.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs stays unwired and never appears in Home Assistant, and nothing warns
+   about it. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT bInitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubAnalogInputPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
+	END_IF
+
+	IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(GVL_MQTT.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+(* --- is this a temperature, and is it a temperature THIS sensor could see? ---
+   Two bounds, answering two different questions, and only the second one is
+   much use on real hardware.
+
+   ciRtdMinRaw/MaxRaw is IEC 60751: what a platinum RTD can physically report at
+   all. Anything outside it is the module talking about the wiring rather than
+   the temperature, whatever value it picks to say so.
+
+   PlausibleMin/Max is what this particular sensor could be measuring, and it is
+   the check that catches the failure this block actually met. A WAGO 750-463
+   reports an open circuit as 150.0 C - a perfectly legal Pt1000 temperature,
+   inside IEC 60751, which sailed through the range check and published as a
+   healthy reading for the fifteen minutes it took StaleTimeout to notice. No
+   room, buffer tank or floor loop ever reaches 150 C. Saying so rejects it on
+   the first scan. *)
+(* --- lead resistance, on a module that cannot compensate for it --------------
+   2-conductor measurement puts the leads in series with the element, so the
+   channel reads high by LeadResistance / 3.9 degrees. Corrected here, in tenths
+   and in integers, so the single decimal the module actually has reaches the
+   payload unchanged rather than through a REAL round trip.
+
+   Zero by default and REAL_TO_INT(0.0) is 0, so a channel that names no lead
+   resistance behaves exactly as it did before this existed. *)
+iLeadOffset := REAL_TO_INT(LeadResistance / crPt1000OhmsPerDegree * 10.0);
+iCorrectedRaw := Raw - iLeadOffset;
+
+bInRange := (iCorrectedRaw &gt;= ciRtdMinRaw) AND (iCorrectedRaw &lt;= ciRtdMaxRaw);
+(* Tenths of a degree, so the scaling is exact rather than a calibration. *)
+rReading := INT_TO_REAL(iCorrectedRaw) / 10.0;
+bPlausible := (PlausibleMax &lt;= PlausibleMin)
+	OR ((rReading &gt;= PlausibleMin) AND (rReading &lt;= PlausibleMax));
+(* --- has this channel produced a reading at all? -----------------------------
+   Two gates before the value is looked at, because a zero has two meanings.
+
+   ProcessImageValid says the bus is exchanging process data. Necessary, and NOT
+   sufficient: it goes TRUE slightly before an RTD module has delivered its first
+   conversion, and until then the word is still the zero the process image was
+   cleared to. That gap is well under a second and it was enough to publish a
+   fabricated 0.0 C on every restart, ahead of the real value.
+
+   So a zero is not believed until the module has had time to convert. After
+   ctFirstConversion it is believed like any other reading, because 0.0 C is a
+   real temperature and a sensor sitting at it must not go unavailable forever.
+   Raw and not iCorrectedRaw: it is the module's own word that is zeroed, and a
+   lead correction would move it off zero for the wrong reason. *)
+fbFirstConversion(IN := ProcessImageValid, PT := ctFirstConversion);
+bZeroIsBelievable := (Raw &lt;&gt; 0) OR fbFirstConversion.Q;
+
+Valid := ProcessImageValid AND bZeroIsBelievable AND bInRange AND bPlausible;
+
+IF Valid THEN
+	Temperature := rReading;
+	DataAvailable := TRUE;
+END_IF
+
+(* Out of range or implausible is the whole of the fault surface. There was a
+   movement check here too - a channel that had not changed a digit for
+   StaleTimeout was called Stuck and faulted - and it was removed because it does
+   not survive contact with a quiet room. Measured on the bench, a Pt1000 moved
+   one digit every 75 minutes or so and sat perfectly still in between, which any
+   plausible timeout reads as a dead channel. A false fault takes a WORKING sensor
+   out of Home Assistant, which is worse than the case it was guarding against -
+   and that case, an open circuit parked at an end of scale, is caught on the
+   first scan by PlausibleMin/PlausibleMax anyway. *)
+Fault := NOT Valid;
+
+(* Self-restarting, so the heartbeat is a floor on how often the value is
+   published rather than a timer anything has to remember to reset. *)
+fbHeartbeat(IN := NOT fbHeartbeat.Q, PT := HeartbeatInterval);
+
+(* --- publishing --------------------------------------------------------------
+   Three reasons to publish and no others: the channel word changed, the heartbeat
+   elapsed, or this is the first reading.
+
+   There was a PublishDeadband input here, defaulting to 0.2 C, on the reasoning
+   that an RTD's last digit dithers continuously and nobody wants that in their
+   history. This bench measured the opposite - one digit every 75 minutes or so,
+   dead still in between - so on a quiet channel it suppressed nothing, and it is
+   gone. Every change is published, which is what setting it to zero always did.
+
+   While the value is out of range nothing is published, deliberately: Temperature
+   holds the last trustworthy reading, and the discovery config's expire_after lets
+   Home Assistant retire the entity on its own if the silence lasts - a truer signal
+   than publishing a made-up number, or the module's fault code dressed up as a
+   temperature. *)
+IF bInitMqttDone AND Valid THEN
+	IF NOT bPublishedValid
+		OR fbHeartbeat.Q
+		OR (iCorrectedRaw &lt;&gt; iPublishedRaw)
+	THEN
+		(* Formatted from the integer rather than through REAL_TO_STRING, which
+		   would publish 21.299999 for a channel reading 213. One decimal is all
+		   the module has, and all anyone should be told it has. *)
+		iWhole := iCorrectedRaw / 10;
+		iTenth := ABS(iCorrectedRaw MOD 10);
+		sPayload := INT_TO_STRING(iWhole);
+		IF (Raw &lt; 0) AND (iWhole = 0) THEN
+			sPayload := CONCAT('-', sPayload);
+		END_IF
+		sPayload := CONCAT(sPayload, '.');
+		sPayload := CONCAT(sPayload, INT_TO_STRING(iTenth));
+
+		pMqttPublishQueue^.AddMessage(
+			Payload := sPayload,
+			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/TEMP'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE);
+
+		iPublishedRaw := iCorrectedRaw;
+		bPublishedValid := TRUE;
+	END_IF
+END_IF
+
+(* --- available, or not -------------------------------------------------------
+   Published on change, both ways, plus once at startup - and that startup
+   publish is not optional: Home Assistant treats a missing availability payload
+   as unavailable, so an entity whose topic has never been written stays greyed
+   out however healthy the channel is.
+
+   This is the whole fault surface. There is no separate problem entity to go
+   looking for: a channel that cannot be trusted greys out the temperature where
+   somebody is already reading it. The value itself keeps being published while
+   that happens, so a stuck channel's number is still on the broker for anyone
+   who wants to judge it - it is just no longer presented as a measurement.
+
+   The payloads come from GVL_MQTT rather than being spelled here, because they
+   have to match the pl_avail / pl_not_avail that the discovery device published
+   in the config, and that is where those come from. *)
+fbFaultEdge(CLK := Fault);
+fbHealEdge(CLK := Fault);
+
+IF bInitMqttDone AND (bStartup OR fbFaultEdge.Q OR fbHealEdge.Q) THEN
+	IF Fault THEN
+		sPayload := GVL_MQTT.MqttAvailabilityOfflinePayload;
+	ELSE
+		sPayload := GVL_MQTT.MqttAvailabilityOnlinePayload;
+	END_IF
+	pMqttPublishQueue^.AddMessage(
+		Payload := sPayload,
+		Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE);
+	bStartup := FALSE;
+END_IF
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="89f42edd-399b-4977-8303-148a3159263e">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the discovery device this entity belongs to, normally GVL_MQTT.PLC_Device. An RTD channel is part of the PLC rather than a device of its own.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Name of the entity in Home Assistant. The self-wiring prologue passes FriendlyName.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Overrides the generated entity id. Leave empty to derive it from the function block name.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="meta">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Extra JSON merged into the discovery config. Rarely needed.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Publishes the Home Assistant MQTT discovery configs - a temperature sensor and a diagnostic fault flag - so both entities are created automatically. Call once at startup, after InitMqtt.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+
+	id := SUPER^.ResolveEntityId(overruleId);
+
+	(* One entity, and it goes unavailable when the reading cannot be trusted.
+
+	   AvailabilityTopic overrides this entity's second availability topic, and
+	   avty_mode is 'all', so Home Assistant shows the sensor only while the PLC
+	   says online AND this channel says online. A fault therefore greys out the
+	   temperature where somebody is already looking at it, rather than raising a
+	   separate problem entity somewhere else to be noticed.
+
+	   expire_after stays, at three heartbeats, as a backstop for the one case an
+	   availability topic cannot cover: a PLC that stops publishing without
+	   getting the chance to say so.
+
+	   state_class measurement, so Home Assistant keeps long-term statistics -
+	   unlike a distance, a temperature is exactly the kind of thing worth
+	   graphing a mean of. *)
+	Device^.CreateSensorEntity(
+		Name := Name,
+		Id := id,
+		Meta := meta,
+		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/TEMP'),
+		ExpiryAfter := UDINT_TO_INT(TIME_TO_UDINT(HeartbeatInterval) * 3 / 1000),
+		DeviceClass := 'temperature',
+		UnitOfMeasurement := '°C',
+		StateClass := 'measurement',
+		AvailabilityTopic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'));
+
+	bInitMqttDiscoveryDone := TRUE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt" ObjectId="c9218a71-bd22-426a-ae8a-b28c0b98615d">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the shared MQTT queue that carries messages to the broker.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Enables MQTT on the function block. Call once at startup. Not needed when FriendlyName is set at the declaration: the block then wires itself.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._sInstancePath := THIS^.sInstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.psMqttPublishTopicPrefix := MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>0b5f67f0-1d06-40c9-a1b0-e55e67270658</ObjectId>
           </data>
         </addData>
       </pou>
@@ -11515,6 +12186,19 @@ THIS^.PublishEntityConfig(
  reaches the energy dashboard.</xhtml>
                     </documentation>
                   </variable>
+                  <variable name="AvailabilityTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Overrides this entity's SECOND availability topic, so one entity can go
+ unavailable while the rest of the device stays up. Empty keeps the
+ device's own, which is what every other caller wants.</xhtml>
+                    </documentation>
+                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="EntityId">
@@ -11557,6 +12241,14 @@ THIS^.FillCommonFields(
 	Name := name,
 	Id := Id,
 	Meta := meta);
+
+(* One entity can be made to go unavailable on its own. The PLC's discovery
+   device fills both availability slots with the same topic, so slot 2 carries
+   nothing that is lost by overriding it - and avty_mode is 'all', so the entity
+   is shown only while the PLC and this topic both say online. *)
+IF AvailabilityTopic &lt;&gt; '' THEN
+	stMqttDiscMsgSensor.avty[2].topic.CharString := AvailabilityTopic;
+END_IF
 
 // Entity related: Specific
 //MqttDiscoverySensorMessage.ic.CharString := Icon;
@@ -13438,6 +14130,35 @@ END_IF</xhtml>
                       <BOOL />
                     </type>
                   </variable>
+                  <variable name="bJsonComplete">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="pJsonByte">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Used to find where sMqttJSON really ends. A pointer walk, not RIGHT() or
+ LEN(): those are declared over STRING(255) and narrow a longer argument
+ without saying so. See the comment in the body.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="diJsonLen">
+                    <type>
+                      <DINT />
+                    </type>
+                  </variable>
+                  <variable name="diI">
+                    <type>
+                      <DINT />
+                    </type>
+                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
@@ -13471,10 +14192,39 @@ fbComposeJSON();
 
 bStripJsonRootOk := F_STRIP_JSON_ROOT(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqttJSON));
 
+(* A composed config that does not end in a closing brace is truncated, and
+   publishing it is worse than publishing nothing: Home Assistant rejects the
+   whole config and the entity silently disappears, while the log cheerfully
+   reports the discovery as added.
+
+   Walk to the null terminator rather than asking a string function where the
+   end is. This check used to read
+
+       bJsonComplete := RIGHT(sMqttJSON, 1) = '}';
+
+   and RIGHT is declared over STRING(255), so sMqttJSON was silently narrowed to
+   its first 255 bytes on the way in and RIGHT returned character 255 instead of
+   the last one. Every discovery config here is longer than that, so the guard
+   rejected all of them - and this PLC published no discovery config at all
+   between that check landing and this fix. The buffer was never the problem:
+   1500 bytes with 665 in use. The FUNCTION SIGNATURE was the narrow part, in a
+   check whose whole job is detecting values that got cut short. *)
+pJsonByte := ADR(sMqttJSON);
+diJsonLen := 0;
+FOR diI := 0 TO DINT#1499 DO
+	IF pJsonByte[diI] = 0 THEN
+		diJsonLen := diI;
+		EXIT;
+	END_IF
+END_FOR
+bJsonComplete := (diJsonLen &gt; 0) AND (pJsonByte[diJsonLen - 1] = 16#7D);
+
 IF sMqttJSON = '' THEN
 	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := sInstanceName);
 ELSIF bStripJsonRootOk = FALSE THEN
 	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' failed json root strip'), instance := sInstanceName);
+ELSIF NOT bJsonComplete THEN
+	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' composed truncated json'), instance := sInstanceName);
 ELSIF NOT (sMqttJSON = '') THEN
 	pMqttPublishQueue^.AddMessage(
 		Payload:= sMqttJSON,
@@ -22443,6 +23193,19 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                 <simpleValue value="CONCAT(MqttBaseTopic, 'Out/HVAC/')" />
               </initialValue>
             </variable>
+            <variable name="MqttPubAnalogInputPrefix">
+              <type>
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+              </type>
+              <initialValue>
+                <simpleValue value="CONCAT(MqttBaseTopic, 'Out/AnalogInputs/')" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> On-board analog inputs: an RTD channel on a 750-463, and anything else
+	   measured by the PLC itself rather than over a bus. Publish only - there
+	   is nothing to command on an input. </xhtml>
+              </documentation>
+            </variable>
             <variable name="MqttSubHVACPrefix">
               <type>
                 <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
@@ -22885,6 +23648,19 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                       <initialValue>
                         <simpleValue value="CONCAT(MqttBaseTopic, 'Out/HVAC/')" />
                       </initialValue>
+                    </variable>
+                    <variable name="MqttPubAnalogInputPrefix">
+                      <type>
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/AnalogInputs/')" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> On-board analog inputs: an RTD channel on a 750-463, and anything else
+	   measured by the PLC itself rather than over a bus. Publish only - there
+	   is nothing to command on an input. </xhtml>
+                      </documentation>
                     </variable>
                     <variable name="MqttSubHVACPrefix">
                       <type>
@@ -23434,6 +24210,139 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
 	   still needs its explicit InitMqtt call in MAIN_INIT. </xhtml>
                       </documentation>
                     </variable>
+                    <variable name="fbAiRtd001">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 1'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> ANALOG INPUT FUNCTION BLOCKS 
+ One 750-451 RTD module, eight channels, one block per channel. The
+	   module puts tenths of a degree in its channel word, so a block needs no
+	   scaling factor and no FB_init arguments: the channel word is an input,
+	   and everything else is a default that can be changed while the PLC runs.
+
+	   RTD_001..008 are that module's channels 0..7, in terminal order, so
+	   RTD_001 is R1. All eight are declared whether or not a sensor is on
+	   them: an unwired channel reads its open-circuit end of scale, which the
+	   block rejects as implausible, so an empty terminal goes unavailable in
+	   Home Assistant rather than publishing a confident wrong number.
+
+	   The 750-451 is 2-conductor only - there is no lead compensation, so the
+	   wire resistance is part of the reading. It also has to be told which
+	   sensor it is carrying; that is a WAGO-I/O-CHECK job, not an IEC one.
+	   See docs/WagoIoCheck.md. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="fbAiRtd002">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 2'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                    </variable>
+                    <variable name="fbAiRtd003">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 3'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                    </variable>
+                    <variable name="fbAiRtd004">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 4'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                    </variable>
+                    <variable name="fbAiRtd005">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 5'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                    </variable>
+                    <variable name="fbAiRtd006">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 6'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                    </variable>
+                    <variable name="fbAiRtd007">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 7'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                    </variable>
+                    <variable name="fbAiRtd008">
+                      <type>
+                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Lab PLC temperature 8'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                    </variable>
+                    <variable name="tRtdPublishInterval">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#1m0s0ms" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> How often every RTD channel republishes, and the one knob for all eight.
+	   The block's own default is the same minute; this exists so the bench can be
+	   moved off it in one place.
+
+	   Drop it to T#1S when a probe is actually being moved from terminal to
+	   terminal and the point is to watch a value follow it. Note what that costs:
+	   the block sets each entity's expire_after to three heartbeats, so a
+	   one-second interval also means Home Assistant gives up on a silent channel
+	   after three seconds. </xhtml>
+                      </documentation>
+                    </variable>
                     <variable name="fbDoBin001">
                       <type>
                         <derived name="FB_OUTPUT_BINARY_MQTT" />
@@ -23539,6 +24448,40 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                         <WORD />
                       </type>
                     </variable>
+                    <variable name="bKbusEnableIoCheck">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="FALSE" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> K-BUS CONTROL
+	   Pfc200Bus is the K-bus driver instance the device tree declares - an
+	   IoDrvPfc200, which offers exactly one input and one property worth
+	   reaching from IEC code. Both are wired in READ_PUSHBUTTONS.
+
+	   Neither is written by anything in this project. They are here to be set
+	   by hand from an online view, which is the only way they are ever meant
+	   to be used. 
+ Hands the K-bus transmission cycle to the PFC firmware instead of
+	   CODESYS, which is what lets WAGO-I/O-CHECK reach the modules over the
+	   service cable while the runtime keeps running. Set it TRUE, pulse
+	   bKbusRestart to make it take effect, configure the modules, then put it
+	   back to FALSE and pulse bKbusRestart again - otherwise CODESYS never
+	   gets its bus cycle back. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="bKbusRestart">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> A rising edge restarts the K-bus. On its own - with bKbusEnableIoCheck
+	   left FALSE - that is the recovery for a bus that has stopped exchanging
+	   process data; the I/O LED should come back to steady green. </xhtml>
+                      </documentation>
+                    </variable>
                   </localVars>
                   <addData>
                     <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -23585,7 +24528,40 @@ fbDoCover002(
                     <body>
                       <ST>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">fbDiPb001(PB:= DI_001); (* Provide the input FB the correct phyical input to validate each cyclus *)
-fbDiPb002(PB:= DI_002);</xhtml>
+fbDiPb002(PB:= DI_002);
+(* The RTD channel is read here because this action is the one the chart runs
+   every cycle to take the physical inputs in, and an analog channel is a
+   physical input. It would sit better in an action of its own - the name of
+   this one is now half a lie - but an action has to be associated with a step
+   in the SFC chart to be called at all, and a chart cannot be edited from a
+   script. Moving it is an IDE job worth doing the next time this program is
+   open. *)
+fbAiRtd001(Raw := RTD_001, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd002(Raw := RTD_002, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd003(Raw := RTD_003, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd004(Raw := RTD_004, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd005(Raw := RTD_005, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd006(Raw := RTD_006, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd007(Raw := RTD_007, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd008(Raw := RTD_008, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+
+
+(* K-BUS CONTROL. Written every cycle so that setting either flag in an online
+   view is enough; see their declarations for what they do and in which order.
+   Pfc200Bus() is called explicitly because that is what reads xRestart - the
+   implicit bus cycle call does not. *)
+Pfc200Bus.EnableIoCheck := bKbusEnableIoCheck;
+Pfc200Bus.xRestart := bKbusRestart;
+Pfc200Bus();
+</xhtml>
                       </ST>
                     </body>
                     <addData>
@@ -26183,7 +27159,7 @@ END_IF
                           </data>
                         </addData>
                       </configuration>
-                      <configuration name="_75x_463">
+                      <configuration name="_750_451">
                         <addData>
                           <data name="Device" handleUnknown="discard">
                             <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
@@ -26192,13 +27168,13 @@ END_IF
                                   <Type>288</Type>
                                   <Id>0000 0001</Id>
                                   <Version>4.19.0.0</Version>
-                                  <ModuleId>01CF_75x_463</ModuleId>
+                                  <ModuleId>01C3_750_451</ModuleId>
                                 </ModuleIdentification>
                                 <Connector moduleType="289" role="child" interface="PFC200.Bus" connectorId="0">
                                   <HostParameterSet>
                                     <Parameter ParameterId="100" type="std:WORD" IndexInDevDesc="0">
                                       <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_00" visiblename="Modulecode" offlineaccess="none" onlineaccess="none">16#1CF</Value>
+                                      <Value name="_x0031_00" visiblename="Modulecode" offlineaccess="none" onlineaccess="none">16#1C3</Value>
                                       <Name>Modulecode</Name>
                                     </Parameter>
                                     <Parameter ParameterId="10000" type="std:INT" IndexInDevDesc="2">
@@ -26225,6 +27201,30 @@ END_IF
                                       <Name>Analog Input Channel 3</Name>
                                       <Mapping>RTD_004</Mapping>
                                     </Parameter>
+                                    <Parameter ParameterId="10004" type="std:INT" IndexInDevDesc="10">
+                                      <Attributes channel="input" />
+                                      <Value name="_x0031_0004" visiblename="Analog Input Channel 4" />
+                                      <Name>Analog Input Channel 4</Name>
+                                      <Mapping>RTD_005</Mapping>
+                                    </Parameter>
+                                    <Parameter ParameterId="10005" type="std:INT" IndexInDevDesc="12">
+                                      <Attributes channel="input" />
+                                      <Value name="_x0031_0005" visiblename="Analog Input Channel 5" />
+                                      <Name>Analog Input Channel 5</Name>
+                                      <Mapping>RTD_006</Mapping>
+                                    </Parameter>
+                                    <Parameter ParameterId="10006" type="std:INT" IndexInDevDesc="14">
+                                      <Attributes channel="input" />
+                                      <Value name="_x0031_0006" visiblename="Analog Input Channel 6" />
+                                      <Name>Analog Input Channel 6</Name>
+                                      <Mapping>RTD_007</Mapping>
+                                    </Parameter>
+                                    <Parameter ParameterId="10007" type="std:INT" IndexInDevDesc="16">
+                                      <Attributes channel="input" />
+                                      <Value name="_x0031_0007" visiblename="Analog Input Channel 7" />
+                                      <Name>Analog Input Channel 7</Name>
+                                      <Mapping>RTD_008</Mapping>
+                                    </Parameter>
                                     <Parameter ParameterId="11000" type="std:WORD" IndexInDevDesc="1">
                                       <Attributes offlineaccess="none" onlineaccess="none" />
                                       <Value name="_x0031_1000" visiblename="Analog Input Channel 0" offlineaccess="none" onlineaccess="none">16</Value>
@@ -26245,56 +27245,25 @@ END_IF
                                       <Value name="_x0031_1003" visiblename="Analog Input Channel 3" offlineaccess="none" onlineaccess="none">16</Value>
                                       <Name>Analog Input Channel 3</Name>
                                     </Parameter>
-                                  </HostParameterSet>
-                                </Connector>
-                                <DeviceParameterSet />
-                              </DeviceType>
-                            </Device>
-                          </data>
-                          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-                            <ObjectId>48d949c7-9a12-4fea-af77-395e1684b2eb</ObjectId>
-                          </data>
-                        </addData>
-                      </configuration>
-                      <configuration name="_75x_550">
-                        <addData>
-                          <data name="Device" handleUnknown="discard">
-                            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
-                              <DeviceType>
-                                <ModuleIdentification>
-                                  <Type>288</Type>
-                                  <Id>0000 0001</Id>
-                                  <Version>4.19.0.0</Version>
-                                  <ModuleId>0226_75x_550(/0.._000)</ModuleId>
-                                </ModuleIdentification>
-                                <Connector moduleType="289" role="child" interface="PFC200.Bus" connectorId="0">
-                                  <HostParameterSet>
-                                    <Parameter ParameterId="100" type="std:WORD" IndexInDevDesc="0">
+                                    <Parameter ParameterId="11004" type="std:WORD" IndexInDevDesc="9">
                                       <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_00" visiblename="Modulecode" offlineaccess="none" onlineaccess="none">16#226</Value>
-                                      <Name>Modulecode</Name>
+                                      <Value name="_x0031_1004" visiblename="Analog Input Channel 4" offlineaccess="none" onlineaccess="none">16</Value>
+                                      <Name>Analog Input Channel 4</Name>
                                     </Parameter>
-                                    <Parameter ParameterId="20000" type="std:INT" IndexInDevDesc="2">
-                                      <Attributes channel="output" />
-                                      <Value name="_x0032_0000" visiblename="Analog Output Channel 0" />
-                                      <Name>Analog Output Channel 0</Name>
-                                      <Mapping>AO_001</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="20001" type="std:INT" IndexInDevDesc="4">
-                                      <Attributes channel="output" />
-                                      <Value name="_x0032_0001" visiblename="Analog Output Channel 1" />
-                                      <Name>Analog Output Channel 1</Name>
-                                      <Mapping>AO_002</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="21000" type="std:WORD" IndexInDevDesc="1">
+                                    <Parameter ParameterId="11005" type="std:WORD" IndexInDevDesc="11">
                                       <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0032_1000" visiblename="Analog Output Channel 0" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Output Channel 0</Name>
+                                      <Value name="_x0031_1005" visiblename="Analog Input Channel 5" offlineaccess="none" onlineaccess="none">16</Value>
+                                      <Name>Analog Input Channel 5</Name>
                                     </Parameter>
-                                    <Parameter ParameterId="21001" type="std:WORD" IndexInDevDesc="3">
+                                    <Parameter ParameterId="11006" type="std:WORD" IndexInDevDesc="13">
                                       <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0032_1001" visiblename="Analog Output Channel 1" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Output Channel 1</Name>
+                                      <Value name="_x0031_1006" visiblename="Analog Input Channel 6" offlineaccess="none" onlineaccess="none">16</Value>
+                                      <Name>Analog Input Channel 6</Name>
+                                    </Parameter>
+                                    <Parameter ParameterId="11007" type="std:WORD" IndexInDevDesc="15">
+                                      <Attributes offlineaccess="none" onlineaccess="none" />
+                                      <Value name="_x0031_1007" visiblename="Analog Input Channel 7" offlineaccess="none" onlineaccess="none">16</Value>
+                                      <Name>Analog Input Channel 7</Name>
                                     </Parameter>
                                   </HostParameterSet>
                                 </Connector>
@@ -26303,7 +27272,7 @@ END_IF
                             </Device>
                           </data>
                           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-                            <ObjectId>33351c91-ae9c-4c69-9aff-874e3858aa5b</ObjectId>
+                            <ObjectId>0975d4b7-4cd1-4fc5-bc78-d8c58de40897</ObjectId>
                           </data>
                         </addData>
                       </configuration>
@@ -26329,13 +27298,11 @@ END_IF
                                       <Attributes channel="input" />
                                       <Value name="_x0031_0000" visiblename="Analog Input Channel 0" />
                                       <Name>Analog Input Channel 0</Name>
-                                      <Mapping>AI_001</Mapping>
                                     </Parameter>
                                     <Parameter ParameterId="10001" type="std:INT" IndexInDevDesc="4">
                                       <Attributes channel="input" />
                                       <Value name="_x0031_0001" visiblename="Analog Input Channel 1" />
                                       <Name>Analog Input Channel 1</Name>
-                                      <Mapping>AI_002</Mapping>
                                     </Parameter>
                                     <Parameter ParameterId="11000" type="std:WORD" IndexInDevDesc="1">
                                       <Attributes offlineaccess="none" onlineaccess="none" />
@@ -26354,7 +27321,56 @@ END_IF
                             </Device>
                           </data>
                           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-                            <ObjectId>24398a47-f502-46a5-9720-a47008f147b0</ObjectId>
+                            <ObjectId>be8f5619-5539-4f63-9989-944cf19d0375</ObjectId>
+                          </data>
+                        </addData>
+                      </configuration>
+                      <configuration name="_75x_550">
+                        <addData>
+                          <data name="Device" handleUnknown="discard">
+                            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
+                              <DeviceType>
+                                <ModuleIdentification>
+                                  <Type>288</Type>
+                                  <Id>0000 0001</Id>
+                                  <Version>4.19.0.0</Version>
+                                  <ModuleId>0226_75x_550(/0.._000)</ModuleId>
+                                </ModuleIdentification>
+                                <Connector moduleType="289" role="child" interface="PFC200.Bus" connectorId="0">
+                                  <HostParameterSet>
+                                    <Parameter ParameterId="100" type="std:WORD" IndexInDevDesc="0">
+                                      <Attributes offlineaccess="none" onlineaccess="none" />
+                                      <Value name="_x0031_00" visiblename="Modulecode" offlineaccess="none" onlineaccess="none">16#226</Value>
+                                      <Name>Modulecode</Name>
+                                    </Parameter>
+                                    <Parameter ParameterId="20000" type="std:INT" IndexInDevDesc="2">
+                                      <Attributes channel="output" />
+                                      <Value name="_x0032_0000" visiblename="Analog Output Channel 0" />
+                                      <Name>Analog Output Channel 0</Name>
+                                    </Parameter>
+                                    <Parameter ParameterId="20001" type="std:INT" IndexInDevDesc="4">
+                                      <Attributes channel="output" />
+                                      <Value name="_x0032_0001" visiblename="Analog Output Channel 1" />
+                                      <Name>Analog Output Channel 1</Name>
+                                    </Parameter>
+                                    <Parameter ParameterId="21000" type="std:WORD" IndexInDevDesc="1">
+                                      <Attributes offlineaccess="none" onlineaccess="none" />
+                                      <Value name="_x0032_1000" visiblename="Analog Output Channel 0" offlineaccess="none" onlineaccess="none">16</Value>
+                                      <Name>Analog Output Channel 0</Name>
+                                    </Parameter>
+                                    <Parameter ParameterId="21001" type="std:WORD" IndexInDevDesc="3">
+                                      <Attributes offlineaccess="none" onlineaccess="none" />
+                                      <Value name="_x0032_1001" visiblename="Analog Output Channel 1" offlineaccess="none" onlineaccess="none">16</Value>
+                                      <Name>Analog Output Channel 1</Name>
+                                    </Parameter>
+                                  </HostParameterSet>
+                                </Connector>
+                                <DeviceParameterSet />
+                              </DeviceType>
+                            </Device>
+                          </data>
+                          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+                            <ObjectId>827f7d16-32dd-46c0-8286-bed3d86973bc</ObjectId>
                           </data>
                         </addData>
                       </configuration>
@@ -27389,6 +28405,10 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="InitMqttDiscovery" ObjectId="786503f0-f9eb-490e-adc0-b29811e12890" />
             <Object Name="InitMqtt" ObjectId="4ebaeee1-77a3-4a44-9453-83e6e27c497e" />
           </Object>
+          <Object Name="FB_INPUT_TEMPERATURE_RTD_MQTT" ObjectId="0b5f67f0-1d06-40c9-a1b0-e55e67270658">
+            <Object Name="InitMqttDiscovery" ObjectId="89f42edd-399b-4977-8303-148a3159263e" />
+            <Object Name="InitMqtt" ObjectId="c9218a71-bd22-426a-ae8a-b28c0b98615d" />
+          </Object>
         </Folder>
         <Folder Name="DALI">
           <Object Name="FB_OUTPUT_DIMMER_DALI_MQTT" ObjectId="cf57d568-37d2-4c86-8d8d-04c9284ba294">
@@ -27688,9 +28708,9 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="_75x_440" ObjectId="cc5b3f4c-e101-4a03-b25e-6777feb0bc44" />
             <Object Name="_75x_540" ObjectId="73cc08d4-71ab-4258-b3f8-89cb83a3ca0c" />
             <Object Name="_75x_540_1" ObjectId="de3c5e5c-1bcd-4852-aa48-5db6ba864880" />
-            <Object Name="_75x_463" ObjectId="48d949c7-9a12-4fea-af77-395e1684b2eb" />
-            <Object Name="_75x_550" ObjectId="33351c91-ae9c-4c69-9aff-874e3858aa5b" />
-            <Object Name="_75x_467" ObjectId="24398a47-f502-46a5-9720-a47008f147b0" />
+            <Object Name="_750_451" ObjectId="0975d4b7-4cd1-4fc5-bc78-d8c58de40897" />
+            <Object Name="_75x_467" ObjectId="be8f5619-5539-4f63-9989-944cf19d0375" />
+            <Object Name="_75x_550" ObjectId="827f7d16-32dd-46c0-8286-bed3d86973bc" />
           </Object>
         </Object>
         <Object Name="Wago_PFC200_G2_Virtual" ObjectId="a8f8a168-7f15-4995-8cb0-0cd2ca459b2c">
