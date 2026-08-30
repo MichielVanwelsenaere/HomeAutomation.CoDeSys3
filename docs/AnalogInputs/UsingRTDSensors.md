@@ -7,23 +7,17 @@ channel in CODESYS, and publish it with
 [`FB_INPUT_TEMPERATURE_RTD_MQTT`](../FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md). The
 reference bench uses a **750-451** and a Pt1000 on `R1`; the same steps apply to its relatives.
 
-The three **750-463** modules this page was originally written around were faulty and have been
-taken off the rail. Everything here about them is kept as the diagnosis it became — see
-[what the 750-463s turned out to be](#what-the-750-463s-turned-out-to-be) — because the method
-outlasts the module.
-
 ### **Which module**
 
-| Module | What it is | Sensor |
-|:--|:--|:--|
-| [750-451](https://www.wago.com/global/i-o-systems/8-channel-analog-input/p/750-451) | **8**-channel analog input | RTD resistance sensors, 2-conductor — the bench's module, set for **Pt1000** |
-| [750-463](https://www.wago.com/global/i-o-systems/4-channel-analog-input/p/750-463) | 4-channel analog input, adjustable | **Pt1000** / RTD resistance sensors, 2-conductor |
-| 750-461 | 2-channel analog input | Pt100 / RTD, supports 3-conductor |
-| 750-467 | 2-channel analog input | 0–10 V — **not** for an RTD |
+| Module | Channels | Sensor | Leads |
+|:--|:--|:--|:--|
+| 750-450 | 4 | RTD, adjustable | 2-, 3- and 4-conductor |
+| [750-451](https://www.wago.com/global/i-o-systems/8-channel-analog-input/p/750-451) | 8 | RTD, adjustable — the bench's module, set for **Pt1000** | 2-conductor |
+| 75x-461 | 2 | RTD. **The ordering variant fixes the sensor**: `/000-003` is Pt1000, `/000-006` Pt100, `/000-005` and `/000-009` Ni1000. Plain `75x-461` is adjustable. | 2- and 3-conductor |
+| [750-463](https://www.wago.com/global/i-o-systems/4-channel-analog-input/p/750-463) | 4 | RTD, adjustable | 2-conductor |
 
-:rotating_light: **A resistance sensor cannot go on a voltage input.** The 0–10 V module measures
-voltage and has no excitation current, so a Pt1000 on it reads nothing meaningful. Check the
-module number printed on the front before wiring anything.
+Taken from the device description this controller actually carries rather than from a catalogue,
+so it is the list of modules CODESYS here can be told it has.
 
 ### **Wiring**
 
@@ -88,76 +82,31 @@ code in this project can perform:
   needed to establish it.
 - The **750-463 is the Pt1000 variant**, and Pt1000 is its factory default. If the module has
   never been reconfigured, **a Pt1000 needs no configuration at all.**
-- It is *adjustable* — Pt1000, Ni1000, KTY81 and plain resistance ranges — and those settings live
-  in the module, changed with **WAGO-I/O-CHECK** over the controller's service interface, or by
-  register communication through the process image.
-- **Register communication is not available at all, and not because of how this project is set
-  up.** The installed device description is the authority, and it was read rather than assumed —
-  `C:\ProgramData\CODESYS\Devices\288\0000 0001\4.19.0.0\device.xml` defines exactly **one**
-  `01CF_75x_463` module, whose entire parameter set is a Modulecode, four `INT` input channels, and
-  four bit-length WORDs marked `onlineaccess="none" offlineaccess="none"`. The 750-451 is the same
-  story one size up: `01C3_750_451` is a Modulecode, **eight** `INT` input channels and eight
-  length WORDs, and nothing else. There is no sensor-type parameter, no control/status byte and no
-  second variant to switch to, so there is nothing to enable in the IDE either. Its own description calls the module *"parameterizable"* — just not
-  from here.
+- It is *adjustable* — Pt1000, Ni1000, KTY81 and plain resistance ranges — and those settings
+  live inside the module. Changing one means **WAGO-I/O-CHECK** over the controller's service
+  interface; there is no way to reach it from IEC code, because the channel words are the module's
+  entire interface to the application, with no parameter or control byte beside them.
 
-So: a factory-default 750-463 with a Pt1000 is plug-and-play. Anything else is a
-[WAGO-I/O-CHECK](../WagoIoCheck.md) job at a laptop, and the symptom that says so is described
-below.
-
-:rotating_light: **The bench's three 750-463 modules were broken, and configuration was never the
-problem.** Every channel read exactly `1500` — 150.0 °C — and never moved a digit, with a Pt1000
-connected. This page spent a long time assuming that meant they had been set up for some other
-sensor. They had not: WAGO-I/O-CHECK eventually showed every parameter already correct and the
-analog front end producing no conversion at all. They have been taken off the rail; the 750-451
-that replaced them works. See [where that leaves it](#where-that-leaves-it), and
-[configuring a module with WAGO-I/O-CHECK](../WagoIoCheck.md) for how that was established.
+So: a module already set for the sensor you are plugging in is plug-and-play. Anything else is a
+[WAGO-I/O-CHECK](../WagoIoCheck.md) job at a laptop.
 
 ### **Mapping the channel in CODESYS**
 
-Each channel needs a variable name in the module's **I/O mapping** tab before any code can read
-it. The reference bench carries one 750-451 and maps all eight of its channels:
+A channel has no name until it is given one, and code cannot read it until it has. Open the
+module in the device tree, go to its **I/O mapping** tab, and type a variable name against each
+channel you are using. The bench maps all eight:
 
 | Node | CODESYS channel | Mapped variable |
 |:--|:--|:--|
 | `_750_451` | Analog Input Channel 0 … 7 | `RTD_001` … `RTD_008`, in order |
 
-:rotating_light: **The order of the modules in the device tree must match their order on the
-rail.** The K-bus hands the process image out in physical order, so a terminal in the wrong slot
-of the tree reads its neighbour's words — silently, with a plausible number, which is the failure
-this whole page is about.
-
-**Check it in the IDE, and only there.** A script can add a terminal but cannot place one, and
-cannot see where one sits: `insert` ignores the index it is given, remove-and-re-add does not move
-a node, and the order the ScriptEngine and the PLCopen export both report is *creation* order
-rather than rail position. The `codesys-loop` skill has the full account. Adding a terminal at the
-far right of the rail sidesteps the question, because then appending is correct.
-
-Naming the channels *is* scriptable, and doing it by hand is a double-click each:
-
-```powershell
-./tools/ai/codesys.ps1 device -MapIo .ai/edits/rtd451-map.json -Force
-```
-
-The spec is one object per channel, and the harness reads each mapping back rather than trusting
-that it took — the setter accepts any expression that parses, so a typo is otherwise accepted in
-silence:
-
-```json
-{ "map_io": [
-    { "node": "_750_451", "channel": "Analog Input Channel 0", "variable": "RTD_001" },
-    { "node": "_750_451", "channel": "Analog Input Channel 1", "variable": "RTD_002" }
-] }
-```
-
-:rotating_light: **This has to happen before the code that reads the channels will compile**, and
-it cannot happen in the same run: `device -MapIo` builds the project before saving and refuses a
-red build, so a `PRG_MAIN` still referring to channels that do not exist blocks the very mapping
-that would create them. The way through is three passes — take the references out, map, put them
-back — which is how the twelve 750-463 channels became eight 750-451 ones.
-
 Each is an `INT` carrying **tenths of a degree Celsius**, two's complement: `213` is 21.3 °C,
 `-105` is -10.5 °C. That is the module's own scaling — there is nothing to calibrate in software.
+
+:rotating_light: **The order of the modules in the device tree must match their order on the
+rail**, and it can only be checked in the IDE. The K-bus hands the process image out in physical
+order, so a terminal in the wrong slot of the tree reads its neighbour's words — silently, and
+with a number that looks perfectly reasonable.
 
 ### **Publishing it**
 
@@ -236,10 +185,9 @@ The element moves at about 3.9 Ω/°C, so `(R - 1000) / 3.9` is good to a few hu
 degree at room temperature and a quarter of a degree by 50 °C — far more than enough to judge a
 reading by.
 
-This is the check that needs no second thermometer and no tooling, and on this bench it is
-conclusive: **1092 Ω at the terminals means the channel should report `236`, and it reports
-`1500`.** Those are not the same measurement, and no amount of staring at a plausible-looking
-150.0 °C would have said so.
+This is the check that needs no second thermometer and no tooling: measure the element, convert,
+and compare against the channel word. If the two disagree, the channel is not measuring what is
+on its terminals — however reasonable the number looks.
 
 ### **What the 750-451 reads**
 
@@ -257,171 +205,20 @@ times — once per minute, which is the heartbeat, and **one digit above where i
 Four things that reading establishes, none of which a single sample could:
 
 - **The channel is measuring.** 25.9 °C is right for the room, and the last digit moved within
-  minutes. That is the exact signature the three 750-463s never produced: they held `1500` to the
-  digit for as long as anyone watched.
+  minutes — which a channel that is merely holding a plausible constant does not do.
 - **The module is set for Pt1000.** A Pt1000 on a Pt100 channel cannot read correctly — it would
   saturate — so a correct absolute value settles the sensor type with no tooling at all.
-- **An unwired channel on a 750-451 saturates high**, at `8500`. This is the opposite of the
-  750-463, whose disabled channels read `0`, and it is the more useful behaviour: an open circuit
-  announces itself instead of impersonating 0.0 °C.
+- **An unwired channel saturates high**, at `8500`. That is the useful behaviour: an open circuit
+  announces itself rather than impersonating a plausible 0.0 °C.
 - **`PlausibleMin`/`PlausibleMax` are what catch it.** `8500` is 850.0 °C, comfortably inside the
-  IEC 60751 range the block checks first, so the range check passes it — exactly as it passed the
-  750-463's `1500`. It is the -40…80 °C plausible range that fails it, and the seven empty
-  channels duly report `offline` and show as unavailable in Home Assistant rather than as seven
-  confident 850 °C sensors.
+  IEC 60751 range the block checks first, so that check passes it. It is the -40…80 °C plausible
+  range that fails it, and the seven empty channels duly report `offline` and show as unavailable
+  in Home Assistant rather than as seven confident 850 °C sensors.
 
 :bulb: **The one test still outstanding** is warming the element by hand and watching the value
 follow. A dithering last digit is strong evidence of a live conversion; a number that tracks a
 deliberate change is proof. Nothing on this page depends on it, but say so rather than implying
 it was done.
-
-### **What the 750-463s turned out to be**
-
-Kept because the method is worth more than the module: three RTD terminals that read a confident,
-plausible, completely fictional temperature, and the two wrong theories that fitted before the
-right instrument was found. The modules described below are no longer on the bench.
-
-Measured on the reference bench, PFC200 + 750-463, one Pt1000 on channel 0:
-
-```
-RTD_001   1500  1500  1500  1500  1500  1500  1500      seven samples, 70 seconds
-RTD_002      0    RTD_003  0    RTD_004  0               unwired channels
-AI_001       0    AI_002   0                             the 0-10 V module, unwired
-input image  %IW1 = 1500, every other word 0
-```
-
-Three things worth keeping from that:
-
-- **The mapping is right and the module is not.** `%IW1` carries the channel, the value reaches
-  `RTD_001` intact, and it is a constant. A misconfigured module produces a confident number, not
-  an error.
-- **An unwired channel here reads `0`, not over-range.** So on this hardware a disconnected sensor
-  cannot be told from a genuine 0.0 °C by value alone — which is exactly why the block's second
-  check is *movement* rather than range. Do not assume the over-range behaviour some data sheets
-  describe; measure what your module does, on a channel you have deliberately left empty.
-- **`0` is also what an unused 0-10 V channel reads**, so `0` on this bus means "nothing here"
-  more often than it means zero.
-
-#### 1500 is the top of the range — which is what an open circuit looks like
-
-Three 750-463 modules, all channels configured, a block on each at 1 Hz, and **no sensor
-connected to any of them**:
-
-```
-RTD_001..RTD_012   1500 on every one of them, twice, six seconds apart
-```
-
-Twelve open-circuit channels, twelve times `1500`. So on this module, as configured, **`1500` is
-what a channel with nothing on its terminals reports** — and the three `0`s in the earlier
-reading were *disabled* channels, not unwired ones. `0` never meant "nothing here"; it meant
-"not switched on".
-
-That retires the mystery this page opened with. The very first reading — `1500`, rock steady, on
-a channel that had a Pt1000 wired to it — was the module reporting an open circuit. It was not a
-misconfigured channel inventing a number. The sensor was not being seen at all.
-
-:bulb: **Why `1500` and not some other constant.** The module's own description, read off its
-front page in WAGO-I/O-CHECK much later, is `4AI RTD -30 °C - 150 °C`. So `1500` is not an
-arbitrary value and not a fault code — it is *exactly the top of the range*, and an RTD input
-saturates high when it sees infinite resistance. Knowing the range would have named this on day
-one. **Read the module's stated range before theorising about its readings.**
-
-:rotating_light: **And it is why the range check can never catch a broken wire on this hardware.**
-`1500` is 150.0 °C, comfortably inside the -200…850 °C a platinum RTD can produce, so the range
-check passes it. On a module that signals an open circuit by going *outside* the range the check
-works; on this one it cannot.
-
-That is what `PlausibleMin`/`PlausibleMax` were added for. Their -40…80 °C default is what a room,
-a buffer tank or a floor loop can actually be, and 150 °C is not, so an open circuit on this module
-is rejected on the first scan. Before that the twelve channels published as healthy `150.0 °C` for
-the fifteen minutes `StaleTimeout` took to notice — and every restart bought another fifteen, which
-is why the sensors kept looking fine every time anybody checked.
-
-#### Except it was not an open circuit either — the bus was not running
-
-With a Pt1000 verified at 1092 Ω on channel 0 of the first module, every mapped input word read:
-
-```
-RTD_001..RTD_012   1500      twice, eight seconds apart
-AI_001, AI_002        0      the 0-10 V module's two words
-```
-
-**The sensor's value is in none of the fourteen words.** That is the reading that settles it: if
-any module were measuring 1092 Ω, the number would have to appear *somewhere* in the process
-image, and every word is accounted for. So no channel was measuring, and the wiring was never the
-problem.
-
-Two details name the cause. The values are constant to the digit across two reads — nothing is
-dithering, so nothing is being sampled. And they cluster by **configured module type**, not by
-position on the rail: `1500` on every word belonging to a configured 750-463 and `0` on both
-belonging to the 750-467. Real bus data cannot sort itself by what the *project* thinks is
-plugged in. These are the values the words hold when the driver never fills them.
-
-The device tree looked like the culprit: it listed the terminals as
-`440, 540, 540_1, 463, 550, 467, 463, 463` while the rail carried
-`440, 540, 540_1, 463, 463, 463, 550, 467`. A K-bus is a shift register and the configured
-sequence has to match the physical one, so a mismatch is a real fault and would explain a process
-image full of values that never move.
-
-**It was not the cause.** The 750-550 and 750-467 were unplugged from the rail and removed from
-the tree, leaving `440, 540, 540_1, 463, 463, 463` on both sides — matched, verified — and all
-twelve channels still read exactly `1500`. So the tree order was a genuine defect worth fixing and
-it was not what made the channels read a constant. Both things were true at once, which is what
-made it convincing.
-
-:bulb: **Two faults at once is the normal case on a bench, not the exception.** Fixing one and
-re-testing is the only way to tell which one you were looking at; the mistake here was writing
-down a cause before re-testing.
-
-#### Where that leaves it
-
-Established, and not in doubt:
-
-- Three separate 750-463 modules, twelve channels, all reading exactly `1500`, constant to the
-  digit across reads seconds apart.
-- A Pt1000 measuring 1092 Ω at the terminals — 23.6 °C, so the channel owes `236` — changes
-  nothing, on whichever channel it is connected to.
-- The value appears in no other word of the process image either, so nothing is measuring it and
-  reading it somewhere unexpected.
-- The device tree now matches the rail, so terminal order is not it.
-
-**The K-bus is not the alternative.** Switching a digital output moved its LED, so the bus is
-delivering in both directions and the analog modules really are reporting a constant of their own.
-
-**And the terminals were shorted.** A scrap of wire across a channel is zero ohms, below the
-bottom of every range a 750-463 can be set to, so a channel that is measuring *must* move. `TEMP`
-did not change.
-
-#### The verdict: the modules are faulty
-
-WAGO-I/O-CHECK ended it. The full account of that session, and how to run one, is on
-[configuring a module with WAGO-I/O-CHECK](../WagoIoCheck.md); the findings are:
-
-| What was checked | What it showed |
-|:--|:--|
-| Channel 1 parameters | `Pt1000 (IEC751)`, 2-wire, two's complement — **already correct** |
-| Manufacturer calibration | offset `88`, gain `16380` — intact factory data, not a wiped module |
-| Module description | `4AI RTD -30 °C - 150 °C` |
-| Process value | `150.00 °C`, i.e. the top of that range |
-| A/D raw value | `9999998976` — an all-nines sentinel, not a measurement |
-| A/D raw value with the terminals shorted | `9999998976`, **unchanged** |
-
-So the analog front end is not converting, and no setting is going to fix that. **The modules are
-faulty.** The parameters were right the whole time.
-
-:rotating_light: **This page was wrong about the cause for weeks, and the wrong theory was
-plausible at every step.** It read a rock-steady constant as a misconfigured channel; it then read
-three modules agreeing to the digit as three modules configured alike before we owned them. Both
-survived because nothing available at the time could see *upstream of the scaling stage*. What
-settled it was one number no amount of process-image staring can produce — the A/D raw value —
-and a second instrument agreeing with the first. **When two theories both fit, go and find an
-instrument that only one of them survives.**
-
-:bulb: **What to do instead, if a temperature is actually needed.** The sensor does not have to be
-on this module at all. A 1-Wire probe on the ESERA gateway
-([`FB_RS485_ESERA_OWD_MQTT`](../FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)) publishes a
-temperature over the RS485 bus that is already commissioned, and needs no module configuration
-whatsoever.
 
 ### **Three 30-second tests before reaching for a laptop**
 
@@ -457,14 +254,13 @@ Two things from it worth having in front of you before a session on an RTD modul
   `bKbusRestart`, do the work, then set it `FALSE` and pulse `bKbusRestart` again. The restart is
   what applies it, both ways.
 - **Turn on `Diagnosis: Wire Break / Short-Circuit` while you are in there.** It is off from the
-  factory, and it is the whole reason an open circuit on this module publishes a confident
-  `150.0 °C` instead of announcing itself.
+  factory, and it is the whole reason an open circuit publishes a confident end-of-scale reading
+  — `850.0 °C` on the 750-451 — instead of announcing itself.
 
 Then set the channel to **Pt1000, 0.1 °C, 2-conductor, enabled**, write it into the module, and
 power-cycle the node.
 
 **IEC code can hand the bus over, but it cannot do the configuring.** `EnableIoCheck` gets
-I/O-CHECK access to the modules; it does not give the application any. The CODESYS device
-description for `01CF_75x_463` offers a single layout of four input words, with no control/status
-byte, so there is no mailbox to write a sensor type through — which is why the licence and the
-cable are still the only way to change one.
+I/O-CHECK access to the modules; it does not give the application any. An RTD module offers the
+application its channel words and nothing else — no control or status byte to write a sensor type
+through — which is why the licence and the cable are still the only way to change one.

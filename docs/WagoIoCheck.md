@@ -7,10 +7,7 @@ module's own memory and are reached with **WAGO-I/O-CHECK** over the service cab
 covers when you need it, what to buy, how to make the PLC let go of the K-bus so the tool can get
 in, and how to read what it shows you.
 
-The worked example throughout is a **750-463** RTD input on the reference bench. Those three
-modules have since been taken off the rail as faulty and replaced by a **750-451**, which was
-already set for Pt1000 and needed no I/O-CHECK session at all — worth saying, because the cheapest
-outcome of this page is discovering you do not need it. See
+The worked example throughout is a **750-463** RTD input. See
 [reading a temperature sensor](AnalogInputs/UsingRTDSensors.md) for the sensor side of that story
 and [`FB_INPUT_TEMPERATURE_RTD_MQTT`](FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md) for the
 block that publishes the channel.
@@ -228,46 +225,6 @@ is within a whisker of 2^14 — unity in a fixed-point representation — with a
 it. A module that had been mis-flashed or had its memory corrupted would not still be holding
 plausible factory calibration, so seeing this narrows the fault to the analog front end rather than
 to the module's stored settings.
-
-### **A worked example: three 750-463s that were not the problem they looked like**
-
-The reference bench spent a long diagnosis on twelve RTD channels that all read exactly `1500`,
-constant to the digit. The theory of the day was that three second-hand modules had been
-configured for something other than a Pt1000. I/O-CHECK settled it in about ten minutes, and the
-theory was wrong:
-
-| What was checked | What it showed |
-|:--|:--|
-| Channel 1 parameters | `Pt1000 (IEC751)`, 2-wire, two's complement — **exactly right** |
-| Manufacturer calibration | offset `88`, gain `16380` — intact factory data |
-| Title bar | `4AI RTD -30 °C - 150 °C` |
-| Process value | `150.00 °C` |
-| A/D raw value | `9999998976` |
-| A/D raw value with the terminals shorted | `9999998976` — **unchanged** |
-
-Three conclusions, in the order they fall out:
-
-1. **`1500` was never an arbitrary constant.** It is `150.0 °C`, the exact top of the range the
-   module states in its own title bar. Every one of those twelve channels was *saturated*, and on
-   an RTD input saturated-high is what infinite resistance looks like.
-2. **The modules were not misconfigured.** Every parameter that could have caused a wrong reading
-   was already correct, which retired the theory the whole investigation had been built on.
-3. **The front end is not converting.** A sentinel raw value that does not move when the terminals
-   are shorted is conclusive, and it is the second instrument to say so — the CODESYS process image
-   had already refused to move under the same short. Two independent read paths agreeing is what
-   turned a suspicion into a verdict: **the modules are faulty.**
-
-:bulb: **Two faults at once is the normal case on a bench, not the exception.** This diagnosis also
-turned up a genuine device-tree ordering defect and fixed it, and the channels still read `1500`
-afterwards. Fixing one thing and re-testing is the only way to tell which one you were looking at.
-
-:rotating_light: **Check the terminal pairs against a channel that works, not against a table.**
-[The pairing written down for the 750-463](AnalogInputs/UsingRTDSensors.md#wiring) was never
-confirmed against a channel that was really measuring — no channel on those modules ever measured
-anything — so on that module a "dead channel" may be a live one two places along. On the 750-451
-that replaced them, `R1` **is** confirmed: a Pt1000 there reads the room on `RTD_001`. The Scaling
-page's per-channel tabs make this a ten-second check on any module: short one pair and watch every
-Process value at once.
 
 ### **Related**
 
