@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T14:11:36.8011252" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T14:11:00.6745492">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T14:58:57.5728621" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T14:58:20.5930677">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2990,10 +2990,29 @@ END_IF		</xhtml>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name</xhtml>
               </documentation>
             </variable>
-            <variable name="rPublished">
+            <variable name="fbFirstConversion">
               <type>
-                <REAL />
+                <derived name="Standard.TON" />
               </type>
+            </variable>
+            <variable name="bZeroIsBelievable">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> FALSE only in the moments after the bus comes up, while the channel still
+ reads the zero the process image was cleared to.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iPublishedRaw">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The channel word as it was last published, so a repeat can be told from a
+ change. Kept as the INT rather than the REAL: two readings that came from
+ the same word are then equal by construction, with no float comparison.</xhtml>
+              </documentation>
             </variable>
             <variable name="bPublishedValid">
               <type>
@@ -3094,6 +3113,28 @@ END_IF		</xhtml>
                 <simpleValue value="8500" />
               </initialValue>
             </variable>
+            <variable name="ctFirstConversion">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#5s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long a channel may read exactly 0 after the bus comes up before 0 is
+ believed as a temperature.
+
+ ProcessImageValid is necessary and NOT sufficient: the bus reports process
+ data exchanging a little before an RTD module has delivered its first
+ conversion, and in that window the word is still the zeroed process image.
+ Measured on the bench, that window is well under a second - but 0 is 0.0 C,
+ a perfectly plausible temperature, so a block that believes it publishes a
+ fabricated zero on every restart.
+
+ Long enough for any 750-series RTD to convert, short enough that a sensor
+ genuinely sitting at 0.0 C is only briefly unavailable rather than wrong.</xhtml>
+              </documentation>
+            </variable>
             <variable name="crPt1000OhmsPerDegree">
               <type>
                 <REAL />
@@ -3119,6 +3160,28 @@ END_IF		</xhtml>
  Celsius - which is what a WAGO 750-463 and its relatives put in the process
  image, two's complement, so -105 is -10.5 C. Wire it straight to the
  channel variable: Raw := RTD_001.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ProcessImageValid">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE once the K-bus has finished starting and is really exchanging process
+ data. Until then every mapped word reads 0, and 0 is 0.0 C - a perfectly
+ plausible temperature - so a block that trusts it publishes a fabricated
+ zero on every restart before the real value arrives a second later. That
+ happened, on this bench, and it is why this input exists.
+
+ Wire it to the bus driver's own answer, which is the only authoritative
+ one: ProcessImageValid := Pfc200Bus.xConfigFinished.
+
+ Defaults to FALSE, deliberately. Forget to wire it and the channel stays
+ unavailable, which is loud; the alternative default hands you a wrong
+ number once per restart, which is silent.</xhtml>
               </documentation>
             </variable>
             <variable name="LeadResistance">
@@ -3148,19 +3211,6 @@ END_IF		</xhtml>
  nothing anywhere to say so. Prefer here: this is in source control, it
  shows up in a diff and in the PLCopen export, and it survives swapping
  the terminal, which a value in a module's flash does not.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="PublishDeadband">
-              <type>
-                <REAL />
-              </type>
-              <initialValue>
-                <simpleValue value="0.2" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Degrees Celsius of change needed before the value is published again. The
- last digit of an RTD channel jitters continuously and nobody wants 0.1 C of
- noise in their history; zero publishes every change.</xhtml>
               </documentation>
             </variable>
             <variable name="HeartbeatInterval">
@@ -3278,7 +3328,24 @@ bInRange := (iCorrectedRaw &gt;= ciRtdMinRaw) AND (iCorrectedRaw &lt;= ciRtdMaxR
 rReading := INT_TO_REAL(iCorrectedRaw) / 10.0;
 bPlausible := (PlausibleMax &lt;= PlausibleMin)
 	OR ((rReading &gt;= PlausibleMin) AND (rReading &lt;= PlausibleMax));
-Valid := bInRange AND bPlausible;
+(* --- has this channel produced a reading at all? -----------------------------
+   Two gates before the value is looked at, because a zero has two meanings.
+
+   ProcessImageValid says the bus is exchanging process data. Necessary, and NOT
+   sufficient: it goes TRUE slightly before an RTD module has delivered its first
+   conversion, and until then the word is still the zero the process image was
+   cleared to. That gap is well under a second and it was enough to publish a
+   fabricated 0.0 C on every restart, ahead of the real value.
+
+   So a zero is not believed until the module has had time to convert. After
+   ctFirstConversion it is believed like any other reading, because 0.0 C is a
+   real temperature and a sensor sitting at it must not go unavailable forever.
+   Raw and not iCorrectedRaw: it is the module's own word that is zeroed, and a
+   lead correction would move it off zero for the wrong reason. *)
+fbFirstConversion(IN := ProcessImageValid, PT := ctFirstConversion);
+bZeroIsBelievable := (Raw &lt;&gt; 0) OR fbFirstConversion.Q;
+
+Valid := ProcessImageValid AND bZeroIsBelievable AND bInRange AND bPlausible;
 
 IF Valid THEN
 	Temperature := rReading;
@@ -3301,8 +3368,14 @@ Fault := NOT Valid;
 fbHeartbeat(IN := NOT fbHeartbeat.Q, PT := HeartbeatInterval);
 
 (* --- publishing --------------------------------------------------------------
-   Three reasons to publish and no others: the value moved by more than the
-   deadband, the heartbeat elapsed, or this is the first reading.
+   Three reasons to publish and no others: the channel word changed, the heartbeat
+   elapsed, or this is the first reading.
+
+   There was a PublishDeadband input here, defaulting to 0.2 C, on the reasoning
+   that an RTD's last digit dithers continuously and nobody wants that in their
+   history. This bench measured the opposite - one digit every 75 minutes or so,
+   dead still in between - so on a quiet channel it suppressed nothing, and it is
+   gone. Every change is published, which is what setting it to zero always did.
 
    While the value is out of range nothing is published, deliberately: Temperature
    holds the last trustworthy reading, and the discovery config's expire_after lets
@@ -3312,7 +3385,7 @@ fbHeartbeat(IN := NOT fbHeartbeat.Q, PT := HeartbeatInterval);
 IF bInitMqttDone AND Valid THEN
 	IF NOT bPublishedValid
 		OR fbHeartbeat.Q
-		OR ABS(Temperature - rPublished) &gt;= PublishDeadband
+		OR (iCorrectedRaw &lt;&gt; iPublishedRaw)
 	THEN
 		(* Formatted from the integer rather than through REAL_TO_STRING, which
 		   would publish 21.299999 for a channel reading 213. One decimal is all
@@ -3332,7 +3405,7 @@ IF bInitMqttDone AND Valid THEN
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := TRUE);
 
-		rPublished := Temperature;
+		iPublishedRaw := iCorrectedRaw;
 		bPublishedValid := TRUE;
 	END_IF
 END_IF
@@ -24463,14 +24536,22 @@ fbDiPb002(PB:= DI_002);
    in the SFC chart to be called at all, and a chart cannot be edited from a
    script. Moving it is an IDE job worth doing the next time this program is
    open. *)
-fbAiRtd001(Raw := RTD_001, HeartbeatInterval := tRtdPublishInterval);
-fbAiRtd002(Raw := RTD_002, HeartbeatInterval := tRtdPublishInterval);
-fbAiRtd003(Raw := RTD_003, HeartbeatInterval := tRtdPublishInterval);
-fbAiRtd004(Raw := RTD_004, HeartbeatInterval := tRtdPublishInterval);
-fbAiRtd005(Raw := RTD_005, HeartbeatInterval := tRtdPublishInterval);
-fbAiRtd006(Raw := RTD_006, HeartbeatInterval := tRtdPublishInterval);
-fbAiRtd007(Raw := RTD_007, HeartbeatInterval := tRtdPublishInterval);
-fbAiRtd008(Raw := RTD_008, HeartbeatInterval := tRtdPublishInterval);
+fbAiRtd001(Raw := RTD_001, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd002(Raw := RTD_002, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd003(Raw := RTD_003, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd004(Raw := RTD_004, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd005(Raw := RTD_005, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd006(Raw := RTD_006, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd007(Raw := RTD_007, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
+fbAiRtd008(Raw := RTD_008, HeartbeatInterval := tRtdPublishInterval,
+	ProcessImageValid := Pfc200Bus.xConfigFinished);
 
 
 (* K-BUS CONTROL. Written every cycle so that setting either flag in an online

@@ -117,8 +117,14 @@ fbAiRtd001 : FB_INPUT_TEMPERATURE_RTD_MQTT := (FriendlyName := 'Buffer tank top'
 
 ```
 (* in the action the task calls every cycle *)
-fbAiRtd001(Raw := RTD_001);
+fbAiRtd001(Raw := RTD_001, ProcessImageValid := Pfc200Bus.xConfigFinished);
 ```
+
+:rotating_light: **`ProcessImageValid` is not optional, and it defaults to `FALSE`.** Every mapped
+word reads `0` until the K-bus has started, and `0` is a perfectly plausible 0.0 °C — so without
+it the block publishes a fabricated zero on every restart, a moment before the real value. Wire it
+to the bus driver's own output as above. Leave it out and the channel simply stays unavailable,
+which is the loud failure rather than the silent one.
 
 That is the whole of it: the block wires itself from `GVL_MQTT`, publishes to
 `.../Out/AnalogInputs/fbAiRtd001/TEMP`, and announces one temperature sensor to Home Assistant —
@@ -162,7 +168,7 @@ Read the channel word — online, or on the `/TEMP` topic — and compare agains
 
 | Reading | Means |
 |:--|:--|
-| ≈ ambient, one decimal, **dithering in the last digit** | Correct. A real channel is never still; that jitter is what `PublishDeadband` exists to absorb. |
+| ≈ ambient, one decimal | Correct. Do not expect it to dither: in still air a Pt1000 can hold the same tenth of a degree for an hour or more. |
 | Far out of range, `Fault` set | Open circuit, on a module that reports over-range. A lead is not in the terminal, or is in the wrong channel's. **On the 750-451 that is `8500`** — 850.0 °C, the top of the platinum scale — on every unwired channel. |
 | **A plausible value that never moves at all** | Possibly a front end that has stopped converting, and possibly just a very quiet room — a Pt1000 in still air can hold one tenth of a degree for over an hour. Nothing in the block catches this, because nothing can tell the two apart. Short the terminals briefly: a channel that is measuring drops to the bottom of its scale at once. |
 | Plausible, moving, but roughly 2.6× the true value | The channel is set for Pt100 and a Pt1000 is connected. **Nothing automatic catches this** — it is in range and it tracks. Compare against a thermometer once. |

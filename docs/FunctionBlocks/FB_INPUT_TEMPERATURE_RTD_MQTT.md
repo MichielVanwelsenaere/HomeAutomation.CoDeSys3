@@ -47,8 +47,8 @@ image can produce it.
        │   FB_INPUT_TEMPERATURE_RTD_MQTT   │
        ├───────────────────────────────────┤
  INT ──┤ Raw                   Temperature ├── REAL
-REAL ──┤ LeadResistance              Valid ├── BOOL
-REAL ──┤ PublishDeadband             Fault ├── BOOL
+BOOL ──┤ ProcessImageValid           Valid ├── BOOL
+REAL ──┤ LeadResistance              Fault ├── BOOL
 TIME ──┤ HeartbeatInterval   DataAvailable ├── BOOL
 REAL ──┤ PlausibleMin                      │
 REAL ──┤ PlausibleMax                      │
@@ -62,8 +62,8 @@ REAL ──┤ PlausibleMax                      │
 | Pin | Type | Description |
 |:--|:--|:--|
 | `Raw` | INT | The mapped channel word of the RTD module, in tenths of a degree Celsius. Wire it to the channel variable — `Raw := RTD_001` — and nothing else is needed to make the block work. |
+| `ProcessImageValid` | BOOL | TRUE once the K-bus has finished starting and is really exchanging process data. **Wire it to the bus driver's own answer** — `ProcessImageValid := Pfc200Bus.xConfigFinished` — which is the only authoritative one. Defaults to **FALSE** deliberately: forget it and the channel stays unavailable, which is loud, where the other default hands you a fabricated `0.0` once per restart, which is silent. See *[the first reading after a restart](#the-first-reading-after-a-restart)*. |
 | `LeadResistance` | REAL | Round-trip resistance of the sensor leads, in ohms; defaults to 0, which corrects nothing. The 750-451 and 750-463 both measure **2-conductor**, so the leads sit in series with the element and the channel reads *high* by them. A Pt1000 moves about 3.9 Ω/°C near room temperature, so the error is `LeadResistance / 3.9` °C — about 0.18 °C down 2×10 m of 0.5 mm², and 1.8 °C down 2×50 m of 0.25 mm². Measure it with the sensor disconnected, by shorting the far end of the pair and reading the loop at the terminals. :rotating_light: **Correct this in one place only** — see below. |
-| `PublishDeadband` | REAL | Degrees Celsius of change required before the value is published again, measured against the **last published** value so a slow drift still accumulates to a publish. Defaults to 0.2. It bounds how often a *moving* channel publishes — without it, every 0.1 °C step is another retained message and another point in the history. On a still channel it changes nothing, because `HeartbeatInterval` republishes anyway. Zero publishes every change. |
 | `HeartbeatInterval` | TIME | Republish even when nothing changed, so a reader can tell a steady temperature from a PLC that has stopped. Defaults to **1 minute**, and the discovery config's `expire_after` is set to three of these — so changing it changes both, but only for entities announced after the change. |
 | `PlausibleMin` | REAL | Bottom of the range this sensor could plausibly be measuring, in °C. Defaults to -40. |
 | `PlausibleMax` | REAL | Top of that range; defaults to 80. **This is the check that earns its keep.** The IEC 60751 bounds only ask whether a platinum RTD could produce a reading at all, which a 750-463's open-circuit `150.0 °C` passes comfortably — it is a legal Pt1000 temperature. No room, buffer tank or floor loop reaches it, so saying what the sensor is *for* rejects an open circuit on the first scan. Widen it deliberately for a flue, a solar collector or a freezer; set `Max <= Min` to switch the check off. |
@@ -75,7 +75,7 @@ REAL ──┤ PlausibleMax                      │
 | `Temperature` | REAL | Degrees Celsius, with `LeadResistance` already taken off. **Held** at the last trustworthy reading while the channel is out of range or implausible, rather than following it into whatever the module reports for a broken wire. |
 | `Valid` | BOOL | The channel is reading a real sensor, within the range this sensor type can measure. |
 | `Fault` | BOOL | **Do not trust this reading.** The inverse of `Valid`: set when the value is outside what a platinum RTD can produce, or outside `PlausibleMin`…`PlausibleMax` — usually a wire out of a terminal. This is what drives the entity's availability: while it is set, Home Assistant shows the sensor as unavailable. |
-| `DataAvailable` | BOOL | High once a plausible reading has been seen, and it **latches**: it answers *has this channel ever worked*, not *is it working now* — `Valid` is that one. One wart, found by a bench assertion that expected better: a mapped channel reads `0` for the first cycles before the K-bus fills the process image, and `0.0 °C` is perfectly plausible, so this latches TRUE (and `Temperature` holds `0.0`) even on a channel that goes on to measure nothing at all. Do not read it as proof a sensor is connected. |
+| `DataAvailable` | BOOL | High once a trustworthy reading has been seen, and it **latches**: it answers *has this channel ever worked*, not *is it working now* — `Valid` is that one. It used to latch on the zero a mapped channel reads before the K-bus fills the process image; the startup gate below fixed that, so it no longer latches on a reading nothing produced. It is still not proof a sensor is connected — only that the channel once read something plausible. |
 
 ### **Methods**
 
@@ -122,7 +122,7 @@ it.
 
 | output | MQTT topic suffix | Unit | Published |
 |:--|:--|:--|:--|
-| `Temperature` | `/TEMP` | °C | on a change beyond `PublishDeadband`, on the heartbeat, and once at startup — **never while the reading is out of range or implausible**, where the last good value is held instead |
+| `Temperature` | `/TEMP` | °C | whenever the channel word changes, on the heartbeat, and once at startup — **never while the reading is out of range or implausible**, where the last good value is held instead |
 | `Fault` | `/availability` | — | `offline` / `online`, **only when it changes**, plus once at startup — and that startup publish is required, because Home Assistant treats a missing availability payload as unavailable |
 
 One decimal, always, formatted from the integer rather than through `REAL_TO_STRING` — which
@@ -201,6 +201,40 @@ scale, and both ends are legal platinum temperatures: a 750-463 reports `1500` �
 750-451 reports `8500` — 850.0 °C. Both sit inside -200…850 °C, so the range check passes them.
 With the default -40…80 °C plausible range, an open circuit is rejected on the **first scan** —
 about 34 seconds after a restart, which is as fast as the startup publish allows.
+
+### **The first reading after a restart**
+
+A mapped channel does not read its sensor the instant the application starts. The process image is
+cleared to zero, and it stays zero until two separate things have happened: the **K-bus** has
+finished starting and is exchanging process data, and the **module** has completed its first
+conversion. `0` is 0.0 °C — a perfectly plausible temperature — so a block that simply believes
+what it reads publishes a fabricated zero on every restart, moments before the real value arrives.
+
+That is not hypothetical: it was observed on the broker, on this bench, as
+
+```
+availability offline  →  TEMP 0.0  →  availability online  →  TEMP 26.3
+```
+
+all inside the same second. Home Assistant recorded the 0.0 as a genuine reading.
+
+Two gates now stand in front of the value, because the two causes are different:
+
+| Gate | Answers | Comes from |
+|:--|:--|:--|
+| `ProcessImageValid` | is the bus exchanging process data at all? | `Pfc200Bus.xConfigFinished`, the driver's own output |
+| `ctFirstConversion` (5 s, a constant) | has *this module* had time to convert? | a timer started when the bus comes up |
+
+The second exists because the first is **not sufficient**. `xConfigFinished` reports the bus, not
+the module, and it goes TRUE a little before an RTD terminal has produced its first conversion.
+In that window the word is still zero and the bus says everything is fine.
+
+So a zero is not believed until `ctFirstConversion` has elapsed — and after that it is believed
+like any other reading, because 0.0 °C is a real temperature and a sensor sitting at it must not
+be unavailable forever. Any non-zero reading is trusted immediately; only zero waits.
+
+Until both gates pass, `Valid` is FALSE, so `/availability` publishes `offline` and nothing is
+published to `/TEMP`. The entity is briefly unavailable after a restart instead of briefly wrong.
 
 ### **What is not guarded, and why**
 
