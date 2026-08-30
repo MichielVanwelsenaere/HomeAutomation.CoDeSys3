@@ -7,7 +7,10 @@ module's own memory and are reached with **WAGO-I/O-CHECK** over the service cab
 covers when you need it, what to buy, how to make the PLC let go of the K-bus so the tool can get
 in, and how to read what it shows you.
 
-The worked example throughout is a **750-463** RTD input on the reference bench. See
+The worked example throughout is a **750-463** RTD input on the reference bench. Those three
+modules have since been taken off the rail as faulty and replaced by a **750-451**, which was
+already set for Pt1000 and needed no I/O-CHECK session at all — worth saying, because the cheapest
+outcome of this page is discovering you do not need it. See
 [reading a temperature sensor](AnalogInputs/UsingRTDSensors.md) for the sensor side of that story
 and [`FB_INPUT_TEMPERATURE_RTD_MQTT`](FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md) for the
 block that publishes the channel.
@@ -259,10 +262,12 @@ turned up a genuine device-tree ordering defect and fixed it, and the channels s
 afterwards. Fixing one thing and re-testing is the only way to tell which one you were looking at.
 
 :rotating_light: **Check the terminal pairs against a channel that works, not against a table.**
-[The pairing written down for the 750-463](AnalogInputs/UsingRTDSensors.md#wiring) has never been
-confirmed against a channel that was really measuring, so a "dead channel" may be a live one two
-places along. The Scaling page's per-channel tabs make this a ten-second check: short one pair and
-watch all four Process values at once.
+[The pairing written down for the 750-463](AnalogInputs/UsingRTDSensors.md#wiring) was never
+confirmed against a channel that was really measuring — no channel on those modules ever measured
+anything — so on that module a "dead channel" may be a live one two places along. On the 750-451
+that replaced them, `R1` **is** confirmed: a Pt1000 there reads the room on `RTD_001`. The Scaling
+page's per-channel tabs make this a ten-second check on any module: short one pair and watch every
+Process value at once.
 
 ### **Related**
 

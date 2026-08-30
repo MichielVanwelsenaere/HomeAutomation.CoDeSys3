@@ -5,10 +5,12 @@
 
 ### **General**
 
-Publishes a temperature read by an **RTD input module** — a Pt1000 on a WAGO
-[750-463](https://www.wago.com/global/i-o-systems/4-channel-analog-input/p/750-463) is what it
-was written for — and announces it to Home Assistant as **one** temperature sensor, which goes
-unavailable whenever the reading cannot be trusted.
+Publishes a temperature read by an **RTD input module** — written for a Pt1000 on a WAGO
+[750-463](https://www.wago.com/global/i-o-systems/4-channel-analog-input/p/750-463), and running
+on the 8-channel
+[750-451](https://www.wago.com/global/i-o-systems/8-channel-analog-input/p/750-451) that replaced
+it — and announces it to Home Assistant as **one** temperature sensor, which goes unavailable
+whenever the reading cannot be trusted.
 
 **There is no scaling to configure and no calibration to do.** The module puts *tenths of a
 degree Celsius* in the process image, two's complement, so `213` is 21.3 °C and `-105` is
@@ -156,6 +158,13 @@ open-circuit channels published as healthy `150.0 °C` readings for the fifteen 
 `StaleTimeout` to catch them, and every restart bought another fifteen. With the default
 -40…80 °C the same twelve went unavailable **34 seconds** after a restart, which is as fast as the
 startup publish allows.
+
+**The 750-451 fails the same check for the opposite reason.** Its unwired channels saturate *high*
+rather than low, at `8500` — 850.0 °C, which is the top of the IEC 60751 range and therefore still
+inside it. Two modules, two different open-circuit values, and neither one caught by the range
+check: which is the argument for asking what the sensor is *for* rather than what a platinum
+element could theoretically do. The bench's seven empty channels report `offline` on the first
+scan.
 
 ### **A wrong number that holds still**
 

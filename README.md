@@ -47,7 +47,7 @@ Basic function blocks for basic IO events and operations.
 - [FB_OUTPUT_COVER_POSITION_MQTT](./docs/FunctionBlocks/FB_OUTPUT_COVER_POSITION_MQTT.md)
 - [FB_OUTPUT_BISTABLE_MQTT](./docs/FunctionBlocks/FB_OUTPUT_BISTABLE_MQTT.md)
 
-A resistance temperature sensor - a Pt1000 on a WAGO 750-463 - needs the module wiring and
+A resistance temperature sensor - a Pt1000 on a WAGO 750-451 - needs the module wiring and
 one line of code; see [reading a temperature sensor](./docs/AnalogInputs/UsingRTDSensors.md).
 
 ## Modbus RTU over RS485

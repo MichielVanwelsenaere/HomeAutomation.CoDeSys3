@@ -5,12 +5,18 @@
 How to connect a resistance temperature sensor to a WAGO 750-series RTD input module, map its
 channel in CODESYS, and publish it with
 [`FB_INPUT_TEMPERATURE_RTD_MQTT`](../FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md). The
-reference bench uses a **750-463** and a Pt1000; the same steps apply to its relatives.
+reference bench uses a **750-451** and a Pt1000 on `R1`; the same steps apply to its relatives.
+
+The three **750-463** modules this page was originally written around were faulty and have been
+taken off the rail. Everything here about them is kept as the diagnosis it became — see
+[what the 750-463s turned out to be](#what-the-750-463s-turned-out-to-be) — because the method
+outlasts the module.
 
 ### **Which module**
 
 | Module | What it is | Sensor |
 |:--|:--|:--|
+| [750-451](https://www.wago.com/global/i-o-systems/8-channel-analog-input/p/750-451) | **8**-channel analog input | RTD resistance sensors, 2-conductor — the bench's module, set for **Pt1000** |
 | [750-463](https://www.wago.com/global/i-o-systems/4-channel-analog-input/p/750-463) | 4-channel analog input, adjustable | **Pt1000** / RTD resistance sensors, 2-conductor |
 | 750-461 | 2-channel analog input | Pt100 / RTD, supports 3-conductor |
 | 750-467 | 2-channel analog input | 0–10 V — **not** for an RTD |
@@ -24,33 +30,35 @@ module number printed on the front before wiring anything.
 A Pt1000 element is a resistor, so **it has no polarity** — either lead may go to either terminal
 of the pair. What matters is landing on *one channel's pair*.
 
-Each channel is a `+R`/`−R` pair, and the terminal numbers do **not** run in channel order:
+Each channel is a `+R`/`−R` pair. On the bench's **750-451** the eight sensors run straight
+through to the eight channels, and this project maps them straight through again:
 
-| Terminal | Label | Sensor | CODESYS channel | First module | Second | Third |
-|:--|:--|:--|:--|:--|:--|:--|
-| 1 + 2 | `+R1` / `−R1` | 1 | Analog Input Channel 0 | `RTD_001` | `RTD_005` | `RTD_009` |
-| 5 + 6 | `+R2` / `−R2` | 2 | Analog Input Channel 1 | `RTD_002` | `RTD_006` | `RTD_010` |
-| 3 + 4 | `+R3` / `−R3` | 3 | Analog Input Channel 2 | `RTD_003` | `RTD_007` | `RTD_011` |
-| 7 + 8 | `+R4` / `−R4` | 4 | Analog Input Channel 3 | `RTD_004` | `RTD_008` | `RTD_012` |
+| Sensor | Label | CODESYS channel | Mapped variable | Block |
+|:--|:--|:--|:--|:--|
+| 1 | `R1` | Analog Input Channel 0 | `RTD_001` | `fbAiRtd001` |
+| 2 | `R2` | Analog Input Channel 1 | `RTD_002` | `fbAiRtd002` |
+| … | … | … | … | … |
+| 8 | `R8` | Analog Input Channel 7 | `RTD_008` | `fbAiRtd008` |
 
-:rotating_light: **The pair next to sensor 1 is not sensor 2.** Terminals 3 and 4 are sensor
-**3**; sensor 2 is on 5 and 6. Wire "the next pair along" and the reading appears on a channel two
-places from the one being watched — which looks exactly like a dead channel if only one topic is
-being watched, and is why the sweep watches all twelve at once.
+:rotating_light: **Go by the `+R`/`−R` labels moulded into the module front, never by counting
+terminal numbers.** Sensor *n* is not always on the *n*-th pair down the block: on the 4-channel
+750-463 the pairs run `R1, R3, R2, R4`, so wiring "the next pair along" puts the reading two
+channels from the one being watched — which looks exactly like a dead channel if only one topic
+is open. That is the reason a sweep watches every channel at once rather than one.
 
-Go by the `+R`/`−R` labels moulded into the module front rather than by counting terminals, and
-note that CODESYS numbers its channels from **0** while WAGO numbers the sensors from **1**: WAGO's
-sensor 1 is CODESYS's *Analog Input Channel 0*, which this project maps to `RTD_001`.
+Note also that CODESYS numbers its channels from **0** while WAGO numbers the sensors from **1**:
+WAGO's sensor 1 is CODESYS's *Analog Input Channel 0*, which this project maps to `RTD_001` and
+reads with `fbAiRtd001`.
 
 Two more points:
 
-- **No jumper is needed.** The 750-463 measures 2-conductor only, so unlike the 3-wire-capable
-  Pt100 modules there is nothing to bridge — the pair is the whole connection.
+- **No jumper is needed.** The 750-451 and the 750-463 both measure 2-conductor only, so unlike
+  the 3-wire-capable Pt100 modules there is nothing to bridge — the pair is the whole connection.
 - **Use shielded cable** and land the screen on the DIN-rail shield clamp, at one end only.
 
 Three practical points:
 
-- **2, 3 or 4 leads on the sensor?** The 750-463 measures 2-conductor. A 3-wire or 4-wire probe
+- **2, 3 or 4 leads on the sensor?** The 750-451 measures 2-conductor. A 3-wire or 4-wire probe
   works on it — join the doubled leads at the terminal, or simply use one lead of each pair. The
   third wire exists to compensate lead resistance, which the module cannot use; with a *Pt1000*
   that hardly matters, because the element changes about 3.85 Ω/°C, so even a metre or two of
@@ -66,6 +74,11 @@ Three practical points:
 The module decides *what kind of sensor* a channel is measuring, and this is the one step no IEC
 code in this project can perform:
 
+- The bench's **750-451 is set for Pt1000**, and that was established by measurement rather than
+  from a data sheet: a Pt1000 on `R1` reads 25.9 °C in a room that is about that. A Pt1000 on a
+  channel set for Pt100 sees ten times the resistance it expects and saturates at the top of
+  scale, so **a correct absolute reading is itself the proof of the sensor type** — no tooling
+  needed to establish it.
 - The **750-463 is the Pt1000 variant**, and Pt1000 is its factory default. If the module has
   never been reconfigured, **a Pt1000 needs no configuration at all.**
 - It is *adjustable* — Pt1000, Ni1000, KTY81 and plain resistance ranges — and those settings live
@@ -75,33 +88,32 @@ code in this project can perform:
   up.** The installed device description is the authority, and it was read rather than assumed —
   `C:\ProgramData\CODESYS\Devices\288\0000 0001\4.19.0.0\device.xml` defines exactly **one**
   `01CF_75x_463` module, whose entire parameter set is a Modulecode, four `INT` input channels, and
-  four bit-length WORDs marked `onlineaccess="none" offlineaccess="none"`. There is no sensor-type
-  parameter, no control/status byte and no second variant to switch to, so there is nothing to
-  enable in the IDE either. Its own description calls the module *"parameterizable"* — just not
+  four bit-length WORDs marked `onlineaccess="none" offlineaccess="none"`. The 750-451 is the same
+  story one size up: `01C3_750_451` is a Modulecode, **eight** `INT` input channels and eight
+  length WORDs, and nothing else. There is no sensor-type parameter, no control/status byte and no
+  second variant to switch to, so there is nothing to enable in the IDE either. Its own description calls the module *"parameterizable"* — just not
   from here.
 
 So: a factory-default 750-463 with a Pt1000 is plug-and-play. Anything else is a
 [WAGO-I/O-CHECK](../WagoIoCheck.md) job at a laptop, and the symptom that says so is described
 below.
 
-:rotating_light: **The reference bench's own modules are broken, and configuration was never the
-problem.** Channel 0, with a Pt1000 connected, reads exactly `1500` — 150.0 °C — and has never
-moved a digit. This page spent a long time assuming that meant they had been set up for some other
+:rotating_light: **The bench's three 750-463 modules were broken, and configuration was never the
+problem.** Every channel read exactly `1500` — 150.0 °C — and never moved a digit, with a Pt1000
+connected. This page spent a long time assuming that meant they had been set up for some other
 sensor. They had not: WAGO-I/O-CHECK eventually showed every parameter already correct and the
-analog front end producing no conversion at all. See
-[where that leaves it](#where-that-leaves-it), and
+analog front end producing no conversion at all. They have been taken off the rail; the 750-451
+that replaced them works. See [where that leaves it](#where-that-leaves-it), and
 [configuring a module with WAGO-I/O-CHECK](../WagoIoCheck.md) for how that was established.
 
 ### **Mapping the channel in CODESYS**
 
 Each channel needs a variable name in the module's **I/O mapping** tab before any code can read
-it. The reference bench carries three 750-463 modules and maps all twelve channels:
+it. The reference bench carries one 750-451 and maps all eight of its channels:
 
-| Module on the rail | Node | Channel 0 | Channel 1 | Channel 2 | Channel 3 |
-|:--|:--|:--|:--|:--|:--|
-| first | `_75x_463` | `RTD_001` | `RTD_002` | `RTD_003` | `RTD_004` |
-| second | `_75x_463_1` | `RTD_005` | `RTD_006` | `RTD_007` | `RTD_008` |
-| third | `_75x_463_2` | `RTD_009` | `RTD_010` | `RTD_011` | `RTD_012` |
+| Node | CODESYS channel | Mapped variable |
+|:--|:--|:--|
+| `_750_451` | Analog Input Channel 0 … 7 | `RTD_001` … `RTD_008`, in order |
 
 :rotating_light: **The order of the modules in the device tree must match their order on the
 rail.** The K-bus hands the process image out in physical order, so a terminal in the wrong slot
@@ -117,8 +129,25 @@ far right of the rail sidesteps the question, because then appending is correct.
 Naming the channels *is* scriptable, and doing it by hand is a double-click each:
 
 ```powershell
-./tools/ai/codesys.ps1 device -MapIo .ai/edits/rtd-map.json -Force
+./tools/ai/codesys.ps1 device -MapIo .ai/edits/rtd451-map.json -Force
 ```
+
+The spec is one object per channel, and the harness reads each mapping back rather than trusting
+that it took — the setter accepts any expression that parses, so a typo is otherwise accepted in
+silence:
+
+```json
+{ "map_io": [
+    { "node": "_750_451", "channel": "Analog Input Channel 0", "variable": "RTD_001" },
+    { "node": "_750_451", "channel": "Analog Input Channel 1", "variable": "RTD_002" }
+] }
+```
+
+:rotating_light: **This has to happen before the code that reads the channels will compile**, and
+it cannot happen in the same run: `device -MapIo` builds the project before saving and refuses a
+red build, so a `PRG_MAIN` still referring to channels that do not exist blocks the very mapping
+that would create them. The way through is three passes — take the references out, map, put them
+back — which is how the twelve 750-463 channels became eight 750-451 ones.
 
 Each is an `INT` carrying **tenths of a degree Celsius**, two's complement: `213` is 21.3 °C,
 `-105` is -10.5 °C. That is the module's own scaling — there is nothing to calibrate in software.
@@ -145,14 +174,14 @@ be trusted. See
 
 The fastest way to find out which channels on a rail are really measuring is to put a block on
 every one of them, publish fast, and move a single probe from terminal to terminal while watching
-all of them at once. The reference project does exactly that: twelve instances in `PRG_MAIN`,
+all of them at once. The reference project does exactly that: eight instances in `PRG_MAIN`,
 called from `READ_PUSHBUTTONS`, each handed the sweep interval:
 
 ```
 fbAiRtd001(Raw := RTD_001, HeartbeatInterval := tRtdPublishInterval);
 ```
 
-`tRtdPublishInterval` is one place to change it for all twelve, and it matches the block's own
+`tRtdPublishInterval` is one place to change it for all eight, and it matches the block's own
 default of one minute. Drop it to `T#1S` while a probe is actually being moved from terminal to
 terminal — but note the block sets each entity's `expire_after` to three heartbeats, so a
 one-second interval also means Home Assistant gives up on a silent channel after three.
@@ -161,7 +190,7 @@ one-second interval also means Home Assistant gives up on a silent channel after
 mosquitto_sub -h 10.101.1.11 -v -t 'Devices/PLC/Lab/Out/AnalogInputs/+/TEMP'
 ```
 
-Read it as a table: eleven values that never change and one that follows the probe is the answer.
+Read it as a table: seven values that never change and one that follows the probe is the answer.
 Two channels moving together means the probe is bridging a pair. Nothing moving anywhere means
 the modules are configured for something other than what is plugged in.
 
@@ -178,7 +207,7 @@ Read the channel word — online, or on the `/TEMP` topic — and compare agains
 | Reading | Means |
 |:--|:--|
 | ≈ ambient, one decimal, **dithering in the last digit** | Correct. A real channel is never still; that jitter is what `PublishDeadband` exists to absorb. |
-| Far out of range, `Fault` set | Open circuit, on a module that reports over-range. A lead is not in the terminal, or is in the wrong channel's. |
+| Far out of range, `Fault` set | Open circuit, on a module that reports over-range. A lead is not in the terminal, or is in the wrong channel's. **On the 750-451 that is `8500`** — 850.0 °C, the top of the platinum scale — on every unwired channel. |
 | **Any value, dead still for minutes** | The channel is not measuring: switched off, configured for a fixed value, or clamped at the end of a range that has nothing to do with the sensor. `Stuck` catches this and takes the entity unavailable; the value itself will look perfectly reasonable. |
 | Plausible, moving, but roughly 2.6× the true value | The channel is set for Pt100 and a Pt1000 is connected. **Nothing automatic catches this** — it is in range and it tracks. Compare against a thermometer once. |
 | ≈ 0.26× the true value, moving | The reverse: a Pt100 on a channel set to Pt1000. |
@@ -205,7 +234,45 @@ conclusive: **1092 Ω at the terminals means the channel should report `236`, an
 `1500`.** Those are not the same measurement, and no amount of staring at a plausible-looking
 150.0 °C would have said so.
 
-### **What the readings actually said**
+### **What the 750-451 reads**
+
+Measured on the reference bench, PFC200 + 750-451, one Pt1000 on `R1` and nothing on the other
+seven, immediately after a download:
+
+```
+RTD_001    259     25.9 °C     Valid  Fault=FALSE  Stuck=FALSE  DataAvailable=TRUE
+RTD_002..008  8500  850.0 °C   the seven unwired channels, all identical
+```
+
+and, watching the state topic for a further 140 s, `fbAiRtd001/TEMP` published `26.0` three
+times — once per minute, which is the heartbeat, and **one digit above where it started**.
+
+Four things that reading establishes, none of which a single sample could:
+
+- **The channel is measuring.** 25.9 °C is right for the room, and the last digit moved within
+  minutes. That is the exact signature the three 750-463s never produced: they held `1500` to the
+  digit for as long as anyone watched.
+- **The module is set for Pt1000.** A Pt1000 on a Pt100 channel cannot read correctly — it would
+  saturate — so a correct absolute value settles the sensor type with no tooling at all.
+- **An unwired channel on a 750-451 saturates high**, at `8500`. This is the opposite of the
+  750-463, whose disabled channels read `0`, and it is the more useful behaviour: an open circuit
+  announces itself instead of impersonating 0.0 °C.
+- **`PlausibleMin`/`PlausibleMax` are what catch it.** `8500` is 850.0 °C, comfortably inside the
+  IEC 60751 range the block checks first, so the range check passes it — exactly as it passed the
+  750-463's `1500`. It is the -40…80 °C plausible range that fails it, and the seven empty
+  channels duly report `offline` and show as unavailable in Home Assistant rather than as seven
+  confident 850 °C sensors.
+
+:bulb: **The one test still outstanding** is warming the element by hand and watching the value
+follow. A dithering last digit is strong evidence of a live conversion; a number that tracks a
+deliberate change is proof. Nothing on this page depends on it, but say so rather than implying
+it was done.
+
+### **What the 750-463s turned out to be**
+
+Kept because the method is worth more than the module: three RTD terminals that read a confident,
+plausible, completely fictional temperature, and the two wrong theories that fitted before the
+right instrument was found. The modules described below are no longer on the bench.
 
 Measured on the reference bench, PFC200 + 750-463, one Pt1000 on channel 0:
 
