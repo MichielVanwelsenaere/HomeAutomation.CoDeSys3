@@ -1,13 +1,10 @@
 # Naming a block instead of wiring it
 
-Function blocks used to need two calls in an init action before they would do
-anything: `InitMqtt(...)` to hand them the publish queue, the topic prefixes and
-the callback collector, and `InitMqttDiscovery*(...)` to announce them to Home
-Assistant. Everyone using this project uses MQTT, so that plumbing was the same
-every time and only got in the way.
-
-Now a block wires itself. The only thing you have to say is the name you want to
-see in Home Assistant, and you say it where you declare the instance:
+A block wires itself. Everyone using this project uses MQTT, so the plumbing —
+the publish queue, the topic prefixes, the callback collector, the Home Assistant
+device — is the same every time and the block reaches for it on its own. The only
+thing you have to say is the name you want to see in Home Assistant, and you say
+it where you declare the instance:
 
 ```iecst
 PROGRAM PRG_MAIN
@@ -23,11 +20,11 @@ That is the whole configuration. No `InitMqtt`, no `InitMqttDiscovery`.
 ## What the block does on its own
 
 On its **first cyclic call** a named block reaches into the `GVL_MQTT`
-global variable list for everything it used to be handed — the publish queue, the
-publish and subscribe topic prefixes for its category, its callback collector,
-and the Home Assistant device — and then announces itself for discovery. The MQTT
-topic is still derived from the instance name (`FB_DO_BIN_001`), exactly as
-before, so **topics and entity ids do not change**.
+global variable list for everything it needs — the publish queue, the publish and
+subscribe topic prefixes for its category, its callback collector, and the Home
+Assistant device — and then announces itself for discovery. The MQTT topic is
+derived from the **instance name** (`FB_DO_BIN_001`) and not from `FriendlyName`,
+so renaming an entity in Home Assistant's front-end never moves a topic.
 
 Two consequences worth knowing:
 
@@ -112,14 +109,14 @@ elsewhere, the same way `EntityType` is on a block that can only be one thing.
 
 ## Leaving a block unnamed
 
-`FriendlyName` is optional and defaults to empty. An unnamed block does nothing
-on its own: it neither wires itself nor announces itself, and it behaves exactly
-as it did before this change. That is what keeps existing projects working, and it
-is also how you deliberately keep an instance silent.
+`FriendlyName` is optional and defaults to empty. An unnamed block does nothing on
+its own: it neither wires itself nor announces itself. That is how you keep an
+instance deliberately silent, and it is what leaves a call site free to make the
+`InitMqtt` calls itself.
 
 ## When you still need the Init methods
 
-`InitMqtt` and `InitMqttDiscovery*` are unchanged and still public. Call them
+`InitMqtt` and `InitMqttDiscovery*` are public. Call them
 yourself when the declaration cannot express what you need:
 
 - a second broker, or a publish queue other than `GVL_MQTT.fbMqttPublishQueue`
@@ -163,15 +160,8 @@ nothing.
 `FriendlyName` is already on it. What it lacks is an `InitMqttDiscovery` method — a
 prologue could wire its MQTT publishing but would have nothing to announce. Giving it
 discovery is the worthwhile follow-up, and the three Eastron meter blocks are the
-worked examples of what that looks like for an RS485 block. Until then its call site
-is untouched and keeps working exactly as before.
-
-`FB_INPUT_PUSHBUTTON_DIMMER_MQTT` was the other one on this list. It now announces an
-event entity for the button and a sensor for the dim level, and self-wires like the
-plain pushbutton — see
-[its page](../FunctionBlocks/FB_INPUT_PUSHBUTTON_DIMMER_MQTT.md). Adding discovery
-changed its three press payloads from bare words to `{"event_type": "..."}`, because
-that is what a Home Assistant event entity reads.
+worked examples of what that looks like for an RS485 block. Its call site makes the
+`InitMqtt` call itself.
 
 All three Eastron meters now take their Modbus address, poll rate and — for the
 SDM_POWER block — the meter model through `FB_init`, so their whole configuration

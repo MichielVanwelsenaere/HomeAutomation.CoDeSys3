@@ -109,11 +109,9 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 (*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output. 
 
-:warning: **The three press payloads are JSON.** They used to be the bare words `SINGLE`,
-`DOUBLE` and `LONG`. Home Assistant's event platform reads `event_type` out of the payload, so a
-bare word arrives and is discarded — the same change `FB_INPUT_PUSHBUTTON_MQTT` made when it
-gained discovery. Anything still consuming the old payload, hand-written YAML included, has to
-follow.
+:bulb: **The three press payloads are JSON.** Home Assistant's event platform reads
+`event_type` out of the payload, so a bare word would arrive and be discarded. Anything reading
+these topics directly, hand-written YAML included, has to read the JSON too.
 
 **`DIM` is published retained, and once at startup.** It is state, not an event: after a Home
 Assistant restart the sensor takes its value back from the broker instead of reading *unknown*
