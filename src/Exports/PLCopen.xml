@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T20:28:15.0593827" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T20:27:32.853239">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T20:44:14.5598188" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T20:43:27.0059939">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -12342,8 +12342,15 @@ THIS^.PublishEntityConfig(
                       <string />
                     </type>
                     <initialValue>
-                      <simpleValue value="'None'" />
+                      <simpleValue value="''" />
                     </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Empty publishes null, which is what Home Assistant wants for a sensor
+ with no device class. It used to default to the string 'None', which is
+ not a device class Home Assistant knows: it rejects the whole config and
+ the entity never appears. Every caller passed a class, so the default was
+ never exercised until one legitimately had none.</xhtml>
+                    </documentation>
                   </variable>
                   <variable name="UnitOfMeasurement">
                     <type>

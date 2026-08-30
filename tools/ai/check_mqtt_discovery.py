@@ -188,6 +188,19 @@ def validate(topic, payload, prefix):
         elif exp < 0:
             bad.append("exp_aft is %d" % exp)
 
+    # Home Assistant validates dev_cla against a fixed list per platform and
+    # REJECTS THE WHOLE CONFIG when it does not recognise the value - the
+    # symptom is a missing entity, not an entity with a wrong class. The full
+    # list is not worth carrying here, but the placeholder words are: they are
+    # what an unset parameter looks like once it has been serialised, and
+    # CreateSensorEntity really did default DeviceClass to the string 'None'
+    # until the first caller that legitimately had no class exercised it.
+    # An absent key, or a JSON null, is the correct way to say "no class".
+    dev_cla = cfg.get("dev_cla", cfg.get("device_class"))
+    if isinstance(dev_cla, str) and dev_cla.strip().lower() in ("none", "null", ""):
+        bad.append("dev_cla is the string %r - Home Assistant rejects the whole "
+                   "config; publish null instead" % dev_cla)
+
     return bad
 
 
