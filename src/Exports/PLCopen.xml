@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T09:29:07.2268632" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T09:27:02.3597806">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T11:16:19.705997" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T11:14:04.4406832">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -14060,6 +14060,30 @@ END_IF</xhtml>
                       <BOOL />
                     </type>
                   </variable>
+                  <variable name="pJsonByte">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <BYTE />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Used to find where sMqttJSON really ends. A pointer walk, not RIGHT() or
+ LEN(): those are declared over STRING(255) and narrow a longer argument
+ without saying so. See the comment in the body.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="diJsonLen">
+                    <type>
+                      <DINT />
+                    </type>
+                  </variable>
+                  <variable name="diI">
+                    <type>
+                      <DINT />
+                    </type>
+                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
@@ -14096,10 +14120,29 @@ bStripJsonRootOk := F_STRIP_JSON_ROOT(pJson := ADR(sMqttJSON), uiSize := SIZEOF(
 (* A composed config that does not end in a closing brace is truncated, and
    publishing it is worse than publishing nothing: Home Assistant rejects the
    whole config and the entity silently disappears, while the log cheerfully
-   reports the discovery as added. Seen once in 434 configs during a startup
-   burst, on an entity that had nothing to do with the change being made - so
-   it is rare, it is not reproducible on demand, and it needs to be loud. *)
-bJsonComplete := RIGHT(sMqttJSON, 1) = '}';
+   reports the discovery as added.
+
+   Walk to the null terminator rather than asking a string function where the
+   end is. This check used to read
+
+       bJsonComplete := RIGHT(sMqttJSON, 1) = '}';
+
+   and RIGHT is declared over STRING(255), so sMqttJSON was silently narrowed to
+   its first 255 bytes on the way in and RIGHT returned character 255 instead of
+   the last one. Every discovery config here is longer than that, so the guard
+   rejected all of them - and this PLC published no discovery config at all
+   between that check landing and this fix. The buffer was never the problem:
+   1500 bytes with 665 in use. The FUNCTION SIGNATURE was the narrow part, in a
+   check whose whole job is detecting values that got cut short. *)
+pJsonByte := ADR(sMqttJSON);
+diJsonLen := 0;
+FOR diI := 0 TO DINT#1499 DO
+	IF pJsonByte[diI] = 0 THEN
+		diJsonLen := diI;
+		EXIT;
+	END_IF
+END_FOR
+bJsonComplete := (diJsonLen &gt; 0) AND (pJsonByte[diJsonLen - 1] = 16#7D);
 
 IF sMqttJSON = '' THEN
 	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' had empty MqttJSON'), instance := sInstanceName);
