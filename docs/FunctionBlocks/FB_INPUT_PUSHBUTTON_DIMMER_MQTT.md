@@ -1,9 +1,14 @@
 ## FB_INPUT_PUSHBUTTON_DIMMER_MQTT
 <!-- fb-badge:start -->
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 <!-- fb-badge:end -->
 
 ### **General**
 Big brother of input function block [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md) with additional functionality to output a realtime dimmer value (range 0-255).
+
+It announces **two** Home Assistant entities: an **event** entity for the button, carrying
+`SINGLE`, `DOUBLE` and `LONG`, and a **sensor** for the dim level. Set `FriendlyName` at the
+declaration and the block wires itself — no `InitMqtt` call needed.
 
 <!-- fb-interface:start -->
 ### **Block diagram**
@@ -63,7 +68,7 @@ BOOL ──┤ RST                      SINGLE ├── BOOL
 | `Rst_Out` | BOOL |  | If input Rst is TRUE, output DIM is set to 0, defaults to FALSE. |
 | `T_Long` | TIME |  | Configures the time parameter specifying the decoding time for a long key press. Defaults to 400ms. When this timespan is reached while pushing the pushbutton a long push is detected on input `PB`. |
 
-**`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
+**`InitMqtt`** — Enables MQTT on the function block. Call once at startup. Not needed when `FriendlyName` is set at the declaration: the block then wires itself.
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
@@ -72,94 +77,114 @@ BOOL ──┤ RST                      SINGLE ├── BOOL
 | `OutputDimmer` | BOOL |  | Set TRUE to publish the dimmer value as MQTT events. |
 | `Qos_Dimm` | MQTT.QoS |  | MQTT QoS used for the dimmer value events. |
 | `Delta_Dimm` | INT |  | Resolution of the dimmer events: only publish once the value has moved by at least this much. The final value is always published, so MQTT and the output never drift apart. |
+
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
+| `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. The self-wiring prologue passes `FriendlyName`; the dim level entity is named after it too. |
+| `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
+| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 <!-- fb-interface:end -->
 
 ### **Function Block Behavior**
 This MQTT function block is a wrapper of the `DIMM_I` function block in the OSCAT building library enhanced with additional functionality in order to be able to emit MQTT events for single, double, long and dimmer events. To fully understand its logic it's advised to give the documentation present in [the OSCAT building library docs](../_img/oscat_building100_en.pdf) a good read (page 52).
 
 ### **MQTT publish behavior**
-Requires method call `InitMQTT` to enable MQTT capabilities.
+Requires `FriendlyName` on the declaration, or an explicit `InitMQTT` call, to enable MQTT
+capabilities.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **Pushbutton single press** | A single pushbutton press is detected on input `PB`. | `SINGLE` | 2 | `FALSE` | no
-| **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `DOUBLE` | 2 | `FALSE` | no
-| **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `LONG` | 2 | `FALSE` | no
+| **Pushbutton single press** | A single pushbutton press is detected on input `PB`. | `{"event_type": "SINGLE"}` | 2 | `FALSE` | no
+| **Pushbutton double press** | A double pushbutton press is detected on input `PB`. | `{"event_type": "DOUBLE"}` | 2 | `FALSE` | no
+| **Pushbutton long press**   | A long pushbutton press is detected on input `PB`. | `{"event_type": "LONG"}` | 2 | `FALSE` | no
 | **Output changes: P_LONG**   | A change is detected on output `P_LONG`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: Q**   | A change is detected on output `Q`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
 | **Output changes: DBL**   | A change is detected on output `DBL`. (*) | `TRUE/FALSE` | 2 | `TRUE` | no
-| **Output changes: DIM**   | A change is detected on output `DIM`. (*) | `0-255` | configured in method call `InitMQTT` | `FALSE` | no
+| **Output changes: DIM**   | The level has moved by at least `Delta_Dimm`, or the button was released. (*) | `0-255` | `Qos_Dimm`, from `InitMQTT` | `TRUE` | **yes**
 
 MQTT publish topic is a concatenation of the publish prefix variable and the function block name.
 
 (*): MQTT publish topic is a concatenation of the publish prefix variable, the function block name and the name of the output. 
 
+:bulb: **The three press payloads are JSON.** Home Assistant's event platform reads
+`event_type` out of the payload, so a bare word would arrive and be discarded. Anything reading
+these topics directly, hand-written YAML included, has to read the JSON too.
+
+**`DIM` is published retained, and once at startup.** It is state, not an event: after a Home
+Assistant restart the sensor takes its value back from the broker instead of reading *unknown*
+until somebody dims something, and a level that has never moved is published anyway so a freshly
+discovered entity is not born empty. `Delta_Dimm` decides the rest, with the value on release
+always sent so MQTT and the output cannot drift apart.
+
+### **Home Assistant entities**
+
+| Entity | Platform | State topic | Behaviour |
+|:--|:--|:--|:--|
+| *FriendlyName* | `event`, `dev_cla: button` | `…/<block>` | Fires on each press. Event types `SINGLE`, `DOUBLE`, `LONG`. Stateless, so no expiry. |
+| *FriendlyName* level | `sensor` | `…/<block>/DIM` | The dim level, 0-255. No unit, no device class, no state class — it is a control position, not a measurement, and a mean of it means nothing. `expire_after` is 0. |
+
+Both entities belong to the PLC's discovery device and inherit its availability, so they grey out
+together when the PLC stops saying *online*. Neither carries an availability topic of its own:
+nothing in this block can be individually untrustworthy the way an RTD channel can.
+
+`Q`, `DBL` and `P_LONG` keep publishing, but are **not** announced. `P_LONG` is the hold duration
+of a `LONG` the event entity already carries, and `DBL` is internal toggle state — entities for
+either would be clutter that has to be explained. Subscribe to the topics directly if you want
+them.
+
+:bulb: **The level is a sensor, not a light — deliberately.** A light entity has to be
+commandable, and this block has no subscribe side at all: no callback collector, no command
+topics. [`FB_OUTPUT_DIMMER_MQTT`](./FB_OUTPUT_DIMMER_MQTT.md) is the block that has those, and it
+is what to reach for when Home Assistant has to *set* the level rather than watch it — driven from
+this block's `SINGLE` and `P_LONG`, or from
+[`FB_INPUT_PUSHBUTTON_MQTT`](./FB_INPUT_PUSHBUTTON_MQTT.md).
+
 ### **Code example**
 
 - variables initiation:
 ```
-MQTTPushbuttonPrefix    :STRING(100) := 'Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/';
-FB_DI_PB_001            :FB_INPUT_PUSHBUTTON_DIMMER_MQTT;
+fbDiPb002 : FB_INPUT_PUSHBUTTON_DIMMER_MQTT := (FriendlyName := 'Button number 002');
 ```
 
-- Init MQTT method call (called once during startup):
-```
-FB_DI_PB_001.InitMQTT(MQTTPublishPrefix:= ADR(MQTTPushbuttonPrefix),    (* pointer to string prefix for the MQTT publish topic *)
-    pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue),         (* pointer to MQTTPublishQueue to send a new MQTT event *)
-    TRUE,                                                               (* specify whether dimmer value should be outputted on MQTT topic *)
-    MQTT.QoS.ExactlyOnce,                                            (* specify the QoS for the dimmer mqtt events (values 0-255) *)    
-    5                                                                   (* specify the resolution for the dimmer mqtt events *)    
-);
-```
-The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001` (MQTTPushbuttonPrefix variable + function block name). Note that for the outputs `Q`, `DBL` and `DIM` the MQTT publish topic has an additional concatenation being the name of the output. For example: `Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM`.
+The block wires itself from `GVL_MQTT` on its first cyclic call and announces both entities. Its
+publish topic is `GVL_MQTT.MqttPushbuttonPrefix` + the instance name, so with the lab's prefix
+that is `Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/fbDiPb002`, and the level lands on
+`…/fbDiPb002/DIM`. See [MQTT self-wiring](../AdditionalFunctionality/MQTT_SelfWiring.md).
 
 - reading digital input for events (cyclic):
 ```
-FB_DI_PB_001(PB:= DI_001);
+fbDiPb002(PB := DI_002);
 ```
 
-- integration with `?`: The output dimmer values can be connected to any light supporting integration through Home Assistant, OpenHAB, etc. For dimming using a PLC analog output check out the [FB_OUTPUT_DIMMER_MQTT docs](./FB_OUTPUT_DIMMER_MQTT.md)
+- altering the dimming behaviour (called once during startup):
+```
+fbDiPb002.ConfigureFunctionBlock(
+	T_Debounce := T#10MS,
+	T_Reconfig := T#10S,
+	T_On_Max := T#0S,
+	T_Dimm_Start := T#400MS,
+	T_Dimm := T#3S,
+	Min_On := 50,
+	Max_On := 255,
+	Soft_Dimm := TRUE,
+	Dbl_Toggle := FALSE,
+	Rst_Out := FALSE,
+	T_Long := T#400MS);
+```
 
-### **Home Assistant YAML**
-To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config:
+- wiring it by hand instead, where `FriendlyName` is left empty:
+```
+fbDiPb002.InitMqtt(
+	MQTTPublishPrefix := ADR(GVL_MQTT.MqttPushbuttonPrefix),
+	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+	OutputDimmer := TRUE,                   (* publish the dim level at all *)
+	Qos_Dimm := MQTT.QoS.ExactlyOnce,       (* QoS for the dim level *)
+	Delta_Dimm := 5);                       (* how far the level must move to be worth publishing *)
 
-```YAML
-mqtt:
-  sensor:
-  # To receive single/double/long events  
-  - name: "FB_DI_PB_001"
-    state_topic: "Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001"
-    qos: 2
-    expire_after: 3
-    availability_topic: "Devices/PLC/Lab/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
-  # To receive state of output Q
-  - name: "FB_DI_PB_001_Q"
-    state_topic: "Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/Q"
-    qos: 2
-    availability_topic: "Devices/PLC/Lab/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
-  # To receive state of output DBL
-  - name: "FB_DI_PB_001_DBL"
-    state_topic: "Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DBL"
-    qos: 2
-    availability_topic: "Devices/PLC/Lab/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
-  # To receive state of output DIM
-  - name: "FB_DI_PB_001_DIM"
-    state_topic: "Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/DIM"
-    qos: 2
-    availability_topic: "Devices/PLC/Lab/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
-  # To receive state of output P_LONG
-  - name: "FB_DI_PB_001_P_LONG"
-    state_topic: "Devices/PLC/Lab/Out/DigitalInputs/Pushbuttons/FB_DI_PB_001/P_LONG"
-    qos: 2
-    availability_topic: "Devices/PLC/Lab/availability"
-    payload_available: "online"
-    payload_not_available: "offline"
+fbDiPb002.InitMqttDiscovery(
+	Device := ADR(GVL_MQTT.PLC_Device),
+	Name := 'Button number 002');
 ```

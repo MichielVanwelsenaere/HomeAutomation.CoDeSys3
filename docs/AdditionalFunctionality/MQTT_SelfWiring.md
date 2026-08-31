@@ -1,13 +1,10 @@
 # Naming a block instead of wiring it
 
-Function blocks used to need two calls in an init action before they would do
-anything: `InitMqtt(...)` to hand them the publish queue, the topic prefixes and
-the callback collector, and `InitMqttDiscovery*(...)` to announce them to Home
-Assistant. Everyone using this project uses MQTT, so that plumbing was the same
-every time and only got in the way.
-
-Now a block wires itself. The only thing you have to say is the name you want to
-see in Home Assistant, and you say it where you declare the instance:
+A block wires itself. Everyone using this project uses MQTT, so the plumbing —
+the publish queue, the topic prefixes, the callback collector, the Home Assistant
+device — is the same every time and the block reaches for it on its own. The only
+thing you have to say is the name you want to see in Home Assistant, and you say
+it where you declare the instance:
 
 ```iecst
 PROGRAM PRG_MAIN
@@ -23,11 +20,11 @@ That is the whole configuration. No `InitMqtt`, no `InitMqttDiscovery`.
 ## What the block does on its own
 
 On its **first cyclic call** a named block reaches into the `GVL_MQTT`
-global variable list for everything it used to be handed — the publish queue, the
-publish and subscribe topic prefixes for its category, its callback collector,
-and the Home Assistant device — and then announces itself for discovery. The MQTT
-topic is still derived from the instance name (`FB_DO_BIN_001`), exactly as
-before, so **topics and entity ids do not change**.
+global variable list for everything it needs — the publish queue, the publish and
+subscribe topic prefixes for its category, its callback collector, and the Home
+Assistant device — and then announces itself for discovery. The MQTT topic is
+derived from the **instance name** (`FB_DO_BIN_001`) and not from `FriendlyName`,
+so renaming an entity in Home Assistant's front-end never moves a topic.
 
 Two consequences worth knowing:
 
@@ -112,14 +109,14 @@ elsewhere, the same way `EntityType` is on a block that can only be one thing.
 
 ## Leaving a block unnamed
 
-`FriendlyName` is optional and defaults to empty. An unnamed block does nothing
-on its own: it neither wires itself nor announces itself, and it behaves exactly
-as it did before this change. That is what keeps existing projects working, and it
-is also how you deliberately keep an instance silent.
+`FriendlyName` is optional and defaults to empty. An unnamed block does nothing on
+its own: it neither wires itself nor announces itself. That is how you keep an
+instance deliberately silent, and it is what leaves a call site free to make the
+`InitMqtt` calls itself.
 
 ## When you still need the Init methods
 
-`InitMqtt` and `InitMqttDiscovery*` are unchanged and still public. Call them
+`InitMqtt` and `InitMqttDiscovery*` are public. Call them
 yourself when the declaration cannot express what you need:
 
 - a second broker, or a publish queue other than `GVL_MQTT.fbMqttPublishQueue`
@@ -133,10 +130,10 @@ methods do nothing until `InitMqtt` has run.
 
 ## Which blocks self-wire
 
-**Self-wiring**, driven by `FriendlyName`: the pushbutton, binary sensor and RTD
-temperature inputs, the binary, bistable, cover and dimmer outputs, the HVAC
-thermostat, pump and burner, the DMX dimmer, and all three Eastron meter blocks
-— the SDM630, the SDM220 and the SDM_POWER.
+**Self-wiring**, driven by `FriendlyName`: the pushbutton, pushbutton dimmer,
+binary sensor and RTD temperature inputs, the binary, bistable, cover and dimmer
+outputs, the HVAC thermostat, pump and burner, the DMX dimmer, and all three
+Eastron meter blocks — the SDM630, the SDM220 and the SDM_POWER.
 
 `FB_RS485_EASTRON_SDM630_MQTT` is the first RS485 block to self-wire, and it shows
 what the others would need. Its discovery announces a Home Assistant device of its
@@ -159,16 +156,12 @@ a block's first body call — so self-wiring them while leaving discovery in the
 action would make that discovery call fire too early and silently announce
 nothing.
 
-**Not self-wired.** These two *do* extend `FB_MQTT_BASE`, so `FriendlyName` is
-already on them. What they lack is an `InitMqttDiscovery` method — a prologue could
-wire their MQTT publishing but would have nothing to announce:
-
-- `FB_INPUT_PUSHBUTTON_DIMMER_MQTT`
-- `FB_RS485_DUCO_DUCOBOX_MQTT`
-
-Giving them discovery is the worthwhile follow-up, and the three Eastron meter blocks
-are the worked examples of what that looks like for an RS485 block. Until then their
-call sites are untouched and keep working exactly as before.
+**Not self-wired.** `FB_RS485_DUCO_DUCOBOX_MQTT` *does* extend `FB_MQTT_BASE`, so
+`FriendlyName` is already on it. What it lacks is an `InitMqttDiscovery` method — a
+prologue could wire its MQTT publishing but would have nothing to announce. Giving it
+discovery is the worthwhile follow-up, and the three Eastron meter blocks are the
+worked examples of what that looks like for an RS485 block. Its call site makes the
+`InitMqtt` call itself.
 
 All three Eastron meters now take their Modbus address, poll rate and — for the
 SDM_POWER block — the meter model through `FB_init`, so their whole configuration

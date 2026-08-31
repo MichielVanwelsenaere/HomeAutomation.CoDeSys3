@@ -50,6 +50,13 @@ code: [`docs/CodingStyle.md`](docs/CodingStyle.md) is the full version and
 [`src/CLAUDE.md`](src/CLAUDE.md) the working summary, loaded automatically when
 you edit the project.
 
+**A docs page describes the present.** It says what the code does now — never what
+it used to do, what changed, or what an earlier version published. The history is
+already in the commit message and the pull request, dated; on the page it only
+costs the reader their ability to tell what is still true.
+[`docs/CLAUDE.md`](docs/CLAUDE.md) is the rule in full, and loads automatically
+when you edit under `docs/`.
+
 Two things worth knowing before you start, both covered in detail by
 `codesys-loop`:
 
