@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T17:43:57.5639986" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T17:42:49.2397906">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T20:39:53.0129391" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T20:39:16.625735">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -1591,6 +1591,150 @@ is what puts a slider on the entity rather than three buttons.</xhtml>
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>95eff7e5-06f8-4be2-b096-62409f4cd51d</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_BUTTON">
+        <baseType>
+          <struct>
+            <variable name="cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">command_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pl_prs">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">payload_press - what is sent when the button is pressed</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ent_cat">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">entity_category, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="dev_cla">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">device_class - only identify, restart and update exist for a button; usually null</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
+            </Inheritance>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>06fa2306-aee2-40b0-8f45-5f9070abcd23</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_NUMBER">
+        <baseType>
+          <struct>
+            <variable name="cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">command_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">state_topic - the value the device actually holds, read back rather than assumed</xhtml>
+              </documentation>
+            </variable>
+            <variable name="min_val">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">min - signed, because a release-the-override value of -1 is a real setting</xhtml>
+              </documentation>
+            </variable>
+            <variable name="max_val">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">max</xhtml>
+              </documentation>
+            </variable>
+            <variable name="step">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">step</xhtml>
+              </documentation>
+            </variable>
+            <variable name="unit_of_meas">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">unit_of_measurement, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="mode">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">mode - 'box' or 'slider'. A slider on a 0-2000 ppm setpoint is unusable, so this is per entity</xhtml>
+              </documentation>
+            </variable>
+            <variable name="dev_cla">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">device_class, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ent_cat">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">entity_category - 'config' keeps a setpoint out of the main dashboard</xhtml>
+              </documentation>
+            </variable>
+            <variable name="opt">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">optimistic - FALSE wherever a state topic exists</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
+            </Inheritance>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>46229895-b518-43b2-b253-658445a839db</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -9315,6 +9459,188 @@ END_CASE</xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="F_JSON_RENAME_KEY" pouType="function">
+        <interface>
+          <returnType>
+            <BOOL />
+          </returnType>
+          <inputVars>
+            <variable name="pJson">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">The composed config, edited in place.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiSize">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Capacity of the buffer, so the scan cannot run off the end of it.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sFrom">
+              <type>
+                <string length="32" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">The quoted key as composed, e.g. '"min_val"'.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sTo">
+              <type>
+                <string length="32" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">The quoted key to publish, e.g. '"min"'. Must not be longer than sFrom.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <localVars>
+            <variable name="pFrom">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="pTo">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="diLen">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diFrom">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diTo">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diI">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diJ">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diHit">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="bMatch">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Rename one key in a composed discovery config, in place.
+
+   This exists because a few Home Assistant keys are IEC operators. A number
+   entity needs "min" and "max"; ST will not accept members with those names, and
+   PRO_JSON takes the key from the member name - there is no name field on
+   JSONVAR to override it. So the struct declares min_val / max_val and the key
+   is corrected here, on the way out.
+
+   Byte-wise on purpose. FIND and REPLACE are declared over STRING(255) and this
+   buffer is STRING(1500), so calling them would silently narrow the config to
+   its first 255 bytes - the same trap that once stopped this PLC publishing any
+   discovery at all. Never reach for a string function on this buffer. *)
+F_JSON_RENAME_KEY := FALSE;
+
+IF pJson = 0 THEN
+	RETURN;
+END_IF
+
+pFrom := ADR(sFrom);
+pTo := ADR(sTo);
+
+(* Walk to the terminator rather than asking a string function for a length. *)
+diFrom := 0;
+WHILE (diFrom &lt; 32) AND (pFrom[diFrom] &lt;&gt; 0) DO
+	diFrom := diFrom + 1;
+END_WHILE
+diTo := 0;
+WHILE (diTo &lt; 32) AND (pTo[diTo] &lt;&gt; 0) DO
+	diTo := diTo + 1;
+END_WHILE
+
+(* Shortening only. A longer replacement would have to grow the config, and a
+   silent overflow here publishes truncated JSON, which Home Assistant discards
+   whole. Refusing is the safe answer. *)
+IF (diFrom = 0) OR (diTo = 0) OR (diTo &gt; diFrom) THEN
+	RETURN;
+END_IF
+
+diLen := 0;
+WHILE (diLen &lt; UDINT_TO_DINT(uiSize) - 1) AND (pJson[diLen] &lt;&gt; 0) DO
+	diLen := diLen + 1;
+END_WHILE
+
+diHit := -1;
+FOR diI := 0 TO diLen - diFrom DO
+	bMatch := TRUE;
+	FOR diJ := 0 TO diFrom - 1 DO
+		IF pJson[diI + diJ] &lt;&gt; pFrom[diJ] THEN
+			bMatch := FALSE;
+			EXIT;
+		END_IF
+	END_FOR
+	IF bMatch THEN
+		diHit := diI;
+		EXIT;
+	END_IF
+END_FOR
+
+IF diHit &lt; 0 THEN
+	RETURN;
+END_IF
+
+(* Overwrite the key, then pull the tail left over the slack, terminator and
+   all. Keys are unique in one config, so one pass is the whole job. *)
+FOR diJ := 0 TO diTo - 1 DO
+	pJson[diHit + diJ] := pTo[diJ];
+END_FOR
+
+FOR diJ := diHit + diFrom TO diLen DO
+	pJson[diJ - (diFrom - diTo)] := pJson[diJ];
+END_FOR
+
+F_JSON_RENAME_KEY := TRUE;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>2070b78f-f5f5-4b1a-b4ae-caa8c985d0ad</ObjectId>
+          </data>
+        </addData>
+      </pou>
       <pou name="FB_HVAC_BURNER_MQTT" pouType="functionBlock">
         <interface>
           <outputVars>
@@ -12171,6 +12497,22 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
 	   rather than empty - see CreateCoverEntityWithPosition. </xhtml>
               </documentation>
             </variable>
+            <variable name="stMqttDiscMsgNumber">
+              <type>
+                <derived name="MQTT_DISCOVERY_NUMBER" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> One instance per entity kind, reused across every announcement. The config
+	   is composed and published inside the Create* method, so nothing here has to
+	   outlive the call - which is why sixteen of these cost one struct each rather
+	   than one per entity. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="stMqttDiscMsgButton">
+              <type>
+                <derived name="MQTT_DISCOVERY_BUTTON" />
+              </type>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -14709,6 +15051,16 @@ END_IF</xhtml>
                       <DINT />
                     </type>
                   </variable>
+                  <variable name="bKeyRenamed">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Result of a key rename. Nothing acts on it: a config with no such key is the
+ordinary case, and the truncation guard below catches anything that did go
+wrong far more reliably than this flag would.</xhtml>
+                    </documentation>
+                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
@@ -14741,6 +15093,20 @@ fbComposeJSON.Execute := TRUE;
 fbComposeJSON();
 
 bStripJsonRootOk := F_STRIP_JSON_ROOT(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqttJSON));
+
+(* A few Home Assistant keys are IEC operators, so no struct can declare them
+   under the name they have to be published as. A number entity needs min and
+   max; the struct carries min_val and max_val, and they are corrected here.
+
+   Done for every entity type rather than only for numbers: the scan is over a
+   config that has already been composed, it runs at the handful of publishes
+   that happen at startup, and a config containing neither key costs one failed
+   search. Putting it here means the next struct that hits the same collision
+   needs no new plumbing. *)
+bKeyRenamed := F_JSON_RENAME_KEY(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqttJSON),
+							sFrom := '"min_val"', sTo := '"min"');
+bKeyRenamed := F_JSON_RENAME_KEY(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqttJSON),
+							sFrom := '"max_val"', sTo := '"max"');
 
 (* A composed config that does not end in a closing brace is truncated, and
    publishing it is worse than publishing nothing: Home Assistant rejects the
@@ -14992,6 +15358,246 @@ stMqttDiscMsgCoverPos.pos_clsd.Integer := PositionClosed;
 THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgCoverPos),
 	StructSize := SIZEOF(stMqttDiscMsgCoverPos),
+	EntityId := EntityId,
+	Id := Id);
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateNumberEntity" ObjectId="ab07f1d7-7c68-4d64-89c7-cce1607c7dcc">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="CommandTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Where the value the device actually holds is published. Leave empty only if
+the register genuinely cannot be read back.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MinValue">
+                    <type>
+                      <INT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Signed: a release-the-override value of -1 is a real setting on some devices.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MaxValue">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="StepValue">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="UnitOfMeasurement">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="EntityCategory">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">'config' keeps a setpoint off the main dashboard. Empty for none.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="SliderMode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE for a slider, FALSE for a typed box.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'number'" />
+                    </initialValue>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Announce a Home Assistant number: a value somebody can set, with a range and a
+step, and a state topic carrying what the device actually holds.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(stMqttDiscMsgNumber),
+	EntityId := EntityId,
+	Name := Name,
+	Id := Id,
+	Meta := Meta);
+
+// Entity related: Specific
+stMqttDiscMsgNumber.cmd_t.CharString := CommandTopic;
+stMqttDiscMsgNumber.stat_t.CharString := StateTopic;
+(* min_val / max_val, not min / max: MIN and MAX are IEC operators and cannot
+   be member names, and PRO_JSON takes the JSON key from the member name -
+   JSONVAR has no name field to override it. PublishEntityConfig renames both
+   keys on the way out, because Home Assistant accepts only min and max. *)
+stMqttDiscMsgNumber.min_val.Integer := MinValue;
+stMqttDiscMsgNumber.max_val.Integer := MaxValue;
+stMqttDiscMsgNumber.step.Integer := StepValue;
+stMqttDiscMsgNumber.unit_of_meas.CharString := UnitOfMeasurement;
+stMqttDiscMsgNumber.dev_cla.CharString := DeviceClass;
+stMqttDiscMsgNumber.ent_cat.CharString := EntityCategory;
+
+(* A slider cannot be aimed at 800 ppm in steps of 10, and a typed box is
+   tedious for a 0-100 percentage. Only the caller knows the range, so only the
+   caller can choose. *)
+IF SliderMode THEN
+	stMqttDiscMsgNumber.mode.CharString := 'slider';
+ELSE
+	stMqttDiscMsgNumber.mode.CharString := 'box';
+END_IF
+
+(* Never optimistic. Every number this project announces sits on a register that
+   can be read back, so Home Assistant shows what the device holds rather than
+   what somebody last sent it - which matters when the same setting is also
+   changeable from a wall control. *)
+stMqttDiscMsgNumber.opt.Boolean := FALSE;
+
+THIS^.PublishEntityConfig(
+	pStruct := ADR(stMqttDiscMsgNumber),
+	StructSize := SIZEOF(stMqttDiscMsgNumber),
+	EntityId := EntityId,
+	Id := Id);
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateButtonEntity" ObjectId="18765e16-d74e-4ab9-932a-f0eb3ecbedb8">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="CommandTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="PayloadPress">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">What is sent on press.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="EntityCategory">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">'config' or 'diagnostic'. Empty for none.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Only identify, restart and update exist for a button. Usually empty.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'button'" />
+                    </initialValue>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Announce a Home Assistant button: a stateless command. Right wherever the
+device has an action but nothing readable that reports it back.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(stMqttDiscMsgButton),
+	EntityId := EntityId,
+	Name := Name,
+	Id := Id,
+	Meta := Meta);
+
+// Entity related: Specific
+stMqttDiscMsgButton.cmd_t.CharString := CommandTopic;
+stMqttDiscMsgButton.pl_prs.CharString := PayloadPress;
+stMqttDiscMsgButton.ent_cat.CharString := EntityCategory;
+stMqttDiscMsgButton.dev_cla.CharString := DeviceClass;
+
+(* No state topic and no optimistic flag: a button has no state to be right or
+   wrong about. Where the result IS observable, the thing wanted is a select or
+   a number, not a button. *)
+
+THIS^.PublishEntityConfig(
+	pStruct := ADR(stMqttDiscMsgButton),
+	StructSize := SIZEOF(stMqttDiscMsgButton),
 	EntityId := EntityId,
 	Id := Id);
 </xhtml>
@@ -29054,6 +29660,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
         <Object Name="F_DUCO_SCALED_TEXT" ObjectId="d1b2eedd-88cb-49d7-85e9-aff1538f0b73" />
         <Object Name="F_DUCO_STATUS_TEXT" ObjectId="914a5658-e401-4069-b24a-fb8acd0a3b5c" />
         <Object Name="F_DUCO_TYPE_TEXT" ObjectId="41f7729e-a7a9-4e7c-8764-fd513ea5e2ed" />
+        <Object Name="F_JSON_RENAME_KEY" ObjectId="2070b78f-f5f5-4b1a-b4ae-caa8c985d0ad" />
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
             <Object Name="InitMqtt" ObjectId="69154081-2c02-43db-90a6-f8cbcade69d6" />
@@ -29122,6 +29729,8 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="FillCommonFields" ObjectId="def60523-6479-4453-92db-f3019ef2d61a" />
             <Object Name="PublishEntityConfig" ObjectId="d5e9838e-75b1-4870-af63-4249d4044e89" />
             <Object Name="CreateCoverEntityWithPosition" ObjectId="d26dec3e-c63e-441c-b7ac-a2426fd3105d" />
+            <Object Name="CreateNumberEntity" ObjectId="ab07f1d7-7c68-4d64-89c7-cce1607c7dcc" />
+            <Object Name="CreateButtonEntity" ObjectId="18765e16-d74e-4ab9-932a-f0eb3ecbedb8" />
           </Object>
           <Object Name="FB_PLC_MQTT_DISCOVERY_DEVICE" ObjectId="293181e9-7da9-47da-a441-3d6d4f05045c">
             <Object Name="FB_init" ObjectId="0f05dfeb-28e6-4f3a-a8d1-4516d94b21ba" />
@@ -29159,6 +29768,8 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="initDFRobotDevice" ObjectId="66acba07-0d4f-4587-b4cc-ebdf2ded258f" />
           </Object>
         </Folder>
+        <Object Name="MQTT_DISCOVERY_BUTTON" ObjectId="06fa2306-aee2-40b0-8f45-5f9070abcd23" />
+        <Object Name="MQTT_DISCOVERY_NUMBER" ObjectId="46229895-b518-43b2-b253-658445a839db" />
         <Folder Name="RS485">
           <Object Name="FB_RS485_BUSCONTROLLER" ObjectId="78495725-4a33-4565-949d-be98f9fefe52">
             <Object Name="FinishStep" ObjectId="baa4a88a-9cff-4795-a47d-2e944e2f37fb" />
