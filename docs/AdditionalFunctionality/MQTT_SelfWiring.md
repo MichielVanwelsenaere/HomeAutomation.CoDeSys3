@@ -156,7 +156,7 @@ a block's first body call — so self-wiring them while leaving discovery in the
 action would make that discovery call fire too early and silently announce
 nothing.
 
-**Not self-wired.** `FB_RS485_DUCO_DUCOBOX_MQTT` *does* extend `FB_MQTT_BASE`, so
+**Not self-wired.** `FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT` *does* extend `FB_MQTT_BASE`, so
 `FriendlyName` is already on it. What it lacks is an `InitMqttDiscovery` method — a
 prologue could wire its MQTT publishing but would have nothing to announce. Giving it
 discovery is the worthwhile follow-up, and the three Eastron meter blocks are the

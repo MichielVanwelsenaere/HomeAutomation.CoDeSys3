@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T10:58:18.0225813" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T10:57:07.7425061">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T16:49:43.1069095" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T16:48:50.2425727">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -17300,7 +17300,7 @@ GetCommissioning := TRUE;
           </data>
         </addData>
       </pou>
-      <pou name="FB_RS485_DUCO_DUCOBOX_MQTT" pouType="functionBlock">
+      <pou name="FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT" pouType="functionBlock">
         <interface>
           <localVars>
             <variable name="sInstancePath">
@@ -17353,7 +17353,7 @@ GetCommissioning := TRUE;
                 <array>
                   <dimension lower="2" upper="30" />
                   <baseType>
-                    <derived name="FB_RS485_DUCO_DUCOBOX_NODE_MQTT" />
+                    <derived name="FB_RS485_DUCO_DUCOBOX_FOCUS_NODE_MQTT" />
                   </baseType>
                 </array>
               </type>
@@ -18055,7 +18055,7 @@ GetCommissioning := FALSE;
           </data>
         </addData>
       </pou>
-      <pou name="FB_RS485_DUCO_DUCOBOX_NODE_MQTT" pouType="functionBlock">
+      <pou name="FB_RS485_DUCO_DUCOBOX_FOCUS_NODE_MQTT" pouType="functionBlock">
         <interface>
           <localVars>
             <variable name="NodeNumber">
@@ -24019,7 +24019,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="FB_RS485_DUCO_DUCOBOX_HOME">
               <type>
-                <derived name="FB_RS485_DUCO_DUCOBOX_MQTT" />
+                <derived name="FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT" />
               </type>
             </variable>
             <variable name="FB_RS485_1WIRE_MULTISENSOR_01">
@@ -24206,7 +24206,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="FB_RS485_DUCO_DUCOBOX_HOME">
                       <type>
-                        <derived name="FB_RS485_DUCO_DUCOBOX_MQTT" />
+                        <derived name="FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT" />
                       </type>
                     </variable>
                     <variable name="FB_RS485_1WIRE_MULTISENSOR_01">
@@ -28472,7 +28472,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="DeviceCount" ObjectId="187a9204-3b2f-4dca-8d83-dce996b725c7" />
             <Object Name="GetDevice" ObjectId="95e11ce6-599d-460e-a963-d70b3f95873a" />
           </Object>
-          <Object Name="FB_RS485_DUCO_DUCOBOX_MQTT" ObjectId="29734931-ba2e-4430-aef4-1e03b99c5ee7">
+          <Object Name="FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT" ObjectId="29734931-ba2e-4430-aef4-1e03b99c5ee7">
             <Object Name="InitRS485" ObjectId="c2945dbc-465a-4f64-8dfa-fa576b3dbd4d" />
             <Object Name="InitMqtt" ObjectId="1acdf6ad-df81-41e1-93a0-3cf00443eb34" />
             <Object Name="PubMqttMessage" ObjectId="b55a7636-ab07-4006-ba05-4980317331e4" />
@@ -28484,7 +28484,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="OnTransactionDone" ObjectId="19217e46-705b-4875-9caa-e217541dbb59" />
             <Object Name="GetCommissioning" ObjectId="582612c4-dc65-4a88-a938-6f944915fd80" />
           </Object>
-          <Object Name="FB_RS485_DUCO_DUCOBOX_NODE_MQTT" ObjectId="46ab5ceb-94dd-4d3a-bf5a-cc5437baa505">
+          <Object Name="FB_RS485_DUCO_DUCOBOX_FOCUS_NODE_MQTT" ObjectId="46ab5ceb-94dd-4d3a-bf5a-cc5437baa505">
             <Object Name="RequestBusTime" ObjectId="4eb41ddf-aa3a-429a-b596-a697e467adb1" />
             <Object Name="InitNode" ObjectId="0410ee9f-f078-4696-8792-6983ae15aa92" />
             <Object Name="InitMqtt" ObjectId="5f690667-0d66-4ab5-a583-daae3a732eed" />

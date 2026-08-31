@@ -1,4 +1,4 @@
-## FB_RS485_DUCO_DUCOBOX_MQTT
+## FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT
 <!-- fb-badge:start -->
 <!-- fb-badge:end -->
 
@@ -23,13 +23,13 @@ DUCO DUCOBOX Focus data:
 ### **Block diagram**
 
 ```text
-   ┌────────────────────────────┐
-   │ FB_RS485_DUCO_DUCOBOX_MQTT │
-   ├────────────────────────────┤
-   │                ACTIVEPOWER ├── REAL
-   │              DataAvailable ├── BOOL
-   │                      Error ├── BOOL
-   └────────────────────────────┘
+   ┌──────────────────────────────────┐
+   │ FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT │
+   ├──────────────────────────────────┤
+   │                      ACTIVEPOWER ├── REAL
+   │                    DataAvailable ├── BOOL
+   │                            Error ├── BOOL
+   └──────────────────────────────────┘
 ```
 
 ### **Interface**
@@ -107,7 +107,7 @@ Requires method call `InitMQTT` to enable MQTT capabilities.
 
 MQTT publish topic is a concatenation of the publish prefix, the function block name, the node number and a register number. For example:
 
-`Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/read/0`
+`Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT/1/read/0`
 
 Depending on the type of the node the published register value represents a certain parameter value. 
 
@@ -119,21 +119,21 @@ Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQ
 |:-------------|:------------------|:------------------|:------------------|
 | **write holding** | Writes an integer value to a specific write register. | `INT` | Only integer values are processed further.
 
-MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/write/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents the entire system). Go through the DUCO Modbus register documentation linked above for a deeper understanding.
+MQTT subscription topic is a concatenation of the subscribe prefix variable, function block name, node number and register number. For example, topic `Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT/1/write/0` with payload `30` will set the 'Target value (%)' parameter for node 1 (which in this case represents the entire system). Go through the DUCO Modbus register documentation linked above for a deeper understanding.
 
-Upon a successful write operation the received payload will be published on the 'Out' topic. Continuing with the example above this will result in a payload `30` to be published on topic `Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT/1/write/0`.
+Upon a successful write operation the received payload will be published on the 'Out' topic. Continuing with the example above this will result in a payload `30` to be published on topic `Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT/1/write/0`.
 
 ### **Code example**
 
 - variables initiation:
 ```
 MQTTPubRS485Prefix                :STRING(100) := 'Devices/PLC/Lab/Out/RS485/';
-FB_RS485_DUCO_DUCOBOX_MQTT_001    :FB_RS485_DUCO_DUCOBOX_MQTT;
+FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001    :FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT;
 ```
 
 - Init RS485 method call (called once during startup):
 ```
-FB_RS485_DUCO_DUCOBOX_MQTT_001.InitRS485(
+FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001.InitRS485(
 	DataPollingInterval := T#20S,       (* Polling interval *)		
 	DeviceAddress := 1                  (* Device address of the modbus device *)			
 );
@@ -141,17 +141,17 @@ FB_RS485_DUCO_DUCOBOX_MQTT_001.InitRS485(
 
 - Init MQTT method call (called once during startup):
 ```
-FB_RS485_DUCO_DUCOBOX_MQTT_001.InitMqtt(
+FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001.InitMqtt(
 	MQTTPublishPrefix:= ADR(MqttRS485Prefix),                       (* pointer to string prefix for the mqtt publish topic *)
 	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue)      (* pointer to MqttPublishQueue to send a new Mqtt event *)
 );
 
 ```
-The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001` (MQTTPubSwitchPrefix variable + function block name).
+The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001` (MQTTPubSwitchPrefix variable + function block name).
 
 - Registering device to a bus controller (called once during startup):
 ```
-RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_MQTT_001);
+RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001);
 ```
 
 ### **Home Assistant YAML**
@@ -164,7 +164,7 @@ mqtt:
   sensor:
   - name: "Ventilation Status"
     object_id: "ventilation_1_1"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/1/read/1"
+    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/read/1"
     value_template: >-
           {% set val = value | float(0) %}
           {% if val == 0 %} Auto
@@ -181,32 +181,32 @@ mqtt:
     icon: "mdi:state-machine"
     qos: 2
     availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
       - topic: "Devices/PLC/Lab/availability"
     availability_mode : "all"
     payload_available: "online"
     payload_not_available: "offline"
   - name: "Ventilation Pos"
     object_id: "Ventilation_1_2"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/1/read/2"
+    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/read/2"
     unit_of_measurement: "%"
     icon: "mdi:valve"
     qos: 2
     availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
       - topic: "Devices/PLC/Lab/availability"
     availability_mode : "all"
     payload_available: "online"
     payload_not_available: "offline"
   - name: "Ventilation Power"
     object_id: "ventilation_1_3"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/1/read/3"
+    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/read/3"
     unit_of_measurement: "W"
     device_class: "power"
     state_class: "measurement"
     qos: 2
     availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
       - topic: "Devices/PLC/Lab/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -220,7 +220,7 @@ mqtt:
   sensor:
   - name: "Ventilation Node 2 Status"
     object_id: "ventilation_2_1"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/read/1"
+    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/read/1"
     value_template: >-
           {% set val = value | float(0) %}
           {% if val == 0 %} Auto
@@ -237,46 +237,46 @@ mqtt:
     icon: "mdi:state-machine"
     qos: 2
     availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
       - topic: "Devices/PLC/Lab/availability"
     availability_mode : "all"
     payload_available: "online"
     payload_not_available: "offline"
   - name: "Ventilation Node 2 Pos"
     object_id: "ventilation_2_2"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/read/2"
+    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/read/2"
     unit_of_measurement: "%"
     icon: "mdi:valve"
     qos: 2
     availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
       - topic: "Devices/PLC/Lab/availability"
     availability_mode : "all"
     payload_available: "online"
     payload_not_available: "offline"
   - name: "Ventilation Node 2 Temp"
     object_id: "ventilation_2_3"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/read/3"
+    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/read/3"
     value_template: "{{ value | multiply(0.10) | round(2) }}" 
     unit_of_measurement: "°C"
     device_class: "temperature"
     state_class: "measurement"
     qos: 2
     availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
       - topic: "Devices/PLC/Lab/availability"
     availability_mode : "all"
     payload_available: "online"
     payload_not_available: "offline"
   - name: "Ventilation Node 2 CO2"
     object_id: "Ventilation_2_4"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/read/4"
+    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/read/4"
     unit_of_measurement: "µg/m³"
     device_class: "PM25"
     state_class: "measurement"
     qos: 2
     availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
       - topic: "Devices/PLC/Lab/availability"
     availability_mode : "all"
     payload_available: "online"
@@ -290,10 +290,10 @@ mqtt:
   button:
   - object_id: "ventilation_2_write_9_15high"
 	name: "Ventilation Kitchen 15 min high"
-	command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/write/9"
+	command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/write/9"
 	payload_press: "4"
 	availability:
-	- topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+	- topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
 	- topic: "Devices/PLC/Lab/availability"
 	availability_mode : "all"
 	payload_available: "online"
@@ -301,10 +301,10 @@ mqtt:
 	entity_category: "config"
   - object_id: "ventilation_2_write_9_Auto"
 	name: "Ventilation Kitchen auto"
-	command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/2/write/9"
+	command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/write/9"
 	payload_press: "5"
 	availability:
-	- topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_MQTT_001/availability"
+	- topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
 	- topic: "Devices/PLC/Lab/availability"
 	availability_mode : "all"
 	payload_available: "online"
