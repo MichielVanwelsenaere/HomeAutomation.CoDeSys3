@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-30T20:44:14.5598188" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-30T20:43:27.0059939">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T10:58:18.0225813" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T10:57:07.7425061">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -24401,137 +24401,22 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                         </structValue>
                       </initialValue>
                     </variable>
-                    <variable name="fbAiRtd001">
+                    <variable name="fbAiRtdUnwired">
                       <type>
                         <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
                       </type>
-                      <initialValue>
-                        <structValue>
-                          <value member="FriendlyName">
-                            <simpleValue value="'Lab PLC temperature 1'" />
-                          </value>
-                        </structValue>
-                      </initialValue>
                       <documentation>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml"> ANALOG INPUT FUNCTION BLOCKS 
- One 750-451 RTD module, eight channels, one block per channel. The
-	   module puts tenths of a degree in its channel word, so a block needs no
-	   scaling factor and no FB_init arguments: the channel word is an input,
-	   and everything else is a default that can be changed while the PLC runs.
+ No RTD module on this bench, so no channel to read. This instance is
+	   declared and called anyway, unwired, because a function block that nothing
+	   instantiates is never compiled - it would go on exporting and reading as
+	   supported while a change to FB_MQTT_BASE or the discovery device quietly
+	   broke it. FriendlyName is empty, so it wires nothing and announces nothing.
 
-	   RTD_001..008 are that module's channels 0..7, in terminal order, so
-	   RTD_001 is R1. All eight are declared whether or not a sensor is on
-	   them: an unwired channel reads its open-circuit end of scale, which the
-	   block rejects as implausible, so an empty terminal goes unavailable in
-	   Home Assistant rather than publishing a confident wrong number.
-
-	   The 750-451 is 2-conductor only - there is no lead compensation, so the
-	   wire resistance is part of the reading. It also has to be told which
-	   sensor it is carrying; that is a WAGO-I/O-CHECK job, not an IEC one.
-	   See docs/WagoIoCheck.md. </xhtml>
-                      </documentation>
-                    </variable>
-                    <variable name="fbAiRtd002">
-                      <type>
-                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
-                      </type>
-                      <initialValue>
-                        <structValue>
-                          <value member="FriendlyName">
-                            <simpleValue value="'Lab PLC temperature 2'" />
-                          </value>
-                        </structValue>
-                      </initialValue>
-                    </variable>
-                    <variable name="fbAiRtd003">
-                      <type>
-                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
-                      </type>
-                      <initialValue>
-                        <structValue>
-                          <value member="FriendlyName">
-                            <simpleValue value="'Lab PLC temperature 3'" />
-                          </value>
-                        </structValue>
-                      </initialValue>
-                    </variable>
-                    <variable name="fbAiRtd004">
-                      <type>
-                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
-                      </type>
-                      <initialValue>
-                        <structValue>
-                          <value member="FriendlyName">
-                            <simpleValue value="'Lab PLC temperature 4'" />
-                          </value>
-                        </structValue>
-                      </initialValue>
-                    </variable>
-                    <variable name="fbAiRtd005">
-                      <type>
-                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
-                      </type>
-                      <initialValue>
-                        <structValue>
-                          <value member="FriendlyName">
-                            <simpleValue value="'Lab PLC temperature 5'" />
-                          </value>
-                        </structValue>
-                      </initialValue>
-                    </variable>
-                    <variable name="fbAiRtd006">
-                      <type>
-                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
-                      </type>
-                      <initialValue>
-                        <structValue>
-                          <value member="FriendlyName">
-                            <simpleValue value="'Lab PLC temperature 6'" />
-                          </value>
-                        </structValue>
-                      </initialValue>
-                    </variable>
-                    <variable name="fbAiRtd007">
-                      <type>
-                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
-                      </type>
-                      <initialValue>
-                        <structValue>
-                          <value member="FriendlyName">
-                            <simpleValue value="'Lab PLC temperature 7'" />
-                          </value>
-                        </structValue>
-                      </initialValue>
-                    </variable>
-                    <variable name="fbAiRtd008">
-                      <type>
-                        <derived name="FB_INPUT_TEMPERATURE_RTD_MQTT" />
-                      </type>
-                      <initialValue>
-                        <structValue>
-                          <value member="FriendlyName">
-                            <simpleValue value="'Lab PLC temperature 8'" />
-                          </value>
-                        </structValue>
-                      </initialValue>
-                    </variable>
-                    <variable name="tRtdPublishInterval">
-                      <type>
-                        <TIME />
-                      </type>
-                      <initialValue>
-                        <simpleValue value="TIME#1m0s0ms" />
-                      </initialValue>
-                      <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> How often every RTD channel republishes, and the one knob for all eight.
-	   The block's own default is the same minute; this exists so the bench can be
-	   moved off it in one place.
-
-	   Drop it to T#1S when a probe is actually being moved from terminal to
-	   terminal and the point is to watch a value follow it. Note what that costs:
-	   the block sets each entity's expire_after to three heartbeats, so a
-	   one-second interval also means Home Assistant gives up on a silent channel
-	   after three seconds. </xhtml>
+	   Put a module back and this is where the real instances go: one per channel,
+	   Raw wired to the channel word, FriendlyName set, and
+	   ProcessImageValid := Pfc200Bus.xConfigFinished. See
+	   docs/AnalogInputs/UsingRTDSensors.md. </xhtml>
                       </documentation>
                     </variable>
                     <variable name="fbDoBin001">
@@ -24720,29 +24605,11 @@ fbDoCover002(
                       <ST>
                         <xhtml xmlns="http://www.w3.org/1999/xhtml">fbDiPb001(PB:= DI_001); (* Provide the input FB the correct phyical input to validate each cyclus *)
 fbDiPb002(PB:= DI_002);
-(* The RTD channel is read here because this action is the one the chart runs
-   every cycle to take the physical inputs in, and an analog channel is a
-   physical input. It would sit better in an action of its own - the name of
-   this one is now half a lie - but an action has to be associated with a step
-   in the SFC chart to be called at all, and a chart cannot be edited from a
-   script. Moving it is an IDE job worth doing the next time this program is
-   open. *)
-fbAiRtd001(Raw := RTD_001, HeartbeatInterval := tRtdPublishInterval,
-	ProcessImageValid := Pfc200Bus.xConfigFinished);
-fbAiRtd002(Raw := RTD_002, HeartbeatInterval := tRtdPublishInterval,
-	ProcessImageValid := Pfc200Bus.xConfigFinished);
-fbAiRtd003(Raw := RTD_003, HeartbeatInterval := tRtdPublishInterval,
-	ProcessImageValid := Pfc200Bus.xConfigFinished);
-fbAiRtd004(Raw := RTD_004, HeartbeatInterval := tRtdPublishInterval,
-	ProcessImageValid := Pfc200Bus.xConfigFinished);
-fbAiRtd005(Raw := RTD_005, HeartbeatInterval := tRtdPublishInterval,
-	ProcessImageValid := Pfc200Bus.xConfigFinished);
-fbAiRtd006(Raw := RTD_006, HeartbeatInterval := tRtdPublishInterval,
-	ProcessImageValid := Pfc200Bus.xConfigFinished);
-fbAiRtd007(Raw := RTD_007, HeartbeatInterval := tRtdPublishInterval,
-	ProcessImageValid := Pfc200Bus.xConfigFinished);
-fbAiRtd008(Raw := RTD_008, HeartbeatInterval := tRtdPublishInterval,
-	ProcessImageValid := Pfc200Bus.xConfigFinished);
+(* Called so the block is compiled, not to read anything: see its declaration.
+   Raw is a literal because there is no channel word on this bench, and with
+   ProcessImageValid left FALSE the block reports the reading as invalid, which
+   is exactly what an unwired input is. *)
+fbAiRtdUnwired(Raw := 0);
 
 
 (* K-BUS CONTROL. Written every cycle so that setting either flag in an online
@@ -27338,123 +27205,6 @@ END_IF
                           </data>
                         </addData>
                       </configuration>
-                      <configuration name="_750_451">
-                        <addData>
-                          <data name="Device" handleUnknown="discard">
-                            <Device xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="">
-                              <DeviceType>
-                                <ModuleIdentification>
-                                  <Type>288</Type>
-                                  <Id>0000 0001</Id>
-                                  <Version>4.19.0.0</Version>
-                                  <ModuleId>01C3_750_451</ModuleId>
-                                </ModuleIdentification>
-                                <Connector moduleType="289" role="child" interface="PFC200.Bus" connectorId="0">
-                                  <HostParameterSet>
-                                    <Parameter ParameterId="100" type="std:WORD" IndexInDevDesc="0">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_00" visiblename="Modulecode" offlineaccess="none" onlineaccess="none">16#1C3</Value>
-                                      <Name>Modulecode</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="10000" type="std:INT" IndexInDevDesc="2">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0000" visiblename="Analog Input Channel 0" />
-                                      <Name>Analog Input Channel 0</Name>
-                                      <Mapping>RTD_001</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="10001" type="std:INT" IndexInDevDesc="4">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0001" visiblename="Analog Input Channel 1" />
-                                      <Name>Analog Input Channel 1</Name>
-                                      <Mapping>RTD_002</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="10002" type="std:INT" IndexInDevDesc="6">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0002" visiblename="Analog Input Channel 2" />
-                                      <Name>Analog Input Channel 2</Name>
-                                      <Mapping>RTD_003</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="10003" type="std:INT" IndexInDevDesc="8">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0003" visiblename="Analog Input Channel 3" />
-                                      <Name>Analog Input Channel 3</Name>
-                                      <Mapping>RTD_004</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="10004" type="std:INT" IndexInDevDesc="10">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0004" visiblename="Analog Input Channel 4" />
-                                      <Name>Analog Input Channel 4</Name>
-                                      <Mapping>RTD_005</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="10005" type="std:INT" IndexInDevDesc="12">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0005" visiblename="Analog Input Channel 5" />
-                                      <Name>Analog Input Channel 5</Name>
-                                      <Mapping>RTD_006</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="10006" type="std:INT" IndexInDevDesc="14">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0006" visiblename="Analog Input Channel 6" />
-                                      <Name>Analog Input Channel 6</Name>
-                                      <Mapping>RTD_007</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="10007" type="std:INT" IndexInDevDesc="16">
-                                      <Attributes channel="input" />
-                                      <Value name="_x0031_0007" visiblename="Analog Input Channel 7" />
-                                      <Name>Analog Input Channel 7</Name>
-                                      <Mapping>RTD_008</Mapping>
-                                    </Parameter>
-                                    <Parameter ParameterId="11000" type="std:WORD" IndexInDevDesc="1">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1000" visiblename="Analog Input Channel 0" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 0</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="11001" type="std:WORD" IndexInDevDesc="3">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1001" visiblename="Analog Input Channel 1" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 1</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="11002" type="std:WORD" IndexInDevDesc="5">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1002" visiblename="Analog Input Channel 2" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 2</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="11003" type="std:WORD" IndexInDevDesc="7">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1003" visiblename="Analog Input Channel 3" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 3</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="11004" type="std:WORD" IndexInDevDesc="9">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1004" visiblename="Analog Input Channel 4" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 4</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="11005" type="std:WORD" IndexInDevDesc="11">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1005" visiblename="Analog Input Channel 5" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 5</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="11006" type="std:WORD" IndexInDevDesc="13">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1006" visiblename="Analog Input Channel 6" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 6</Name>
-                                    </Parameter>
-                                    <Parameter ParameterId="11007" type="std:WORD" IndexInDevDesc="15">
-                                      <Attributes offlineaccess="none" onlineaccess="none" />
-                                      <Value name="_x0031_1007" visiblename="Analog Input Channel 7" offlineaccess="none" onlineaccess="none">16</Value>
-                                      <Name>Analog Input Channel 7</Name>
-                                    </Parameter>
-                                  </HostParameterSet>
-                                </Connector>
-                                <DeviceParameterSet />
-                              </DeviceType>
-                            </Device>
-                          </data>
-                          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-                            <ObjectId>0975d4b7-4cd1-4fc5-bc78-d8c58de40897</ObjectId>
-                          </data>
-                        </addData>
-                      </configuration>
                       <configuration name="_75x_467">
                         <addData>
                           <data name="Device" handleUnknown="discard">
@@ -28888,7 +28638,6 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="_75x_440" ObjectId="cc5b3f4c-e101-4a03-b25e-6777feb0bc44" />
             <Object Name="_75x_540" ObjectId="73cc08d4-71ab-4258-b3f8-89cb83a3ca0c" />
             <Object Name="_75x_540_1" ObjectId="de3c5e5c-1bcd-4852-aa48-5db6ba864880" />
-            <Object Name="_750_451" ObjectId="0975d4b7-4cd1-4fc5-bc78-d8c58de40897" />
             <Object Name="_75x_467" ObjectId="be8f5619-5539-4f63-9989-944cf19d0375" />
             <Object Name="_75x_550" ObjectId="827f7d16-32dd-46c0-8286-bed3d86973bc" />
           </Object>
