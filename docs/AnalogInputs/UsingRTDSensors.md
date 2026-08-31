@@ -4,15 +4,19 @@
 
 How to connect a resistance temperature sensor to a WAGO 750-series RTD input module, map its
 channel in CODESYS, and publish it with
-[`FB_INPUT_TEMPERATURE_RTD_MQTT`](../FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md). The
-reference bench uses a **750-451** and a Pt1000 on `R1`; the same steps apply to its relatives.
+[`FB_INPUT_TEMPERATURE_RTD_MQTT`](../FunctionBlocks/FB_INPUT_TEMPERATURE_RTD_MQTT.md). It is
+written against a **750-451** carrying a Pt1000 on `R1`; the same steps apply to its relatives.
+
+:bulb: **No RTD module is fitted to the reference bench.** Everything here is what to do when one
+is, and the numbers below were measured on a bench that had one. The block is in the project and
+compiled; it reads a channel word, so nothing about it depends on which module supplies it.
 
 ### **Which module**
 
 | Module | Channels | Sensor | Leads |
 |:--|:--|:--|:--|
 | 750-450 | 4 | RTD, adjustable | 2-, 3- and 4-conductor |
-| [750-451](https://www.wago.com/global/i-o-systems/8-channel-analog-input/p/750-451) | 8 | RTD, adjustable — the bench's module, set for **Pt1000** | 2-conductor |
+| [750-451](https://www.wago.com/global/i-o-systems/8-channel-analog-input/p/750-451) | 8 | RTD, adjustable — the module this page is written against, set for **Pt1000** | 2-conductor |
 | 75x-460 | 4 | RTD, parameterizable. **The ordering variant fixes the sensor**: `/000-003` is Pt1000, `/000-005` Ni1000. | 2-conductor |
 | 75x-461 | 2 | RTD. **The ordering variant fixes the sensor**: `/000-003` is Pt1000, `/000-006` Pt100, `/000-005` and `/000-009` Ni1000. Plain `75x-461` is adjustable. | 2- and 3-conductor |
 | [750-463](https://www.wago.com/global/i-o-systems/4-channel-analog-input/p/750-463) | 4 | RTD, adjustable | 2-conductor |
@@ -25,8 +29,8 @@ so it is the list of modules CODESYS here can be told it has.
 A Pt1000 element is a resistor, so **it has no polarity** — either lead may go to either terminal
 of the pair. What matters is landing on *one channel's pair*.
 
-Each channel is a `+R`/`−R` pair. On the bench's **750-451** the eight sensors run straight
-through to the eight channels, and this project maps them straight through again:
+Each channel is a `+R`/`−R` pair. On a **750-451** the eight sensors run straight through to the
+eight channels, and the mapping to create runs straight through again:
 
 | Sensor | Label | CODESYS channel | Mapped variable | Block |
 |:--|:--|:--|:--|:--|
@@ -47,7 +51,7 @@ reads with `fbAiRtd001`.
 
 Two more points:
 
-- **No jumper is needed.** The 750-451 and the 750-463 both measure 2-conductor only, so unlike
+- **No jumper is needed.** The 750-451 and the 750-463 measure 2-conductor only, so unlike
   the 3-wire-capable Pt100 modules there is nothing to bridge — the pair is the whole connection.
 - **Use shielded cable** and land the screen on the DIN-rail shield clamp, at one end only.
 
@@ -76,11 +80,11 @@ Three practical points:
 The module decides *what kind of sensor* a channel is measuring, and this is the one step no IEC
 code in this project can perform:
 
-- The bench's **750-451 is set for Pt1000**, and that was established by measurement rather than
-  from a data sheet: a Pt1000 on `R1` reads 25.9 °C in a room that is about that. A Pt1000 on a
+- **Measurement establishes which sensor a channel is set for, without any tooling.** A Pt1000
+  on a channel set for Pt1000 reads the room: 25.9 °C in a room that is about that. A Pt1000 on a
   channel set for Pt100 sees ten times the resistance it expects and saturates at the top of
-  scale, so **a correct absolute reading is itself the proof of the sensor type** — no tooling
-  needed to establish it.
+  scale, so **a correct absolute reading is itself the proof of the sensor type** — which is
+  faster than reading a data sheet and answers for the channel in front of you.
 - The **750-463 is the Pt1000 variant**, and Pt1000 is its factory default. If the module has
   never been reconfigured, **a Pt1000 needs no configuration at all.**
 - It is *adjustable* — Pt1000, Ni1000, KTY81 and plain resistance ranges — and those settings
@@ -198,8 +202,8 @@ on its terminals — however reasonable the number looks.
 
 ### **What the 750-451 reads**
 
-Measured on the reference bench, PFC200 + 750-451, one Pt1000 on `R1` and nothing on the other
-seven, immediately after a download:
+Measured on a PFC200 with a 750-451, one Pt1000 on `R1` and nothing on the other seven,
+immediately after a download:
 
 ```
 RTD_001    259     25.9 °C     Valid  Fault=FALSE  DataAvailable=TRUE
