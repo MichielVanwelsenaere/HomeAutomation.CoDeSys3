@@ -141,6 +141,7 @@ def plan_gvl_additions(
     ref_objects: dict[str, dict[str, Any]],
     impl_objects: dict[str, dict[str, Any]],
     selected: list[str],
+    impl_report: dict[str, Any] | None = None,
 ) -> list[dict[str, Any]]:
     """Global-variable members the synced blocks need and the installation lacks.
 
@@ -160,7 +161,19 @@ def plan_gvl_additions(
     additions: list[dict[str, Any]] = []
     corpus = "\n".join(source_of(ref_objects[n]) for n in selected if n in ref_objects)
 
-    for name, impl_gvl in sorted(impl_objects.items()):
+    # Every code-bearing GVL OBJECT, not one per name. A building with two
+    # controllers has two GVL_MQTT - one per application, each with its own
+    # topic prefixes - and an index keyed by name can only ever see one of them.
+    # Miss that and the constant is appended to whichever won the index while
+    # the other application still cannot compile a block that reads it.
+    if impl_report is None:
+        candidates = sorted(impl_objects.items())
+    else:
+        candidates = [(o["name"], o) for o in impl_report["objects"]
+                      if not o.get("is_task_call")]
+        candidates.sort(key=lambda pair: (pair[0], pair[1].get("path") or ""))
+
+    for name, impl_gvl in candidates:
         if impl_gvl.get("kind") != "VAR_GLOBAL":
             continue
         ref_gvl = ref_objects.get(name)
@@ -176,7 +189,16 @@ def plan_gvl_additions(
                 continue
             wanted.append({"member": member, "block": header, "declaration": statement})
         if wanted:
-            additions.append({"gvl": name, "members": wanted})
+            additions.append({
+                "gvl": name,
+                # The object path is what tells one application's GVL from
+                # another's. find_editable matches it as a case-insensitive
+                # substring and a full path matches exactly one object, so the
+                # edit can neither be refused as ambiguous nor land on the
+                # wrong controller.
+                "path": impl_gvl.get("path") or "",
+                "members": wanted,
+            })
     return additions
 
 
@@ -317,7 +339,7 @@ def compatibility(
     return {"ok": not fatal, "checks": checks, "blocking": [c["name"] for c in fatal]}
 
 
-SENTINEL = "synced from the reference project"
+PROVENANCE = "synced from the reference project"
 
 
 def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
@@ -327,29 +349,43 @@ def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
     declaration can be rewritten or dropped, and idempotent, so re-running a
     half-finished sync does not declare everything twice. Both properties are
     load-bearing - this is a file that holds a building's instance list.
+
+    One edit per MEMBER, each guarded by the name of the very member it
+    declares. A shared sentinel - a provenance comment, say - is already in the
+    GVL the moment a project has been synced once before, so every later append
+    is skipped as "already present": the build stays green, the constant is
+    simply absent, and the only trace is a line of apply output. Per-member
+    guards also make a half-applied set recoverable, because the members that
+    did land are exactly the ones that get skipped.
     """
     if not os.path.isdir(folder):
         os.makedirs(folder)
     edits = []
     for entry in additions:
         gvl = entry["gvl"]
-        by_block: dict[str, list[str]] = {}
+        path = entry.get("path") or ""
         for member in entry["members"]:
-            by_block.setdefault(member["block"], []).append(member["declaration"])
-        lines = ["", "(* %s *)" % SENTINEL]
-        for header in sorted(by_block):
-            lines.append(header)
-            for statement in by_block[header]:
-                lines.append("\t" + statement)
-            lines.append("END_VAR")
-        fragment = os.path.join(folder, "%s.decl" % gvl)
-        with io.open(fragment, "w", encoding="utf-8", newline="\r\n") as handle:
-            handle.write("\n".join(lines) + "\n")
-        edits.append({
-            "pou": gvl,
-            "decl_append_file": os.path.basename(fragment),
-            "skip_if_contains": SENTINEL,
-        })
+            lines = [
+                "",
+                "(* %s *)" % PROVENANCE,
+                member["block"],
+                "\t" + member["declaration"],
+                "END_VAR",
+            ]
+            fragment = os.path.join(folder, "%s.%s.decl" % (gvl, member["member"]))
+            with io.open(fragment, "w", encoding="utf-8", newline="\r\n") as handle:
+                handle.write("\n".join(lines) + "\n")
+            edit = {
+                "pou": gvl,
+                "decl_append_file": os.path.basename(fragment),
+                # Guarded by the member's OWN name, never by the provenance
+                # comment: that comment is already in the GVL of any project
+                # synced once before, and would skip this append in silence.
+                "skip_if_contains": member["member"],
+            }
+            if path:
+                edit["path"] = path
+            edits.append(edit)
     # Hand-authored call-site migrations live in their own file so that
     # re-running the planner cannot wipe them, and are folded into the single
     # spec that `-Edits` takes. See the skill's "Call-site migrations" section.
@@ -496,7 +532,7 @@ def main() -> int:
     else:
         required = None  # type: ignore[assignment]
 
-    gvl_additions = plan_gvl_additions(ref_objects, impl_objects, selected) if have_source else None
+    gvl_additions = plan_gvl_additions(ref_objects, impl_objects, selected, impl) if have_source else None
     if args.emit_edits and gvl_additions:
         write_edits(args.emit_edits, gvl_additions)
 
@@ -565,7 +601,11 @@ def main() -> int:
                 # which is worth keeping in the fragment and useless on one line.
                 terse = re.sub(r"\(\*.*?\*\)", "", member["declaration"], flags=re.DOTALL)
                 terse = " ".join(terse.split())
-                print("  %-24s %-22s %s" % (entry["gvl"], member["block"], terse))
+                # Name the controller, not just the GVL: with two applications
+                # the same GVL name appears twice and two identical lines read
+                # as a duplicate rather than as one append per controller.
+                owner = (entry.get("path") or "").split("/")[0] or entry["gvl"]
+                print("  %-24s %-22s %s" % (owner, member["block"], terse))
         if args.emit_edits:
             print("  edits spec: %s" % os.path.join(args.emit_edits, "edits.json"))
         else:

@@ -478,6 +478,46 @@ reports cheerfully that there is nothing to migrate. That is exactly how the
 first version of `plan_declaration_migration.py` found zero instances in a
 project with thirteen.
 
+**A second controller means a second everything.** A building with two PLCs has
+two `GVL_MQTT`, two `PRG_MAIN` and two of every other application-level object,
+each real and each carrying that controller's own topic prefixes. The planner
+emits one **path-qualified** append per controller for exactly this reason; an
+edit addressed by bare name would be refused as ambiguous, and a planner that
+indexes by name can only see one of the two. If you hand-author an edit against
+such a project, qualify it with `"path"` or it will not run.
+
+**`decl_append already present` means the constant was NOT added.** Every GVL
+append is guarded by `skip_if_contains`, and that guard is the name of the member
+being declared - never a provenance comment, which is already in the GVL of any
+project synced once before and would skip every later append in silence. The
+build stays green either way, because the block that reads the constant is
+usually not instantiated yet. Read that line in the apply output; it is the only
+place the skip is reported.
+
+**A "PLANNED but unchanged" finding is usually CODESYS reformatting, not a failed
+import.** `check_logic_unchanged.py` compares text hashes, and CODESYS rewrites a
+declaration as it imports it: `(* ... *)` and trailing `// ...` become `///` doc
+comments, `name : TYPE` loses its spaces, VAR sections get reordered. A block
+brought across by an earlier sync therefore hashes differently from the reference
+for ever, is planned again on the next sync, and reports as "the import did not
+take" when re-importing it changes nothing.
+
+Do not wave that away, and do not weaken the check - it is the one thing that
+catches an import that really did nothing. Tell the two apart by comparing the
+working copy against the *reference*:
+
+- **implementation text is never reformatted.** If every body is byte-identical
+  to the reference, the code is current whatever the declaration hash says.
+- declarations agree once comments, section order and whitespace are normalised.
+
+A genuinely failed import shows up as a body that differs, or as a member the
+reference has and the copy does not.
+
+**`import shared.xml: +1 replaced 1 skipped 1` is three nulls.** The ScriptEngine
+returns no per-object lists for an import, and `@($null).Count` is 1 in
+PowerShell. The line looks like a result and carries none; the object counts come
+from `check_logic_unchanged.py`.
+
 **Do not run this against `src/HomeAutomation.project`.** It is the source, not a
 target. `compare` refuses when both sides are the same file; nothing else checks,
 so pass `-Project` deliberately.
