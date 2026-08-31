@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T16:49:43.1069095" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T16:48:50.2425727">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T17:43:57.5639986" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T17:42:49.2397906">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -110,6 +110,150 @@ build can catch that, because nothing in the PLC is wrong.</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>1725693c-2e66-470f-96cb-0947d108f150</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="E_RS485_DUCO_NODE_TYPE">
+        <baseType>
+          <enum>
+            <values>
+              <value name="Unknown" value="0" />
+              <value name="DucoBoxFocus" value="10" />
+              <value name="ValveSensorless" value="11" />
+              <value name="ValveCO2" value="12" />
+              <value name="ValveHumidity" value="13" />
+              <value name="UserControl" value="14" />
+              <value name="SensorCO2" value="15" />
+              <value name="SensorHumidity" value="16" />
+              <value name="WindowVentilator" value="17" />
+              <value name="SwitchSensor" value="18" />
+              <value name="ActuatorBoard" value="19" />
+              <value name="ValveHumidityCO2" value="24" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>Unknown</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">A module type this enumeration does not name, and the value a node holds before
+the bus has answered for the first time.
+
+Zero is deliberately not a Duco type. The manual assigns parameters 01..09 to
+node 0 and reserves them, so no real component ever reports 0, which leaves it
+free to mean "not established yet". A node in this state publishes its registers
+and announces nothing: inventing entities for a component whose layout is
+unknown would put numbers under labels that were guessed.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>DucoBoxFocus</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">The ventilation unit itself, always node 1.
+
+Its register block is the one that is model-specific: read parameters 3, 4 and 5
+are current, average and maximum power in watts. A DucoBox Energy or Silent
+Connect answers those same addresses with something else, which is why this
+block is named for the Focus.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ValveSensorless</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Control valve with no sensor of its own. Reports status, ventilation position and
+indoor temperature; no CO2 and no humidity.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ValveCO2</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Control valve with a CO2 sensor. Adds read parameter 4, the measured CO2 in ppm,
+and write parameter 1, the CO2 setpoint.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ValveHumidity</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Control valve with a humidity sensor. Adds read parameter 5, the relative
+humidity as a percentage times 100, and write parameters 2 and 3, the RH setpoint
+and whether delta control is enabled.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>UserControl</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Wall control, with or without a battery. A battery unit reports no indoor
+temperature.
+
+Its write side collides with the valves': parameters 5 and 6 are the values of
+buttons 2 and 3 here, where a valve has auto minimum and auto maximum. Anything
+mapping a holding register to an entity has to branch on the type first.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>SensorCO2</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">CO2 sensor, either a room sensor or a box sensor. A box sensor reports no status
+and no ventilation position, so its entity set is smaller than a room sensor's
+even though both answer type 15.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>SensorHumidity</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Humidity sensor, either a room sensor or a box sensor. Same split as SensorCO2:
+a box sensor has neither status nor ventilation position.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>WindowVentilator</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Electronically controlled window ventilator.
+
+Two of its registers mean something different from every valve: parameter 2 is
+the ventilator opening rather than an extraction level, 0 shut to 100 open, and
+parameter 3 is the OUTDOOR temperature. A reader that assumes "3 is the room
+temperature" reports the weather as a room.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>SwitchSensor</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Switch sensor: presence detection, a heat-pump demand input, or an overrule
+input, selected by write parameter 1. Reports status and ventilation position
+only.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ActuatorBoard</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Actuator board driving a 2/3-point or PWM output.
+
+Shares the window ventilator's outdoor temperature on parameter 3, and is the one
+component where parameter 4 is not CO2 at all: it is the PWM-in percentage.
+Publishing it as air quality is the mistake this enumeration exists to prevent.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ValveHumidityCO2</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Control valve carrying both sensors, and the only type that fills every read
+parameter: status, position, temperature, CO2 and humidity.
+
+Out of sequence at 24 because Duco added it after the 11..19 block was allocated.</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>9e75d1f9-8ea1-42e6-b60c-b43e009681f0</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -8953,6 +9097,224 @@ END_IF </xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="F_DUCO_NODE_TYPE" pouType="function">
+        <interface>
+          <returnType>
+            <derived name="E_RS485_DUCO_NODE_TYPE" />
+          </returnType>
+          <inputVars>
+            <variable name="wRaw">
+              <type>
+                <WORD />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Read parameter 0 of a node, exactly as the bus returned it.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Module type as reported by read parameter 0, mapped onto the enumeration.
+
+   A CASE rather than a cast, deliberately. The bus can return anything - a Duco
+   range that grows a type this project has never seen, or a garbled frame that
+   passed CRC - and a cast would hand that straight to code which then indexes a
+   register table by it. Everything unrecognised becomes Unknown, and a node in
+   that state publishes its raw registers and announces nothing. *)
+CASE wRaw OF
+	10:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.DucoBoxFocus;
+	11:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ValveSensorless;
+	12:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ValveCO2;
+	13:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ValveHumidity;
+	14:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.UserControl;
+	15:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.SensorCO2;
+	16:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.SensorHumidity;
+	17:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.WindowVentilator;
+	18:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.SwitchSensor;
+	19:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ActuatorBoard;
+	24:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2;
+ELSE
+	F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.Unknown;
+END_CASE</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>a730fbaf-c9ea-4497-a9be-386ca0646f78</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="F_DUCO_SCALED_TEXT" pouType="function">
+        <interface>
+          <returnType>
+            <string length="16" />
+          </returnType>
+          <inputVars>
+            <variable name="iRaw">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">The register as a signed integer. Signed because outdoor temperature is a real
+register on this bus and it goes below zero.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iScale">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">10 for temperature, 100 for relative humidity. Duco scales those two
+differently and nothing else on this bus is scaled at all.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <localVars>
+            <variable name="iWhole">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="iFrac">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="sOut">
+              <type>
+                <string length="16" />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Formatted from the integer rather than through REAL_TO_STRING, for the reason
+   FB_INPUT_TEMPERATURE_RTD_MQTT gives: REAL_TO_STRING on this runtime produces
+   a representation nobody wants on a topic. The register is already a fixed-point
+   integer, so dividing it into whole and fraction is both exact and shorter. *)
+IF iScale &lt;= 0 THEN
+	F_DUCO_SCALED_TEXT := INT_TO_STRING(iRaw);
+	RETURN;
+END_IF
+
+iWhole	:= iRaw / iScale;
+iFrac	:= ABS(iRaw MOD iScale);
+
+sOut := INT_TO_STRING(iWhole);
+
+(* IEC division truncates toward zero, so -5/10 is 0 and the sign is lost on
+   everything between -1 and 0. Put it back, or -0.5 C publishes as 0.5. *)
+IF iRaw &lt; 0 AND iWhole = 0 THEN
+	sOut := CONCAT('-', sOut);
+END_IF
+
+sOut := CONCAT(sOut, '.');
+
+(* A hundredths scale needs the leading zero: 4907 is 49.07, not 49.7. *)
+IF iScale = 100 AND iFrac &lt; 10 THEN
+	sOut := CONCAT(sOut, '0');
+END_IF
+
+F_DUCO_SCALED_TEXT := CONCAT(sOut, INT_TO_STRING(iFrac));</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>d1b2eedd-88cb-49d7-85e9-aff1538f0b73</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="F_DUCO_STATUS_TEXT" pouType="function">
+        <interface>
+          <returnType>
+            <string length="24" />
+          </returnType>
+          <inputVars>
+            <variable name="wRaw">
+              <type>
+                <WORD />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Read parameter 1 of a node, the ventilation status.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The status enumeration from L8000009, resolved to text here rather than in a
+   Home Assistant template. The PLC is the only place that knows this mapping is
+   fixed, and a template is a second copy of it that goes stale silently.
+
+   Not to be confused with the ACTION parameter, holding 9, which encodes the
+   same ideas with different numbers: the action that produces "Manual low" is 2,
+   and the status that reports it is 4. F_DUCO_ACTION_TEXT is the other one. *)
+CASE wRaw OF
+	0:		F_DUCO_STATUS_TEXT := 'Auto';
+	1:		F_DUCO_STATUS_TEXT := '10 minutes high';
+	2:		F_DUCO_STATUS_TEXT := '20 minutes high';
+	3:		F_DUCO_STATUS_TEXT := '30 minutes high';
+	4:		F_DUCO_STATUS_TEXT := 'Manual low';
+	5:		F_DUCO_STATUS_TEXT := 'Manual medium';
+	6:		F_DUCO_STATUS_TEXT := 'Manual high';
+	7:		F_DUCO_STATUS_TEXT := 'Unoccupied';
+	99:		F_DUCO_STATUS_TEXT := 'Error';
+ELSE
+	(* Published rather than swallowed: an undocumented status is exactly the
+	   thing somebody will need to see when a new component misbehaves. *)
+	F_DUCO_STATUS_TEXT := CONCAT('Unknown ', WORD_TO_STRING(wRaw));
+END_CASE</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>914a5658-e401-4069-b24a-fb8acd0a3b5c</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="F_DUCO_TYPE_TEXT" pouType="function">
+        <interface>
+          <returnType>
+            <string length="28" />
+          </returnType>
+          <inputVars>
+            <variable name="eType">
+              <type>
+                <derived name="E_RS485_DUCO_NODE_TYPE" />
+              </type>
+            </variable>
+          </inputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* What a node is, in words, for the diagnostic topic. Home Assistant shows this
+   on the node's device page, which is where somebody looks after re-pairing the
+   network and wondering which valve moved. *)
+CASE eType OF
+	E_RS485_DUCO_NODE_TYPE.DucoBoxFocus:		F_DUCO_TYPE_TEXT := 'DucoBox Focus';
+	E_RS485_DUCO_NODE_TYPE.ValveSensorless:		F_DUCO_TYPE_TEXT := 'Valve';
+	E_RS485_DUCO_NODE_TYPE.ValveCO2:			F_DUCO_TYPE_TEXT := 'CO2 valve';
+	E_RS485_DUCO_NODE_TYPE.ValveHumidity:		F_DUCO_TYPE_TEXT := 'Humidity valve';
+	E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:	F_DUCO_TYPE_TEXT := 'Humidity + CO2 valve';
+	E_RS485_DUCO_NODE_TYPE.UserControl:			F_DUCO_TYPE_TEXT := 'User control';
+	E_RS485_DUCO_NODE_TYPE.SensorCO2:			F_DUCO_TYPE_TEXT := 'CO2 sensor';
+	E_RS485_DUCO_NODE_TYPE.SensorHumidity:		F_DUCO_TYPE_TEXT := 'Humidity sensor';
+	E_RS485_DUCO_NODE_TYPE.WindowVentilator:	F_DUCO_TYPE_TEXT := 'Window ventilator';
+	E_RS485_DUCO_NODE_TYPE.SwitchSensor:		F_DUCO_TYPE_TEXT := 'Switch sensor';
+	E_RS485_DUCO_NODE_TYPE.ActuatorBoard:		F_DUCO_TYPE_TEXT := 'Actuator board';
+ELSE
+	F_DUCO_TYPE_TEXT := 'Unknown';
+END_CASE</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>41f7729e-a7a9-4e7c-8764-fd513ea5e2ed</ObjectId>
+          </data>
+        </addData>
+      </pou>
       <pou name="FB_HVAC_BURNER_MQTT" pouType="functionBlock">
         <interface>
           <outputVars>
@@ -17722,6 +18084,14 @@ END_IF</xhtml>
                   <BOOL />
                 </returnType>
                 <inputVars>
+                  <variable name="FriendlyName">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Name of the room this component serves.</xhtml>
+                    </documentation>
+                  </variable>
                   <variable name="DataPollingInterval">
                     <type>
                       <TIME />
@@ -17737,6 +18107,7 @@ IF uiNodePointer &lt;= 30 THEN
 	THIS^.afbNodes[uiNodePointer].InitNode(
 		DeviceAddress := THIS^.stMasterStep.DeviceId,
 		NodeNumber := uiNodePointer - 1,
+		FriendlyName := FriendlyName,
 		DataPollingInterval := DataPollingInterval
 	);
 
@@ -17838,6 +18209,21 @@ FOR iK := 0 TO 28 DO
 	END_IF
 END_FOR
 
+(* The zone read, at most one per transaction and only until each node has
+   answered once. It rides behind the value read rather than competing with it,
+   and it is a step of its own because read parameters 6..8 are undefined and the
+   box rejects a span that crosses them. *)
+FOR iK := 2 TO 30 DO
+	IF iK &lt; UINT_TO_INT(uiNodePointer) THEN
+		IF afbNodes[iK].RequestLocation() THEN
+			pSteps^[iN]	:= afbNodes[iK].GetLocationStep();
+			aiStepMap[iN]	:= 50 + iK;
+			iN			:= iN + 1;
+			EXIT;
+		END_IF
+	END_IF
+END_FOR
+
 BuildTransaction := iN;
 </xhtml>
                 </ST>
@@ -17885,7 +18271,9 @@ END_IF
 HasWork := E_RS485_WORK_LEVEL.NONE;
 FOR iK := 2 TO 30 DO
 	IF iK &lt; UINT_TO_INT(uiNodePointer) THEN
-		IF afbNodes[iK].RequestBusTime() THEN
+		(* RequestLocation counts as work: without it a node that has answered its
+		   values but not its zone would never get another transaction built. *)
+		IF afbNodes[iK].RequestBusTime() OR afbNodes[iK].RequestLocation() THEN
 			HasWork := E_RS485_WORK_LEVEL.POLL;
 			RETURN;
 		END_IF
@@ -17947,12 +18335,15 @@ IF iStepKind = 1 THEN
 	THIS^.Error := Failed;
 	THIS^.fbTimerData.IN := TRUE;
 	IF NOT Failed AND Count &gt;= 6 THEN
-		PubMqttMessage(Suffix := '/1/read/0', Data := WORD_TO_STRING(pData^[0]));
-		PubMqttMessage(Suffix := '/1/read/1', Data := WORD_TO_STRING(pData^[1]));
-		PubMqttMessage(Suffix := '/1/read/2', Data := WORD_TO_STRING(pData^[2]));
-		PubMqttMessage(Suffix := '/1/read/3', Data := WORD_TO_STRING(pData^[3]));
-		PubMqttMessage(Suffix := '/1/read/4', Data := WORD_TO_STRING(pData^[4]));
-		PubMqttMessage(Suffix := '/1/read/5', Data := WORD_TO_STRING(pData^[5]));
+		PubMqttMessage(Suffix := '/1/TYPE', Data := F_DUCO_TYPE_TEXT(F_DUCO_NODE_TYPE(pData^[0])));
+		PubMqttMessage(Suffix := '/1/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+		PubMqttMessage(Suffix := '/1/POS', Data := WORD_TO_STRING(pData^[2]));
+		(* Focus-specific: on this box read parameters 3, 4 and 5 are the current,
+		   average and maximum power in watts. Another DucoBox answers the same
+		   addresses with a different set, which is why this block is named. *)
+		PubMqttMessage(Suffix := '/1/PWR', Data := WORD_TO_STRING(pData^[3]));
+		PubMqttMessage(Suffix := '/1/PWR_AVG', Data := WORD_TO_STRING(pData^[4]));
+		PubMqttMessage(Suffix := '/1/PWR_MAX', Data := WORD_TO_STRING(pData^[5]));
 	END_IF
 
 ELSIF iStepKind = 2 THEN
@@ -17972,6 +18363,11 @@ ELSIF iStepKind = 3 THEN
 
 ELSIF iStepKind &gt;= 12 AND iStepKind &lt;= 40 THEN
 	afbNodes[iStepKind - 10].OnStepResult(Failed := Failed, pData := pData, Count := Count);
+
+ELSIF iStepKind &gt;= 52 AND iStepKind &lt;= 80 THEN
+	(* 50 + node index: the zone read. A separate kind from 10 + index because the
+	   two steps carry different registers and land in different methods. *)
+	afbNodes[iStepKind - 50].OnLocationResult(Failed := Failed, pData := pData, Count := Count);
 END_IF
 </xhtml>
                 </ST>
@@ -18114,6 +18510,57 @@ GetCommissioning := FALSE;
 	   the transaction it builds. </xhtml>
               </documentation>
             </variable>
+            <variable name="eType">
+              <type>
+                <derived name="E_RS485_DUCO_NODE_TYPE" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> What this node is, decoded from read parameter 0 on the first successful
+	   read. Unknown until then, and Unknown again if the bus starts answering with
+	   a type this project does not name - which is a state worth having, because a
+	   component whose register layout is unknown must not get labelled entities. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="FriendlyName">
+              <type>
+                <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The room, supplied by the call site. The MQTT topic still uses the node
+	   number: a topic that moved when somebody renamed a room would orphan its own
+	   retained state. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="stLocationStep">
+              <type>
+                <derived name="ST_RS485_STEP" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Read parameter 9, the zone grouping. Its own step, because parameters 6, 7
+	   and 8 are undefined on every component type in L8000009 and a span of ten
+	   crosses them - the box answers that with an exception, not with zeroes.
+
+	   Read once when the node is first identified and then left alone. It changes
+	   only when the network is re-paired, so polling it would double this node's
+	   frames for a value that never moves. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bLocationWanted">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bLocationKnown">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
           </localVars>
         </interface>
         <body>
@@ -18159,6 +18606,15 @@ END_IF</xhtml>
                       <UINT />
                     </type>
                   </variable>
+                  <variable name="FriendlyName">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Name of the room this component serves. Shown in Home Assistant; the topic
+keeps using the node number.</xhtml>
+                    </documentation>
+                  </variable>
                   <variable name="DataPollingInterval">
                     <type>
                       <TIME />
@@ -18168,11 +18624,21 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.stStep.DeviceId		:= DeviceAddress;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The measurements: read parameters 0..5, one frame. *)
+THIS^.stStep.DeviceId		:= DeviceAddress;
 THIS^.stStep.FunctionCode	:= 4;
 THIS^.stStep.Address		:= (NodeNumber * 10) + 10;
 THIS^.stStep.Quantity		:= 6;
 
+(* The zone grouping: read parameter 9, on its own. Deliberately NOT folded into
+   the step above by widening it to ten - 6, 7 and 8 are undefined on every
+   component type and the box rejects a span that crosses them. *)
+THIS^.stLocationStep.DeviceId		:= DeviceAddress;
+THIS^.stLocationStep.FunctionCode	:= 4;
+THIS^.stLocationStep.Address		:= (NodeNumber * 10) + 19;
+THIS^.stLocationStep.Quantity		:= 1;
+
+THIS^.FriendlyName := FriendlyName;
 THIS^.fbTimerData.PT := DataPollingInterval;
 THIS^.NodeNumber := NodeNumber + 1;
 
@@ -18286,14 +18752,26 @@ END_IF</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.fbTimerData.IN := TRUE;
 
-IF NOT Failed AND Count &gt;= 6 THEN
-	PubMqttMessage(Suffix := '/read/0', Data := WORD_TO_STRING(pData^[0]));
-	PubMqttMessage(Suffix := '/read/1', Data := WORD_TO_STRING(pData^[1]));
-	PubMqttMessage(Suffix := '/read/2', Data := WORD_TO_STRING(pData^[2]));
-	PubMqttMessage(Suffix := '/read/3', Data := WORD_TO_STRING(pData^[3]));
-	PubMqttMessage(Suffix := '/read/4', Data := WORD_TO_STRING(pData^[4]));
-	PubMqttMessage(Suffix := '/read/5', Data := WORD_TO_STRING(pData^[5]));
+IF Failed OR Count &lt; 6 THEN
+	RETURN;
 END_IF
+
+(* Read parameter 0 is the module type, and it decides what the other five mean.
+   Resolving it here, once per read, is what stops the publisher guessing: on a
+   window ventilator and an actuator board parameter 3 is the OUTDOOR temperature,
+   and on an actuator board parameter 4 is a PWM duty cycle rather than CO2. *)
+IF F_DUCO_NODE_TYPE(pData^[0]) &lt;&gt; THIS^.eType THEN
+	THIS^.eType := F_DUCO_NODE_TYPE(pData^[0]);
+
+	(* Duco assigns node numbers when components are paired, so a type that changes
+	   under a node number is a real event and not a glitch: the zone has to be
+	   asked for again, and Home Assistant has to be told what this node now is. *)
+	THIS^.bLocationKnown	:= FALSE;
+	THIS^.bLocationWanted	:= THIS^.eType &lt;&gt; E_RS485_DUCO_NODE_TYPE.Unknown;
+	PubMqttMessage(Suffix := '/TYPE', Data := F_DUCO_TYPE_TEXT(THIS^.eType));
+END_IF
+
+THIS^.PublishDecoded(pData := pData, Count := Count);
 </xhtml>
                 </ST>
               </body>
@@ -18316,6 +18794,212 @@ IF fbTimerData.Q THEN
 	THIS^.fbTimerData.IN := FALSE;
 	GetStep := THIS^.stStep;
 END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestLocation" ObjectId="d72357bd-bb0b-451f-b1d3-24ba6ae6ec38">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE while this node still owes its zone number. See GetLocationStep.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Pure predicate, like RequestBusTime - the parent, and through it the scheduler,
+   may ask more than once per cycle. The zone is wanted from the moment the type
+   is first known until the answer arrives, and never again. *)
+RequestLocation := bNodeInitialized AND bLocationWanted AND NOT bLocationKnown;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetLocationStep" ObjectId="b6434cd5-0fa7-405a-8db2-bdacf51ecfc5">
+              <interface>
+                <returnType>
+                  <derived name="ST_RS485_STEP" />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">The zone read, for the parent to put into a transaction it is building.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Clearing the request here rather than in RequestLocation is what keeps that
+   method a pure predicate. OnLocationResult puts it back if the read fails. *)
+IF bLocationWanted THEN
+	THIS^.bLocationWanted := FALSE;
+	GetLocationStep := THIS^.stLocationStep;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnLocationResult" ObjectId="57564664-af01-42f4-b9a5-a80a1968c56e">
+              <interface>
+                <inputVars>
+                  <variable name="Failed">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="A_RS485_READ_BUFFER" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Count">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Result of the zone read. Called by the parent, which owns the step map.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT Failed AND Count &gt;= 1 THEN
+	THIS^.bLocationKnown := TRUE;
+	PubMqttMessage(Suffix := '/ZONE', Data := WORD_TO_STRING(pData^[0]));
+ELSE
+	(* Ask again at the next opportunity. A node that answers its measurements but
+	   not its zone number is not a state to sit in silently. *)
+	THIS^.bLocationWanted := TRUE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishDecoded" ObjectId="a648221a-229a-4215-82e7-5b4ba2659d4f">
+              <interface>
+                <inputVars>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="A_RS485_READ_BUFFER" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Count">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Publish read parameters 1..5 under the names this node's type gives them.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One branch per component class, because the same register carries different
+   quantities on different components. Anything not named here publishes nothing:
+   an unrecognised component gets its raw registers below and no labels. *)
+CASE eType OF
+
+E_RS485_DUCO_NODE_TYPE.ValveSensorless,
+E_RS485_DUCO_NODE_TYPE.ValveCO2,
+E_RS485_DUCO_NODE_TYPE.ValveHumidity,
+E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/POS', Data := WORD_TO_STRING(pData^[2]));
+	PubMqttMessage(Suffix := '/TEMP', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+	IF eType = E_RS485_DUCO_NODE_TYPE.ValveCO2 OR eType = E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2 THEN
+		PubMqttMessage(Suffix := '/CO2', Data := WORD_TO_STRING(pData^[4]));
+	END_IF
+	IF eType = E_RS485_DUCO_NODE_TYPE.ValveHumidity OR eType = E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2 THEN
+		PubMqttMessage(Suffix := '/RH', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[5]), 100));
+	END_IF
+
+E_RS485_DUCO_NODE_TYPE.UserControl:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/POS', Data := WORD_TO_STRING(pData^[2]));
+	(* A battery unit has no temperature sensor and answers 0. Published anyway:
+	   there is no flag distinguishing the two, so suppressing it would need a
+	   guess about which kind of wall control this is. *)
+	PubMqttMessage(Suffix := '/TEMP', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+
+E_RS485_DUCO_NODE_TYPE.SensorCO2:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/TEMP', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+	PubMqttMessage(Suffix := '/CO2', Data := WORD_TO_STRING(pData^[4]));
+
+E_RS485_DUCO_NODE_TYPE.SensorHumidity:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/TEMP', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+	PubMqttMessage(Suffix := '/RH', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[5]), 100));
+
+E_RS485_DUCO_NODE_TYPE.WindowVentilator:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	(* 0 shut, 100 open - an opening, not an extraction level, which is why it is
+	   not published as POS alongside the valves. *)
+	PubMqttMessage(Suffix := '/OPEN', Data := WORD_TO_STRING(pData^[2]));
+	PubMqttMessage(Suffix := '/TEMP_OUT', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+
+E_RS485_DUCO_NODE_TYPE.SwitchSensor:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/POS', Data := WORD_TO_STRING(pData^[2]));
+
+E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/POS', Data := WORD_TO_STRING(pData^[2]));
+	PubMqttMessage(Suffix := '/TEMP_OUT', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+	(* Parameter 4 is the PWM duty cycle on this component, and CO2 on nearly every
+	   other one. Publishing it as CO2 is the mistake the type branch prevents. *)
+	PubMqttMessage(Suffix := '/PWM', Data := WORD_TO_STRING(pData^[4]));
+
+ELSE
+	(* Unknown type: the registers, unlabelled. Enough to identify a new component
+	   from the broker without pretending to know what its numbers mean. *)
+	PubMqttMessage(Suffix := '/read/0', Data := WORD_TO_STRING(pData^[0]));
+	PubMqttMessage(Suffix := '/read/1', Data := WORD_TO_STRING(pData^[1]));
+	PubMqttMessage(Suffix := '/read/2', Data := WORD_TO_STRING(pData^[2]));
+	PubMqttMessage(Suffix := '/read/3', Data := WORD_TO_STRING(pData^[3]));
+	PubMqttMessage(Suffix := '/read/4', Data := WORD_TO_STRING(pData^[4]));
+	PubMqttMessage(Suffix := '/read/5', Data := WORD_TO_STRING(pData^[5]));
+END_CASE
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetNodeType" ObjectId="0544ea41-f76e-4a0e-84dd-ae5255be546e">
+              <interface>
+                <returnType>
+                  <derived name="E_RS485_DUCO_NODE_TYPE" />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">What this node is, as last read off the bus. Unknown before the first answer.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">GetNodeType := THIS^.eType;
 </xhtml>
                 </ST>
               </body>
@@ -26395,11 +27079,18 @@ GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
 	DeviceAddress := 3					(* Device address of the modbus device *)
 );
 
-// Nodes: valves for example
+(* Nodes on the bench Ducobox. The names are what Home Assistant shows; the
+   topic keeps using the node number, so renaming a room moves no topic.
+
+   What each node IS - valve, sensor, wall control - is not declared here. The
+   block reads module type from read parameter 0 and announces the entity set
+   that type actually has, so swapping a valve for a sensor needs no edit. *)
 GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
+	FriendlyName := 'Bench node A',
 	DataPollingInterval := T#15S
 );
 GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
+	FriendlyName := 'Bench node B',
 	DataPollingInterval := T#15S
 );
 
@@ -28358,6 +29049,11 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="PublishReceived" ObjectId="b6447ece-f483-4ca8-8bca-bb718d21c763" />
           </Object>
         </Folder>
+        <Object Name="E_RS485_DUCO_NODE_TYPE" ObjectId="9e75d1f9-8ea1-42e6-b60c-b43e009681f0" />
+        <Object Name="F_DUCO_NODE_TYPE" ObjectId="a730fbaf-c9ea-4497-a9be-386ca0646f78" />
+        <Object Name="F_DUCO_SCALED_TEXT" ObjectId="d1b2eedd-88cb-49d7-85e9-aff1538f0b73" />
+        <Object Name="F_DUCO_STATUS_TEXT" ObjectId="914a5658-e401-4069-b24a-fb8acd0a3b5c" />
+        <Object Name="F_DUCO_TYPE_TEXT" ObjectId="41f7729e-a7a9-4e7c-8764-fd513ea5e2ed" />
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
             <Object Name="InitMqtt" ObjectId="69154081-2c02-43db-90a6-f8cbcade69d6" />
@@ -28491,6 +29187,11 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="PubMqttMessage" ObjectId="994381d9-cc7c-40fe-8aa5-8ede855a3c1f" />
             <Object Name="OnStepResult" ObjectId="dc01f847-3ef5-4ca0-a29d-49a7d30714eb" />
             <Object Name="GetStep" ObjectId="c9f7a275-0892-44b6-86a6-6e9ee1c21aeb" />
+            <Object Name="RequestLocation" ObjectId="d72357bd-bb0b-451f-b1d3-24ba6ae6ec38" />
+            <Object Name="GetLocationStep" ObjectId="b6434cd5-0fa7-405a-8db2-bdacf51ecfc5" />
+            <Object Name="OnLocationResult" ObjectId="57564664-af01-42f4-b9a5-a80a1968c56e" />
+            <Object Name="PublishDecoded" ObjectId="a648221a-229a-4215-82e7-5b4ba2659d4f" />
+            <Object Name="GetNodeType" ObjectId="0544ea41-f76e-4a0e-84dd-ae5255be546e" />
           </Object>
           <Object Name="FB_RS485_EASTRON_SDM220_MQTT" ObjectId="eab637e3-d8f7-4186-b929-5498800ef92e">
             <Object Name="InitMqtt" ObjectId="531fd49a-3de4-4190-bade-7b48ee517bb6" />

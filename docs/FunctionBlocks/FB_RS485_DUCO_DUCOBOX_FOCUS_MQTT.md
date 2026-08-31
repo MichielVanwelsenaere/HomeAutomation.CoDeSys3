@@ -101,15 +101,45 @@ DUCO DUCOBOX Focus data:
 ### **MQTT publish behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
 
-| Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
-|:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
-| **register is polled**   | a Modbus register is polled | int value | 2 | `FALSE` | no
+Read parameter 0 of every node is its module type, and it decides what the other
+registers mean. The block resolves it on each read and publishes the values under
+the names that type gives them, scaled, so nothing downstream needs a template.
 
-MQTT publish topic is a concatenation of the publish prefix, the function block name, the node number and a register number. For example:
+The topic is the publish prefix, the instance name, the node number, then the
+quantity:
 
-`Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT/1/read/0`
+`Devices/PLC/Lab/Out/RS485/<instance>/<node>/TEMP`
 
-Depending on the type of the node the published register value represents a certain parameter value. 
+| Suffix | Nodes that publish it | Payload |
+|:--|:--|:--|
+| `/TYPE` | every node | the component in words, e.g. `CO2 valve` |
+| `/STATUS` | every node except a box sensor | `Auto`, `Manual low`, `Unoccupied`, `Error`, … |
+| `/POS` | the box, valves, user control, switch sensor, actuator board | ventilation position, % |
+| `/OPEN` | window ventilator | opening, % — 0 shut, 100 open |
+| `/TEMP` | valves, user control, room sensors | indoor temperature, °C |
+| `/TEMP_OUT` | window ventilator, actuator board | outdoor temperature, °C |
+| `/CO2` | CO2 valve, humidity + CO2 valve, CO2 sensor | ppm |
+| `/RH` | humidity valve, humidity + CO2 valve, humidity sensor | % |
+| `/PWM` | actuator board | PWM duty cycle, % |
+| `/PWR`, `/PWR_AVG`, `/PWR_MAX` | the box | current, average and maximum power, W |
+| `/ZONE` | every node | the zone grouping, read once |
+| `/availability` | the instance | `online` / `offline` |
+
+All are QoS 2, not retained, published on each successful read.
+
+:bulb: **Two registers change meaning with the component.** Read parameter 3 is the
+indoor temperature on a valve and the *outdoor* temperature on a window ventilator
+and an actuator board; read parameter 4 is CO2 nearly everywhere but a PWM duty
+cycle on an actuator board. That is why the type is resolved before anything is
+published, and why a node whose type this project does not recognise falls back to
+`/read/0`…`/read/5` with no labels rather than guessing.
+
+:bulb: **The zone number is read once, in a step of its own.** Read parameters 6, 7
+and 8 are undefined on every component type, and the box answers a span that
+crosses them with an exception rather than zeroes — so the six measurements and the
+zone number cannot be fetched in one ten-register read. The zone only changes when
+the network is re-paired, so it is requested when a node's type is first
+established and not polled after that.
 
 ### **MQTT subscribe behavior**
 Requires method call `InitMQTT` to enable MQTT capabilities.
@@ -149,165 +179,81 @@ FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001.InitMqtt(
 ```
 The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001` (MQTTPubSwitchPrefix variable + function block name).
 
+- Adding the components on the network (called once during startup, after
+  `InitRS485`). The name is the room; what the component *is* is read off the bus,
+  so a valve swapped for a sensor needs no change here:
+```
+FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001.AddNode(
+	FriendlyName := 'Kitchen',
+	DataPollingInterval := T#15S
+);
+```
+
 - Registering device to a bus controller (called once during startup):
 ```
 RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001);
 ```
 
 ### **Home Assistant YAML**
-To integrate with Home Assistant use the YAML code below in your [MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config.
+To integrate with Home Assistant use the YAML code below in your
+[MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config.
 
-Main node:
+The block scales and decodes in the PLC, so none of these need a `value_template`.
 
-```YAML
+```yaml
 mqtt:
   sensor:
-  - name: "Ventilation Status"
-    object_id: "ventilation_1_1"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/read/1"
-    value_template: >-
-          {% set val = value | float(0) %}
-          {% if val == 0 %} Auto
-          {% elif val == 1 %} 10 minutes high
-          {% elif val == 2 %} 20 minutes high
-          {% elif val == 3 %} 30 minutes high
-          {% elif val == 4 %} Manual low
-          {% elif val == 5 %} Manual medium
-          {% elif val == 6 %} Manual high
-          {% elif val == 7 %} Unoccupied
-          {% elif val == 99 %} Error
-          {% else %} Unknown
-          {% endif %}
-    icon: "mdi:state-machine"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "Ventilation Pos"
-    object_id: "Ventilation_1_2"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/read/2"
-    unit_of_measurement: "%"
-    icon: "mdi:valve"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "Ventilation Power"
-    object_id: "ventilation_1_3"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/read/3"
-    unit_of_measurement: "W"
-    device_class: "power"
-    state_class: "measurement"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-```
+    - name: "Ventilation status"
+      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/STATUS"
+      icon: "mdi:state-machine"
+      qos: 2
+      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
 
-Additional nodes (for example valves):
+    - name: "Ventilation position"
+      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/POS"
+      unit_of_measurement: "%"
+      icon: "mdi:valve"
+      qos: 2
+      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
 
-```YAML
-mqtt:
-  sensor:
-  - name: "Ventilation Node 2 Status"
-    object_id: "ventilation_2_1"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/read/1"
-    value_template: >-
-          {% set val = value | float(0) %}
-          {% if val == 0 %} Auto
-          {% elif val == 1 %} 10 minutes high
-          {% elif val == 2 %} 20 minutes high
-          {% elif val == 3 %} 30 minutes high
-          {% elif val == 4 %} Manual low
-          {% elif val == 5 %} Manual medium
-          {% elif val == 6 %} Manual high
-          {% elif val == 7 %} Unoccupied
-          {% elif val == 99 %} Error
-          {% else %} Unknown
-          {% endif %}
-    icon: "mdi:state-machine"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "Ventilation Node 2 Pos"
-    object_id: "ventilation_2_2"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/read/2"
-    unit_of_measurement: "%"
-    icon: "mdi:valve"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "Ventilation Node 2 Temp"
-    object_id: "ventilation_2_3"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/read/3"
-    value_template: "{{ value | multiply(0.10) | round(2) }}" 
-    unit_of_measurement: "°C"
-    device_class: "temperature"
-    state_class: "measurement"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-  - name: "Ventilation Node 2 CO2"
-    object_id: "Ventilation_2_4"
-    state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/read/4"
-    unit_of_measurement: "µg/m³"
-    device_class: "PM25"
-    state_class: "measurement"
-    qos: 2
-    availability:
-      - topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-      - topic: "Devices/PLC/Lab/availability"
-    availability_mode : "all"
-    payload_available: "online"
-    payload_not_available: "offline"
-```
+    - name: "Ventilation power"
+      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/PWR"
+      unit_of_measurement: "W"
+      device_class: "power"
+      state_class: "measurement"
+      qos: 2
+      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
 
-Writing registers (for example action on valves):
+    - name: "Kitchen temperature"
+      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/TEMP"
+      unit_of_measurement: "°C"
+      device_class: "temperature"
+      state_class: "measurement"
+      qos: 2
+      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
 
-```YAML
-mqtt:
+    - name: "Kitchen CO2"
+      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/CO2"
+      unit_of_measurement: "ppm"
+      device_class: "carbon_dioxide"
+      state_class: "measurement"
+      qos: 2
+      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
+
   button:
-  - object_id: "ventilation_2_write_9_15high"
-	name: "Ventilation Kitchen 15 min high"
-	command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/write/9"
-	payload_press: "4"
-	availability:
-	- topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-	- topic: "Devices/PLC/Lab/availability"
-	availability_mode : "all"
-	payload_available: "online"
-	payload_not_available: "offline"
-	entity_category: "config"
-  - object_id: "ventilation_2_write_9_Auto"
-	name: "Ventilation Kitchen auto"
-	command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/write/9"
-	payload_press: "5"
-	availability:
-	- topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-	- topic: "Devices/PLC/Lab/availability"
-	availability_mode : "all"
-	payload_available: "online"
-	payload_not_available: "offline"
-	entity_category: "config"
+    - name: "Kitchen 15 min high"
+      command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/write/9"
+      payload_press: "4"
+      entity_category: "config"
+
+    - name: "Kitchen auto"
+      command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/write/9"
+      payload_press: "5"
+      entity_category: "config"
 ```
+
+:bulb: **The action parameter and the status parameter are different encodings of
+the same idea.** The action that puts a zone into manual low is 4; the status that
+then reports it is `Manual low`, from register value 4 — the numbers agreeing there
+is a coincidence, and they do not agree in general. The register documentation
+linked above has both tables.
