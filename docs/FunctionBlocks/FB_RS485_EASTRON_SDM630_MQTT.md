@@ -19,14 +19,8 @@ of the three; use this block when you want the full picture from an SDM630.
 Eastron SDM630 datasheet:
 - [Manual and Modbus registers](../RS485/datasheets/SDM630-Modbus-V2.pdf)
 
-----------------------------
-
-:white_check_mark: **Verified on hardware.** A real SDM630 answers this block over Modbus RTU,
-and every entity it announces carries a live value: active power, apparent power, reactive
-power, power factor and phase angle per phase, plus the energy totals. See
-[Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
-
-----------------------------
+See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md)
+for how the bus underneath this block is set up.
 
 <!-- fb-interface:start -->
 ### **Block diagram**

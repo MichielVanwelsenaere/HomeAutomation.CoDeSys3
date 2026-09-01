@@ -29,9 +29,6 @@ needed to commission one.
 
 ----------------------------
 
-:white_check_mark: **Verified on hardware.** Runs on a CODESYS 3 PFC200 against a real SEN0492:
-distance reads and tracks, `OUTPUT_STATE` reads `0`, and both entities appear in Home Assistant.
-
 <!-- fb-interface:start -->
 ### **Block diagram**
 
