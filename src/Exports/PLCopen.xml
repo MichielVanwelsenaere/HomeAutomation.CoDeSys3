@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T08:58:34.1152501" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T08:57:43.9597575">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T11:58:08.1844748" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T11:57:33.0248376">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -11648,8 +11648,8 @@ END_IF</xhtml>
                 <UDINT />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Messages discarded because the astFifo was full. Without this, overflow
- is completely silent - and the DMX log flood made overflow easy to provoke.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Messages discarded because a lane was full. Without this, overflow is
+ completely silent - and the DMX log flood made overflow easy to provoke.</xhtml>
               </documentation>
             </variable>
           </outputVars>
@@ -11657,66 +11657,103 @@ END_IF</xhtml>
             <variable name="astFifo">
               <type>
                 <array>
-                  <dimension lower="0" upper="ciN" />
+                  <dimension lower="0" upper="ciLanes" />
+                  <dimension lower="0" upper="ciLaneN" />
                   <baseType>
                     <derived name="ST_MQTT_MESSAGE" />
                   </baseType>
                 </array>
               </type>
             </variable>
-            <variable name="iPr">
+            <variable name="aiPr">
               <type>
-                <INT />
+                <array>
+                  <dimension lower="0" upper="ciLanes" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Read index. Advanced ONLY by GetMessage, and only ever read by AddMessage.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Read index per lane. Advanced ONLY by GetMessage.</xhtml>
               </documentation>
             </variable>
-            <variable name="iPw">
+            <variable name="aiPw">
               <type>
-                <INT />
+                <array>
+                  <dimension lower="0" upper="ciLanes" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Write index. Advanced ONLY by AddMessage, and only ever read by GetMessage.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Write index per lane. Advanced ONLY by the task that owns the lane.</xhtml>
               </documentation>
             </variable>
-          </localVars>
-          <localVars constant="true">
-            <variable name="ciN">
+            <variable name="iDrain">
               <type>
                 <INT />
               </type>
               <initialValue>
-                <simpleValue value="1024" />
+                <simpleValue value="0" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> changing this value will chage the number of stored elements in the astFifo</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Round-robin drain cursor, so a busy lane cannot starve a quiet one.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iScan">
+              <type>
+                <INT />
+              </type>
+            </variable>
+          </localVars>
+          <localVars constant="true">
+            <variable name="ciLanes">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest lane index. Lane 0 is the default for anything that does not ask
+ for one; lane 1 is the RS485 task, which is by far the loudest producer.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ciLaneN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="511" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest slot index within a lane. Total storage is unchanged from the
+ single ring this replaces.</xhtml>
               </documentation>
             </variable>
           </localVars>
           <documentation>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml"> A single-producer / single-consumer ring buffer.
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> A ring buffer per producing task, drained by one consumer.
 
-   EMPTY and FULL used to be stored BOOL outputs, written by both sides, and that
-   was the whole problem. With iPw = iPr the ring is either completely empty or
-   completely full, and only those two flags told the cases apart - so a task that
-   lost a race on them could leave a non-empty queue looking empty (the workers
-   stop draining, and a retained state change sits unsent until the next publish),
-   or clear FULL while the ring really was full (a writer then overruns entries the
-   reader has not taken yet).
+   Each lane is single-producer / single-consumer, which is the invariant the
+   original design relied on and could not enforce: iPw of a lane is written
+   only by the task that owns that lane, iPr only by the drain, and each side
+   merely reads the other's index - a single aligned INT load on this 32-bit
+   target, which cannot tear. No semaphore, so no priority inversion.
 
-   They are derived now. HasMessage() is iPr &lt;&gt; iPw; IsFull() is INC1(iPw,ciN) = iPr.
-   Nothing shared is mutable any more: iPw is written only by AddMessage, iPr only by
-   GetMessage, and each side merely reads the other's index - a single aligned INT
-   load on this 32-bit target, which cannot tear. No semaphore, so no priority
-   inversion on MainTask or HvacTask.
+   What this fixes, and why it mattered: two tasks in AddMessage at once read
+   the same iPw, wrote into the same slot and left a hybrid there - one
+   message's topic carrying another's payload. On Bijbouw that showed up as a
+   device publishing 'offline' it had never sent, three times per its own
+   count against seventeen on the broker. Sharing one lane between tasks
+   brings it straight back, so a producer that runs in its own task takes its
+   own lane.
 
-   The cost is exactly one slot. Reporting full one slot early is what buys iPw = iPr
-   its unambiguous "empty" meaning, so capacity is ciN rather than ciN+1.
-
-   What this does NOT fix: two tasks inside AddMessage at the same time can still
-   read the same iPw, leave one hybrid message in that slot and the next slot never
-   written at all. Only one queue per producer fixes that. </xhtml>
+   Lanes hold the same total storage the single ring did. ST_MQTT_MESSAGE is
+   about 1.8 kB, so the ring is already megabytes and a second instance was
+   never an option on this hardware.</xhtml>
           </documentation>
         </interface>
         <body>
@@ -11734,12 +11771,23 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Copy the slot out before releasing it: advancing iPr is what tells a producer the
-   slot may be overwritten, so it has to be the last thing that happens. *)
-IF THIS^.HasMessage() THEN
-	GetMessage := astFifo[iPr];
-	iPr := OSCAT_BASIC.INC1(iPr,ciN);
-END_IF;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Round-robin across the lanes, so a loud producer cannot starve a quiet one.
+
+   Copy the slot out before releasing it: advancing aiPr is what tells the
+   producer the slot may be overwritten, so it has to be the last thing that
+   happens. *)
+FOR iScan := 0 TO ciLanes DO
+	iDrain := iDrain + 1;
+	IF iDrain &gt; ciLanes THEN
+		iDrain := 0;
+	END_IF
+
+	IF aiPr[iDrain] &lt;&gt; aiPw[iDrain] THEN
+		GetMessage := astFifo[iDrain, aiPr[iDrain]];
+		aiPr[iDrain] := OSCAT_BASIC.INC1(aiPr[iDrain], ciLaneN);
+		RETURN;
+	END_IF
+END_FOR
 </xhtml>
                 </ST>
               </body>
@@ -11774,24 +11822,14 @@ END_IF;
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Written straight into the slot: the old code staged every message through a
-   single FB member, which four tasks shared as scratch space. iPw is advanced only
-   once all four fields are in place, and GetMessage never reads a slot while
-   iPr = iPw, so the reader cannot observe a half-written entry.
-
-   NOTE: that reasoning holds against the READER, not against a second WRITER. Two
-   tasks in AddMessage at once still read the same iPw and collide. See the block
-   comment on the function block. *)
-IF NOT THIS^.IsFull() THEN
-	astFifo[iPw].Payload := Payload;
-	astFifo[iPw].Topic := Topic;
-	astFifo[iPw].Qos := Qos;
-	astFifo[iPw].MqttRetain := MqttRetain;
-	(* Last: advancing iPw is what publishes the slot to the reader. *)
-	iPw := OSCAT_BASIC.INC1(iPw,ciN);
-ELSE
-	DroppedCount := DroppedCount + 1;
-END_IF;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The default lane. Anything that does not name one shares lane 0, which is
+   correct only while those callers run in the same task - true today for
+   MainTask, and the reason the RS485 blocks name lane 1 instead. *)
+THIS^.AddMessageOn(Lane := 0,
+				Payload := Payload,
+				Topic := Topic,
+				Qos := Qos,
+				MqttRetain := MqttRetain);
 </xhtml>
                 </ST>
               </body>
@@ -11807,7 +11845,15 @@ END_IF;
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">HasMessage := iPr &lt;&gt; iPw;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Any lane with something in it. *)
+HasMessage := FALSE;
+FOR iScan := 0 TO ciLanes DO
+	IF aiPr[iScan] &lt;&gt; aiPw[iScan] THEN
+		HasMessage := TRUE;
+		RETURN;
+	END_IF
+END_FOR
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -11822,7 +11868,84 @@ END_IF;
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IsFull := OSCAT_BASIC.INC1(iPw,ciN) = iPr;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Kept for callers that ask about the default lane. A lane reports full one
+   slot early: that is what buys aiPr = aiPw its unambiguous 'empty' meaning. *)
+IsFull := OSCAT_BASIC.INC1(aiPw[0], ciLaneN) = aiPr[0];
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="AddMessageOn" ObjectId="cebb15f8-141d-4339-92ed-bd4d16a6f29a">
+              <interface>
+                <inputVars>
+                  <variable name="Lane">
+                    <type>
+                      <INT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">0 for the default lane, 1 for the RS485 task. Out of range falls back to 0.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Payload">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="Topic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="Qos">
+                    <type>
+                      <derived name="MQTT.QoS" />
+                    </type>
+                  </variable>
+                  <variable name="MqttRetain">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="iL">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Queue a message on a specific lane. A lane must be written by ONE task only.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Written straight into the slot. aiPw[iL] is advanced only once all four
+   fields are in place, and GetMessage never reads a slot while aiPr = aiPw, so
+   the drain cannot observe a half-written entry.
+
+   Safe against a second writer ONLY because a lane has one. That is the whole
+   point of the lane: two tasks sharing one would collide on aiPw exactly as
+   they used to collide on the single iPw. *)
+iL := Lane;
+IF (iL &lt; 0) OR (iL &gt; ciLanes) THEN
+	iL := 0;
+END_IF
+
+IF OSCAT_BASIC.INC1(aiPw[iL], ciLaneN) &lt;&gt; aiPr[iL] THEN
+	astFifo[iL, aiPw[iL]].Payload := Payload;
+	astFifo[iL, aiPw[iL]].Topic := Topic;
+	astFifo[iL, aiPw[iL]].Qos := Qos;
+	astFifo[iL, aiPw[iL]].MqttRetain := MqttRetain;
+	(* Last: advancing the write index is what publishes the slot to the drain. *)
+	aiPw[iL] := OSCAT_BASIC.INC1(aiPw[iL], ciLaneN);
+ELSE
+	DroppedCount := DroppedCount + 1;
+END_IF
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -12535,6 +12658,19 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                 <derived name="MQTT_DISCOVERY_BUTTON" />
               </type>
             </variable>
+            <variable name="iQueueLane">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Which publish-queue lane this device's messages go on. A lane must have
+	   exactly one producing task, and this object is used from several - the
+	   owner sets it, defaulting to the same lane everything else uses. </xhtml>
+              </documentation>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -12681,7 +12817,7 @@ IF THIS^.PublishEntityConfig(
 		EntityId := EntityId,
 		Id := Id) AND NOT (StateValue = '') THEN
 	(* This entity seeds its own initial value as well as its config. *)
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := iQueueLane,
 		Payload:= StateValue,
 		Topic := StateTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -12718,7 +12854,7 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">pMqttPublishQueue^.AddMessage(
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">pMqttPublishQueue^.AddMessageOn(Lane := iQueueLane,
 	Payload:= CONCAT(CONCAT(instance,' | '),str),
 	Topic := CONCAT(MqttDiagnosticTopic, '/Log'),
 	Qos := MQTT.QoS.AtLeastOnce,
@@ -15164,7 +15300,7 @@ ELSIF bStripJsonRootOk = FALSE THEN
 ELSIF NOT bJsonComplete THEN
 	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' composed truncated json'), instance := sInstanceName);
 ELSIF NOT (sMqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := iQueueLane,
 		Payload:= sMqttJSON,
 		Topic := sMqttTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -15622,6 +15758,30 @@ THIS^.PublishEntityConfig(
 	StructSize := SIZEOF(stMqttDiscMsgButton),
 	EntityId := EntityId,
 	Id := Id);
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetLane" ObjectId="1c01710f-f7e8-469e-bb30-ac11b12ec559">
+              <interface>
+                <inputVars>
+                  <variable name="Lane">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Put this device's publishes on a given queue lane. Call once, after init,
+from the block that owns it - and only with the lane of the task it runs in.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.iQueueLane := Lane;
 </xhtml>
                 </ST>
               </body>
@@ -17070,7 +17230,7 @@ CASE iState OF
 	LastReport := sReport;
 
 	IF pQueue &lt;&gt; 0 AND psTopicPrefix &lt;&gt; 0 AND stRequest.ReportTopic &lt;&gt; '' THEN
-		pQueue^.AddMessage(
+		pQueue^.AddMessageOn(Lane := 1,
 			Payload := sReport,
 			Topic := CONCAT(psTopicPrefix^, stRequest.ReportTopic),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -17899,6 +18059,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
+
 	Device^.CreateSensorEntity(
 		Name := 'Distance',
 		Id := CONCAT(id, '_DIST'),
@@ -17951,7 +18115,7 @@ END_IF
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -18471,6 +18635,114 @@ GetCommissioning := TRUE;
                 <string length="255" />
               </type>
             </variable>
+            <variable name="bTxHadRequiredStep">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Availability is published only when it changes, and only judged on a
+	   transaction that carried a step which actually matters. A zone read is
+	   optional; letting one condemn the device made Home Assistant blink. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bAvailabilityPublished">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bLastAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="stLocStep">
+              <type>
+                <derived name="ST_RS485_STEP" />
+              </type>
+            </variable>
+            <variable name="fbAvailTick">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Availability is counted here and decided on a heartbeat, not per
+	   transaction. See OnTransactionDone and the body. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiTxOk">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="uiTxSeen">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="iLastStepsRun">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Diagnostics for the availability question. Published on the heartbeat, so
+	   the arithmetic can be read off the broker instead of inferred. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="iLastFailures">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="uiTxCalls">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="uiAvailPubs">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="sAvailDiag">
+              <type>
+                <string length="120" />
+              </type>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
@@ -18497,8 +18769,7 @@ END_FOR
 
 (* At most one component announced per cycle. A component's entity set runs to
    about twenty configs, so announcing a whole system at once would put several
-   hundred messages into the publish queue in a single cycle. Spread over cycles
-   it is invisible, and nothing waits on it. *)
+   hundred messages into the publish queue in a single cycle. *)
 IF bInitMqttDiscoveryDone THEN
 	FOR iLoopCounter := 2 TO 30 DO
 		IF iLoopCounter &lt; UINT_TO_INT(uiNodePointer) THEN
@@ -18508,6 +18779,41 @@ IF bInitMqttDiscoveryDone THEN
 			END_IF
 		END_IF
 	END_FOR
+END_IF
+
+(* Availability on a thirty second heartbeat, from whether ANY qualifying
+   transaction succeeded in that window.
+
+   Published every heartbeat while healthy, not only on change: that is how the
+   rest of this project signals a device is alive - a last will on the PLC topic
+   says it died, and a periodic online says it has not. *)
+fbAvailTick(IN := NOT fbAvailTick.Q, PT := T#30S);
+
+IF fbAvailTick.Q THEN
+	IF uiTxSeen &gt; 0 THEN
+		bAvailable := uiTxOk &gt; 0;
+		bLastAvailable := bAvailable;
+		bAvailabilityPublished := TRUE;
+		THIS^.PubAvailability(Online := bAvailable);
+	END_IF
+
+	(* What the block actually saw, so the availability question can be settled
+	   by looking rather than by reading source. txcalls counts every
+	   OnTransactionDone; seen counts those with a required step; ok counts those
+	   that succeeded; pubs counts availability messages this block sent. If pubs
+	   is far below the number of offline messages on the broker, they are not
+	   coming from here. *)
+	sAvailDiag := CONCAT('txcalls=', UINT_TO_STRING(uiTxCalls));
+	sAvailDiag := CONCAT(sAvailDiag, ' seen='); sAvailDiag := CONCAT(sAvailDiag, UINT_TO_STRING(uiTxSeen));
+	sAvailDiag := CONCAT(sAvailDiag, ' ok='); sAvailDiag := CONCAT(sAvailDiag, UINT_TO_STRING(uiTxOk));
+	sAvailDiag := CONCAT(sAvailDiag, ' pubs='); sAvailDiag := CONCAT(sAvailDiag, UINT_TO_STRING(uiAvailPubs));
+	sAvailDiag := CONCAT(sAvailDiag, ' lastrun='); sAvailDiag := CONCAT(sAvailDiag, INT_TO_STRING(iLastStepsRun));
+	sAvailDiag := CONCAT(sAvailDiag, ' lastfail='); sAvailDiag := CONCAT(sAvailDiag, INT_TO_STRING(iLastFailures));
+	PubMqttMessage(Suffix := '/AVAIL_DIAG', Data := sAvailDiag);
+
+	uiTxOk := 0;
+	uiTxSeen := 0;
+	uiTxCalls := 0;
 END_IF
 </xhtml>
           </ST>
@@ -18639,7 +18945,7 @@ END_FOR</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -18878,11 +19184,28 @@ END_FOR
 FOR iK := 2 TO 30 DO
 	IF iK &lt; UINT_TO_INT(uiNodePointer) THEN
 		IF afbNodes[iK].RequestLocation() THEN
-			pSteps^[iN]	:= afbNodes[iK].GetLocationStep();
-			aiStepMap[iN]	:= 50 + iK;
-			iN			:= iN + 1;
+			(* GetLocationStep answers with a zero-filled step if its retry clock
+			   lapsed since RequestLocation was asked. Quantity 0 is not a Modbus
+			   request: it fails locally, never reaches the bus, and so never shows
+			   in the counters - while still counting as a failed step here. *)
+			stLocStep := afbNodes[iK].GetLocationStep();
+			IF stLocStep.Quantity &gt; 0 THEN
+				pSteps^[iN]	:= stLocStep;
+				aiStepMap[iN]	:= 50 + iK;
+				iN			:= iN + 1;
+			END_IF
 			EXIT;
 		END_IF
+	END_IF
+END_FOR
+
+(* Whether this transaction carried anything whose failure would really mean
+   the box is unreachable: the master read, or a node's measurements. A lone
+   zone read does not qualify. *)
+bTxHadRequiredStep := FALSE;
+FOR iK := 0 TO iN - 1 DO
+	IF (aiStepMap[iK] = 1) OR ((aiStepMap[iK] &gt;= 12) AND (aiStepMap[iK] &lt;= 40)) THEN
+		bTxHadRequiredStep := TRUE;
 	END_IF
 END_FOR
 
@@ -19059,11 +19382,21 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One announcement per transaction, at the point the bus is released. *)
-IF StepsRun &gt; 0 AND Failures &gt;= StepsRun THEN
-	PubMqttMessage(Suffix := '/availability', Data := 'offline');
-ELSIF StepsRun &gt; 0 THEN
-	PubMqttMessage(Suffix := '/availability', Data := 'online');
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Count, do not decide - and record what was actually seen.
+
+   A single transaction is far too small a sample to condemn a device on: this
+   bus interleaves the master read, one node's measurements, an optional zone
+   read and any write that has arrived, and the mix differs every time. The
+   verdict is taken on a heartbeat in the body instead. *)
+uiTxCalls := uiTxCalls + 1;
+iLastStepsRun := StepsRun;
+iLastFailures := Failures;
+
+IF StepsRun &gt; 0 AND bTxHadRequiredStep THEN
+	uiTxSeen := uiTxSeen + 1;
+	IF Failures &lt; StepsRun THEN
+		uiTxOk := uiTxOk + 1;
+	END_IF
 END_IF
 </xhtml>
                 </ST>
@@ -19173,6 +19506,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := THIS^.pMqttPublishQueue);
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+fbMqttDiscoveryDevice.SetLane(Lane := 1);
 
 	fbMqttDiscoveryDevice.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' status'),
@@ -19399,6 +19736,10 @@ Device^.initBaseDevice(
 	MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
 	MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 	pMqttPublishQueue := THIS^.pMqttPublishQueue);
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
 
 (* Common to every component that has them. *)
 Device^.CreateSensorEntity(
@@ -20229,6 +20570,52 @@ afbNodes[iN].SetAnnounced();
               <addData />
             </Method>
           </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PubAvailability" ObjectId="c07fd647-26dd-44c3-8941-95618e7bbf68">
+              <interface>
+                <inputVars>
+                  <variable name="Online">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Publish the device availability, retained.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Retained, unlike everything else this block publishes.
+
+   Availability is device state, not an event: without the retain flag Home
+   Assistant has nothing at all after any broker reconnect and greys out every
+   entity of this device until the next heartbeat. The PLC's own availability
+   topic is the second entry in the discovery config's avty list and carries the
+   last will, so a controller that dies still marks these offline. *)
+uiAvailPubs := uiAvailPubs + 1;
+
+IF bInitMqttDone THEN
+	IF Online THEN
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+			Payload := 'online',
+			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE);
+	ELSE
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+			Payload := 'offline',
+			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE);
+	END_IF
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>29734931-ba2e-4430-aef4-1e03b99c5ee7</ObjectId>
           </data>
@@ -20361,6 +20748,66 @@ afbNodes[iN].SetAnnounced();
 	   at this node number. </xhtml>
               </documentation>
             </variable>
+            <variable name="uiLocationTries">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A box that will not answer read parameter 9 is not going to start. Three
+	   attempts, then the zone is simply not published - better than asking
+	   forever and putting a failing step on the bus every thirty seconds. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="awLastRaw">
+              <type>
+                <array>
+                  <dimension lower="0" upper="5" />
+                  <baseType>
+                    <WORD />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Last raw frame, so unchanged values are not republished. A Duco reading
+	   moves rarely and the RS485 task was putting five topics per node into the
+	   publish queue every poll regardless - which is what made a latent race in
+	   that queue fire constantly. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bPublishedOnce">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bRefreshDue">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="iChk">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="bChanged">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="fbRepublish">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
           </localVars>
         </interface>
         <body>
@@ -20374,6 +20821,13 @@ IF NOT bLocationKnown THEN
 	fbLocationRetry.IN := TRUE;
 END_IF
 fbLocationRetry();
+
+(* Every five minutes, publish everything again whether it moved or not, so a
+   Home Assistant that reconnected still gets a value for a quiet sensor. *)
+fbRepublish(IN := NOT fbRepublish.Q, PT := T#5M);
+IF fbRepublish.Q THEN
+	bRefreshDue := TRUE;
+END_IF
 </xhtml>
           </ST>
         </body>
@@ -20524,7 +20978,7 @@ THIS^.bInitMqttDone := TRUE;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(CONCAT(CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/'), UINT_TO_STRING(NodeNumber)), Suffix ),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -20582,11 +21036,27 @@ IF F_DUCO_NODE_TYPE(pData^[0]) &lt;&gt; THIS^.eType THEN
 	(* Clearing this re-opens the question; the retry clock in the body does the
 	   asking. RequestLocation ignores an Unknown type on its own. *)
 	THIS^.bLocationKnown	:= FALSE;
+	THIS^.uiLocationTries	:= 0;
 	THIS^.bAnnounced		:= FALSE;
 	PubMqttMessage(Suffix := '/TYPE', Data := F_DUCO_TYPE_TEXT(THIS^.eType));
 END_IF
 
-THIS^.PublishDecoded(pData := pData, Count := Count);
+(* Publish only what changed. Topics are not retained, so a value that never
+   moves would never reach a reconnecting Home Assistant - hence the periodic
+   refresh that forces a full publish regardless. *)
+bChanged := NOT bPublishedOnce OR bRefreshDue;
+FOR iChk := 0 TO 5 DO
+	IF pData^[iChk] &lt;&gt; awLastRaw[iChk] THEN
+		bChanged := TRUE;
+	END_IF
+	awLastRaw[iChk] := pData^[iChk];
+END_FOR
+
+IF bChanged THEN
+	bPublishedOnce := TRUE;
+	bRefreshDue := FALSE;
+	THIS^.PublishDecoded(pData := pData, Count := Count);
+END_IF
 </xhtml>
                 </ST>
               </body>
@@ -20632,6 +21102,7 @@ END_IF
    GetLocationStep and in the body. *)
 RequestLocation := bNodeInitialized
 			AND NOT bLocationKnown
+			AND (uiLocationTries &lt; 3)
 			AND (eType &lt;&gt; E_RS485_DUCO_NODE_TYPE.Unknown)
 			AND fbLocationRetry.Q;
 </xhtml>
@@ -20653,10 +21124,11 @@ RequestLocation := bNodeInitialized
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Clearing the clock here rather than in RequestLocation is what keeps that
-   method a pure predicate. If no result comes back, the body re-arms it and the
-   read is attempted again a retry period later. *)
+   method a pure predicate. Returns a zero-filled step if the clock has lapsed
+   since the caller asked - the caller checks Quantity before using it. *)
 IF fbLocationRetry.Q THEN
 	THIS^.fbLocationRetry.IN := FALSE;
+	THIS^.uiLocationTries := THIS^.uiLocationTries + 1;
 	GetLocationStep := THIS^.stLocationStep;
 END_IF
 </xhtml>
@@ -21183,7 +21655,7 @@ SUPER^.InitBaseMqtt();</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -21424,6 +21896,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
 
 	Device^.CreateSensorEntity(
 		Name := 'Active Power',
@@ -21903,7 +22379,7 @@ SUPER^.InitBaseMqtt();</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -22164,6 +22640,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
 
 	(* --- register block 1: the instantaneous electrical values ------------- *)
 
@@ -23060,6 +23540,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
+
 	Device^.CreateSensorEntity(
 		Name := 'L1 Active Power',
 		Id := CONCAT(id, '_L1_ACTP'),
@@ -23282,7 +23766,7 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -23872,6 +24356,10 @@ END_IF
 		id := id,
 		deviceAvailabilityTopic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
 		deviceDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'));
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
 		
 	IF SupportsTemperature THEN
 		Device^.CreateSensorEntity(
@@ -23988,7 +24476,7 @@ SUPER^.InitBaseMqtt();
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -29075,11 +29563,15 @@ IF fbDiagTimer.Q THEN
 	sDiagReport := CONCAT(sDiagReport, BYTE_TO_STRING(fbRs485Transport.LastFailFunc));
 	sDiagReport := CONCAT(sDiagReport, '/n');
 	sDiagReport := CONCAT(sDiagReport, UDINT_TO_STRING(fbRs485Transport.LastFailLen));
-	sDiagReport := CONCAT(sDiagReport, ' [');
+	(* Messages the publish queue threw away because a lane was full. Silent
+   until now, and the one number that says whether MQTT is keeping up. *)
+sDiagReport := CONCAT(sDiagReport, ' drop=');
+sDiagReport := CONCAT(sDiagReport, UDINT_TO_STRING(GVL_MQTT.fbMqttPublishQueue.DroppedCount));
+sDiagReport := CONCAT(sDiagReport, ' [');
 	sDiagReport := CONCAT(sDiagReport, fbRs485Transport.LastFailBytes);
 	sDiagReport := CONCAT(sDiagReport, ']');
 
-	GVL_MQTT.fbMqttPublishQueue.AddMessage(
+	GVL_MQTT.fbMqttPublishQueue.AddMessageOn(Lane := 1,
 		Payload := sDiagReport,
 		Topic := CONCAT(GVL_MQTT.MqttPubRS485Prefix, 'BUS_COUNTERS'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -30974,6 +31466,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="AddMessage" ObjectId="4d8543b2-a77d-46bd-823d-ede80d21882c" />
             <Object Name="HasMessage" ObjectId="b909c7eb-3848-4d7f-834f-7f9a453932a8" />
             <Object Name="IsFull" ObjectId="2b910003-eb68-43e3-a4d2-a01423cd741f" />
+            <Object Name="AddMessageOn" ObjectId="cebb15f8-141d-4339-92ed-bd4d16a6f29a" />
           </Object>
           <Object Name="FB_MQTT_PUBLISH_WORKER" ObjectId="0204b2b3-9509-47d9-86ef-0cc71876ab14">
             <Object Name="Init" ObjectId="8770d8a6-0590-4d4b-a5b2-e147e5cb77e7" />
@@ -31013,6 +31506,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="CreateCoverEntityWithPosition" ObjectId="d26dec3e-c63e-441c-b7ac-a2426fd3105d" />
             <Object Name="CreateNumberEntity" ObjectId="ab07f1d7-7c68-4d64-89c7-cce1607c7dcc" />
             <Object Name="CreateButtonEntity" ObjectId="18765e16-d74e-4ab9-932a-f0eb3ecbedb8" />
+            <Object Name="SetLane" ObjectId="1c01710f-f7e8-469e-bb30-ac11b12ec559" />
           </Object>
           <Object Name="FB_PLC_MQTT_DISCOVERY_DEVICE" ObjectId="293181e9-7da9-47da-a441-3d6d4f05045c">
             <Object Name="FB_init" ObjectId="0f05dfeb-28e6-4f3a-a8d1-4516d94b21ba" />
@@ -31074,6 +31568,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="GetCommissioning" ObjectId="582612c4-dc65-4a88-a938-6f944915fd80" />
             <Object Name="InitMqttDiscovery" ObjectId="d7bc979e-9ed9-46e1-ae25-5daa568663f2" />
             <Object Name="AnnounceNode" ObjectId="bacf57e5-350c-4e17-a597-866aaa082cc9" />
+            <Object Name="PubAvailability" ObjectId="c07fd647-26dd-44c3-8941-95618e7bbf68" />
           </Object>
           <Object Name="FB_RS485_DUCO_DUCOBOX_FOCUS_NODE_MQTT" ObjectId="46ab5ceb-94dd-4d3a-bf5a-cc5437baa505">
             <Object Name="RequestBusTime" ObjectId="4eb41ddf-aa3a-429a-b596-a697e467adb1" />
