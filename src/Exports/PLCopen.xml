@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T16:37:38.2783057" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T16:34:11.2077049">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T18:11:58.1857433" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T18:09:18.9351575">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -15638,9 +15638,25 @@ stMqttDiscMsgNumber.stat_t.CharString := StateTopic;
 stMqttDiscMsgNumber.min_val.Integer := MinValue;
 stMqttDiscMsgNumber.max_val.Integer := MaxValue;
 stMqttDiscMsgNumber.step.Integer := StepValue;
-stMqttDiscMsgNumber.unit_of_meas.CharString := UnitOfMeasurement;
-stMqttDiscMsgNumber.dev_cla.CharString := DeviceClass;
-stMqttDiscMsgNumber.ent_cat.CharString := EntityCategory;
+(* Empty means absent, and absent has to be published as null rather than an
+   empty string: Home Assistant validates these against fixed lists and
+   rejects the entire config when one does not match, so the entity is lost
+   rather than just its class. CreateSensorEntity does the same. *)
+IF UnitOfMeasurement &lt;&gt; '' THEN
+	stMqttDiscMsgNumber.unit_of_meas.CharString := UnitOfMeasurement;
+ELSE
+	stMqttDiscMsgNumber.unit_of_meas.Null := 'null';
+END_IF
+IF DeviceClass &lt;&gt; '' THEN
+	stMqttDiscMsgNumber.dev_cla.CharString := DeviceClass;
+ELSE
+	stMqttDiscMsgNumber.dev_cla.Null := 'null';
+END_IF
+IF EntityCategory &lt;&gt; '' THEN
+	stMqttDiscMsgNumber.ent_cat.CharString := EntityCategory;
+ELSE
+	stMqttDiscMsgNumber.ent_cat.Null := 'null';
+END_IF
 
 (* A slider cannot be aimed at 800 ppm in steps of 10, and a typed box is
    tedious for a 0-100 percentage. Only the caller knows the range, so only the
@@ -15746,8 +15762,20 @@ THIS^.FillCommonFields(
 // Entity related: Specific
 stMqttDiscMsgButton.cmd_t.CharString := CommandTopic;
 stMqttDiscMsgButton.pl_prs.CharString := PayloadPress;
-stMqttDiscMsgButton.ent_cat.CharString := EntityCategory;
-stMqttDiscMsgButton.dev_cla.CharString := DeviceClass;
+(* Empty means absent, and absent has to be published as null rather than an
+   empty string: Home Assistant validates these against fixed lists and
+   rejects the entire config when one does not match, so the entity is lost
+   rather than just its class. CreateSensorEntity does the same. *)
+IF EntityCategory &lt;&gt; '' THEN
+	stMqttDiscMsgButton.ent_cat.CharString := EntityCategory;
+ELSE
+	stMqttDiscMsgButton.ent_cat.Null := 'null';
+END_IF
+IF DeviceClass &lt;&gt; '' THEN
+	stMqttDiscMsgButton.dev_cla.CharString := DeviceClass;
+ELSE
+	stMqttDiscMsgButton.dev_cla.Null := 'null';
+END_IF
 
 (* No state topic and no optimistic flag: a button has no state to be right or
    wrong about. Where the result IS observable, the thing wanted is a select or
