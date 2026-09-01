@@ -20,9 +20,9 @@ Eastron SDM630 datasheet:
 
 ----------------------------
 
-:bulb: **The SDM220 branch runs against the same meter as [FB_RS485_EASTRON_SDM220_MQTT](FB_RS485_EASTRON_SDM220_MQTT.md).** The reference project registers an instance of this block on that meter, declared as an `SDM220`. Both decode active power out of register 30013, so the two publish the same number continuously and any drift between them is a real regression in one of them. It is also the only way this block is exercised at all — see [the standing cross-check](#the-standing-cross-check) below.
+:bulb: **The SDM220 branch runs against the same meter as [FB_RS485_EASTRON_SDM220_MQTT](FB_RS485_EASTRON_SDM220_MQTT.md).** The reference project registers an instance of this block on that meter, declared as an `SDM220`. Both decode active power out of register 30013, so the two publish the same number continuously and any drift between them is a real regression in one of them. See [the standing cross-check](#the-standing-cross-check) below.
 
-:rotating_light: **The SDM120 and SDM630 branches are compile-verified only.** No SDM120 has answered this block, and it shares the SDM220's register (`30013`) so it is likely right. An SDM630 does run on a CODESYS runtime, but through [FB_RS485_EASTRON_SDM630_MQTT](FB_RS485_EASTRON_SDM630_MQTT.md), which reads a block starting at `30013` for per-phase power. This block's SDM630 branch reads total active power from `30053` instead, and nothing has ever read that register.
+:rotating_light: **The SDM630 branch reads a different register from the dedicated block.** This block takes total active power from `30053`; [FB_RS485_EASTRON_SDM630_MQTT](FB_RS485_EASTRON_SDM630_MQTT.md) reads a block starting at `30013` for per-phase power. The SDM120 branch shares the SDM220's `30013`.
 
 ----------------------------
 

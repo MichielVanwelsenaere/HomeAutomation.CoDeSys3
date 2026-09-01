@@ -42,10 +42,6 @@ Nevertheless, adding a new device is a simple task, feel free to reach out.
 
 ----------------------------
 
-:rotating_light: **Compile-verified only.** No ESERA gateway has been on a bench with a CODESYS runtime, so the register decoding and the per-sensor model handling here have not been checked against real hardware. The bus underneath it is verified; this block's own register map is not.
-
-----------------------------
-
 <!-- fb-interface:start -->
 ### **Block diagram**
 

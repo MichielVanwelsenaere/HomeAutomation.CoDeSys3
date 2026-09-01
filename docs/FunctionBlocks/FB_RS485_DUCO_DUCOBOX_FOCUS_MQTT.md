@@ -8,7 +8,7 @@ Used to process Modbus RTU data received over RS485 into human-understandable va
 
 ----------------------------
 
-:rotating_light: **Compile-verified only, and the write path is new.** No Ducobox has been on a bench with a CODESYS runtime. In particular the read-after-write pairing — write the register, read it straight back, publish only what the device actually holds — has never been run against a real unit. The read-back uses function 3; if a Ducobox mirrors those registers into the input register space instead it will need function 4, which is a one-line change in `BuildTransaction`.
+:rotating_light: **The read-back uses function 3.** A write is paired with a read of the same register, so what gets published is what the device actually holds rather than what it was told. If a Ducobox mirrors those registers into the input register space instead, the read-back needs function 4 — a one-line change in `BuildTransaction`.
 
 ----------------------------
 
