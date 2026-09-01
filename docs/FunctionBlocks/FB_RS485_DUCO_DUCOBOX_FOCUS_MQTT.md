@@ -12,7 +12,7 @@ Used to process Modbus RTU data received over RS485 into human-understandable va
 
 ----------------------------
 
-:rotating_light: In order to leverage this Modbus integration a communication board (part number 0000-4251) is required on the DucoBox.
+:rotating_light: **A DUCO communication board is required, and it must be revision 1.** Modbus RTU is offered by the **v1** board only (part number 0000-4251); later revisions of the board do not speak it, so this block cannot reach a DucoBox fitted with one.
 
 ----------------------------
 

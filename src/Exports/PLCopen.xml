@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T13:08:34.4864085" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T13:07:59.4375809">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T16:37:38.2783057" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T16:34:11.2077049">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -18788,6 +18788,25 @@ GetCommissioning := TRUE;
                 <derived name="TON" />
               </type>
             </variable>
+            <variable name="sPayload">
+              <type>
+                <string length="80" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Command payload, split so a leading minus can be handled explicitly.
+	   See PublishReceived. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="sDigits">
+              <type>
+                <string length="80" />
+              </type>
+            </variable>
+            <variable name="bNegative">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
@@ -19081,14 +19100,38 @@ ELSIF sMQTTSubscribeTopic = LEFT(Data.TopicOut^, LEN(sMQTTSubscribeTopic)) THEN
 		sNodeRegister := '';
 	END_IF
 
+	(* A payload may be negative: -1 on a target register is how a Ducobox is told
+	   to stop overriding and return to automatic, and the box's own target entity
+	   is announced with a minimum of -1 for exactly that. The sign is taken off
+	   before the digits are checked - so whether IS_NUM accepts a leading minus
+	   does not matter - and put back through INT_TO_WORD, whose two's complement
+	   is what the device reads back as -1. STRING_TO_WORD on '-1' does not. *)
+	sPayload := Data.PayloadString^;
+	bNegative := LEFT(sPayload, 1) = '-';
+	IF bNegative THEN
+		sDigits := RIGHT(sPayload, LEN(sPayload) - 1);
+	ELSE
+		sDigits := sPayload;
+	END_IF
+
 	IF iWritePos &gt;= 3 AND
 		OSCAT_BASIC.IS_NUM(NodeNumber) AND
 		OSCAT_BASIC.IS_NUM(sNodeRegister) AND
-		OSCAT_BASIC.IS_NUM(Data.PayloadString^) AND
-		STRING_TO_UINT(NodeNumber) &gt;= 2 AND
+		OSCAT_BASIC.IS_NUM(sDigits) AND
+		(* 1 is the box itself, 2 and up are its components. The box is written
+		   exactly like a component - its registers start at 10, which is what
+		   index 1 gives - and InitMqttDiscovery announces three numbers and five
+		   buttons for it. Requiring 2 here left every one of those controls inert,
+		   and silently: falling through this guard looks identical to a topic
+		   meant for some other device. *)
+		STRING_TO_UINT(NodeNumber) &gt;= 1 AND
 		STRING_TO_UINT(NodeNumber) &lt; THIS^.uiNodePointer THEN
 			stWriteStep.Address := (STRING_TO_UINT(NodeNumber) * 10) + STRING_TO_UINT(sNodeRegister);
-			stWriteStep.Data[0] := STRING_TO_WORD(Data.PayloadString^);
+			IF bNegative THEN
+				stWriteStep.Data[0] := INT_TO_WORD(-1 * STRING_TO_INT(sDigits));
+			ELSE
+				stWriteStep.Data[0] := STRING_TO_WORD(sDigits);
+			END_IF
 			sWriteQuerySuffix := sSubTopic;
 			sWriteQueryPayload := Data.PayloadString^;
 			bWriteQueryReady := TRUE;
