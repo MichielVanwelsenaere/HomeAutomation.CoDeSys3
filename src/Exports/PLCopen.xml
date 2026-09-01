@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T20:39:53.0129391" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T20:39:16.625735">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T08:18:11.0189046" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T08:17:28.9699408">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -2180,6 +2180,25 @@ block should not cost the others.</xhtml>
                 <BOOL />
               </type>
             </variable>
+            <variable name="ProcessImageValid">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE once the K-bus has finished starting and the mapped inputs mean
+something. FALSE holds this sensor at rest.
+
+Defaulted TRUE so no existing call site changes behaviour, but pass
+Pfc200Bus.xConfigFinished on anything whose loop is normally CLOSED. Until the
+bus is up every mapped word reads zero, and on an inverted loop zero IS the
+alarm - so a fire sensor left ungated raises its alarm on every single cold
+start, deterministically. That is not a plausible-looking value like an RTD's
+0.0 C; it is the tripped state itself.</xhtml>
+              </documentation>
+            </variable>
           </inputVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
@@ -2233,7 +2252,10 @@ IF FriendlyName &lt;&gt; '' THEN
 
 END_IF
 
-fbDebounce(IN := BS,	
+(* Held at rest until the process image is valid. The debounce below then
+   still has to settle, so a genuine alarm present at power-up is reported a
+   few cycles late rather than not at all. *)
+fbDebounce(IN := BS AND ProcessImageValid,	
 	TD := T#50MS, (* 2x cyle + 10ms *)
 	PM := FALSE
 	);
@@ -19151,13 +19173,17 @@ GetCommissioning := FALSE;
 	   frames for a value that never moves. </xhtml>
               </documentation>
             </variable>
-            <variable name="bLocationWanted">
+            <variable name="fbLocationRetry">
               <type>
-                <BOOL />
+                <derived name="TON" />
               </type>
-              <initialValue>
-                <simpleValue value="FALSE" />
-              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Retry clock for the zone read. It replaces a wanted/known pair that could
+	   not recover: the request was cleared when the step was built and only a
+	   result put it back, so one result that never arrived lost the zone for the
+	   life of the application. A clock cannot get stuck that way - it simply asks
+	   again. </xhtml>
+              </documentation>
             </variable>
             <variable name="bLocationKnown">
               <type>
@@ -19173,6 +19199,13 @@ GetCommissioning := FALSE;
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">fbTimerData();
 
+(* Re-arm the zone retry while the answer is still outstanding. Doing it here
+   rather than only on a result is the whole point: a request that was built and
+   never answered would otherwise never be made again. *)
+IF NOT bLocationKnown THEN
+	fbLocationRetry.IN := TRUE;
+END_IF
+fbLocationRetry();
 </xhtml>
           </ST>
         </body>
@@ -19246,6 +19279,12 @@ THIS^.stLocationStep.Quantity		:= 1;
 
 THIS^.FriendlyName := FriendlyName;
 THIS^.fbTimerData.PT := DataPollingInterval;
+
+(* The zone is asked for once and then left alone, so this only governs how
+   long a lost answer goes unnoticed. Deliberately slow: it is a value that
+   changes when somebody re-pairs the network and at no other time. *)
+THIS^.fbLocationRetry.PT := T#30S;
+THIS^.fbLocationRetry.IN := TRUE;
 THIS^.NodeNumber := NodeNumber + 1;
 
 THIS^.fbTimerData.IN := TRUE;
@@ -19372,8 +19411,9 @@ IF F_DUCO_NODE_TYPE(pData^[0]) &lt;&gt; THIS^.eType THEN
 	(* Duco assigns node numbers when components are paired, so a type that changes
 	   under a node number is a real event and not a glitch: the zone has to be
 	   asked for again, and Home Assistant has to be told what this node now is. *)
+	(* Clearing this re-opens the question; the retry clock in the body does the
+	   asking. RequestLocation ignores an Unknown type on its own. *)
 	THIS^.bLocationKnown	:= FALSE;
-	THIS^.bLocationWanted	:= THIS^.eType &lt;&gt; E_RS485_DUCO_NODE_TYPE.Unknown;
 	PubMqttMessage(Suffix := '/TYPE', Data := F_DUCO_TYPE_TEXT(THIS^.eType));
 END_IF
 
@@ -19418,10 +19458,13 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Pure predicate, like RequestBusTime - the parent, and through it the scheduler,
-   may ask more than once per cycle. The zone is wanted from the moment the type
-   is first known until the answer arrives, and never again. *)
-RequestLocation := bNodeInitialized AND bLocationWanted AND NOT bLocationKnown;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Pure predicate, like RequestBusTime - the parent, and through it the
+   scheduler, may ask more than once per cycle. Every side effect lives in
+   GetLocationStep and in the body. *)
+RequestLocation := bNodeInitialized
+			AND NOT bLocationKnown
+			AND (eType &lt;&gt; E_RS485_DUCO_NODE_TYPE.Unknown)
+			AND fbLocationRetry.Q;
 </xhtml>
                 </ST>
               </body>
@@ -19440,10 +19483,11 @@ RequestLocation := bNodeInitialized AND bLocationWanted AND NOT bLocationKnown;
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Clearing the request here rather than in RequestLocation is what keeps that
-   method a pure predicate. OnLocationResult puts it back if the read fails. *)
-IF bLocationWanted THEN
-	THIS^.bLocationWanted := FALSE;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Clearing the clock here rather than in RequestLocation is what keeps that
+   method a pure predicate. If no result comes back, the body re-arms it and the
+   read is attempted again a retry period later. *)
+IF fbLocationRetry.Q THEN
+	THIS^.fbLocationRetry.IN := FALSE;
 	GetLocationStep := THIS^.stLocationStep;
 END_IF
 </xhtml>
@@ -19485,11 +19529,10 @@ END_IF
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT Failed AND Count &gt;= 1 THEN
 	THIS^.bLocationKnown := TRUE;
 	PubMqttMessage(Suffix := '/ZONE', Data := WORD_TO_STRING(pData^[0]));
-ELSE
-	(* Ask again at the next opportunity. A node that answers its measurements but
-	   not its zone number is not a state to sit in silently. *)
-	THIS^.bLocationWanted := TRUE;
 END_IF
+
+(* A failure needs no action: bLocationKnown stays FALSE, the body re-arms the
+   clock, and the read comes round again. *)
 </xhtml>
                 </ST>
               </body>
