@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T11:58:08.1844748" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T11:57:33.0248376">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T13:08:34.4864085" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T13:07:59.4375809">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -18743,6 +18743,51 @@ GetCommissioning := TRUE;
                 <string length="120" />
               </type>
             </variable>
+            <variable name="awLastMaster">
+              <type>
+                <array>
+                  <dimension lower="0" upper="5" />
+                  <baseType>
+                    <WORD />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Last raw master frame, so the six unit topics are only republished when
+	   one of them actually moves. See OnStepResult. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bMasterPublished">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bRefreshDue">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="iMasterChk">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="bMasterChanged">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="fbMasterRefresh">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
@@ -18814,6 +18859,15 @@ IF fbAvailTick.Q THEN
 	uiTxOk := 0;
 	uiTxSeen := 0;
 	uiTxCalls := 0;
+END_IF
+
+
+(* Every five minutes, publish the unit values again whether they moved or not,
+   so a Home Assistant that reconnected still gets a value for a box that has
+   been sitting in the same state. Matches the node blocks' own refresh. *)
+fbMasterRefresh(IN := NOT fbMasterRefresh.Q, PT := T#5M);
+IF fbMasterRefresh.Q THEN
+	bRefreshDue := TRUE;
 END_IF
 </xhtml>
           </ST>
@@ -19320,15 +19374,35 @@ IF iStepKind = 1 THEN
 	THIS^.Error := Failed;
 	THIS^.fbTimerData.IN := TRUE;
 	IF NOT Failed AND Count &gt;= 6 THEN
-		PubMqttMessage(Suffix := '/1/TYPE', Data := F_DUCO_TYPE_TEXT(F_DUCO_NODE_TYPE(pData^[0])));
-		PubMqttMessage(Suffix := '/1/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
-		PubMqttMessage(Suffix := '/1/POS', Data := WORD_TO_STRING(pData^[2]));
-		(* Focus-specific: on this box read parameters 3, 4 and 5 are the current,
-		   average and maximum power in watts. Another DucoBox answers the same
-		   addresses with a different set, which is why this block is named. *)
-		PubMqttMessage(Suffix := '/1/PWR', Data := WORD_TO_STRING(pData^[3]));
-		PubMqttMessage(Suffix := '/1/PWR_AVG', Data := WORD_TO_STRING(pData^[4]));
-		PubMqttMessage(Suffix := '/1/PWR_MAX', Data := WORD_TO_STRING(pData^[5]));
+		(* Publish only what moved. The box answers with the same six values poll
+		   after poll - on the bench that was 126 identical messages in 100 seconds
+		   against one or two from each node - and volume on this task is what made
+		   the publish-queue race fire constantly before the queue got lanes.
+
+		   Topics are not retained, so a value that never moves would never reach a
+		   reconnecting Home Assistant; the refresh in the body forces a full
+		   publish periodically regardless. *)
+		bMasterChanged := NOT bMasterPublished OR bRefreshDue;
+		FOR iMasterChk := 0 TO 5 DO
+			IF pData^[iMasterChk] &lt;&gt; awLastMaster[iMasterChk] THEN
+				bMasterChanged := TRUE;
+			END_IF
+			awLastMaster[iMasterChk] := pData^[iMasterChk];
+		END_FOR
+
+		IF bMasterChanged THEN
+			bMasterPublished := TRUE;
+			bRefreshDue := FALSE;
+			PubMqttMessage(Suffix := '/1/TYPE', Data := F_DUCO_TYPE_TEXT(F_DUCO_NODE_TYPE(pData^[0])));
+			PubMqttMessage(Suffix := '/1/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+			PubMqttMessage(Suffix := '/1/POS', Data := WORD_TO_STRING(pData^[2]));
+			(* Focus-specific: on this box read parameters 3, 4 and 5 are the current,
+			   average and maximum power in watts. Another DucoBox answers the same
+			   addresses with a different set, which is why this block is named. *)
+			PubMqttMessage(Suffix := '/1/PWR', Data := WORD_TO_STRING(pData^[3]));
+			PubMqttMessage(Suffix := '/1/PWR_AVG', Data := WORD_TO_STRING(pData^[4]));
+			PubMqttMessage(Suffix := '/1/PWR_MAX', Data := WORD_TO_STRING(pData^[5]));
+		END_IF
 	END_IF
 
 ELSIF iStepKind = 2 THEN
