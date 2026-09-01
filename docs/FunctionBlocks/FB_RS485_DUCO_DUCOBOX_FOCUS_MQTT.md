@@ -105,6 +105,12 @@ DUCO DUCOBOX Focus data:
 | `StepsRun` | INT |  | Steps actually executed. Fewer than requested means an `AbortOnError` step failed. |
 | `Failures` | INT |  | How many of those failed. Zero is the only wholly good outcome. |
 
+**`PubAvailability`** — Publish the device availability, retained. Called from the block's
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `Online` | BOOL |  | `TRUE` publishes `online`, `FALSE` publishes `offline`. |
+
 **`PublishReceived`** — Callback invoked by the callback collector when a message arrives on the subscribed topic. Not called directly.
 
 | Parameter | Type | Default | Description |

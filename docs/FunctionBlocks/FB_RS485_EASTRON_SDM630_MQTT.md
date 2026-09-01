@@ -21,8 +21,10 @@ Eastron SDM630 datasheet:
 
 ----------------------------
 
-:rotating_light: **Not yet run against hardware.** The block is compile-verified only; no SDM630
-has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
+:white_check_mark: **Verified on hardware.** A real SDM630 answers this block over Modbus RTU,
+and every entity it announces carries a live value: active power, apparent power, reactive
+power, power factor and phase angle per phase, plus the energy totals. See
+[Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
 
 ----------------------------
 
