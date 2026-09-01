@@ -1,5 +1,6 @@
 ## FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT
 <!-- fb-badge:start -->
+![MQTT Discovery](https://img.shields.io/badge/MQTT%20Discovery-brightgreen)
 <!-- fb-badge:end -->
 
 ### **General**
@@ -44,6 +45,12 @@ DUCO DUCOBOX Focus data:
 
 ### **Methods**
 
+**`AnnounceNode`** — Announces one component and the entity set its module type carries. Called from the body, at most one component per cycle, once that component has reported what it is. Not for calling directly.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `iN` | INT |  | Index into the internal node array, 2..30 — not the Duco node number, which is one higher. |
+
 **`BuildTransaction`** — Called once after this device has been granted the bus. Fills in every step it wants executed and returns how many; they then run back to back with the bus held. Returning 0 withdraws.
 
 | Parameter | Type | Default | Description |
@@ -67,6 +74,13 @@ DUCO DUCOBOX Focus data:
 | `MQTTSubscribePrefix` | POINTER TO STRING |  | Pointer to the MQTT subscribe prefix used for this block. The function block name is appended automatically. |
 | `pMqttPublishQueue` | POINTER TO FB_MQTT_PUBLISH_QUEUE |  | Pointer to the shared MQTT queue that carries messages to the broker. |
 | `pMqttCallbackCollector` | POINTER TO MQTT.CallbackCollector |  | Pointer to the callback collector this block registers with to receive subscription messages. |
+
+**`InitMqttDiscovery`** — Publishes a Home Assistant MQTT discovery config so the entity is created automatically. Call once at startup, after `InitMqtt`.
+
+| Parameter | Type | Default | Description |
+|:--|:--|:--|:--|
+| `DeviceName` | STRING(50) |  | Name for the box itself in Home Assistant. Each component is named by the `FriendlyName` its `AddNode` call supplied, not from here. |
+| `overruleId` | STRING(255) |  | Overrides the generated entity id. Leave empty to derive it from the function block name. |
 
 **`InitRS485`** — Configures the Modbus RTU device address and the execution/polling interval for the multiple Modbus read commands.
 
@@ -194,66 +208,13 @@ FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001.AddNode(
 RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001);
 ```
 
-### **Home Assistant YAML**
-To integrate with Home Assistant use the YAML code below in your
-[MQTT sensors](https://www.home-assistant.io/components/sensor.mqtt/) config.
+### **Home Assistant**
 
-The block scales and decodes in the PLC, so none of these need a `value_template`.
+Nothing to configure. Call `InitMqttDiscovery` once at startup and the box
+announces itself, then each component as the bus reports what it is. Every
+component becomes a device of its own named by the `FriendlyName` its `AddNode`
+call supplied, carrying the sensors its module type has and a number, switch or
+button for every write parameter that type defines.
 
-```yaml
-mqtt:
-  sensor:
-    - name: "Ventilation status"
-      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/STATUS"
-      icon: "mdi:state-machine"
-      qos: 2
-      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-
-    - name: "Ventilation position"
-      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/POS"
-      unit_of_measurement: "%"
-      icon: "mdi:valve"
-      qos: 2
-      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-
-    - name: "Ventilation power"
-      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/1/PWR"
-      unit_of_measurement: "W"
-      device_class: "power"
-      state_class: "measurement"
-      qos: 2
-      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-
-    - name: "Kitchen temperature"
-      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/TEMP"
-      unit_of_measurement: "°C"
-      device_class: "temperature"
-      state_class: "measurement"
-      qos: 2
-      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-
-    - name: "Kitchen CO2"
-      state_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/CO2"
-      unit_of_measurement: "ppm"
-      device_class: "carbon_dioxide"
-      state_class: "measurement"
-      qos: 2
-      availability_topic: "Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/availability"
-
-  button:
-    - name: "Kitchen 15 min high"
-      command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/write/9"
-      payload_press: "4"
-      entity_category: "config"
-
-    - name: "Kitchen auto"
-      command_topic: "Devices/PLC/Lab/In/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001/2/write/9"
-      payload_press: "5"
-      entity_category: "config"
-```
-
-:bulb: **The action parameter and the status parameter are different encodings of
-the same idea.** The action that puts a zone into manual low is 4; the status that
-then reports it is `Manual low`, from register value 4 — the numbers agreeing there
-is a coincidence, and they do not agree in general. The register documentation
-linked above has both tables.
+The component set is discovered, not declared: a valve replaced by a sensor
+re-announces as a sensor on its next read, with no change here.
