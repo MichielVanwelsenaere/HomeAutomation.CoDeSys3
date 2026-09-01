@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T18:11:58.1857433" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T18:09:18.9351575">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T19:04:42.0691373" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T19:04:08.1254392">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -18835,6 +18835,53 @@ GetCommissioning := TRUE;
                 <BOOL />
               </type>
             </variable>
+            <variable name="wBoxSettingsMask">
+              <type>
+                <WORD />
+              </type>
+              <initialValue>
+                <simpleValue value="16#61" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The box announces a target position and an auto minimum and maximum -
+	   registers 0, 5 and 6 - so those are read back the same way a component's
+	   are. Register 9 is the action, which has no readable counterpart. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="iBoxSettingsCursor">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="iBoxSettingsPending">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="bBoxSettingsDue">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="stBoxSettingsStep">
+              <type>
+                <derived name="ST_RS485_STEP" />
+              </type>
+            </variable>
+            <variable name="iB">
+              <type>
+                <INT />
+              </type>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
@@ -18915,6 +18962,11 @@ END_IF
 fbMasterRefresh(IN := NOT fbMasterRefresh.Q, PT := T#5M);
 IF fbMasterRefresh.Q THEN
 	bRefreshDue := TRUE;
+
+	(* The settings sweep runs again on the same clock, so a change made at the
+	   box itself reaches Home Assistant without anybody touching it there. *)
+	iBoxSettingsCursor := 0;
+	bBoxSettingsDue := TRUE;
 END_IF
 </xhtml>
           </ST>
@@ -18951,6 +19003,11 @@ THIS^.stWriteStep.FunctionCode	:= 6;
 THIS^.stWriteStep.Quantity		:= 1;
 
 THIS^.fbTimerData.IN := TRUE;
+
+(* Same device, same holding registers as the write path uses. *)
+THIS^.stBoxSettingsStep.DeviceId		:= DeviceAddress;
+THIS^.stBoxSettingsStep.FunctionCode	:= 3;
+THIS^.stBoxSettingsStep.Quantity		:= 1;
 
 THIS^.bInitRS485Done := TRUE;
 </xhtml>
@@ -19324,6 +19381,44 @@ FOR iK := 2 TO 30 DO
 	END_IF
 END_FOR
 
+(* One setting register per transaction, the box's own first. Deliberately
+   last and one at a time: this is refresh traffic, it must never crowd out a
+   command or a measurement, and reading a span would cross registers that are
+   undefined on some component types. *)
+IF bBoxSettingsDue THEN
+	iBoxSettingsPending := -1;
+	FOR iB := iBoxSettingsCursor TO 9 DO
+		IF (wBoxSettingsMask AND SHL(WORD#1, INT_TO_BYTE(iB))) &lt;&gt; 0 THEN
+			iBoxSettingsPending := iB;
+			iBoxSettingsCursor := iB + 1;
+			EXIT;
+		END_IF
+	END_FOR
+
+	IF iBoxSettingsPending &gt;= 0 THEN
+		stBoxSettingsStep.Address := 10 + INT_TO_UINT(iBoxSettingsPending);
+		pSteps^[iN]	:= stBoxSettingsStep;
+		aiStepMap[iN]	:= 4;
+		iN			:= iN + 1;
+	ELSE
+		bBoxSettingsDue := FALSE;
+	END_IF
+ELSE
+	FOR iK := 2 TO 30 DO
+		IF iK &lt; UINT_TO_INT(uiNodePointer) THEN
+			IF afbNodes[iK].RequestSettings() THEN
+				stLocStep := afbNodes[iK].GetSettingsStep();
+				IF stLocStep.Quantity &gt; 0 THEN
+					pSteps^[iN]	:= stLocStep;
+					aiStepMap[iN]	:= 100 + iK;
+					iN			:= iN + 1;
+				END_IF
+				EXIT;
+			END_IF
+		END_IF
+	END_FOR
+END_IF
+
 (* Whether this transaction carried anything whose failure would really mean
    the box is unreachable: the master read, or a node's measurements. A lone
    zone read does not qualify. *)
@@ -19378,12 +19473,19 @@ IF fbTimerData.Q THEN
 	RETURN;
 END_IF
 
+IF bBoxSettingsDue THEN
+	(* Refresh traffic, so it ranks with polling rather than with a command. *)
+	HasWork := E_RS485_WORK_LEVEL.POLL;
+	RETURN;
+END_IF
+
 HasWork := E_RS485_WORK_LEVEL.NONE;
 FOR iK := 2 TO 30 DO
 	IF iK &lt; UINT_TO_INT(uiNodePointer) THEN
 		(* RequestLocation counts as work: without it a node that has answered its
 		   values but not its zone would never get another transaction built. *)
-		IF afbNodes[iK].RequestBusTime() OR afbNodes[iK].RequestLocation() THEN
+		IF afbNodes[iK].RequestBusTime() OR afbNodes[iK].RequestLocation()
+			OR afbNodes[iK].RequestSettings() THEN
 			HasWork := E_RS485_WORK_LEVEL.POLL;
 			RETURN;
 		END_IF
@@ -19492,11 +19594,27 @@ ELSIF iStepKind = 3 THEN
    topic was only harmless while nothing subscribed to it. The number and
    switch entities now take their state from here, so it has to be the topic
    their discovery config names. *)
-PubMqttMessage(Suffix := sWriteQuerySuffix, Data := WORD_TO_STRING(pData^[0]));
+PubMqttMessage(Suffix := sWriteQuerySuffix, Data := INT_TO_STRING(WORD_TO_INT(pData^[0])));
 	END_IF
+
+ELSIF iStepKind = 4 THEN
+	(* The box's own setting, read back so its entity has a value before anybody
+	   sets one. Signed for the same reason the write path is: -1 is a real
+	   value here, meaning the box is not overriding. *)
+	IF NOT Failed AND Count &gt;= 1 AND iBoxSettingsPending &gt;= 0 THEN
+		PubMqttMessage(
+			Suffix := CONCAT('/1/write/', INT_TO_STRING(iBoxSettingsPending)),
+			Data := INT_TO_STRING(WORD_TO_INT(pData^[0])));
+	END_IF
+	iBoxSettingsPending := -1;
 
 ELSIF iStepKind &gt;= 12 AND iStepKind &lt;= 40 THEN
 	afbNodes[iStepKind - 10].OnStepResult(Failed := Failed, pData := pData, Count := Count);
+
+ELSIF iStepKind &gt;= 102 AND iStepKind &lt;= 130 THEN
+	(* 100 + node index: a setting register read back. A separate kind again,
+	   because it lands in its own method and carries one register. *)
+	afbNodes[iStepKind - 100].OnSettingsResult(Failed := Failed, pData := pData, Count := Count);
 
 ELSIF iStepKind &gt;= 52 AND iStepKind &lt;= 80 THEN
 	(* 50 + node index: the zone read. A separate kind from 10 + index because the
@@ -20953,6 +21071,53 @@ END_IF
                 <derived name="TON" />
               </type>
             </variable>
+            <variable name="wSettingsMask">
+              <type>
+                <WORD />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Which of this component's registers carry a setting Home Assistant shows,
+	   one bit per register, and where the refresh sweep has got to. See
+	   SettingsMaskFor. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="iSettingsCursor">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="iSettingsPending">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="bSettingsDue">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="stSettingsStep">
+              <type>
+                <derived name="ST_RS485_STEP" />
+              </type>
+            </variable>
+            <variable name="iS">
+              <type>
+                <INT />
+              </type>
+            </variable>
           </localVars>
         </interface>
         <body>
@@ -20972,6 +21137,12 @@ fbLocationRetry();
 fbRepublish(IN := NOT fbRepublish.Q, PT := T#5M);
 IF fbRepublish.Q THEN
 	bRefreshDue := TRUE;
+
+	(* Settings too. They are not retained either, and a setting changed from a
+	   wall control rather than from Home Assistant would otherwise never be
+	   noticed here. *)
+	iSettingsCursor := 0;
+	bSettingsDue := wSettingsMask &lt;&gt; 0;
 END_IF
 </xhtml>
           </ST>
@@ -21183,6 +21354,12 @@ IF F_DUCO_NODE_TYPE(pData^[0]) &lt;&gt; THIS^.eType THEN
 	THIS^.bLocationKnown	:= FALSE;
 	THIS^.uiLocationTries	:= 0;
 	THIS^.bAnnounced		:= FALSE;
+	(* What is writable depends on what the component is, so the settings sweep
+	   is re-armed from scratch here as well. *)
+	THIS^.wSettingsMask	:= THIS^.SettingsMaskFor(eT := THIS^.eType);
+	THIS^.iSettingsCursor	:= 0;
+	THIS^.bSettingsDue		:= THIS^.wSettingsMask &lt;&gt; 0;
+
 	PubMqttMessage(Suffix := '/TYPE', Data := F_DUCO_TYPE_TEXT(THIS^.eType));
 END_IF
 
@@ -21498,6 +21675,197 @@ NeedsAnnounce := bNodeInitialized
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.bAnnounced := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SettingsMaskFor" ObjectId="72331d66-37c2-4542-bd38-bf8d3b78d3a6">
+              <interface>
+                <returnType>
+                  <WORD />
+                </returnType>
+                <inputVars>
+                  <variable name="eT">
+                    <type>
+                      <derived name="E_RS485_DUCO_NODE_TYPE" />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Which registers of a component type hold a setting that is announced.
+One bit per register, bit n for register n.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Taken from what AnnounceNode actually announces, type by type: a register is
+   in here exactly when some entity names it as a state topic. Register 9 is
+   deliberately absent - it is the action, written by the buttons, and its
+   result is reported under a different encoding in read parameter 1, so
+   reading 9 back would say nothing an entity could use. *)
+CASE eT OF
+	(* The four valve types share an announce branch, so they share a mask. A
+	   sensorless valve has no humidity or CO2 setpoint and will simply fail the
+	   read for those registers, which publishes nothing - the same outcome as
+	   before this existed. *)
+	E_RS485_DUCO_NODE_TYPE.ValveSensorless,
+	E_RS485_DUCO_NODE_TYPE.ValveCO2,
+	E_RS485_DUCO_NODE_TYPE.ValveHumidity,
+	E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
+		SettingsMaskFor := 16#007F;
+
+	E_RS485_DUCO_NODE_TYPE.UserControl:
+		SettingsMaskFor := 16#00F1;
+
+	E_RS485_DUCO_NODE_TYPE.SensorCO2:
+		SettingsMaskFor := 16#0003;
+
+	E_RS485_DUCO_NODE_TYPE.SensorHumidity:
+		SettingsMaskFor := 16#000D;
+
+	E_RS485_DUCO_NODE_TYPE.WindowVentilator:
+		SettingsMaskFor := 16#0071;
+
+	E_RS485_DUCO_NODE_TYPE.SwitchSensor:
+		SettingsMaskFor := 16#0007;
+
+	E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
+		SettingsMaskFor := 16#0073;
+
+ELSE
+	(* Unknown, or a type nothing writable is announced for. *)
+	SettingsMaskFor := 0;
+END_CASE
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestSettings" ObjectId="4ee11f8f-d867-42ca-849d-b0b3d7fb2cfc">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE while a setting register still needs reading back. Pure predicate.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Pure, like RequestBusTime and RequestLocation: the parent may ask several
+   times in one cycle, and the cursor is advanced by GetSettingsStep. *)
+RequestSettings := FALSE;
+IF NOT bSettingsDue OR wSettingsMask = 0 THEN
+	RETURN;
+END_IF
+
+FOR iS := iSettingsCursor TO 9 DO
+	IF (wSettingsMask AND SHL(WORD#1, INT_TO_BYTE(iS))) &lt;&gt; 0 THEN
+		RequestSettings := TRUE;
+		RETURN;
+	END_IF
+END_FOR
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetSettingsStep" ObjectId="70b380d9-4c45-43bf-a847-8eae846d9656">
+              <interface>
+                <returnType>
+                  <derived name="ST_RS485_STEP" />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">The next setting register to read back. Zero-filled when none is due; the
+caller checks Quantity before using it.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Advancing the cursor here, not in RequestSettings, is what keeps that a pure
+   predicate - the same split GetStep and GetLocationStep use.
+
+   The cursor moves past this register whether or not the read succeeds. A
+   failed one is simply not published and is picked up by the next refresh;
+   retrying inside the sweep would let one dead register stall the rest. *)
+iSettingsPending := -1;
+
+FOR iS := iSettingsCursor TO 9 DO
+	IF (wSettingsMask AND SHL(WORD#1, INT_TO_BYTE(iS))) &lt;&gt; 0 THEN
+		iSettingsPending := iS;
+		iSettingsCursor := iS + 1;
+		EXIT;
+	END_IF
+END_FOR
+
+IF iSettingsPending &gt;= 0 THEN
+	(* Function 3: these are holding registers, written with function 6 and read
+	   back from the same address. That pairing is proven on hardware. *)
+	THIS^.stSettingsStep.DeviceId		:= THIS^.stStep.DeviceId;
+	THIS^.stSettingsStep.FunctionCode	:= 3;
+	THIS^.stSettingsStep.Address		:= (NodeNumber * 10) + INT_TO_UINT(iSettingsPending);
+	THIS^.stSettingsStep.Quantity		:= 1;
+	GetSettingsStep := THIS^.stSettingsStep;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnSettingsResult" ObjectId="05837aaa-777b-455f-8d5d-d289cdfe1810">
+              <interface>
+                <inputVars>
+                  <variable name="Failed">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="A_RS485_READ_BUFFER" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Count">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">A setting register came back. Publishes it on the topic its entity reads.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed, not raw: -1 is how a Ducobox reports 'not overriding', and the entity
+   is announced with a minimum of -1 to match. WORD_TO_STRING would publish
+   65535 there. Every other value in range is identical either way. *)
+IF NOT Failed AND Count &gt;= 1 AND iSettingsPending &gt;= 0 THEN
+	PubMqttMessage(
+		Suffix := CONCAT('/write/', INT_TO_STRING(iSettingsPending)),
+		Data := INT_TO_STRING(WORD_TO_INT(pData^[0])));
+END_IF
+
+iSettingsPending := -1;
+
+(* Done once the cursor is past the last set bit. RequestSettings answers FALSE
+   from then on, until a refresh re-arms it. *)
+IF NOT THIS^.RequestSettings() THEN
+	bSettingsDue := FALSE;
+END_IF
 </xhtml>
                 </ST>
               </body>
@@ -31731,6 +32099,10 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="GetNodeNumber" ObjectId="973eae94-f14b-4ef0-99b8-7b06558d4a06" />
             <Object Name="NeedsAnnounce" ObjectId="4d3ef725-128c-4775-a7ec-5a4ca940c6c3" />
             <Object Name="SetAnnounced" ObjectId="45e80db4-cd57-4a29-a4a7-cf8664143236" />
+            <Object Name="SettingsMaskFor" ObjectId="72331d66-37c2-4542-bd38-bf8d3b78d3a6" />
+            <Object Name="RequestSettings" ObjectId="4ee11f8f-d867-42ca-849d-b0b3d7fb2cfc" />
+            <Object Name="GetSettingsStep" ObjectId="70b380d9-4c45-43bf-a847-8eae846d9656" />
+            <Object Name="OnSettingsResult" ObjectId="05837aaa-777b-455f-8d5d-d289cdfe1810" />
           </Object>
           <Object Name="FB_RS485_EASTRON_SDM220_MQTT" ObjectId="eab637e3-d8f7-4186-b929-5498800ef92e">
             <Object Name="InitMqtt" ObjectId="531fd49a-3de4-4190-bade-7b48ee517bb6" />
