@@ -23,11 +23,11 @@ BOOL ──┤ TOGGLE                │
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `PRIO_HIGH` | BOOL | When high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input. |
-| `PRIO_LOW` | BOOL | When high the output `OUT` is set to low, has priority over the `TOGGLE` input. |
-| `TOGGLE` | BOOL | When high the output `OUT` gets toggled. The input should only be high for one clock cycle. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `PRIO_HIGH` | BOOL | `FALSE` | When high the output `OUT` is set to high, has priority over the `TOGGLE` and `PRIO_LOW` input. |
+| `PRIO_LOW` | BOOL | `FALSE` | When high the output `OUT` is set to low, has priority over the `TOGGLE` input. |
+| `TOGGLE` | BOOL | `FALSE` | When high the output `OUT` gets toggled. The input should only be high for one clock cycle. |
 
 **Outputs**
 

@@ -57,17 +57,17 @@ BYTE ──┤ PublishStep                   │
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `UP` | BOOL | Manual up, e.g. straight from a pushbutton's long-press output. **Held TRUE drives, releasing stops and holds** — a person watching the cover beats whatever position was asked for, and the abandoned setpoint is not resumed. |
-| `DN` | BOOL | Manual down, same contract as `UP`. Both held together is not a command: that is what the engine underneath calls automatic mode, and this block enters it by itself when a position is requested. |
-| `PRIO_LOCK` | BOOL | Nothing may drive the motor while this is TRUE — a wind alarm, a service switch, an open window contact. Commands are still accepted and still remembered; they simply do not move anything until it clears. |
-| `T_TravelUp` | TIME | Time to travel from fully closed to fully open. Defaults to 20 s. This is how the position is known at all, so measure it. |
-| `T_TravelDown` | TIME | Time to travel from fully open to fully closed. Defaults to 20 s, and is usually the shorter of the two. |
-| `T_Lockout` | TIME | Dead time between a stop and starting the other direction, so a reversing contactor is never asked to change its mind while the motor is still turning. Defaults to 1 s. Every direction change passes through it; starting from standstill is not delayed. |
-| `T_EndStop` | TIME | Margin added to the **full** travel time on a full `OPEN` or `CLOSE`. Defaults to 2 s. The run is `T_Travel + T_EndStop` from wherever the cover is believed to be, so the motor always finishes against the physical stop; this margin covers a travel time measured slightly short. |
-| `Tolerance` | BYTE | How close to the requested position counts as arrived, in percent. Defaults to 2. Below about 2 the cover hunts, because a shutter cannot be positioned finer than its own start and stop time. |
-| `PublishStep` | BYTE | Percent of travel between position publishes **while moving**. Defaults to 5, which gives a slider that visibly tracks the shutter without putting twenty messages per journey on the broker. The exact position is always published once movement ends, whatever this is set to. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `UP` | BOOL |  | Manual up, e.g. straight from a pushbutton's long-press output. **Held TRUE drives, releasing stops and holds** — a person watching the cover beats whatever position was asked for, and the abandoned setpoint is not resumed. |
+| `DN` | BOOL |  | Manual down, same contract as `UP`. Both held together is not a command: that is what the engine underneath calls automatic mode, and this block enters it by itself when a position is requested. |
+| `PRIO_LOCK` | BOOL |  | Nothing may drive the motor while this is TRUE — a wind alarm, a service switch, an open window contact. Commands are still accepted and still remembered; they simply do not move anything until it clears. |
+| `T_TravelUp` | TIME | `TIME#20s0ms` | Time to travel from fully closed to fully open. Defaults to 20 s. This is how the position is known at all, so measure it. |
+| `T_TravelDown` | TIME | `TIME#20s0ms` | Time to travel from fully open to fully closed. Defaults to 20 s, and is usually the shorter of the two. |
+| `T_Lockout` | TIME | `TIME#1s0ms` | Dead time between a stop and starting the other direction, so a reversing contactor is never asked to change its mind while the motor is still turning. Defaults to 1 s. Every direction change passes through it; starting from standstill is not delayed. |
+| `T_EndStop` | TIME | `TIME#2s0ms` | Margin added to the **full** travel time on a full `OPEN` or `CLOSE`. Defaults to 2 s. The run is `T_Travel + T_EndStop` from wherever the cover is believed to be, so the motor always finishes against the physical stop; this margin covers a travel time measured slightly short. |
+| `Tolerance` | BYTE | `2` | How close to the requested position counts as arrived, in percent. Defaults to 2. Below about 2 the cover hunts, because a shutter cannot be positioned finer than its own start and stop time. |
+| `PublishStep` | BYTE | `5` | Percent of travel between position publishes **while moving**. Defaults to 5, which gives a slider that visibly tracks the shutter without putting twenty messages per journey on the broker. The exact position is always published once movement ends, whatever this is set to. |
 
 **Outputs**
 

@@ -75,13 +75,13 @@ WagoAppDALI.typBallast ──┤ BALLAST         STATUS_LED ├── BOOL
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `BALLAST` | WagoAppDALI.typBallast | The `typBallast` this function block drives. |
-| `TOGGLE` | BOOL | Connect to one or more `SINGLE` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
-| `P_LONG` | BOOL | Connect to one or more `P_LONG` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
-| `PRIO_HIGH` | BOOL | When high the light is set to maximum brightness, overriding the other inputs. |
-| `PRIO_LOW` | BOOL | When high the light is switched off, overriding the other inputs. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `BALLAST` | WagoAppDALI.typBallast |  | The `typBallast` this function block drives. |
+| `TOGGLE` | BOOL |  | Connect to one or more `SINGLE` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `P_LONG` | BOOL |  | Connect to one or more `P_LONG` outputs of [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `PRIO_HIGH` | BOOL | `FALSE` | When high the light is set to maximum brightness, overriding the other inputs. |
+| `PRIO_LOW` | BOOL | `FALSE` | When high the light is switched off, overriding the other inputs. |
 
 **Outputs**
 

@@ -31,12 +31,12 @@ BOOL ──┤ RST                      SINGLE ├── BOOL
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `PB` | BOOL | Digital input linked to the signal wire of a pushbutton. |
-| `SET` | BOOL | Input for switching output DIM to the input VAL value. |
-| `VAL` | BYTE | Byte value for SET operation. |
-| `RST` | BOOL | Input to switch off the output. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `PB` | BOOL |  | Digital input linked to the signal wire of a pushbutton. |
+| `SET` | BOOL |  | Input for switching output DIM to the input VAL value. |
+| `VAL` | BYTE |  | Byte value for SET operation. |
+| `RST` | BOOL |  | Input to switch off the output. |
 
 **Outputs**
 

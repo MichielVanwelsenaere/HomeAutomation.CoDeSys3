@@ -24,10 +24,10 @@ BOOL ──┤ ProcessImageValid     EVENT ├── BOOL
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `BS` | BOOL | Digital input linked to the signal wire of the binary sensor. |
-| `ProcessImageValid` | BOOL | TRUE once the K-bus has finished starting and the mapped inputs mean something; FALSE holds the sensor at rest. Wire it to the bus driver's own answer — `Pfc200Bus.xConfigFinished`. Defaults to TRUE, so a call site that says nothing behaves as before. **Pass it on any loop that is normally closed**: until the bus is up every mapped word reads zero, and through the inversion such a loop needs, zero *is* the tripped state — so an ungated detector raises its alarm on every cold start. It gates the debounce, which still has to settle afterwards, so a genuine alarm present at power-up is reported a few cycles late rather than not at all. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `BS` | BOOL |  | Digital input linked to the signal wire of the binary sensor. |
+| `ProcessImageValid` | BOOL | `TRUE` | TRUE once the K-bus has finished starting and the mapped inputs mean something; FALSE holds the sensor at rest. Wire it to the bus driver's own answer — `Pfc200Bus.xConfigFinished`. Defaults to TRUE, so a call site that says nothing behaves as before. **Pass it on any loop that is normally closed**: until the bus is up every mapped word reads zero, and through the inversion such a loop needs, zero *is* the tripped state — so an ungated detector raises its alarm on every cold start. It gates the debounce, which still has to settle afterwards, so a genuine alarm present at power-up is reported a few cycles late rather than not at all. |
 
 **Outputs**
 

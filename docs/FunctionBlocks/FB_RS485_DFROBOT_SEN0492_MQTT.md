@@ -49,10 +49,10 @@ TIME ──┤ PollIntervalOverride            DISTANCE ├── UINT
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `PollIntervalOverride` | TIME | The poll interval that can be changed **without the IDE**. Zero means use whatever `FB_init` was given, which is what the shipped instance does; anything else wins, subject to the same 8 s floor. It exists because CODESYS stores an instance's `FB_init` arguments outside the declaration text, so no script can revise the constructor argument — see [CLAUDE.md](../../CLAUDE.md). Settable from `RS485_INIT` or online while the PLC runs, and applied on the next poll. |
-| `AvailabilityFailLimit` | INT | Consecutive failed transactions before the sensor is declared offline. Defaults to 3, so around half a minute at the 8 s minimum poll. Raise it on a bus that is busy or long; 1 would mean every transient shows up in Home Assistant as a disconnection. Recovery is immediate on the first good transaction regardless. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `PollIntervalOverride` | TIME | `TIME#0ms` | The poll interval that can be changed **without the IDE**. Zero means use whatever `FB_init` was given, which is what the shipped instance does; anything else wins, subject to the same 8 s floor. It exists because CODESYS stores an instance's `FB_init` arguments outside the declaration text, so no script can revise the constructor argument — see [CLAUDE.md](../../CLAUDE.md). Settable from `RS485_INIT` or online while the PLC runs, and applied on the next poll. |
+| `AvailabilityFailLimit` | INT | `3` | Consecutive failed transactions before the sensor is declared offline. Defaults to 3, so around half a minute at the 8 s minimum poll. Raise it on a bus that is busy or long; 1 would mean every transient shows up in Home Assistant as a disconnection. Recovery is immediate on the first good transaction regardless. |
 
 **Outputs**
 

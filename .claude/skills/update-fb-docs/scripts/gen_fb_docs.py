@@ -363,11 +363,30 @@ def method_desc(name, descs):
     return None
 
 
-def pin_table(pins, descs) -> str:
-    rows = ["| Pin | Type | Description |", "|:--|:--|:--|"]
+def pin_table(pins, descs, defaults=False) -> str:
+    """`defaults` adds the Default column, which only inputs need.
+
+    An input's initial value is part of its contract - it says what happens to a
+    pin left unwired, which for a block like FB_INPUT_TEMPERATURE_RTD_MQTT is
+    the difference between a plausibility band of -40..80 and one of 0..0. The
+    method parameter tables have carried theirs from the start; the pin tables
+    silently dropped them, so the reader had to open the export to find out.
+
+    Safe for the description store: the row grows to four columns and is then
+    matched by the method-parameter branch of descs_from_region, which keys on
+    `current` - and `current` is None under the Interface heading, so a pin's
+    description still comes back under its bare name.
+    """
+    head = ("| Pin | Type | Default | Description |", "|:--|:--|:--|:--|") if defaults \
+        else ("| Pin | Type | Description |", "|:--|:--|:--|")
+    rows = list(head)
     for p in pins:
         d = resolve(descs, p["name"]) or TODO
-        rows.append(f"| `{p['name']}` | {p['type']} | {_cell(d)} |")
+        if defaults:
+            init = f"`{p['default']}`" if p.get("default") else ""
+            rows.append(f"| `{p['name']}` | {p['type']} | {init} | {_cell(d)} |")
+        else:
+            rows.append(f"| `{p['name']}` | {p['type']} | {_cell(d)} |")
     return "\n".join(rows)
 
 
@@ -393,7 +412,7 @@ def render_interface(fb, descs) -> str:
     if ins or fb.outputs:
         out += ["### **Interface**", ""]
     if ins:
-        out += ["**Inputs**", "", pin_table(ins, descs), ""]
+        out += ["**Inputs**", "", pin_table(ins, descs, defaults=True), ""]
     if fb.outputs:
         out += ["**Outputs**", "", pin_table(fb.outputs, descs), ""]
     if fb.methods:

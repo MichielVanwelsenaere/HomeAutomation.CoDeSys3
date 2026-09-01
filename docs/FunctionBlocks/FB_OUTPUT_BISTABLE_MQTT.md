@@ -30,12 +30,12 @@ BOOL ──┤ FEEDBACK                │
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `PRIO_HIGH` | BOOL | When high and input `FEEDBACK` low, the output `OUT` gets a pulse. Has priority over the `TOGGLE` and `PRIO_LOW` input. |
-| `PRIO_LOW` | BOOL | When high and input `FEEDBACK` low, the output `OUT` gets a pulse. Has priority over the `TOGGLE` input. |
-| `TOGGLE` | BOOL | When high the output `OUT` gets a pulse. The input should only be high for one clock cycle. |
-| `FEEDBACK` | BOOL | Feedback from the bistable input, should be high when the relay is turned on and low when turned off. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `PRIO_HIGH` | BOOL | `FALSE` | When high and input `FEEDBACK` low, the output `OUT` gets a pulse. Has priority over the `TOGGLE` and `PRIO_LOW` input. |
+| `PRIO_LOW` | BOOL | `FALSE` | When high and input `FEEDBACK` low, the output `OUT` gets a pulse. Has priority over the `TOGGLE` input. |
+| `TOGGLE` | BOOL | `FALSE` | When high the output `OUT` gets a pulse. The input should only be high for one clock cycle. |
+| `FEEDBACK` | BOOL | `FALSE` | Feedback from the bistable input, should be high when the relay is turned on and low when turned off. |
 
 **Outputs**
 

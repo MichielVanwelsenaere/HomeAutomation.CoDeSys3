@@ -24,9 +24,9 @@ BOOL ──┤ PB                SINGLE ├── BOOL
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `PB` | BOOL | Digital input linked to the signal wire of a pushbutton. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `PB` | BOOL |  | Digital input linked to the signal wire of a pushbutton. |
 
 **Outputs**
 
