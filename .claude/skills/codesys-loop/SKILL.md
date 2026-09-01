@@ -514,9 +514,16 @@ Three things about `-AddModule`, all of which cost a run to learn:
   `C:\ProgramData\CODESYS\Devices\288\0000 0001\4.19.0.0\device.xml`, or the copy
   under `CODESYS Control for PFC200 SL\...\WagoPFC200Internalbus.devdesc.xml`;
   grep it for `<ModuleId>`. `0287_75x_647` is the 753-647 DALI multi-master.
-- **`-Under` prefers an exact node name.** Without that precedence `Pfc200Bus`
-  is ambiguous by way of its own children, whose *paths* all contain it — the
-  obvious query refused by the modules already on the bus.
+- **`-Under` resolves in three tiers: full path, exact name, path substring.**
+  Without the last two being ranked, `Pfc200Bus` is ambiguous by way of its own
+  children, whose *paths* all contain it — the obvious query refused by the
+  modules already on the bus. The path tier is there because an exact name stops
+  identifying anything the moment a project has two controllers: an installation
+  with two PFCs has two nodes called `Pfc200Bus`, both real. A substring does not
+  rescue that either, since `Wago_G1_Annex/Pfc200Bus` is a substring of every
+  module already on that bus. Only the whole path is unique, so pass the whole
+  path — `-Under 'Wago_G1_Annex/Pfc200Bus'` — on any project with more than one
+  controller.
 
 Writing needs `-Force`, and like `libs` it builds first and refuses to save a
 project that does not build.

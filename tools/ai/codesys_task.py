@@ -2425,21 +2425,32 @@ def do_download(cfg, result):
 def resolve_node(result, proj, needle):
     """The one device node matching `needle`, or None with an error recorded.
 
-    An exact name wins outright, and only then does a path substring get a say.
-    Without that precedence "Pfc200Bus" matches the bus AND every module already
-    on it, because a child's path contains its parent's name - so the obvious
-    query is refused as ambiguous by its own children.
+    Three tiers, most specific first: a full path, then an exact name, then a
+    path substring. Without the last two being ranked, "Pfc200Bus" matches the
+    bus AND every module already on it, because a child's path contains its
+    parent's name - so the obvious query is refused as ambiguous by its own
+    children.
+
+    The path tier exists because an exact name stops identifying anything as
+    soon as a project has two controllers: an installation with two PFCs has two
+    nodes called "Pfc200Bus", both real, and the name alone is then a coin flip
+    over which building's rail gets a new terminal. A substring does not rescue
+    it either - "Wago_G1_Annex/Pfc200Bus" is a substring of every module already
+    on that bus. Only the whole path is unique, so it is tried first.
     """
     needle = u(needle or u"").lower()
-    exact, loose = [], []
+    by_path, exact, loose = [], [], []
     for node in list(safe(lambda: proj.get_children(True), []) or []):
         if not safe(lambda: node.is_device, False):
             continue
-        if needle == u(safe(lambda: node.get_name(), u"")).lower():
+        path = object_path(node).lower()
+        if needle == path:
+            by_path.append(node)
+        elif needle == u(safe(lambda: node.get_name(), u"")).lower():
             exact.append(node)
-        elif needle in object_path(node).lower():
+        elif needle in path:
             loose.append(node)
-    hits = exact or loose
+    hits = by_path or exact or loose
     if not hits:
         result["errors"].append("no device node matches %r" % needle)
         return None
