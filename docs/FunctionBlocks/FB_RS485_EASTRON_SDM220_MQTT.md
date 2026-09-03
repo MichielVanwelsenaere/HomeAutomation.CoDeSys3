@@ -9,10 +9,6 @@ Due to the large number of Modbus registers exposed and the Eastron SDM220 limit
 
 ----------------------------
 
-:white_check_mark: **Verified on hardware.** Runs on a CODESYS 3 PFC200 against a real SDM220: all three register blocks read, no CRC failures, publishing to MQTT. It is also the block the bus arbitration was tested with, by registering one meter several times over as competing logical devices.
-
-----------------------------
-
 :rotating_light: Several users have reported that the 'kWh' measurement readings of the Eastron SDM meters are unreliable. Specifically, there are huge spikes containing faulty values in the data retrieved.
 
 ----------------------------

@@ -1,0 +1,28 @@
+{
+  "_comment": [
+    "Name the Duco blocks after the box they actually speak to.",
+    "",
+    "Node 1 of the connected system answers INPUT parameter 0 with module type 10,",
+    "which the Modbus information sheet (docs/RS485/datasheets/DUCO_DUCOBOX_Modbus_",
+    "Registers.pdf, L8000009) decodes as DucoBox Focus.",
+    "",
+    "The name matters because the master node's register block is model-specific.",
+    "This block reads six INPUT registers from address 10, and on a Focus those are",
+    "type / status / ventilation position / current power / average power / maximum",
+    "power. A DucoBox Energy or Silent Connect answers the same addresses with a",
+    "different set, so a block claiming to be a generic DUCOBOX would be publishing",
+    "mislabelled numbers on any of them.",
+    "",
+    "The node block is renamed to match: it is only ever instantiated by the box",
+    "block, as ARRAY[2..30] OF <node type>, and a pair whose names diverge invites",
+    "someone to reuse the node against a different box.",
+    "",
+    "Instance names are NOT renamed. The MQTT topic is derived from the instance",
+    "name, so renaming GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME would move every topic",
+    "it publishes and orphan the retained state behind it."
+  ],
+  "objects": {
+    "FB_RS485_DUCO_DUCOBOX_MQTT": "FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT",
+    "FB_RS485_DUCO_DUCOBOX_NODE_MQTT": "FB_RS485_DUCO_DUCOBOX_FOCUS_NODE_MQTT"
+  }
+}

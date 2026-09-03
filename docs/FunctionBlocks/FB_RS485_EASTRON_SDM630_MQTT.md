@@ -19,12 +19,8 @@ of the three; use this block when you want the full picture from an SDM630.
 Eastron SDM630 datasheet:
 - [Manual and Modbus registers](../RS485/datasheets/SDM630-Modbus-V2.pdf)
 
-----------------------------
-
-:rotating_light: **Not yet run against hardware.** The block is compile-verified only; no SDM630
-has answered it. See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md).
-
-----------------------------
+See [Using Modbus RTU with the CODESYS 3S runtime](../RS485/UsingModbusRTU_CODESYS3S.md)
+for how the bus underneath this block is set up.
 
 <!-- fb-interface:start -->
 ### **Block diagram**

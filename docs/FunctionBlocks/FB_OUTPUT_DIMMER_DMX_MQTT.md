@@ -29,16 +29,16 @@ BOOL ──┤ RST                       │
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `SINGLE` | BOOL | Input to connect to one or multiple `SINGLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
-| `LONG` | BOOL | Input to connect to one or multiple `LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
-| `P_LONG` | BOOL | Input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
-| `PRIO_HIGH` | BOOL | When high the output `Q` is set to high with a maximum brightness, has priority over the other inputs. |
-| `PRIO_LOW` | BOOL | When high the output `Q` is set to low, has priority over the other inputs. |
-| `SET` | BOOL | Input for switching output DIM to the input VAL value. |
-| `VAL` | BYTE | Byte value for SET operation. |
-| `RST` | BOOL | Input to switch off the output. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `SINGLE` | BOOL |  | Input to connect to one or multiple `SINGLE` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `LONG` | BOOL |  | Input to connect to one or multiple `LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `P_LONG` | BOOL |  | Input to connect to one or multiple `P_LONG` from one or multiple [FB_INPUT_PUSHBUTTON_MQTT](./FB_INPUT_PUSHBUTTON_MQTT.md). |
+| `PRIO_HIGH` | BOOL | `FALSE` | When high the output `Q` is set to high with a maximum brightness, has priority over the other inputs. |
+| `PRIO_LOW` | BOOL | `FALSE` | When high the output `Q` is set to low, has priority over the other inputs. |
+| `SET` | BOOL |  | Input for switching output DIM to the input VAL value. |
+| `VAL` | BYTE |  | Byte value for SET operation. |
+| `RST` | BOOL |  | Input to switch off the output. |
 
 **Outputs**
 

@@ -64,7 +64,7 @@ To translate the byte array received by the Modbus device to their actual value 
 - [FB_RS485_EASTRON_SDM220_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM220_MQTT.md)
 - [FB_RS485_EASTRON_SDM_POWER_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM_POWER_MQTT.md)
 - [FB_RS485_EASTRON_SDM630_MQTT](./docs/FunctionBlocks/FB_RS485_EASTRON_SDM630_MQTT.md)
-- [FB_RS485_DUCO_DUCOBOX_MQTT](./docs/FunctionBlocks/FB_RS485_DUCO_DUCOBOX_MQTT.md)
+- [FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT](./docs/FunctionBlocks/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT.md)
 - [FB_RS485_ESERA_OWD_MQTT](./docs/FunctionBlocks/FB_RS485_ESERA_OWD_MQTT.md)
 - [FB_RS485_DFROBOT_SEN0492_MQTT](./docs/FunctionBlocks/FB_RS485_DFROBOT_SEN0492_MQTT.md)
 

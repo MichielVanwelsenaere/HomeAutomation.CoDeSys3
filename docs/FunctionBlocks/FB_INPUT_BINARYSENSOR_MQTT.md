@@ -10,23 +10,24 @@ Binary sensors gather information about the state of devices which have a "digit
 ### **Block diagram**
 
 ```text
-       ┌────────────────────────────┐
-       │ FB_INPUT_BINARYSENSOR_MQTT │
-       ├────────────────────────────┤
-BOOL ──┤ BS                       Q ├── BOOL
-       │                      EVENT ├── BOOL
-       │                    EVENT_R ├── BOOL
-       │                    EVENT_F ├── BOOL
-       └────────────────────────────┘
+       ┌─────────────────────────────┐
+       │  FB_INPUT_BINARYSENSOR_MQTT │
+       ├─────────────────────────────┤
+BOOL ──┤ BS                        Q ├── BOOL
+BOOL ──┤ ProcessImageValid     EVENT ├── BOOL
+       │                     EVENT_R ├── BOOL
+       │                     EVENT_F ├── BOOL
+       └─────────────────────────────┘
 ```
 
 ### **Interface**
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `BS` | BOOL | Digital input linked to the signal wire of the binary sensor. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `BS` | BOOL |  | Digital input linked to the signal wire of the binary sensor. |
+| `ProcessImageValid` | BOOL | `TRUE` | Gates the debounce: FALSE holds the sensor at rest. Wire it to `Pfc200Bus.xConfigFinished`. **Needed on any normally-closed loop** — until the bus is up every mapped word reads zero, and through the inversion such a loop needs, zero is the tripped state. |
 
 **Outputs**
 
@@ -64,7 +65,7 @@ BOOL ──┤ BS                       Q ├── BOOL
 <!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
-Requires method call `InitMQTT` to enable MQTT capabilities.
+Publishing starts once the block is wired, which `FriendlyName` does on its own.
 
 | Event | Description | MQTT payload | QoS | Retain flag | Published on startup |
 |:-------------|:------------------|:------------------|:------------------|:--------------------------|:--------------------------|
@@ -74,43 +75,29 @@ MQTT publish topic is a concatenation of the publish prefix variable and the fun
 
 ### **Code example**
 
-- variables initiation:
-```
-MQTTBinarySensorPrefix  :STRING(100) := 'Devices/PLC/Lab/Out/DigitalInputs/BinarySensors/';
-FB_DI_BS_001            :FB_INPUT_BINARYSENSOR_MQTT;
+Declaration — `FriendlyName` is all the wiring this block needs:
+
+```iecst
+VAR
+	FB_DI_BS_001 : FB_INPUT_BINARYSENSOR_MQTT := (FriendlyName := 'Smoke detector landing');
+END_VAR
 ```
 
-- Init MQTT method call (called once during startup):
-```
-FB_INPUT_BINARYSENSOR_MQTT.InitMQTT(MQTTPublishPrefix:= ADR(MQTTBinarySensorPrefix),    (* pointer to string prefix for the MQTT publish topic *)
-    pMQTTPublishQueue := ADR(MQTTVariables.fbMQTTPublishQueue)                          (* pointer to MQTTPublishQueue to send a new MQTT event *)
-);
-```
-The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/DigitalInputs/BinarySensors/FB_DI_BS_001` (MQTTBinarySensorPrefix variable + function block name).
+Cyclic call, once per scan:
 
-- Configuration of the function block with a 5 second turn off delay on the output (called once during startup):
-```
-FB_INPUT_BINARYSENSOR_MQTT.ConfigureFunctionBlock(T_TurnOffDelay:= T#5S);         (* time to delay the negative edge on output Q *)
+```iecst
+FB_DI_BS_001(BS := NOT(DI_001), ProcessImageValid := Pfc200Bus.xConfigFinished);
 ```
 
-- reading digital input for events (cyclic):
-```
-FB_DI_BS_001(BS:= DI_001);
+`NOT` because a smoke detector's loop is normally closed, and `ProcessImageValid`
+because that inversion makes an unstarted K-bus look like an alarm.
+
+Driving an output from its edge:
+
+```iecst
+FB_DO_SW_001(TOGGLE := FB_DI_BS_001.EVENT, OUT => DO_001);
 ```
 
-- integration with `FB_OUTPUT_BINARY_MQTT`:
-```
-FB_DO_SW_001(OUT=>  DO_001,                 (* couple the function block to the physical output *)
-    PRIO_HIGH:=     FALSE,                  (* brings the output high regardless of other input values *)
-    PRIO_LOW:=      FALSE,                  (* brings the output low regardless of other input values. NOTE: Priohigh overrules Priolow input *)
-    TOGGLE:=        FB_DI_BS_001.EVENT      (* for toggling the output *)	
-);
-```
-
-- MQTT discovery:
-```
-FB_DI_BS_001.InitMqttDiscovery(
-	Name := 'Binary sensor 001',			(* The name shown in the Home Assistant front-end *)
-	Device := ADR(PLC_DEVICE),				(* The device shown in Home Assistant *)
-);
-```
+The publish topic is `GVL_MQTT.MqttPushbuttonPrefix` plus the instance name, so this
+instance publishes to `.../Out/DigitalInputs/Pushbuttons/FB_DI_BS_001` and announces
+itself to Home Assistant as `Smoke detector landing`.

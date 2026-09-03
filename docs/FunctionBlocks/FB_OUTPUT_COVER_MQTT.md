@@ -31,12 +31,12 @@ BOOL ──┤ PRIO_DN              │
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `TOGGLE` | BOOL | Toggles the direction of the cover. |
-| `PRIO_LOCK` | BOOL | Bool input, when high the cover will be locked in its current position ignoring all other inputs. (\*) |
-| `PRIO_UP` | BOOL | Bool input, when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. (\*) |
-| `PRIO_DN` | BOOL | Bool input, when high the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (\*) |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `TOGGLE` | BOOL |  | Toggles the direction of the cover. |
+| `PRIO_LOCK` | BOOL |  | Bool input, when high the cover will be locked in its current position ignoring all other inputs. (\*) |
+| `PRIO_UP` | BOOL |  | Bool input, when high the cover will receive a constant signal to move up with a maximum time of twice `T_UD`. (\*) |
+| `PRIO_DN` | BOOL |  | Bool input, when high the cover will receive a constant signal to move down with a maximum time of twice `T_UD`. (\*) |
 
 **Outputs**
 

@@ -22,9 +22,9 @@ BOOL ──┤ IN              OUT ├── BOOL
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `IN` | BOOL | When high heat production is required for the pump(s). |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `IN` | BOOL |  | When high heat production is required for the pump(s). |
 
 **Outputs**
 

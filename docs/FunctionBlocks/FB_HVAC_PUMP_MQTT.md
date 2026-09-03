@@ -24,9 +24,9 @@ BOOL ──┤ IN                PUMP ├── BOOL
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `IN` | BOOL | Should be made high if pump flow is required. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `IN` | BOOL |  | Should be made high if pump flow is required. |
 
 **Outputs**
 

@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-08-31T10:58:18.0225813" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-08-31T10:57:07.7425061">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-03T10:43:00.1487993" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-03T10:41:59.996856">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -110,6 +110,150 @@ build can catch that, because nothing in the PLC is wrong.</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>1725693c-2e66-470f-96cb-0947d108f150</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="E_RS485_DUCO_NODE_TYPE">
+        <baseType>
+          <enum>
+            <values>
+              <value name="Unknown" value="0" />
+              <value name="DucoBoxFocus" value="10" />
+              <value name="ValveSensorless" value="11" />
+              <value name="ValveCO2" value="12" />
+              <value name="ValveHumidity" value="13" />
+              <value name="UserControl" value="14" />
+              <value name="SensorCO2" value="15" />
+              <value name="SensorHumidity" value="16" />
+              <value name="WindowVentilator" value="17" />
+              <value name="SwitchSensor" value="18" />
+              <value name="ActuatorBoard" value="19" />
+              <value name="ValveHumidityCO2" value="24" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>Unknown</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">A module type this enumeration does not name, and the value a node holds before
+the bus has answered for the first time.
+
+Zero is deliberately not a Duco type. The manual assigns parameters 01..09 to
+node 0 and reserves them, so no real component ever reports 0, which leaves it
+free to mean "not established yet". A node in this state publishes its registers
+and announces nothing: inventing entities for a component whose layout is
+unknown would put numbers under labels that were guessed.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>DucoBoxFocus</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">The ventilation unit itself, always node 1.
+
+Its register block is the one that is model-specific: read parameters 3, 4 and 5
+are current, average and maximum power in watts. A DucoBox Energy or Silent
+Connect answers those same addresses with something else, which is why this
+block is named for the Focus.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ValveSensorless</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Control valve with no sensor of its own. Reports status, ventilation position and
+indoor temperature; no CO2 and no humidity.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ValveCO2</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Control valve with a CO2 sensor. Adds read parameter 4, the measured CO2 in ppm,
+and write parameter 1, the CO2 setpoint.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ValveHumidity</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Control valve with a humidity sensor. Adds read parameter 5, the relative
+humidity as a percentage times 100, and write parameters 2 and 3, the RH setpoint
+and whether delta control is enabled.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>UserControl</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Wall control, with or without a battery. A battery unit reports no indoor
+temperature.
+
+Its write side collides with the valves': parameters 5 and 6 are the values of
+buttons 2 and 3 here, where a valve has auto minimum and auto maximum. Anything
+mapping a holding register to an entity has to branch on the type first.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>SensorCO2</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">CO2 sensor, either a room sensor or a box sensor. A box sensor reports no status
+and no ventilation position, so its entity set is smaller than a room sensor's
+even though both answer type 15.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>SensorHumidity</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Humidity sensor, either a room sensor or a box sensor. Same split as SensorCO2:
+a box sensor has neither status nor ventilation position.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>WindowVentilator</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Electronically controlled window ventilator.
+
+Two of its registers mean something different from every valve: parameter 2 is
+the ventilator opening rather than an extraction level, 0 shut to 100 open, and
+parameter 3 is the OUTDOOR temperature. A reader that assumes "3 is the room
+temperature" reports the weather as a room.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>SwitchSensor</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Switch sensor: presence detection, a heat-pump demand input, or an overrule
+input, selected by write parameter 1. Reports status and ventilation position
+only.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ActuatorBoard</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Actuator board driving a 2/3-point or PWM output.
+
+Shares the window ventilator's outdoor temperature on parameter 3, and is the one
+component where parameter 4 is not CO2 at all: it is the PWM-in percentage.
+Publishing it as air quality is the mistake this enumeration exists to prevent.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ValveHumidityCO2</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Control valve carrying both sensors, and the only type that fills every read
+parameter: status, position, temperature, CO2 and humidity.
+
+Out of sequence at 24 because Duco added it after the 11..19 block was allocated.</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>9e75d1f9-8ea1-42e6-b60c-b43e009681f0</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -1450,6 +1594,150 @@ is what puts a slider on the entity rather than three buttons.</xhtml>
           </data>
         </addData>
       </dataType>
+      <dataType name="MQTT_DISCOVERY_BUTTON">
+        <baseType>
+          <struct>
+            <variable name="cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">command_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pl_prs">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">payload_press - what is sent when the button is pressed</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ent_cat">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">entity_category, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="dev_cla">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">device_class - only identify, restart and update exist for a button; usually null</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
+            </Inheritance>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>06fa2306-aee2-40b0-8f45-5f9070abcd23</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_NUMBER">
+        <baseType>
+          <struct>
+            <variable name="cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">command_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">state_topic - the value the device actually holds, read back rather than assumed</xhtml>
+              </documentation>
+            </variable>
+            <variable name="min_val">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">min - signed, because a release-the-override value of -1 is a real setting</xhtml>
+              </documentation>
+            </variable>
+            <variable name="max_val">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">max</xhtml>
+              </documentation>
+            </variable>
+            <variable name="step">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">step</xhtml>
+              </documentation>
+            </variable>
+            <variable name="unit_of_meas">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">unit_of_measurement, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="mode">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">mode - 'box' or 'slider'. A slider on a 0-2000 ppm setpoint is unusable, so this is per entity</xhtml>
+              </documentation>
+            </variable>
+            <variable name="dev_cla">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">device_class, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ent_cat">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">entity_category - 'config' keeps a setpoint out of the main dashboard</xhtml>
+              </documentation>
+            </variable>
+            <variable name="opt">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">optimistic - FALSE wherever a state topic exists</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
+            </Inheritance>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>46229895-b518-43b2-b253-658445a839db</ObjectId>
+          </data>
+        </addData>
+      </dataType>
       <dataType name="A_RS485_READ_BUFFER">
         <baseType>
           <array>
@@ -1892,6 +2180,25 @@ block should not cost the others.</xhtml>
                 <BOOL />
               </type>
             </variable>
+            <variable name="ProcessImageValid">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE once the K-bus has finished starting and the mapped inputs mean
+something. FALSE holds this sensor at rest.
+
+Defaulted TRUE so no existing call site changes behaviour, but pass
+Pfc200Bus.xConfigFinished on anything whose loop is normally CLOSED. Until the
+bus is up every mapped word reads zero, and on an inverted loop zero IS the
+alarm - so a fire sensor left ungated raises its alarm on every single cold
+start, deterministically. That is not a plausible-looking value like an RTD's
+0.0 C; it is the tripped state itself.</xhtml>
+              </documentation>
+            </variable>
           </inputVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
@@ -1945,7 +2252,10 @@ IF FriendlyName &lt;&gt; '' THEN
 
 END_IF
 
-fbDebounce(IN := BS,	
+(* Held at rest until the process image is valid. The debounce below then
+   still has to settle, so a genuine alarm present at power-up is reported a
+   few cycles late rather than not at all. *)
+fbDebounce(IN := BS AND ProcessImageValid,	
 	TD := T#50MS, (* 2x cyle + 10ms *)
 	PM := FALSE
 	);
@@ -8953,6 +9263,406 @@ END_IF </xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="F_DUCO_NODE_TYPE" pouType="function">
+        <interface>
+          <returnType>
+            <derived name="E_RS485_DUCO_NODE_TYPE" />
+          </returnType>
+          <inputVars>
+            <variable name="wRaw">
+              <type>
+                <WORD />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Read parameter 0 of a node, exactly as the bus returned it.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Module type as reported by read parameter 0, mapped onto the enumeration.
+
+   A CASE rather than a cast, deliberately. The bus can return anything - a Duco
+   range that grows a type this project has never seen, or a garbled frame that
+   passed CRC - and a cast would hand that straight to code which then indexes a
+   register table by it. Everything unrecognised becomes Unknown, and a node in
+   that state publishes its raw registers and announces nothing. *)
+CASE wRaw OF
+	10:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.DucoBoxFocus;
+	11:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ValveSensorless;
+	12:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ValveCO2;
+	13:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ValveHumidity;
+	14:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.UserControl;
+	15:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.SensorCO2;
+	16:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.SensorHumidity;
+	17:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.WindowVentilator;
+	18:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.SwitchSensor;
+	19:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ActuatorBoard;
+	24:		F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2;
+ELSE
+	F_DUCO_NODE_TYPE := E_RS485_DUCO_NODE_TYPE.Unknown;
+END_CASE</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>a730fbaf-c9ea-4497-a9be-386ca0646f78</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="F_DUCO_SCALED_TEXT" pouType="function">
+        <interface>
+          <returnType>
+            <string length="16" />
+          </returnType>
+          <inputVars>
+            <variable name="iRaw">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">The register as a signed integer. Signed because outdoor temperature is a real
+register on this bus and it goes below zero.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iScale">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">10 for temperature, 100 for relative humidity. Duco scales those two
+differently and nothing else on this bus is scaled at all.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <localVars>
+            <variable name="iWhole">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="iFrac">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="sOut">
+              <type>
+                <string length="16" />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Formatted from the integer rather than through REAL_TO_STRING, for the reason
+   FB_INPUT_TEMPERATURE_RTD_MQTT gives: REAL_TO_STRING on this runtime produces
+   a representation nobody wants on a topic. The register is already a fixed-point
+   integer, so dividing it into whole and fraction is both exact and shorter. *)
+IF iScale &lt;= 0 THEN
+	F_DUCO_SCALED_TEXT := INT_TO_STRING(iRaw);
+	RETURN;
+END_IF
+
+iWhole	:= iRaw / iScale;
+iFrac	:= ABS(iRaw MOD iScale);
+
+sOut := INT_TO_STRING(iWhole);
+
+(* IEC division truncates toward zero, so -5/10 is 0 and the sign is lost on
+   everything between -1 and 0. Put it back, or -0.5 C publishes as 0.5. *)
+IF iRaw &lt; 0 AND iWhole = 0 THEN
+	sOut := CONCAT('-', sOut);
+END_IF
+
+sOut := CONCAT(sOut, '.');
+
+(* A hundredths scale needs the leading zero: 4907 is 49.07, not 49.7. *)
+IF iScale = 100 AND iFrac &lt; 10 THEN
+	sOut := CONCAT(sOut, '0');
+END_IF
+
+F_DUCO_SCALED_TEXT := CONCAT(sOut, INT_TO_STRING(iFrac));</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>d1b2eedd-88cb-49d7-85e9-aff1538f0b73</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="F_DUCO_STATUS_TEXT" pouType="function">
+        <interface>
+          <returnType>
+            <string length="24" />
+          </returnType>
+          <inputVars>
+            <variable name="wRaw">
+              <type>
+                <WORD />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Read parameter 1 of a node, the ventilation status.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The status enumeration from L8000009, resolved to text here rather than in a
+   Home Assistant template. The PLC is the only place that knows this mapping is
+   fixed, and a template is a second copy of it that goes stale silently.
+
+   Not to be confused with the ACTION parameter, holding 9, which encodes the
+   same ideas with different numbers: the action that produces "Manual low" is 2,
+   and the status that reports it is 4. F_DUCO_ACTION_TEXT is the other one. *)
+CASE wRaw OF
+	0:		F_DUCO_STATUS_TEXT := 'Auto';
+	1:		F_DUCO_STATUS_TEXT := '10 minutes high';
+	2:		F_DUCO_STATUS_TEXT := '20 minutes high';
+	3:		F_DUCO_STATUS_TEXT := '30 minutes high';
+	4:		F_DUCO_STATUS_TEXT := 'Manual low';
+	5:		F_DUCO_STATUS_TEXT := 'Manual medium';
+	6:		F_DUCO_STATUS_TEXT := 'Manual high';
+	7:		F_DUCO_STATUS_TEXT := 'Unoccupied';
+	99:		F_DUCO_STATUS_TEXT := 'Error';
+ELSE
+	(* Published rather than swallowed: an undocumented status is exactly the
+	   thing somebody will need to see when a new component misbehaves. *)
+	F_DUCO_STATUS_TEXT := CONCAT('Unknown ', WORD_TO_STRING(wRaw));
+END_CASE</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>914a5658-e401-4069-b24a-fb8acd0a3b5c</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="F_DUCO_TYPE_TEXT" pouType="function">
+        <interface>
+          <returnType>
+            <string length="28" />
+          </returnType>
+          <inputVars>
+            <variable name="eType">
+              <type>
+                <derived name="E_RS485_DUCO_NODE_TYPE" />
+              </type>
+            </variable>
+          </inputVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* What a node is, in words, for the diagnostic topic. Home Assistant shows this
+   on the node's device page, which is where somebody looks after re-pairing the
+   network and wondering which valve moved. *)
+CASE eType OF
+	E_RS485_DUCO_NODE_TYPE.DucoBoxFocus:		F_DUCO_TYPE_TEXT := 'DucoBox Focus';
+	E_RS485_DUCO_NODE_TYPE.ValveSensorless:		F_DUCO_TYPE_TEXT := 'Valve';
+	E_RS485_DUCO_NODE_TYPE.ValveCO2:			F_DUCO_TYPE_TEXT := 'CO2 valve';
+	E_RS485_DUCO_NODE_TYPE.ValveHumidity:		F_DUCO_TYPE_TEXT := 'Humidity valve';
+	E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:	F_DUCO_TYPE_TEXT := 'Humidity + CO2 valve';
+	E_RS485_DUCO_NODE_TYPE.UserControl:			F_DUCO_TYPE_TEXT := 'User control';
+	E_RS485_DUCO_NODE_TYPE.SensorCO2:			F_DUCO_TYPE_TEXT := 'CO2 sensor';
+	E_RS485_DUCO_NODE_TYPE.SensorHumidity:		F_DUCO_TYPE_TEXT := 'Humidity sensor';
+	E_RS485_DUCO_NODE_TYPE.WindowVentilator:	F_DUCO_TYPE_TEXT := 'Window ventilator';
+	E_RS485_DUCO_NODE_TYPE.SwitchSensor:		F_DUCO_TYPE_TEXT := 'Switch sensor';
+	E_RS485_DUCO_NODE_TYPE.ActuatorBoard:		F_DUCO_TYPE_TEXT := 'Actuator board';
+ELSE
+	F_DUCO_TYPE_TEXT := 'Unknown';
+END_CASE</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>41f7729e-a7a9-4e7c-8764-fd513ea5e2ed</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="F_JSON_RENAME_KEY" pouType="function">
+        <interface>
+          <returnType>
+            <BOOL />
+          </returnType>
+          <inputVars>
+            <variable name="pJson">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">The composed config, edited in place.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiSize">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">Capacity of the buffer, so the scan cannot run off the end of it.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sFrom">
+              <type>
+                <string length="32" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">The quoted key as composed, e.g. '"min_val"'.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sTo">
+              <type>
+                <string length="32" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">The quoted key to publish, e.g. '"min"'. Must not be longer than sFrom.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <localVars>
+            <variable name="pFrom">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="pTo">
+              <type>
+                <pointer>
+                  <baseType>
+                    <BYTE />
+                  </baseType>
+                </pointer>
+              </type>
+            </variable>
+            <variable name="diLen">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diFrom">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diTo">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diI">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diJ">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="diHit">
+              <type>
+                <DINT />
+              </type>
+            </variable>
+            <variable name="bMatch">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Rename one key in a composed discovery config, in place.
+
+   This exists because a few Home Assistant keys are IEC operators. A number
+   entity needs "min" and "max"; ST will not accept members with those names, and
+   PRO_JSON takes the key from the member name - there is no name field on
+   JSONVAR to override it. So the struct declares min_val / max_val and the key
+   is corrected here, on the way out.
+
+   Byte-wise on purpose. FIND and REPLACE are declared over STRING(255) and this
+   buffer is STRING(1500), so calling them would silently narrow the config to
+   its first 255 bytes - the same trap that once stopped this PLC publishing any
+   discovery at all. Never reach for a string function on this buffer. *)
+F_JSON_RENAME_KEY := FALSE;
+
+IF pJson = 0 THEN
+	RETURN;
+END_IF
+
+pFrom := ADR(sFrom);
+pTo := ADR(sTo);
+
+(* Walk to the terminator rather than asking a string function for a length. *)
+diFrom := 0;
+WHILE (diFrom &lt; 32) AND (pFrom[diFrom] &lt;&gt; 0) DO
+	diFrom := diFrom + 1;
+END_WHILE
+diTo := 0;
+WHILE (diTo &lt; 32) AND (pTo[diTo] &lt;&gt; 0) DO
+	diTo := diTo + 1;
+END_WHILE
+
+(* Shortening only. A longer replacement would have to grow the config, and a
+   silent overflow here publishes truncated JSON, which Home Assistant discards
+   whole. Refusing is the safe answer. *)
+IF (diFrom = 0) OR (diTo = 0) OR (diTo &gt; diFrom) THEN
+	RETURN;
+END_IF
+
+diLen := 0;
+WHILE (diLen &lt; UDINT_TO_DINT(uiSize) - 1) AND (pJson[diLen] &lt;&gt; 0) DO
+	diLen := diLen + 1;
+END_WHILE
+
+diHit := -1;
+FOR diI := 0 TO diLen - diFrom DO
+	bMatch := TRUE;
+	FOR diJ := 0 TO diFrom - 1 DO
+		IF pJson[diI + diJ] &lt;&gt; pFrom[diJ] THEN
+			bMatch := FALSE;
+			EXIT;
+		END_IF
+	END_FOR
+	IF bMatch THEN
+		diHit := diI;
+		EXIT;
+	END_IF
+END_FOR
+
+IF diHit &lt; 0 THEN
+	RETURN;
+END_IF
+
+(* Overwrite the key, then pull the tail left over the slack, terminator and
+   all. Keys are unique in one config, so one pass is the whole job. *)
+FOR diJ := 0 TO diTo - 1 DO
+	pJson[diHit + diJ] := pTo[diJ];
+END_FOR
+
+FOR diJ := diHit + diFrom TO diLen DO
+	pJson[diJ - (diFrom - diTo)] := pJson[diJ];
+END_FOR
+
+F_JSON_RENAME_KEY := TRUE;</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>2070b78f-f5f5-4b1a-b4ae-caa8c985d0ad</ObjectId>
+          </data>
+        </addData>
+      </pou>
       <pou name="FB_HVAC_BURNER_MQTT" pouType="functionBlock">
         <interface>
           <outputVars>
@@ -10938,8 +11648,8 @@ END_IF</xhtml>
                 <UDINT />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Messages discarded because the astFifo was full. Without this, overflow
- is completely silent - and the DMX log flood made overflow easy to provoke.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Messages discarded because a lane was full. Without this, overflow is
+ completely silent - and the DMX log flood made overflow easy to provoke.</xhtml>
               </documentation>
             </variable>
           </outputVars>
@@ -10947,66 +11657,103 @@ END_IF</xhtml>
             <variable name="astFifo">
               <type>
                 <array>
-                  <dimension lower="0" upper="ciN" />
+                  <dimension lower="0" upper="ciLanes" />
+                  <dimension lower="0" upper="ciLaneN" />
                   <baseType>
                     <derived name="ST_MQTT_MESSAGE" />
                   </baseType>
                 </array>
               </type>
             </variable>
-            <variable name="iPr">
+            <variable name="aiPr">
               <type>
-                <INT />
+                <array>
+                  <dimension lower="0" upper="ciLanes" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Read index. Advanced ONLY by GetMessage, and only ever read by AddMessage.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Read index per lane. Advanced ONLY by GetMessage.</xhtml>
               </documentation>
             </variable>
-            <variable name="iPw">
+            <variable name="aiPw">
               <type>
-                <INT />
+                <array>
+                  <dimension lower="0" upper="ciLanes" />
+                  <baseType>
+                    <INT />
+                  </baseType>
+                </array>
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Write index. Advanced ONLY by AddMessage, and only ever read by GetMessage.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Write index per lane. Advanced ONLY by the task that owns the lane.</xhtml>
               </documentation>
             </variable>
-          </localVars>
-          <localVars constant="true">
-            <variable name="ciN">
+            <variable name="iDrain">
               <type>
                 <INT />
               </type>
               <initialValue>
-                <simpleValue value="1024" />
+                <simpleValue value="0" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> changing this value will chage the number of stored elements in the astFifo</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Round-robin drain cursor, so a busy lane cannot starve a quiet one.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iScan">
+              <type>
+                <INT />
+              </type>
+            </variable>
+          </localVars>
+          <localVars constant="true">
+            <variable name="ciLanes">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest lane index. Lane 0 is the default for anything that does not ask
+ for one; lane 1 is the RS485 task, which is by far the loudest producer.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ciLaneN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="511" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest slot index within a lane. Total storage is unchanged from the
+ single ring this replaces.</xhtml>
               </documentation>
             </variable>
           </localVars>
           <documentation>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml"> A single-producer / single-consumer ring buffer.
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> A ring buffer per producing task, drained by one consumer.
 
-   EMPTY and FULL used to be stored BOOL outputs, written by both sides, and that
-   was the whole problem. With iPw = iPr the ring is either completely empty or
-   completely full, and only those two flags told the cases apart - so a task that
-   lost a race on them could leave a non-empty queue looking empty (the workers
-   stop draining, and a retained state change sits unsent until the next publish),
-   or clear FULL while the ring really was full (a writer then overruns entries the
-   reader has not taken yet).
+   Each lane is single-producer / single-consumer, which is the invariant the
+   original design relied on and could not enforce: iPw of a lane is written
+   only by the task that owns that lane, iPr only by the drain, and each side
+   merely reads the other's index - a single aligned INT load on this 32-bit
+   target, which cannot tear. No semaphore, so no priority inversion.
 
-   They are derived now. HasMessage() is iPr &lt;&gt; iPw; IsFull() is INC1(iPw,ciN) = iPr.
-   Nothing shared is mutable any more: iPw is written only by AddMessage, iPr only by
-   GetMessage, and each side merely reads the other's index - a single aligned INT
-   load on this 32-bit target, which cannot tear. No semaphore, so no priority
-   inversion on MainTask or HvacTask.
+   What this fixes, and why it mattered: two tasks in AddMessage at once read
+   the same iPw, wrote into the same slot and left a hybrid there - one
+   message's topic carrying another's payload. On Bijbouw that showed up as a
+   device publishing 'offline' it had never sent, three times per its own
+   count against seventeen on the broker. Sharing one lane between tasks
+   brings it straight back, so a producer that runs in its own task takes its
+   own lane.
 
-   The cost is exactly one slot. Reporting full one slot early is what buys iPw = iPr
-   its unambiguous "empty" meaning, so capacity is ciN rather than ciN+1.
-
-   What this does NOT fix: two tasks inside AddMessage at the same time can still
-   read the same iPw, leave one hybrid message in that slot and the next slot never
-   written at all. Only one queue per producer fixes that. </xhtml>
+   Lanes hold the same total storage the single ring did. ST_MQTT_MESSAGE is
+   about 1.8 kB, so the ring is already megabytes and a second instance was
+   never an option on this hardware.</xhtml>
           </documentation>
         </interface>
         <body>
@@ -11024,12 +11771,23 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Copy the slot out before releasing it: advancing iPr is what tells a producer the
-   slot may be overwritten, so it has to be the last thing that happens. *)
-IF THIS^.HasMessage() THEN
-	GetMessage := astFifo[iPr];
-	iPr := OSCAT_BASIC.INC1(iPr,ciN);
-END_IF;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Round-robin across the lanes, so a loud producer cannot starve a quiet one.
+
+   Copy the slot out before releasing it: advancing aiPr is what tells the
+   producer the slot may be overwritten, so it has to be the last thing that
+   happens. *)
+FOR iScan := 0 TO ciLanes DO
+	iDrain := iDrain + 1;
+	IF iDrain &gt; ciLanes THEN
+		iDrain := 0;
+	END_IF
+
+	IF aiPr[iDrain] &lt;&gt; aiPw[iDrain] THEN
+		GetMessage := astFifo[iDrain, aiPr[iDrain]];
+		aiPr[iDrain] := OSCAT_BASIC.INC1(aiPr[iDrain], ciLaneN);
+		RETURN;
+	END_IF
+END_FOR
 </xhtml>
                 </ST>
               </body>
@@ -11064,24 +11822,14 @@ END_IF;
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Written straight into the slot: the old code staged every message through a
-   single FB member, which four tasks shared as scratch space. iPw is advanced only
-   once all four fields are in place, and GetMessage never reads a slot while
-   iPr = iPw, so the reader cannot observe a half-written entry.
-
-   NOTE: that reasoning holds against the READER, not against a second WRITER. Two
-   tasks in AddMessage at once still read the same iPw and collide. See the block
-   comment on the function block. *)
-IF NOT THIS^.IsFull() THEN
-	astFifo[iPw].Payload := Payload;
-	astFifo[iPw].Topic := Topic;
-	astFifo[iPw].Qos := Qos;
-	astFifo[iPw].MqttRetain := MqttRetain;
-	(* Last: advancing iPw is what publishes the slot to the reader. *)
-	iPw := OSCAT_BASIC.INC1(iPw,ciN);
-ELSE
-	DroppedCount := DroppedCount + 1;
-END_IF;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The default lane. Anything that does not name one shares lane 0, which is
+   correct only while those callers run in the same task - true today for
+   MainTask, and the reason the RS485 blocks name lane 1 instead. *)
+THIS^.AddMessageOn(Lane := 0,
+				Payload := Payload,
+				Topic := Topic,
+				Qos := Qos,
+				MqttRetain := MqttRetain);
 </xhtml>
                 </ST>
               </body>
@@ -11097,7 +11845,15 @@ END_IF;
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">HasMessage := iPr &lt;&gt; iPw;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Any lane with something in it. *)
+HasMessage := FALSE;
+FOR iScan := 0 TO ciLanes DO
+	IF aiPr[iScan] &lt;&gt; aiPw[iScan] THEN
+		HasMessage := TRUE;
+		RETURN;
+	END_IF
+END_FOR
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -11112,7 +11868,84 @@ END_IF;
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IsFull := OSCAT_BASIC.INC1(iPw,ciN) = iPr;</xhtml>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Kept for callers that ask about the default lane. A lane reports full one
+   slot early: that is what buys aiPr = aiPw its unambiguous 'empty' meaning. *)
+IsFull := OSCAT_BASIC.INC1(aiPw[0], ciLaneN) = aiPr[0];
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="AddMessageOn" ObjectId="cebb15f8-141d-4339-92ed-bd4d16a6f29a">
+              <interface>
+                <inputVars>
+                  <variable name="Lane">
+                    <type>
+                      <INT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">0 for the default lane, 1 for the RS485 task. Out of range falls back to 0.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Payload">
+                    <type>
+                      <string length="1500" />
+                    </type>
+                  </variable>
+                  <variable name="Topic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="Qos">
+                    <type>
+                      <derived name="MQTT.QoS" />
+                    </type>
+                  </variable>
+                  <variable name="MqttRetain">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="iL">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Queue a message on a specific lane. A lane must be written by ONE task only.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Written straight into the slot. aiPw[iL] is advanced only once all four
+   fields are in place, and GetMessage never reads a slot while aiPr = aiPw, so
+   the drain cannot observe a half-written entry.
+
+   Safe against a second writer ONLY because a lane has one. That is the whole
+   point of the lane: two tasks sharing one would collide on aiPw exactly as
+   they used to collide on the single iPw. *)
+iL := Lane;
+IF (iL &lt; 0) OR (iL &gt; ciLanes) THEN
+	iL := 0;
+END_IF
+
+IF OSCAT_BASIC.INC1(aiPw[iL], ciLaneN) &lt;&gt; aiPr[iL] THEN
+	astFifo[iL, aiPw[iL]].Payload := Payload;
+	astFifo[iL, aiPw[iL]].Topic := Topic;
+	astFifo[iL, aiPw[iL]].Qos := Qos;
+	astFifo[iL, aiPw[iL]].MqttRetain := MqttRetain;
+	(* Last: advancing the write index is what publishes the slot to the drain. *)
+	aiPw[iL] := OSCAT_BASIC.INC1(aiPw[iL], ciLaneN);
+ELSE
+	DroppedCount := DroppedCount + 1;
+END_IF
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -11809,6 +12642,35 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
 	   rather than empty - see CreateCoverEntityWithPosition. </xhtml>
               </documentation>
             </variable>
+            <variable name="stMqttDiscMsgNumber">
+              <type>
+                <derived name="MQTT_DISCOVERY_NUMBER" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> One instance per entity kind, reused across every announcement. The config
+	   is composed and published inside the Create* method, so nothing here has to
+	   outlive the call - which is why sixteen of these cost one struct each rather
+	   than one per entity. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="stMqttDiscMsgButton">
+              <type>
+                <derived name="MQTT_DISCOVERY_BUTTON" />
+              </type>
+            </variable>
+            <variable name="iQueueLane">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Which publish-queue lane this device's messages go on. A lane must have
+	   exactly one producing task, and this object is used from several - the
+	   owner sets it, defaulting to the same lane everything else uses. </xhtml>
+              </documentation>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -11955,7 +12817,7 @@ IF THIS^.PublishEntityConfig(
 		EntityId := EntityId,
 		Id := Id) AND NOT (StateValue = '') THEN
 	(* This entity seeds its own initial value as well as its config. *)
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := iQueueLane,
 		Payload:= StateValue,
 		Topic := StateTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11992,7 +12854,7 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">pMqttPublishQueue^.AddMessage(
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">pMqttPublishQueue^.AddMessageOn(Lane := iQueueLane,
 	Payload:= CONCAT(CONCAT(instance,' | '),str),
 	Topic := CONCAT(MqttDiagnosticTopic, '/Log'),
 	Qos := MQTT.QoS.AtLeastOnce,
@@ -14347,6 +15209,16 @@ END_IF</xhtml>
                       <DINT />
                     </type>
                   </variable>
+                  <variable name="bKeyRenamed">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Result of a key rename. Nothing acts on it: a config with no such key is the
+ordinary case, and the truncation guard below catches anything that did go
+wrong far more reliably than this flag would.</xhtml>
+                    </documentation>
+                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/accessmodifiers" handleUnknown="implementation">
@@ -14379,6 +15251,20 @@ fbComposeJSON.Execute := TRUE;
 fbComposeJSON();
 
 bStripJsonRootOk := F_STRIP_JSON_ROOT(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqttJSON));
+
+(* A few Home Assistant keys are IEC operators, so no struct can declare them
+   under the name they have to be published as. A number entity needs min and
+   max; the struct carries min_val and max_val, and they are corrected here.
+
+   Done for every entity type rather than only for numbers: the scan is over a
+   config that has already been composed, it runs at the handful of publishes
+   that happen at startup, and a config containing neither key costs one failed
+   search. Putting it here means the next struct that hits the same collision
+   needs no new plumbing. *)
+bKeyRenamed := F_JSON_RENAME_KEY(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqttJSON),
+							sFrom := '"min_val"', sTo := '"min"');
+bKeyRenamed := F_JSON_RENAME_KEY(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqttJSON),
+							sFrom := '"max_val"', sTo := '"max"');
 
 (* A composed config that does not end in a closing brace is truncated, and
    publishing it is worse than publishing nothing: Home Assistant rejects the
@@ -14414,7 +15300,7 @@ ELSIF bStripJsonRootOk = FALSE THEN
 ELSIF NOT bJsonComplete THEN
 	SendLogMessage(str:=CONCAT(CONCAT('ERROR ',Id), ' composed truncated json'), instance := sInstanceName);
 ELSIF NOT (sMqttJSON = '') THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := iQueueLane,
 		Payload:= sMqttJSON,
 		Topic := sMqttTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -14632,6 +15518,298 @@ THIS^.PublishEntityConfig(
 	StructSize := SIZEOF(stMqttDiscMsgCoverPos),
 	EntityId := EntityId,
 	Id := Id);
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateNumberEntity" ObjectId="ab07f1d7-7c68-4d64-89c7-cce1607c7dcc">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="CommandTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Where the value the device actually holds is published. Leave empty only if
+the register genuinely cannot be read back.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MinValue">
+                    <type>
+                      <INT />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Signed: a release-the-override value of -1 is a real setting on some devices.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MaxValue">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="StepValue">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                  <variable name="UnitOfMeasurement">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="EntityCategory">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">'config' keeps a setpoint off the main dashboard. Empty for none.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="SliderMode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE for a slider, FALSE for a typed box.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'number'" />
+                    </initialValue>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Announce a Home Assistant number: a value somebody can set, with a range and a
+step, and a state topic carrying what the device actually holds.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(stMqttDiscMsgNumber),
+	EntityId := EntityId,
+	Name := Name,
+	Id := Id,
+	Meta := Meta);
+
+// Entity related: Specific
+stMqttDiscMsgNumber.cmd_t.CharString := CommandTopic;
+stMqttDiscMsgNumber.stat_t.CharString := StateTopic;
+(* min_val / max_val, not min / max: MIN and MAX are IEC operators and cannot
+   be member names, and PRO_JSON takes the JSON key from the member name -
+   JSONVAR has no name field to override it. PublishEntityConfig renames both
+   keys on the way out, because Home Assistant accepts only min and max. *)
+stMqttDiscMsgNumber.min_val.Integer := MinValue;
+stMqttDiscMsgNumber.max_val.Integer := MaxValue;
+stMqttDiscMsgNumber.step.Integer := StepValue;
+(* Empty means absent, and absent has to be published as null rather than an
+   empty string: Home Assistant validates these against fixed lists and
+   rejects the entire config when one does not match, so the entity is lost
+   rather than just its class. CreateSensorEntity does the same. *)
+IF UnitOfMeasurement &lt;&gt; '' THEN
+	stMqttDiscMsgNumber.unit_of_meas.CharString := UnitOfMeasurement;
+ELSE
+	stMqttDiscMsgNumber.unit_of_meas.Null := 'null';
+END_IF
+IF DeviceClass &lt;&gt; '' THEN
+	stMqttDiscMsgNumber.dev_cla.CharString := DeviceClass;
+ELSE
+	stMqttDiscMsgNumber.dev_cla.Null := 'null';
+END_IF
+IF EntityCategory &lt;&gt; '' THEN
+	stMqttDiscMsgNumber.ent_cat.CharString := EntityCategory;
+ELSE
+	stMqttDiscMsgNumber.ent_cat.Null := 'null';
+END_IF
+
+(* A slider cannot be aimed at 800 ppm in steps of 10, and a typed box is
+   tedious for a 0-100 percentage. Only the caller knows the range, so only the
+   caller can choose. *)
+IF SliderMode THEN
+	stMqttDiscMsgNumber.mode.CharString := 'slider';
+ELSE
+	stMqttDiscMsgNumber.mode.CharString := 'box';
+END_IF
+
+(* Never optimistic. Every number this project announces sits on a register that
+   can be read back, so Home Assistant shows what the device holds rather than
+   what somebody last sent it - which matters when the same setting is also
+   changeable from a wall control. *)
+stMqttDiscMsgNumber.opt.Boolean := FALSE;
+
+THIS^.PublishEntityConfig(
+	pStruct := ADR(stMqttDiscMsgNumber),
+	StructSize := SIZEOF(stMqttDiscMsgNumber),
+	EntityId := EntityId,
+	Id := Id);
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateButtonEntity" ObjectId="18765e16-d74e-4ab9-932a-f0eb3ecbedb8">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Meta">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="CommandTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="PayloadPress">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">What is sent on press.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="EntityCategory">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">'config' or 'diagnostic'. Empty for none.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Only identify, restart and update exist for a button. Usually empty.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'button'" />
+                    </initialValue>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Announce a Home Assistant button: a stateless command. Right wherever the
+device has an action but nothing readable that reports it back.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
+   type, so they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(stMqttDiscMsgButton),
+	EntityId := EntityId,
+	Name := Name,
+	Id := Id,
+	Meta := Meta);
+
+// Entity related: Specific
+stMqttDiscMsgButton.cmd_t.CharString := CommandTopic;
+stMqttDiscMsgButton.pl_prs.CharString := PayloadPress;
+(* Empty means absent, and absent has to be published as null rather than an
+   empty string: Home Assistant validates these against fixed lists and
+   rejects the entire config when one does not match, so the entity is lost
+   rather than just its class. CreateSensorEntity does the same. *)
+IF EntityCategory &lt;&gt; '' THEN
+	stMqttDiscMsgButton.ent_cat.CharString := EntityCategory;
+ELSE
+	stMqttDiscMsgButton.ent_cat.Null := 'null';
+END_IF
+IF DeviceClass &lt;&gt; '' THEN
+	stMqttDiscMsgButton.dev_cla.CharString := DeviceClass;
+ELSE
+	stMqttDiscMsgButton.dev_cla.Null := 'null';
+END_IF
+
+(* No state topic and no optimistic flag: a button has no state to be right or
+   wrong about. Where the result IS observable, the thing wanted is a select or
+   a number, not a button. *)
+
+THIS^.PublishEntityConfig(
+	pStruct := ADR(stMqttDiscMsgButton),
+	StructSize := SIZEOF(stMqttDiscMsgButton),
+	EntityId := EntityId,
+	Id := Id);
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetLane" ObjectId="1c01710f-f7e8-469e-bb30-ac11b12ec559">
+              <interface>
+                <inputVars>
+                  <variable name="Lane">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Put this device's publishes on a given queue lane. Call once, after init,
+from the block that owns it - and only with the lane of the task it runs in.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.iQueueLane := Lane;
 </xhtml>
                 </ST>
               </body>
@@ -16080,7 +17258,7 @@ CASE iState OF
 	LastReport := sReport;
 
 	IF pQueue &lt;&gt; 0 AND psTopicPrefix &lt;&gt; 0 AND stRequest.ReportTopic &lt;&gt; '' THEN
-		pQueue^.AddMessage(
+		pQueue^.AddMessageOn(Lane := 1,
 			Payload := sReport,
 			Topic := CONCAT(psTopicPrefix^, stRequest.ReportTopic),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -16909,6 +18087,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
+
 	Device^.CreateSensorEntity(
 		Name := 'Distance',
 		Id := CONCAT(id, '_DIST'),
@@ -16961,7 +18143,7 @@ END_IF
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -17300,7 +18482,7 @@ GetCommissioning := TRUE;
           </data>
         </addData>
       </pou>
-      <pou name="FB_RS485_DUCO_DUCOBOX_MQTT" pouType="functionBlock">
+      <pou name="FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT" pouType="functionBlock">
         <interface>
           <localVars>
             <variable name="sInstancePath">
@@ -17353,7 +18535,7 @@ GetCommissioning := TRUE;
                 <array>
                   <dimension lower="2" upper="30" />
                   <baseType>
-                    <derived name="FB_RS485_DUCO_DUCOBOX_NODE_MQTT" />
+                    <derived name="FB_RS485_DUCO_DUCOBOX_FOCUS_NODE_MQTT" />
                   </baseType>
                 </array>
               </type>
@@ -17464,6 +18646,243 @@ GetCommissioning := TRUE;
               </initialValue>
             </variable>
           </outputVars>
+          <localVars>
+            <variable name="fbMqttDiscoveryDevice">
+              <type>
+                <derived name="FB_BASE_MQTT_DISCOVERY_DEVICE" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> This block's own Home Assistant device object, re-pointed at each component
+	   in turn before its entities are created. One object rather than one per
+	   node: the discovery base carries eighteen config structs and twenty-nine
+	   copies of those would not fit. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="sDeviceId">
+              <type>
+                <string length="255" />
+              </type>
+            </variable>
+            <variable name="bTxHadRequiredStep">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Availability is published only when it changes, and only judged on a
+	   transaction that carried a step which actually matters. A zone read is
+	   optional; letting one condemn the device made Home Assistant blink. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bAvailabilityPublished">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bLastAvailable">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="stLocStep">
+              <type>
+                <derived name="ST_RS485_STEP" />
+              </type>
+            </variable>
+            <variable name="fbAvailTick">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Availability is counted here and decided on a heartbeat, not per
+	   transaction. See OnTransactionDone and the body. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiTxOk">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="uiTxSeen">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="iLastStepsRun">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Diagnostics for the availability question. Published on the heartbeat, so
+	   the arithmetic can be read off the broker instead of inferred. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="iLastFailures">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="uiTxCalls">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="uiAvailPubs">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="sAvailDiag">
+              <type>
+                <string length="120" />
+              </type>
+            </variable>
+            <variable name="awLastMaster">
+              <type>
+                <array>
+                  <dimension lower="0" upper="5" />
+                  <baseType>
+                    <WORD />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Last raw master frame, so the six unit topics are only republished when
+	   one of them actually moves. See OnStepResult. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bMasterPublished">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bRefreshDue">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="iMasterChk">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="bMasterChanged">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="fbMasterRefresh">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="sPayload">
+              <type>
+                <string length="80" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Command payload, split so a leading minus can be handled explicitly.
+	   See PublishReceived. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="sDigits">
+              <type>
+                <string length="80" />
+              </type>
+            </variable>
+            <variable name="bNegative">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="wBoxSettingsMask">
+              <type>
+                <WORD />
+              </type>
+              <initialValue>
+                <simpleValue value="16#61" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The box announces a target position and an auto minimum and maximum -
+	   registers 0, 5 and 6 - so those are read back the same way a component's
+	   are. Register 9 is the action, which has no readable counterpart. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="iBoxSettingsCursor">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="iBoxSettingsPending">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="bBoxSettingsDue">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="stBoxSettingsStep">
+              <type>
+                <derived name="ST_RS485_STEP" />
+              </type>
+            </variable>
+            <variable name="iB">
+              <type>
+                <INT />
+              </type>
+            </variable>
+          </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
               <Inheritance>
@@ -17481,11 +18900,108 @@ GetCommissioning := TRUE;
         </interface>
         <body>
           <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">fbTimerData();
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Makes the InitMqtt and InitMqttDiscovery calls optional. Set FriendlyName at
+   the declaration site and this block wires itself from GVL_MQTT on its first
+   cyclic call, then announces itself and, as the bus reports what they are, each
+   of its components.
+
+   In the body rather than in FB_init: it dereferences GVL members, and doing
+   that during initialisation would rely on an ordering nothing enforces and the
+   compiler cannot check.
+
+   The components are unaffected either way - AddNode carries their names, and a
+   component is announced when its type resolves, not when the box is wired.
+
+   Dormant while FriendlyName is empty, so a call site that makes both calls
+   itself keeps working untouched.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs is unwired and absent from Home Assistant, and nothing warns about it. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT bInitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubRS485Prefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubRS485Prefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_RS485_MQTT));
+	END_IF
+
+	IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(DeviceName := FriendlyName, overruleId := '');
+	END_IF
+END_IF
+
+fbTimerData();
 
 FOR iLoopCounter := 2 TO 30 DO
 	afbNodes[iLoopCounter]();
-END_FOR</xhtml>
+END_FOR
+
+(* At most one component announced per cycle. A component's entity set runs to
+   about twenty configs, so announcing a whole system at once would put several
+   hundred messages into the publish queue in a single cycle. *)
+IF bInitMqttDiscoveryDone THEN
+	FOR iLoopCounter := 2 TO 30 DO
+		IF iLoopCounter &lt; UINT_TO_INT(uiNodePointer) THEN
+			IF afbNodes[iLoopCounter].NeedsAnnounce() THEN
+				THIS^.AnnounceNode(iN := iLoopCounter);
+				EXIT;
+			END_IF
+		END_IF
+	END_FOR
+END_IF
+
+(* Availability on a thirty second heartbeat, from whether ANY qualifying
+   transaction succeeded in that window.
+
+   Published every heartbeat while healthy, not only on change: that is how the
+   rest of this project signals a device is alive - a last will on the PLC topic
+   says it died, and a periodic online says it has not. *)
+fbAvailTick(IN := NOT fbAvailTick.Q, PT := T#30S);
+
+IF fbAvailTick.Q THEN
+	IF uiTxSeen &gt; 0 THEN
+		bAvailable := uiTxOk &gt; 0;
+		bLastAvailable := bAvailable;
+		bAvailabilityPublished := TRUE;
+		THIS^.PubAvailability(Online := bAvailable);
+	END_IF
+
+	(* What the block actually saw, so the availability question can be settled
+	   by looking rather than by reading source. txcalls counts every
+	   OnTransactionDone; seen counts those with a required step; ok counts those
+	   that succeeded; pubs counts availability messages this block sent. If pubs
+	   is far below the number of offline messages on the broker, they are not
+	   coming from here. *)
+	sAvailDiag := CONCAT('txcalls=', UINT_TO_STRING(uiTxCalls));
+	sAvailDiag := CONCAT(sAvailDiag, ' seen='); sAvailDiag := CONCAT(sAvailDiag, UINT_TO_STRING(uiTxSeen));
+	sAvailDiag := CONCAT(sAvailDiag, ' ok='); sAvailDiag := CONCAT(sAvailDiag, UINT_TO_STRING(uiTxOk));
+	sAvailDiag := CONCAT(sAvailDiag, ' pubs='); sAvailDiag := CONCAT(sAvailDiag, UINT_TO_STRING(uiAvailPubs));
+	sAvailDiag := CONCAT(sAvailDiag, ' lastrun='); sAvailDiag := CONCAT(sAvailDiag, INT_TO_STRING(iLastStepsRun));
+	sAvailDiag := CONCAT(sAvailDiag, ' lastfail='); sAvailDiag := CONCAT(sAvailDiag, INT_TO_STRING(iLastFailures));
+	PubMqttMessage(Suffix := '/AVAIL_DIAG', Data := sAvailDiag);
+
+	uiTxOk := 0;
+	uiTxSeen := 0;
+	uiTxCalls := 0;
+END_IF
+
+
+(* Every five minutes, publish the unit values again whether they moved or not,
+   so a Home Assistant that reconnected still gets a value for a box that has
+   been sitting in the same state. Matches the node blocks' own refresh. *)
+fbMasterRefresh(IN := NOT fbMasterRefresh.Q, PT := T#5M);
+IF fbMasterRefresh.Q THEN
+	bRefreshDue := TRUE;
+
+	(* The settings sweep runs again on the same clock, so a change made at the
+	   box itself reaches Home Assistant without anybody touching it there. *)
+	iBoxSettingsCursor := 0;
+	bBoxSettingsDue := TRUE;
+END_IF
+</xhtml>
           </ST>
         </body>
         <addData>
@@ -17520,6 +19036,11 @@ THIS^.stWriteStep.FunctionCode	:= 6;
 THIS^.stWriteStep.Quantity		:= 1;
 
 THIS^.fbTimerData.IN := TRUE;
+
+(* Same device, same holding registers as the write path uses. *)
+THIS^.stBoxSettingsStep.DeviceId		:= DeviceAddress;
+THIS^.stBoxSettingsStep.FunctionCode	:= 3;
+THIS^.stBoxSettingsStep.Quantity		:= 1;
 
 THIS^.bInitRS485Done := TRUE;
 </xhtml>
@@ -17615,7 +19136,7 @@ END_FOR</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -17697,14 +19218,38 @@ ELSIF sMQTTSubscribeTopic = LEFT(Data.TopicOut^, LEN(sMQTTSubscribeTopic)) THEN
 		sNodeRegister := '';
 	END_IF
 
+	(* A payload may be negative: -1 on a target register is how a Ducobox is told
+	   to stop overriding and return to automatic, and the box's own target entity
+	   is announced with a minimum of -1 for exactly that. The sign is taken off
+	   before the digits are checked - so whether IS_NUM accepts a leading minus
+	   does not matter - and put back through INT_TO_WORD, whose two's complement
+	   is what the device reads back as -1. STRING_TO_WORD on '-1' does not. *)
+	sPayload := Data.PayloadString^;
+	bNegative := LEFT(sPayload, 1) = '-';
+	IF bNegative THEN
+		sDigits := RIGHT(sPayload, LEN(sPayload) - 1);
+	ELSE
+		sDigits := sPayload;
+	END_IF
+
 	IF iWritePos &gt;= 3 AND
 		OSCAT_BASIC.IS_NUM(NodeNumber) AND
 		OSCAT_BASIC.IS_NUM(sNodeRegister) AND
-		OSCAT_BASIC.IS_NUM(Data.PayloadString^) AND
-		STRING_TO_UINT(NodeNumber) &gt;= 2 AND
+		OSCAT_BASIC.IS_NUM(sDigits) AND
+		(* 1 is the box itself, 2 and up are its components. The box is written
+		   exactly like a component - its registers start at 10, which is what
+		   index 1 gives - and InitMqttDiscovery announces three numbers and five
+		   buttons for it. Requiring 2 here left every one of those controls inert,
+		   and silently: falling through this guard looks identical to a topic
+		   meant for some other device. *)
+		STRING_TO_UINT(NodeNumber) &gt;= 1 AND
 		STRING_TO_UINT(NodeNumber) &lt; THIS^.uiNodePointer THEN
 			stWriteStep.Address := (STRING_TO_UINT(NodeNumber) * 10) + STRING_TO_UINT(sNodeRegister);
-			stWriteStep.Data[0] := STRING_TO_WORD(Data.PayloadString^);
+			IF bNegative THEN
+				stWriteStep.Data[0] := INT_TO_WORD(-1 * STRING_TO_INT(sDigits));
+			ELSE
+				stWriteStep.Data[0] := STRING_TO_WORD(sDigits);
+			END_IF
 			sWriteQuerySuffix := sSubTopic;
 			sWriteQueryPayload := Data.PayloadString^;
 			bWriteQueryReady := TRUE;
@@ -17722,6 +19267,14 @@ END_IF</xhtml>
                   <BOOL />
                 </returnType>
                 <inputVars>
+                  <variable name="FriendlyName">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Name of the room this component serves.</xhtml>
+                    </documentation>
+                  </variable>
                   <variable name="DataPollingInterval">
                     <type>
                       <TIME />
@@ -17737,6 +19290,7 @@ IF uiNodePointer &lt;= 30 THEN
 	THIS^.afbNodes[uiNodePointer].InitNode(
 		DeviceAddress := THIS^.stMasterStep.DeviceId,
 		NodeNumber := uiNodePointer - 1,
+		FriendlyName := FriendlyName,
 		DataPollingInterval := DataPollingInterval
 	);
 
@@ -17838,6 +19392,76 @@ FOR iK := 0 TO 28 DO
 	END_IF
 END_FOR
 
+(* The zone read, at most one per transaction and only until each node has
+   answered once. It rides behind the value read rather than competing with it,
+   and it is a step of its own because read parameters 6..8 are undefined and the
+   box rejects a span that crosses them. *)
+FOR iK := 2 TO 30 DO
+	IF iK &lt; UINT_TO_INT(uiNodePointer) THEN
+		IF afbNodes[iK].RequestLocation() THEN
+			(* GetLocationStep answers with a zero-filled step if its retry clock
+			   lapsed since RequestLocation was asked. Quantity 0 is not a Modbus
+			   request: it fails locally, never reaches the bus, and so never shows
+			   in the counters - while still counting as a failed step here. *)
+			stLocStep := afbNodes[iK].GetLocationStep();
+			IF stLocStep.Quantity &gt; 0 THEN
+				pSteps^[iN]	:= stLocStep;
+				aiStepMap[iN]	:= 50 + iK;
+				iN			:= iN + 1;
+			END_IF
+			EXIT;
+		END_IF
+	END_IF
+END_FOR
+
+(* One setting register per transaction, the box's own first. Deliberately
+   last and one at a time: this is refresh traffic, it must never crowd out a
+   command or a measurement, and reading a span would cross registers that are
+   undefined on some component types. *)
+IF bBoxSettingsDue THEN
+	iBoxSettingsPending := -1;
+	FOR iB := iBoxSettingsCursor TO 9 DO
+		IF (wBoxSettingsMask AND SHL(WORD#1, INT_TO_BYTE(iB))) &lt;&gt; 0 THEN
+			iBoxSettingsPending := iB;
+			iBoxSettingsCursor := iB + 1;
+			EXIT;
+		END_IF
+	END_FOR
+
+	IF iBoxSettingsPending &gt;= 0 THEN
+		stBoxSettingsStep.Address := 10 + INT_TO_UINT(iBoxSettingsPending);
+		pSteps^[iN]	:= stBoxSettingsStep;
+		aiStepMap[iN]	:= 4;
+		iN			:= iN + 1;
+	ELSE
+		bBoxSettingsDue := FALSE;
+	END_IF
+ELSE
+	FOR iK := 2 TO 30 DO
+		IF iK &lt; UINT_TO_INT(uiNodePointer) THEN
+			IF afbNodes[iK].RequestSettings() THEN
+				stLocStep := afbNodes[iK].GetSettingsStep();
+				IF stLocStep.Quantity &gt; 0 THEN
+					pSteps^[iN]	:= stLocStep;
+					aiStepMap[iN]	:= 100 + iK;
+					iN			:= iN + 1;
+				END_IF
+				EXIT;
+			END_IF
+		END_IF
+	END_FOR
+END_IF
+
+(* Whether this transaction carried anything whose failure would really mean
+   the box is unreachable: the master read, or a node's measurements. A lone
+   zone read does not qualify. *)
+bTxHadRequiredStep := FALSE;
+FOR iK := 0 TO iN - 1 DO
+	IF (aiStepMap[iK] = 1) OR ((aiStepMap[iK] &gt;= 12) AND (aiStepMap[iK] &lt;= 40)) THEN
+		bTxHadRequiredStep := TRUE;
+	END_IF
+END_FOR
+
 BuildTransaction := iN;
 </xhtml>
                 </ST>
@@ -17882,10 +19506,19 @@ IF fbTimerData.Q THEN
 	RETURN;
 END_IF
 
+IF bBoxSettingsDue THEN
+	(* Refresh traffic, so it ranks with polling rather than with a command. *)
+	HasWork := E_RS485_WORK_LEVEL.POLL;
+	RETURN;
+END_IF
+
 HasWork := E_RS485_WORK_LEVEL.NONE;
 FOR iK := 2 TO 30 DO
 	IF iK &lt; UINT_TO_INT(uiNodePointer) THEN
-		IF afbNodes[iK].RequestBusTime() THEN
+		(* RequestLocation counts as work: without it a node that has answered its
+		   values but not its zone would never get another transaction built. *)
+		IF afbNodes[iK].RequestBusTime() OR afbNodes[iK].RequestLocation()
+			OR afbNodes[iK].RequestSettings() THEN
 			HasWork := E_RS485_WORK_LEVEL.POLL;
 			RETURN;
 		END_IF
@@ -17947,12 +19580,35 @@ IF iStepKind = 1 THEN
 	THIS^.Error := Failed;
 	THIS^.fbTimerData.IN := TRUE;
 	IF NOT Failed AND Count &gt;= 6 THEN
-		PubMqttMessage(Suffix := '/1/read/0', Data := WORD_TO_STRING(pData^[0]));
-		PubMqttMessage(Suffix := '/1/read/1', Data := WORD_TO_STRING(pData^[1]));
-		PubMqttMessage(Suffix := '/1/read/2', Data := WORD_TO_STRING(pData^[2]));
-		PubMqttMessage(Suffix := '/1/read/3', Data := WORD_TO_STRING(pData^[3]));
-		PubMqttMessage(Suffix := '/1/read/4', Data := WORD_TO_STRING(pData^[4]));
-		PubMqttMessage(Suffix := '/1/read/5', Data := WORD_TO_STRING(pData^[5]));
+		(* Publish only what moved. The box answers with the same six values poll
+		   after poll - on the bench that was 126 identical messages in 100 seconds
+		   against one or two from each node - and volume on this task is what made
+		   the publish-queue race fire constantly before the queue got lanes.
+
+		   Topics are not retained, so a value that never moves would never reach a
+		   reconnecting Home Assistant; the refresh in the body forces a full
+		   publish periodically regardless. *)
+		bMasterChanged := NOT bMasterPublished OR bRefreshDue;
+		FOR iMasterChk := 0 TO 5 DO
+			IF pData^[iMasterChk] &lt;&gt; awLastMaster[iMasterChk] THEN
+				bMasterChanged := TRUE;
+			END_IF
+			awLastMaster[iMasterChk] := pData^[iMasterChk];
+		END_FOR
+
+		IF bMasterChanged THEN
+			bMasterPublished := TRUE;
+			bRefreshDue := FALSE;
+			PubMqttMessage(Suffix := '/1/TYPE', Data := F_DUCO_TYPE_TEXT(F_DUCO_NODE_TYPE(pData^[0])));
+			PubMqttMessage(Suffix := '/1/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+			PubMqttMessage(Suffix := '/1/POS', Data := WORD_TO_STRING(pData^[2]));
+			(* Focus-specific: on this box read parameters 3, 4 and 5 are the current,
+			   average and maximum power in watts. Another DucoBox answers the same
+			   addresses with a different set, which is why this block is named. *)
+			PubMqttMessage(Suffix := '/1/PWR', Data := WORD_TO_STRING(pData^[3]));
+			PubMqttMessage(Suffix := '/1/PWR_AVG', Data := WORD_TO_STRING(pData^[4]));
+			PubMqttMessage(Suffix := '/1/PWR_MAX', Data := WORD_TO_STRING(pData^[5]));
+		END_IF
 	END_IF
 
 ELSIF iStepKind = 2 THEN
@@ -17967,11 +19623,36 @@ ELSIF iStepKind = 3 THEN
 		(* Suffix already begins with '/', so this leading one doubles it. Kept
 		   as it was: the topic is what Home Assistant is already subscribed to,
 		   and it cannot be re-checked without a Ducobox on the bench. *)
-		PubMqttMessage(Suffix := CONCAT('/', sWriteQuerySuffix), Data := WORD_TO_STRING(pData^[0]));
+		(* One slash, not two. The suffix already begins with one, and the doubled
+   topic was only harmless while nothing subscribed to it. The number and
+   switch entities now take their state from here, so it has to be the topic
+   their discovery config names. *)
+PubMqttMessage(Suffix := sWriteQuerySuffix, Data := INT_TO_STRING(WORD_TO_INT(pData^[0])));
 	END_IF
+
+ELSIF iStepKind = 4 THEN
+	(* The box's own setting, read back so its entity has a value before anybody
+	   sets one. Signed for the same reason the write path is: -1 is a real
+	   value here, meaning the box is not overriding. *)
+	IF NOT Failed AND Count &gt;= 1 AND iBoxSettingsPending &gt;= 0 THEN
+		PubMqttMessage(
+			Suffix := CONCAT('/1/write/', INT_TO_STRING(iBoxSettingsPending)),
+			Data := INT_TO_STRING(WORD_TO_INT(pData^[0])));
+	END_IF
+	iBoxSettingsPending := -1;
 
 ELSIF iStepKind &gt;= 12 AND iStepKind &lt;= 40 THEN
 	afbNodes[iStepKind - 10].OnStepResult(Failed := Failed, pData := pData, Count := Count);
+
+ELSIF iStepKind &gt;= 102 AND iStepKind &lt;= 130 THEN
+	(* 100 + node index: a setting register read back. A separate kind again,
+	   because it lands in its own method and carries one register. *)
+	afbNodes[iStepKind - 100].OnSettingsResult(Failed := Failed, pData := pData, Count := Count);
+
+ELSIF iStepKind &gt;= 52 AND iStepKind &lt;= 80 THEN
+	(* 50 + node index: the zone read. A separate kind from 10 + index because the
+	   two steps carry different registers and land in different methods. *)
+	afbNodes[iStepKind - 50].OnLocationResult(Failed := Failed, pData := pData, Count := Count);
 END_IF
 </xhtml>
                 </ST>
@@ -17997,11 +19678,21 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One announcement per transaction, at the point the bus is released. *)
-IF StepsRun &gt; 0 AND Failures &gt;= StepsRun THEN
-	PubMqttMessage(Suffix := '/availability', Data := 'offline');
-ELSIF StepsRun &gt; 0 THEN
-	PubMqttMessage(Suffix := '/availability', Data := 'online');
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Count, do not decide - and record what was actually seen.
+
+   A single transaction is far too small a sample to condemn a device on: this
+   bus interleaves the master read, one node's measurements, an optional zone
+   read and any write that has arrived, and the mix differs every time. The
+   verdict is taken on a heartbeat in the body instead. *)
+uiTxCalls := uiTxCalls + 1;
+iLastStepsRun := StepsRun;
+iLastFailures := Failures;
+
+IF StepsRun &gt; 0 AND bTxHadRequiredStep THEN
+	uiTxSeen := uiTxSeen + 1;
+	IF Failures &lt; StepsRun THEN
+		uiTxOk := uiTxOk + 1;
+	END_IF
 END_IF
 </xhtml>
                 </ST>
@@ -18050,12 +19741,1198 @@ GetCommissioning := FALSE;
               <addData />
             </Method>
           </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="d7bc979e-9ed9-46e1-ae25-5daa568663f2">
+              <interface>
+                <inputVars>
+                  <variable name="DeviceName">
+                    <type>
+                      <string length="50" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="sLabel">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="sOut">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="sCmd">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Announce the box and, as the bus reports what they are, every component on it.
+Call once at startup, after InitMqtt.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The box itself is node 1. Its own device; each component announces its own
+   as the bus reports what it is, from the sweep in the body. *)
+IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+	bInitMqttDiscoveryDone := TRUE;
+	sDeviceId := SUPER^.ResolveEntityId(overruleId := overruleId);
+
+	sLabel := DeviceName;
+	sOut := CONCAT(THIS^.sMQTTPublishTopic, '/1');
+	sCmd := CONCAT(THIS^.sMQTTSubscribeTopic, '/1');
+
+	fbMqttDiscoveryDevice.initBaseDevice(
+		Name := DeviceName,
+		Identifiers := sDeviceId,
+		Manufacturer := 'DUCO',
+		Model := 'DucoBox Focus',
+		availabilityTopic := GVL_MQTT.MqttAvailabilityTopic,
+		availabilityTopic2 := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
+		availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
+		availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
+		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
+		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
+		pMqttPublishQueue := THIS^.pMqttPublishQueue);
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+fbMqttDiscoveryDevice.SetLane(Lane := 1);
+
+	fbMqttDiscoveryDevice.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' status'),
+		Id := CONCAT(sDeviceId, '_STATUS'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/STATUS'),
+		ExpiryAfter := 0,
+		DeviceClass := '',
+		UnitOfMeasurement := '',
+		StateClass := '',
+		AvailabilityTopic := '');
+
+	fbMqttDiscoveryDevice.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' ventilation position'),
+		Id := CONCAT(sDeviceId, '_POS'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/POS'),
+		ExpiryAfter := 0,
+		DeviceClass := '',
+		UnitOfMeasurement := '%',
+		StateClass := '',
+		AvailabilityTopic := '');
+
+	fbMqttDiscoveryDevice.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' power'),
+		Id := CONCAT(sDeviceId, '_PWR'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/PWR'),
+		ExpiryAfter := 0,
+		DeviceClass := 'power',
+		UnitOfMeasurement := 'W',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	fbMqttDiscoveryDevice.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' average power'),
+		Id := CONCAT(sDeviceId, '_PWR_AVG'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/PWR_AVG'),
+		ExpiryAfter := 0,
+		DeviceClass := 'power',
+		UnitOfMeasurement := 'W',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	fbMqttDiscoveryDevice.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' maximum power'),
+		Id := CONCAT(sDeviceId, '_PWR_MAX'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/PWR_MAX'),
+		ExpiryAfter := 0,
+		DeviceClass := 'power',
+		UnitOfMeasurement := 'W',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	fbMqttDiscoveryDevice.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' target'),
+		Id := CONCAT(sDeviceId, '_W0'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/0'),
+		StateTopic := CONCAT(sOut, '/write/0'),
+		MinValue := -1, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	fbMqttDiscoveryDevice.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' auto minimum'),
+		Id := CONCAT(sDeviceId, '_W5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/5'),
+		StateTopic := CONCAT(sOut, '/write/5'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	fbMqttDiscoveryDevice.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' auto maximum'),
+		Id := CONCAT(sDeviceId, '_W6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/6'),
+		StateTopic := CONCAT(sOut, '/write/6'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	(* Holding 9, the action. Buttons because the result is reported back under a
+	   different encoding - status 4 is what action 2 produces - so a select would
+	   have to be optimistic and would drift out of step.
+
+	   Actions 2, 3 and 4 are TEMPORARY manual settings: the zone returns to
+	   automatic on its own, after 15 minutes on an extraction system and 8 hours on
+	   a supply one. The name says 'timed' rather than a number because the number
+	   is not fixed - a room operating unit carries the duration in holding 7,
+	   settable from 5 to 9995 minutes and announced here as its manual time
+	   control. The box has no such register, and says nothing about the timer
+	   either: the status it reports back is a plain 'Manual low', with no hint that
+	   it lapses. Which is why the name has to carry that at all.
+
+	   The 10, 20 and 30 minute high settings cannot be requested here. They exist
+	   only as INPUT 1 status values, so a physical control can produce one and this
+	   block can report it, but no action value asks for one. Holding 0, the target
+	   percentage, is the other way to overrule - a level with no timer, already
+	   exposed as the target number. *)
+	fbMqttDiscoveryDevice.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Low (timed)'),
+		Id := CONCAT(sDeviceId, '_A2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '2',
+		EntityCategory := 'config', DeviceClass := '');
+
+	fbMqttDiscoveryDevice.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Medium (timed)'),
+		Id := CONCAT(sDeviceId, '_A3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '3',
+		EntityCategory := 'config', DeviceClass := '');
+
+	fbMqttDiscoveryDevice.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' High (timed)'),
+		Id := CONCAT(sDeviceId, '_A4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '4',
+		EntityCategory := 'config', DeviceClass := '');
+
+	fbMqttDiscoveryDevice.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Auto'),
+		Id := CONCAT(sDeviceId, '_A5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '5',
+		EntityCategory := 'config', DeviceClass := '');
+
+	fbMqttDiscoveryDevice.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Unoccupied'),
+		Id := CONCAT(sDeviceId, '_A6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '6',
+		EntityCategory := 'config', DeviceClass := '');
+
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="AnnounceNode" ObjectId="bacf57e5-350c-4e17-a597-866aaa082cc9">
+              <interface>
+                <inputVars>
+                  <variable name="iN">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="eType">
+                    <type>
+                      <derived name="E_RS485_DUCO_NODE_TYPE" />
+                    </type>
+                  </variable>
+                  <variable name="sNode">
+                    <type>
+                      <string length="8" />
+                    </type>
+                  </variable>
+                  <variable name="sLabel">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="sId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="sOut">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="sCmd">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_BASE_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Announce one component and everything its module type carries.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Device := ADR(THIS^.fbMqttDiscoveryDevice);
+
+(* One component, announced as a device of its own. The shared discovery object
+   is re-pointed here and everything for this component is created before the
+   next call re-points it again.
+
+   The entity set comes from the module type read off the bus, not from anything
+   declared at the call site - so a valve swapped for a sensor re-announces as a
+   sensor without a code change. *)
+eType := afbNodes[iN].GetNodeType();
+
+IF eType = E_RS485_DUCO_NODE_TYPE.Unknown THEN
+	RETURN;
+END_IF
+
+sNode  := UINT_TO_STRING(afbNodes[iN].GetNodeNumber());
+sLabel := afbNodes[iN].GetFriendlyName();
+sId    := CONCAT(CONCAT(sDeviceId, '_N'), sNode);
+sOut   := CONCAT(CONCAT(THIS^.sMQTTPublishTopic, '/'), sNode);
+sCmd    := CONCAT(CONCAT(THIS^.sMQTTSubscribeTopic, '/'), sNode);
+
+Device^.initBaseDevice(
+	Name := sLabel,
+	Identifiers := sId,
+	Manufacturer := 'DUCO',
+	Model := F_DUCO_TYPE_TEXT(eType),
+	availabilityTopic := GVL_MQTT.MqttAvailabilityTopic,
+	availabilityTopic2 := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
+	availabilityOnline := GVL_MQTT.MqttAvailabilityOnlinePayload,
+	availabilityOffline := GVL_MQTT.MqttAvailabilityOfflinePayload,
+	MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
+	MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
+	pMqttPublishQueue := THIS^.pMqttPublishQueue);
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
+
+(* Common to every component that has them. *)
+Device^.CreateSensorEntity(
+	Name := CONCAT(sLabel, ' status'),
+	Id := CONCAT(sId, '_STATUS'),
+	Meta := '',
+	StateTopic := CONCAT(sOut, '/STATUS'),
+	ExpiryAfter := 0,
+	DeviceClass := '',
+	UnitOfMeasurement := '',
+	StateClass := '',
+	AvailabilityTopic := '');
+
+Device^.CreateSensorEntity(
+	Name := CONCAT(sLabel, ' zone'),
+	Id := CONCAT(sId, '_ZONE'),
+	Meta := '',
+	StateTopic := CONCAT(sOut, '/ZONE'),
+	ExpiryAfter := 0,
+	DeviceClass := '',
+	UnitOfMeasurement := '',
+	StateClass := '',
+	AvailabilityTopic := '');
+
+CASE eType OF
+
+E_RS485_DUCO_NODE_TYPE.ValveSensorless,
+E_RS485_DUCO_NODE_TYPE.ValveCO2,
+E_RS485_DUCO_NODE_TYPE.ValveHumidity,
+E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' position'),
+		Id := CONCAT(sId, '_POS'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/POS'),
+		ExpiryAfter := 0,
+		DeviceClass := '',
+		UnitOfMeasurement := '%',
+		StateClass := '',
+		AvailabilityTopic := '');
+
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' temperature'),
+		Id := CONCAT(sId, '_TEMP'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/TEMP'),
+		ExpiryAfter := 0,
+		DeviceClass := 'temperature',
+		UnitOfMeasurement := '°C',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	IF eType = E_RS485_DUCO_NODE_TYPE.ValveCO2 OR eType = E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2 THEN
+		Device^.CreateSensorEntity(
+			Name := CONCAT(sLabel, ' CO2'),
+			Id := CONCAT(sId, '_CO2'),
+			Meta := '',
+			StateTopic := CONCAT(sOut, '/CO2'),
+			ExpiryAfter := 0,
+			DeviceClass := 'carbon_dioxide',
+			UnitOfMeasurement := 'ppm',
+			StateClass := 'measurement',
+			AvailabilityTopic := '');
+
+		(* CO2 setpoint exists only where there is a CO2 sensor to compare it to. *)
+		Device^.CreateNumberEntity(
+			Name := CONCAT(sLabel, ' CO2 setpoint'),
+			Id := CONCAT(sId, '_W1'),
+			Meta := '',
+			CommandTopic := CONCAT(sCmd, '/write/1'),
+			StateTopic := CONCAT(sOut, '/write/1'),
+			MinValue := 0, MaxValue := 2000, StepValue := 10,
+			UnitOfMeasurement := 'ppm', DeviceClass := 'carbon_dioxide',
+			EntityCategory := 'config', SliderMode := FALSE);
+
+	END_IF
+	IF eType = E_RS485_DUCO_NODE_TYPE.ValveHumidity OR eType = E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2 THEN
+		Device^.CreateSensorEntity(
+			Name := CONCAT(sLabel, ' humidity'),
+			Id := CONCAT(sId, '_RH'),
+			Meta := '',
+			StateTopic := CONCAT(sOut, '/RH'),
+			ExpiryAfter := 0,
+			DeviceClass := 'humidity',
+			UnitOfMeasurement := '%',
+			StateClass := 'measurement',
+			AvailabilityTopic := '');
+
+		Device^.CreateNumberEntity(
+			Name := CONCAT(sLabel, ' humidity setpoint'),
+			Id := CONCAT(sId, '_W2'),
+			Meta := '',
+			CommandTopic := CONCAT(sCmd, '/write/2'),
+			StateTopic := CONCAT(sOut, '/write/2'),
+			MinValue := 0, MaxValue := 100, StepValue := 5,
+			UnitOfMeasurement := '%', DeviceClass := 'humidity',
+			EntityCategory := 'config', SliderMode := TRUE);
+
+		Device^.CreateSwitchEntity(
+			Name := CONCAT(sLabel, ' humidity delta control'),
+			Id := CONCAT(sId, '_W3'),
+			Meta := '',
+			CommandTopic := CONCAT(sCmd, '/write/3'),
+			PayloadOn := '1', PayloadOff := '0',
+			StateTopic := CONCAT(sOut, '/write/3'),
+			StateOnPayload := '1', StateOffPayload := '0',
+			DeviceClass := '');
+
+	END_IF
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' target'),
+		Id := CONCAT(sId, '_W0'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/0'),
+		StateTopic := CONCAT(sOut, '/write/0'),
+		MinValue := -1, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' flow'),
+		Id := CONCAT(sId, '_W4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/4'),
+		StateTopic := CONCAT(sOut, '/write/4'),
+		MinValue := 20, MaxValue := 200, StepValue := 5,
+		UnitOfMeasurement := 'm³/h', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := FALSE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' auto minimum'),
+		Id := CONCAT(sId, '_W5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/5'),
+		StateTopic := CONCAT(sOut, '/write/5'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' auto maximum'),
+		Id := CONCAT(sId, '_W6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/6'),
+		StateTopic := CONCAT(sOut, '/write/6'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	(* The action parameter, holding 9. Buttons rather than a select: the result
+	   is not readable back in the same encoding - the action that produces
+	   'Manual low' is 2 and the status that reports it is 4 - so a select would
+	   have to be optimistic and would drift. A button claims no state. *)
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Low (timed)'),
+		Id := CONCAT(sId, '_A2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '2',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Medium (timed)'),
+		Id := CONCAT(sId, '_A3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '3',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' High (timed)'),
+		Id := CONCAT(sId, '_A4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '4',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Auto'),
+		Id := CONCAT(sId, '_A5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '5',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Unoccupied'),
+		Id := CONCAT(sId, '_A6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '6',
+		EntityCategory := 'config', DeviceClass := '');
+
+E_RS485_DUCO_NODE_TYPE.UserControl:
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' position'),
+		Id := CONCAT(sId, '_POS'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/POS'),
+		ExpiryAfter := 0,
+		DeviceClass := '',
+		UnitOfMeasurement := '%',
+		StateClass := '',
+		AvailabilityTopic := '');
+
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' temperature'),
+		Id := CONCAT(sId, '_TEMP'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/TEMP'),
+		ExpiryAfter := 0,
+		DeviceClass := 'temperature',
+		UnitOfMeasurement := '°C',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' target'),
+		Id := CONCAT(sId, '_W0'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/0'),
+		StateTopic := CONCAT(sOut, '/write/0'),
+		MinValue := -1, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	(* Holding 5 and 6 are the button values on a wall control, NOT auto min and
+	   max as they are on a valve. Writing them as auto limits would retune
+	   somebody's switch. *)
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' button 1'),
+		Id := CONCAT(sId, '_W4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/4'),
+		StateTopic := CONCAT(sOut, '/write/4'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' button 2'),
+		Id := CONCAT(sId, '_W5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/5'),
+		StateTopic := CONCAT(sOut, '/write/5'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' button 3'),
+		Id := CONCAT(sId, '_W6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/6'),
+		StateTopic := CONCAT(sOut, '/write/6'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' manual time'),
+		Id := CONCAT(sId, '_W7'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/7'),
+		StateTopic := CONCAT(sOut, '/write/7'),
+		MinValue := 5, MaxValue := 9995, StepValue := 5,
+		UnitOfMeasurement := 'min', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := FALSE);
+
+	(* The action parameter, holding 9. Buttons rather than a select: the result
+	   is not readable back in the same encoding - the action that produces
+	   'Manual low' is 2 and the status that reports it is 4 - so a select would
+	   have to be optimistic and would drift. A button claims no state. *)
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Low (timed)'),
+		Id := CONCAT(sId, '_A2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '2',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Medium (timed)'),
+		Id := CONCAT(sId, '_A3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '3',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' High (timed)'),
+		Id := CONCAT(sId, '_A4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '4',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Auto'),
+		Id := CONCAT(sId, '_A5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '5',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Unoccupied'),
+		Id := CONCAT(sId, '_A6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '6',
+		EntityCategory := 'config', DeviceClass := '');
+
+E_RS485_DUCO_NODE_TYPE.SensorCO2:
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' temperature'),
+		Id := CONCAT(sId, '_TEMP'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/TEMP'),
+		ExpiryAfter := 0,
+		DeviceClass := 'temperature',
+		UnitOfMeasurement := '°C',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' CO2'),
+		Id := CONCAT(sId, '_CO2'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/CO2'),
+		ExpiryAfter := 0,
+		DeviceClass := 'carbon_dioxide',
+		UnitOfMeasurement := 'ppm',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' target'),
+		Id := CONCAT(sId, '_W0'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/0'),
+		StateTopic := CONCAT(sOut, '/write/0'),
+		MinValue := -1, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' CO2 setpoint'),
+		Id := CONCAT(sId, '_W1'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/1'),
+		StateTopic := CONCAT(sOut, '/write/1'),
+		MinValue := 0, MaxValue := 2000, StepValue := 10,
+		UnitOfMeasurement := 'ppm', DeviceClass := 'carbon_dioxide',
+		EntityCategory := 'config', SliderMode := FALSE);
+
+	(* The action parameter, holding 9. Buttons rather than a select: the result
+	   is not readable back in the same encoding - the action that produces
+	   'Manual low' is 2 and the status that reports it is 4 - so a select would
+	   have to be optimistic and would drift. A button claims no state. *)
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Low (timed)'),
+		Id := CONCAT(sId, '_A2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '2',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Medium (timed)'),
+		Id := CONCAT(sId, '_A3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '3',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' High (timed)'),
+		Id := CONCAT(sId, '_A4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '4',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Auto'),
+		Id := CONCAT(sId, '_A5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '5',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Unoccupied'),
+		Id := CONCAT(sId, '_A6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '6',
+		EntityCategory := 'config', DeviceClass := '');
+
+E_RS485_DUCO_NODE_TYPE.SensorHumidity:
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' temperature'),
+		Id := CONCAT(sId, '_TEMP'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/TEMP'),
+		ExpiryAfter := 0,
+		DeviceClass := 'temperature',
+		UnitOfMeasurement := '°C',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' humidity'),
+		Id := CONCAT(sId, '_RH'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/RH'),
+		ExpiryAfter := 0,
+		DeviceClass := 'humidity',
+		UnitOfMeasurement := '%',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' target'),
+		Id := CONCAT(sId, '_W0'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/0'),
+		StateTopic := CONCAT(sOut, '/write/0'),
+		MinValue := -1, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' humidity setpoint'),
+		Id := CONCAT(sId, '_W2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/2'),
+		StateTopic := CONCAT(sOut, '/write/2'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := 'humidity',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateSwitchEntity(
+		Name := CONCAT(sLabel, ' humidity delta control'),
+		Id := CONCAT(sId, '_W3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/3'),
+		PayloadOn := '1', PayloadOff := '0',
+		StateTopic := CONCAT(sOut, '/write/3'),
+		StateOnPayload := '1', StateOffPayload := '0',
+		DeviceClass := '');
+
+	(* The action parameter, holding 9. Buttons rather than a select: the result
+	   is not readable back in the same encoding - the action that produces
+	   'Manual low' is 2 and the status that reports it is 4 - so a select would
+	   have to be optimistic and would drift. A button claims no state. *)
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Low (timed)'),
+		Id := CONCAT(sId, '_A2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '2',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Medium (timed)'),
+		Id := CONCAT(sId, '_A3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '3',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' High (timed)'),
+		Id := CONCAT(sId, '_A4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '4',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Auto'),
+		Id := CONCAT(sId, '_A5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '5',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Unoccupied'),
+		Id := CONCAT(sId, '_A6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '6',
+		EntityCategory := 'config', DeviceClass := '');
+
+E_RS485_DUCO_NODE_TYPE.WindowVentilator:
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' opening'),
+		Id := CONCAT(sId, '_OPEN'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/OPEN'),
+		ExpiryAfter := 0,
+		DeviceClass := '',
+		UnitOfMeasurement := '%',
+		StateClass := '',
+		AvailabilityTopic := '');
+
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' outdoor temperature'),
+		Id := CONCAT(sId, '_TEMP_OUT'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/TEMP_OUT'),
+		ExpiryAfter := 0,
+		DeviceClass := 'temperature',
+		UnitOfMeasurement := '°C',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' target'),
+		Id := CONCAT(sId, '_W0'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/0'),
+		StateTopic := CONCAT(sOut, '/write/0'),
+		MinValue := -1, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' inlet share'),
+		Id := CONCAT(sId, '_W4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/4'),
+		StateTopic := CONCAT(sOut, '/write/4'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' auto minimum'),
+		Id := CONCAT(sId, '_W5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/5'),
+		StateTopic := CONCAT(sOut, '/write/5'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' auto maximum'),
+		Id := CONCAT(sId, '_W6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/6'),
+		StateTopic := CONCAT(sOut, '/write/6'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	(* The action parameter, holding 9. Buttons rather than a select: the result
+	   is not readable back in the same encoding - the action that produces
+	   'Manual low' is 2 and the status that reports it is 4 - so a select would
+	   have to be optimistic and would drift. A button claims no state. *)
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Low (timed)'),
+		Id := CONCAT(sId, '_A2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '2',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Medium (timed)'),
+		Id := CONCAT(sId, '_A3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '3',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' High (timed)'),
+		Id := CONCAT(sId, '_A4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '4',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Auto'),
+		Id := CONCAT(sId, '_A5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '5',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Unoccupied'),
+		Id := CONCAT(sId, '_A6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '6',
+		EntityCategory := 'config', DeviceClass := '');
+
+E_RS485_DUCO_NODE_TYPE.SwitchSensor:
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' position'),
+		Id := CONCAT(sId, '_POS'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/POS'),
+		ExpiryAfter := 0,
+		DeviceClass := '',
+		UnitOfMeasurement := '%',
+		StateClass := '',
+		AvailabilityTopic := '');
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' target'),
+		Id := CONCAT(sId, '_W0'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/0'),
+		StateTopic := CONCAT(sOut, '/write/0'),
+		MinValue := -1, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	(* Switch mode: 0 overrule, 1 heat pump, 2 presence. A number rather than a
+	   select, because a select needs an options array and the JSON composer
+	   cannot build one from this struct shape. *)
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' switch mode'),
+		Id := CONCAT(sId, '_W1'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/1'),
+		StateTopic := CONCAT(sOut, '/write/1'),
+		MinValue := 0, MaxValue := 2, StepValue := 1,
+		UnitOfMeasurement := '', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := FALSE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' switch value'),
+		Id := CONCAT(sId, '_W2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/2'),
+		StateTopic := CONCAT(sOut, '/write/2'),
+		MinValue := 0, MaxValue := 255, StepValue := 5,
+		UnitOfMeasurement := '', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := FALSE);
+
+	(* The action parameter, holding 9. Buttons rather than a select: the result
+	   is not readable back in the same encoding - the action that produces
+	   'Manual low' is 2 and the status that reports it is 4 - so a select would
+	   have to be optimistic and would drift. A button claims no state. *)
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Low (timed)'),
+		Id := CONCAT(sId, '_A2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '2',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Medium (timed)'),
+		Id := CONCAT(sId, '_A3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '3',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' High (timed)'),
+		Id := CONCAT(sId, '_A4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '4',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Auto'),
+		Id := CONCAT(sId, '_A5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '5',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Unoccupied'),
+		Id := CONCAT(sId, '_A6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '6',
+		EntityCategory := 'config', DeviceClass := '');
+
+E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' position'),
+		Id := CONCAT(sId, '_POS'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/POS'),
+		ExpiryAfter := 0,
+		DeviceClass := '',
+		UnitOfMeasurement := '%',
+		StateClass := '',
+		AvailabilityTopic := '');
+
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' outdoor temperature'),
+		Id := CONCAT(sId, '_TEMP_OUT'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/TEMP_OUT'),
+		ExpiryAfter := 0,
+		DeviceClass := 'temperature',
+		UnitOfMeasurement := '°C',
+		StateClass := 'measurement',
+		AvailabilityTopic := '');
+
+	Device^.CreateSensorEntity(
+		Name := CONCAT(sLabel, ' PWM input'),
+		Id := CONCAT(sId, '_PWM'),
+		Meta := '',
+		StateTopic := CONCAT(sOut, '/PWM'),
+		ExpiryAfter := 0,
+		DeviceClass := '',
+		UnitOfMeasurement := '%',
+		StateClass := '',
+		AvailabilityTopic := '');
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' target'),
+		Id := CONCAT(sId, '_W0'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/0'),
+		StateTopic := CONCAT(sOut, '/write/0'),
+		MinValue := -1, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' hybrid value'),
+		Id := CONCAT(sId, '_W1'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/1'),
+		StateTopic := CONCAT(sOut, '/write/1'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' inlet share'),
+		Id := CONCAT(sId, '_W4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/4'),
+		StateTopic := CONCAT(sOut, '/write/4'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' auto minimum'),
+		Id := CONCAT(sId, '_W5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/5'),
+		StateTopic := CONCAT(sOut, '/write/5'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	Device^.CreateNumberEntity(
+		Name := CONCAT(sLabel, ' auto maximum'),
+		Id := CONCAT(sId, '_W6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/6'),
+		StateTopic := CONCAT(sOut, '/write/6'),
+		MinValue := 0, MaxValue := 100, StepValue := 5,
+		UnitOfMeasurement := '%', DeviceClass := '',
+		EntityCategory := 'config', SliderMode := TRUE);
+
+	(* The action parameter, holding 9. Buttons rather than a select: the result
+	   is not readable back in the same encoding - the action that produces
+	   'Manual low' is 2 and the status that reports it is 4 - so a select would
+	   have to be optimistic and would drift. A button claims no state. *)
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Low (timed)'),
+		Id := CONCAT(sId, '_A2'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '2',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Medium (timed)'),
+		Id := CONCAT(sId, '_A3'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '3',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' High (timed)'),
+		Id := CONCAT(sId, '_A4'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '4',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Auto'),
+		Id := CONCAT(sId, '_A5'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '5',
+		EntityCategory := 'config', DeviceClass := '');
+
+	Device^.CreateButtonEntity(
+		Name := CONCAT(sLabel, ' Unoccupied'),
+		Id := CONCAT(sId, '_A6'),
+		Meta := '',
+		CommandTopic := CONCAT(sCmd, '/write/9'),
+		PayloadPress := '6',
+		EntityCategory := 'config', DeviceClass := '');
+
+END_CASE
+
+afbNodes[iN].SetAnnounced();
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PubAvailability" ObjectId="c07fd647-26dd-44c3-8941-95618e7bbf68">
+              <interface>
+                <inputVars>
+                  <variable name="Online">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Publish the device availability, retained.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Retained, unlike everything else this block publishes.
+
+   Availability is device state, not an event: without the retain flag Home
+   Assistant has nothing at all after any broker reconnect and greys out every
+   entity of this device until the next heartbeat. The PLC's own availability
+   topic is the second entry in the discovery config's avty list and carries the
+   last will, so a controller that dies still marks these offline. *)
+uiAvailPubs := uiAvailPubs + 1;
+
+IF bInitMqttDone THEN
+	IF Online THEN
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+			Payload := 'online',
+			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE);
+	ELSE
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+			Payload := 'offline',
+			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE);
+	END_IF
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>29734931-ba2e-4430-aef4-1e03b99c5ee7</ObjectId>
           </data>
         </addData>
       </pou>
-      <pou name="FB_RS485_DUCO_DUCOBOX_NODE_MQTT" pouType="functionBlock">
+      <pou name="FB_RS485_DUCO_DUCOBOX_FOCUS_NODE_MQTT" pouType="functionBlock">
         <interface>
           <localVars>
             <variable name="NodeNumber">
@@ -18114,12 +20991,207 @@ GetCommissioning := FALSE;
 	   the transaction it builds. </xhtml>
               </documentation>
             </variable>
+            <variable name="eType">
+              <type>
+                <derived name="E_RS485_DUCO_NODE_TYPE" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> What this node is, decoded from read parameter 0 on the first successful
+	   read. Unknown until then, and Unknown again if the bus starts answering with
+	   a type this project does not name - which is a state worth having, because a
+	   component whose register layout is unknown must not get labelled entities. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="FriendlyName">
+              <type>
+                <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The room, supplied by the call site. The MQTT topic still uses the node
+	   number: a topic that moved when somebody renamed a room would orphan its own
+	   retained state. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="stLocationStep">
+              <type>
+                <derived name="ST_RS485_STEP" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Read parameter 9, the zone grouping. Its own step, because parameters 6, 7
+	   and 8 are undefined on every component type in L8000009 and a span of ten
+	   crosses them - the box answers that with an exception, not with zeroes.
+
+	   Read once when the node is first identified and then left alone. It changes
+	   only when the network is re-paired, so polling it would double this node's
+	   frames for a value that never moves. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="fbLocationRetry">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Retry clock for the zone read. It replaces a wanted/known pair that could
+	   not recover: the request was cleared when the step was built and only a
+	   result put it back, so one result that never arrived lost the zone for the
+	   life of the application. A clock cannot get stuck that way - it simply asks
+	   again. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bLocationKnown">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bAnnounced">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Cleared when the module type changes, so a re-paired network re-announces
+	   rather than leaving Home Assistant describing the component that used to be
+	   at this node number. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="uiLocationTries">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A box that will not answer read parameter 9 is not going to start. Three
+	   attempts, then the zone is simply not published - better than asking
+	   forever and putting a failing step on the bus every thirty seconds. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="awLastRaw">
+              <type>
+                <array>
+                  <dimension lower="0" upper="5" />
+                  <baseType>
+                    <WORD />
+                  </baseType>
+                </array>
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Last raw frame, so unchanged values are not republished. A Duco reading
+	   moves rarely and the RS485 task was putting five topics per node into the
+	   publish queue every poll regardless - which is what made a latent race in
+	   that queue fire constantly. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bPublishedOnce">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="bRefreshDue">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+            </variable>
+            <variable name="iChk">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="bChanged">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="fbRepublish">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="wSettingsMask">
+              <type>
+                <WORD />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Which of this component's registers carry a setting Home Assistant shows,
+	   one bit per register, and where the refresh sweep has got to. See
+	   SettingsMaskFor. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="iSettingsCursor">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="iSettingsPending">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="bSettingsDue">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+            </variable>
+            <variable name="stSettingsStep">
+              <type>
+                <derived name="ST_RS485_STEP" />
+              </type>
+            </variable>
+            <variable name="iS">
+              <type>
+                <INT />
+              </type>
+            </variable>
           </localVars>
         </interface>
         <body>
           <ST>
             <xhtml xmlns="http://www.w3.org/1999/xhtml">fbTimerData();
 
+(* Re-arm the zone retry while the answer is still outstanding. Doing it here
+   rather than only on a result is the whole point: a request that was built and
+   never answered would otherwise never be made again. *)
+IF NOT bLocationKnown THEN
+	fbLocationRetry.IN := TRUE;
+END_IF
+fbLocationRetry();
+
+(* Every five minutes, publish everything again whether it moved or not, so a
+   Home Assistant that reconnected still gets a value for a quiet sensor. *)
+fbRepublish(IN := NOT fbRepublish.Q, PT := T#5M);
+IF fbRepublish.Q THEN
+	bRefreshDue := TRUE;
+
+	(* Settings too. They are not retained either, and a setting changed from a
+	   wall control rather than from Home Assistant would otherwise never be
+	   noticed here. *)
+	iSettingsCursor := 0;
+	bSettingsDue := wSettingsMask &lt;&gt; 0;
+END_IF
 </xhtml>
           </ST>
         </body>
@@ -18159,6 +21231,15 @@ END_IF</xhtml>
                       <UINT />
                     </type>
                   </variable>
+                  <variable name="FriendlyName">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Name of the room this component serves. Shown in Home Assistant; the topic
+keeps using the node number.</xhtml>
+                    </documentation>
+                  </variable>
                   <variable name="DataPollingInterval">
                     <type>
                       <TIME />
@@ -18168,12 +21249,28 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.stStep.DeviceId		:= DeviceAddress;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* The measurements: read parameters 0..5, one frame. *)
+THIS^.stStep.DeviceId		:= DeviceAddress;
 THIS^.stStep.FunctionCode	:= 4;
 THIS^.stStep.Address		:= (NodeNumber * 10) + 10;
 THIS^.stStep.Quantity		:= 6;
 
+(* The zone grouping: read parameter 9, on its own. Deliberately NOT folded into
+   the step above by widening it to ten - 6, 7 and 8 are undefined on every
+   component type and the box rejects a span that crosses them. *)
+THIS^.stLocationStep.DeviceId		:= DeviceAddress;
+THIS^.stLocationStep.FunctionCode	:= 4;
+THIS^.stLocationStep.Address		:= (NodeNumber * 10) + 19;
+THIS^.stLocationStep.Quantity		:= 1;
+
+THIS^.FriendlyName := FriendlyName;
 THIS^.fbTimerData.PT := DataPollingInterval;
+
+(* The zone is asked for once and then left alone, so this only governs how
+   long a lost answer goes unnoticed. Deliberately slow: it is a value that
+   changes when somebody re-pairs the network and at no other time. *)
+THIS^.fbLocationRetry.PT := T#30S;
+THIS^.fbLocationRetry.IN := TRUE;
 THIS^.NodeNumber := NodeNumber + 1;
 
 THIS^.fbTimerData.IN := TRUE;
@@ -18245,7 +21342,7 @@ THIS^.bInitMqttDone := TRUE;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(CONCAT(CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/'), UINT_TO_STRING(NodeNumber)), Suffix ),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -18286,13 +21383,49 @@ END_IF</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.fbTimerData.IN := TRUE;
 
-IF NOT Failed AND Count &gt;= 6 THEN
-	PubMqttMessage(Suffix := '/read/0', Data := WORD_TO_STRING(pData^[0]));
-	PubMqttMessage(Suffix := '/read/1', Data := WORD_TO_STRING(pData^[1]));
-	PubMqttMessage(Suffix := '/read/2', Data := WORD_TO_STRING(pData^[2]));
-	PubMqttMessage(Suffix := '/read/3', Data := WORD_TO_STRING(pData^[3]));
-	PubMqttMessage(Suffix := '/read/4', Data := WORD_TO_STRING(pData^[4]));
-	PubMqttMessage(Suffix := '/read/5', Data := WORD_TO_STRING(pData^[5]));
+IF Failed OR Count &lt; 6 THEN
+	RETURN;
+END_IF
+
+(* Read parameter 0 is the module type, and it decides what the other five mean.
+   Resolving it here, once per read, is what stops the publisher guessing: on a
+   window ventilator and an actuator board parameter 3 is the OUTDOOR temperature,
+   and on an actuator board parameter 4 is a PWM duty cycle rather than CO2. *)
+IF F_DUCO_NODE_TYPE(pData^[0]) &lt;&gt; THIS^.eType THEN
+	THIS^.eType := F_DUCO_NODE_TYPE(pData^[0]);
+
+	(* Duco assigns node numbers when components are paired, so a type that changes
+	   under a node number is a real event and not a glitch: the zone has to be
+	   asked for again, and Home Assistant has to be told what this node now is. *)
+	(* Clearing this re-opens the question; the retry clock in the body does the
+	   asking. RequestLocation ignores an Unknown type on its own. *)
+	THIS^.bLocationKnown	:= FALSE;
+	THIS^.uiLocationTries	:= 0;
+	THIS^.bAnnounced		:= FALSE;
+	(* What is writable depends on what the component is, so the settings sweep
+	   is re-armed from scratch here as well. *)
+	THIS^.wSettingsMask	:= THIS^.SettingsMaskFor(eT := THIS^.eType);
+	THIS^.iSettingsCursor	:= 0;
+	THIS^.bSettingsDue		:= THIS^.wSettingsMask &lt;&gt; 0;
+
+	PubMqttMessage(Suffix := '/TYPE', Data := F_DUCO_TYPE_TEXT(THIS^.eType));
+END_IF
+
+(* Publish only what changed. Topics are not retained, so a value that never
+   moves would never reach a reconnecting Home Assistant - hence the periodic
+   refresh that forces a full publish regardless. *)
+bChanged := NOT bPublishedOnce OR bRefreshDue;
+FOR iChk := 0 TO 5 DO
+	IF pData^[iChk] &lt;&gt; awLastRaw[iChk] THEN
+		bChanged := TRUE;
+	END_IF
+	awLastRaw[iChk] := pData^[iChk];
+END_FOR
+
+IF bChanged THEN
+	bPublishedOnce := TRUE;
+	bRefreshDue := FALSE;
+	THIS^.PublishDecoded(pData := pData, Count := Count);
 END_IF
 </xhtml>
                 </ST>
@@ -18315,6 +21448,471 @@ END_IF
 IF fbTimerData.Q THEN
 	THIS^.fbTimerData.IN := FALSE;
 	GetStep := THIS^.stStep;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestLocation" ObjectId="d72357bd-bb0b-451f-b1d3-24ba6ae6ec38">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE while this node still owes its zone number. See GetLocationStep.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Pure predicate, like RequestBusTime - the parent, and through it the
+   scheduler, may ask more than once per cycle. Every side effect lives in
+   GetLocationStep and in the body. *)
+RequestLocation := bNodeInitialized
+			AND NOT bLocationKnown
+			AND (uiLocationTries &lt; 3)
+			AND (eType &lt;&gt; E_RS485_DUCO_NODE_TYPE.Unknown)
+			AND fbLocationRetry.Q;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetLocationStep" ObjectId="b6434cd5-0fa7-405a-8db2-bdacf51ecfc5">
+              <interface>
+                <returnType>
+                  <derived name="ST_RS485_STEP" />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">The zone read, for the parent to put into a transaction it is building.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Clearing the clock here rather than in RequestLocation is what keeps that
+   method a pure predicate. Returns a zero-filled step if the clock has lapsed
+   since the caller asked - the caller checks Quantity before using it. *)
+IF fbLocationRetry.Q THEN
+	THIS^.fbLocationRetry.IN := FALSE;
+	THIS^.uiLocationTries := THIS^.uiLocationTries + 1;
+	GetLocationStep := THIS^.stLocationStep;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnLocationResult" ObjectId="57564664-af01-42f4-b9a5-a80a1968c56e">
+              <interface>
+                <inputVars>
+                  <variable name="Failed">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="A_RS485_READ_BUFFER" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Count">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Result of the zone read. Called by the parent, which owns the step map.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF NOT Failed AND Count &gt;= 1 THEN
+	THIS^.bLocationKnown := TRUE;
+	PubMqttMessage(Suffix := '/ZONE', Data := WORD_TO_STRING(pData^[0]));
+END_IF
+
+(* A failure needs no action: bLocationKnown stays FALSE, the body re-arms the
+   clock, and the read comes round again. *)
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishDecoded" ObjectId="a648221a-229a-4215-82e7-5b4ba2659d4f">
+              <interface>
+                <inputVars>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="A_RS485_READ_BUFFER" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Count">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Publish read parameters 1..5 under the names this node's type gives them.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* One branch per component class, because the same register carries different
+   quantities on different components. Anything not named here publishes nothing:
+   an unrecognised component gets its raw registers below and no labels. *)
+CASE eType OF
+
+E_RS485_DUCO_NODE_TYPE.ValveSensorless,
+E_RS485_DUCO_NODE_TYPE.ValveCO2,
+E_RS485_DUCO_NODE_TYPE.ValveHumidity,
+E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/POS', Data := WORD_TO_STRING(pData^[2]));
+	PubMqttMessage(Suffix := '/TEMP', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+	IF eType = E_RS485_DUCO_NODE_TYPE.ValveCO2 OR eType = E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2 THEN
+		PubMqttMessage(Suffix := '/CO2', Data := WORD_TO_STRING(pData^[4]));
+	END_IF
+	IF eType = E_RS485_DUCO_NODE_TYPE.ValveHumidity OR eType = E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2 THEN
+		PubMqttMessage(Suffix := '/RH', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[5]), 100));
+	END_IF
+
+E_RS485_DUCO_NODE_TYPE.UserControl:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/POS', Data := WORD_TO_STRING(pData^[2]));
+	(* A battery unit has no temperature sensor and answers 0. Published anyway:
+	   there is no flag distinguishing the two, so suppressing it would need a
+	   guess about which kind of wall control this is. *)
+	PubMqttMessage(Suffix := '/TEMP', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+
+E_RS485_DUCO_NODE_TYPE.SensorCO2:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/TEMP', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+	PubMqttMessage(Suffix := '/CO2', Data := WORD_TO_STRING(pData^[4]));
+
+E_RS485_DUCO_NODE_TYPE.SensorHumidity:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/TEMP', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+	PubMqttMessage(Suffix := '/RH', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[5]), 100));
+
+E_RS485_DUCO_NODE_TYPE.WindowVentilator:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	(* 0 shut, 100 open - an opening, not an extraction level, which is why it is
+	   not published as POS alongside the valves. *)
+	PubMqttMessage(Suffix := '/OPEN', Data := WORD_TO_STRING(pData^[2]));
+	PubMqttMessage(Suffix := '/TEMP_OUT', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+
+E_RS485_DUCO_NODE_TYPE.SwitchSensor:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/POS', Data := WORD_TO_STRING(pData^[2]));
+
+E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
+	PubMqttMessage(Suffix := '/STATUS', Data := F_DUCO_STATUS_TEXT(pData^[1]));
+	PubMqttMessage(Suffix := '/POS', Data := WORD_TO_STRING(pData^[2]));
+	PubMqttMessage(Suffix := '/TEMP_OUT', Data := F_DUCO_SCALED_TEXT(WORD_TO_INT(pData^[3]), 10));
+	(* Parameter 4 is the PWM duty cycle on this component, and CO2 on nearly every
+	   other one. Publishing it as CO2 is the mistake the type branch prevents. *)
+	PubMqttMessage(Suffix := '/PWM', Data := WORD_TO_STRING(pData^[4]));
+
+ELSE
+	(* Unknown type: the registers, unlabelled. Enough to identify a new component
+	   from the broker without pretending to know what its numbers mean. *)
+	PubMqttMessage(Suffix := '/read/0', Data := WORD_TO_STRING(pData^[0]));
+	PubMqttMessage(Suffix := '/read/1', Data := WORD_TO_STRING(pData^[1]));
+	PubMqttMessage(Suffix := '/read/2', Data := WORD_TO_STRING(pData^[2]));
+	PubMqttMessage(Suffix := '/read/3', Data := WORD_TO_STRING(pData^[3]));
+	PubMqttMessage(Suffix := '/read/4', Data := WORD_TO_STRING(pData^[4]));
+	PubMqttMessage(Suffix := '/read/5', Data := WORD_TO_STRING(pData^[5]));
+END_CASE
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetNodeType" ObjectId="0544ea41-f76e-4a0e-84dd-ae5255be546e">
+              <interface>
+                <returnType>
+                  <derived name="E_RS485_DUCO_NODE_TYPE" />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">What this node is, as last read off the bus. Unknown before the first answer.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">GetNodeType := THIS^.eType;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetFriendlyName" ObjectId="bbafa9eb-34ba-41ad-9487-5c4d1c57a9b5">
+              <interface>
+                <returnType>
+                  <string length="GVL_MQTT.MQTT_SUFFIX_LEN" />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">GetFriendlyName := THIS^.FriendlyName;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetNodeNumber" ObjectId="973eae94-f14b-4ef0-99b8-7b06558d4a06">
+              <interface>
+                <returnType>
+                  <UINT />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">GetNodeNumber := THIS^.NodeNumber;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="NeedsAnnounce" ObjectId="4d3ef725-128c-4775-a7ec-5a4ca940c6c3">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Pure predicate. The parent sweeps every node with it each cycle. *)
+NeedsAnnounce := bNodeInitialized
+			AND NOT bAnnounced
+			AND (eType &lt;&gt; E_RS485_DUCO_NODE_TYPE.Unknown);
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SetAnnounced" ObjectId="45e80db4-cd57-4a29-a4a7-cf8664143236">
+              <interface />
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.bAnnounced := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="SettingsMaskFor" ObjectId="72331d66-37c2-4542-bd38-bf8d3b78d3a6">
+              <interface>
+                <returnType>
+                  <WORD />
+                </returnType>
+                <inputVars>
+                  <variable name="eT">
+                    <type>
+                      <derived name="E_RS485_DUCO_NODE_TYPE" />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Which registers of a component type hold a setting that is announced.
+One bit per register, bit n for register n.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Taken from what AnnounceNode actually announces, type by type: a register is
+   in here exactly when some entity names it as a state topic. Register 9 is
+   deliberately absent - it is the action, written by the buttons, and its
+   result is reported under a different encoding in read parameter 1, so
+   reading 9 back would say nothing an entity could use. *)
+CASE eT OF
+	(* The four valve types share an announce branch, so they share a mask. A
+	   sensorless valve has no humidity or CO2 setpoint and will simply fail the
+	   read for those registers, which publishes nothing - the same outcome as
+	   before this existed. *)
+	E_RS485_DUCO_NODE_TYPE.ValveSensorless,
+	E_RS485_DUCO_NODE_TYPE.ValveCO2,
+	E_RS485_DUCO_NODE_TYPE.ValveHumidity,
+	E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
+		SettingsMaskFor := 16#007F;
+
+	E_RS485_DUCO_NODE_TYPE.UserControl:
+		SettingsMaskFor := 16#00F1;
+
+	E_RS485_DUCO_NODE_TYPE.SensorCO2:
+		SettingsMaskFor := 16#0003;
+
+	E_RS485_DUCO_NODE_TYPE.SensorHumidity:
+		SettingsMaskFor := 16#000D;
+
+	E_RS485_DUCO_NODE_TYPE.WindowVentilator:
+		SettingsMaskFor := 16#0071;
+
+	E_RS485_DUCO_NODE_TYPE.SwitchSensor:
+		SettingsMaskFor := 16#0007;
+
+	E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
+		SettingsMaskFor := 16#0073;
+
+ELSE
+	(* Unknown, or a type nothing writable is announced for. *)
+	SettingsMaskFor := 0;
+END_CASE
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="RequestSettings" ObjectId="4ee11f8f-d867-42ca-849d-b0b3d7fb2cfc">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE while a setting register still needs reading back. Pure predicate.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Pure, like RequestBusTime and RequestLocation: the parent may ask several
+   times in one cycle, and the cursor is advanced by GetSettingsStep. *)
+RequestSettings := FALSE;
+IF NOT bSettingsDue OR wSettingsMask = 0 THEN
+	RETURN;
+END_IF
+
+FOR iS := iSettingsCursor TO 9 DO
+	IF (wSettingsMask AND SHL(WORD#1, INT_TO_BYTE(iS))) &lt;&gt; 0 THEN
+		RequestSettings := TRUE;
+		RETURN;
+	END_IF
+END_FOR
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="GetSettingsStep" ObjectId="70b380d9-4c45-43bf-a847-8eae846d9656">
+              <interface>
+                <returnType>
+                  <derived name="ST_RS485_STEP" />
+                </returnType>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">The next setting register to read back. Zero-filled when none is due; the
+caller checks Quantity before using it.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Advancing the cursor here, not in RequestSettings, is what keeps that a pure
+   predicate - the same split GetStep and GetLocationStep use.
+
+   The cursor moves past this register whether or not the read succeeds. A
+   failed one is simply not published and is picked up by the next refresh;
+   retrying inside the sweep would let one dead register stall the rest. *)
+iSettingsPending := -1;
+
+FOR iS := iSettingsCursor TO 9 DO
+	IF (wSettingsMask AND SHL(WORD#1, INT_TO_BYTE(iS))) &lt;&gt; 0 THEN
+		iSettingsPending := iS;
+		iSettingsCursor := iS + 1;
+		EXIT;
+	END_IF
+END_FOR
+
+IF iSettingsPending &gt;= 0 THEN
+	(* Function 3: these are holding registers, written with function 6 and read
+	   back from the same address. That pairing is proven on hardware. *)
+	THIS^.stSettingsStep.DeviceId		:= THIS^.stStep.DeviceId;
+	THIS^.stSettingsStep.FunctionCode	:= 3;
+	THIS^.stSettingsStep.Address		:= (NodeNumber * 10) + INT_TO_UINT(iSettingsPending);
+	THIS^.stSettingsStep.Quantity		:= 1;
+	GetSettingsStep := THIS^.stSettingsStep;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="OnSettingsResult" ObjectId="05837aaa-777b-455f-8d5d-d289cdfe1810">
+              <interface>
+                <inputVars>
+                  <variable name="Failed">
+                    <type>
+                      <BOOL />
+                    </type>
+                  </variable>
+                  <variable name="pData">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="A_RS485_READ_BUFFER" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Count">
+                    <type>
+                      <INT />
+                    </type>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">A setting register came back. Publishes it on the topic its entity reads.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed, not raw: -1 is how a Ducobox reports 'not overriding', and the entity
+   is announced with a minimum of -1 to match. WORD_TO_STRING would publish
+   65535 there. Every other value in range is identical either way. *)
+IF NOT Failed AND Count &gt;= 1 AND iSettingsPending &gt;= 0 THEN
+	PubMqttMessage(
+		Suffix := CONCAT('/write/', INT_TO_STRING(iSettingsPending)),
+		Data := INT_TO_STRING(WORD_TO_INT(pData^[0])));
+END_IF
+
+iSettingsPending := -1;
+
+(* Done once the cursor is past the last set bit. RequestSettings answers FALSE
+   from then on, until a refresh re-arms it. *)
+IF NOT THIS^.RequestSettings() THEN
+	bSettingsDue := FALSE;
 END_IF
 </xhtml>
                 </ST>
@@ -18618,7 +22216,7 @@ SUPER^.InitBaseMqtt();</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -18859,6 +22457,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
 
 	Device^.CreateSensorEntity(
 		Name := 'Active Power',
@@ -19338,7 +22940,7 @@ SUPER^.InitBaseMqtt();</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -19599,6 +23201,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiscoveryPrefix := GVL_MQTT.MqttHADiscoveryPrefix,
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
 
 	(* --- register block 1: the instantaneous electrical values ------------- *)
 
@@ -20495,6 +24101,10 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 		MqttDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'),
 		pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
 
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
+
 	Device^.CreateSensorEntity(
 		Name := 'L1 Active Power',
 		Id := CONCAT(id, '_L1_ACTP'),
@@ -20717,7 +24327,7 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -21307,6 +24917,10 @@ END_IF
 		id := id,
 		deviceAvailabilityTopic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
 		deviceDiagnosticTopic := CONCAT(THIS^.sMQTTPublishTopic, '/diagnostic'));
+
+(* This device publishes from the RS485 task, so its messages take that
+   task's queue lane. A lane may only ever have one producing task. *)
+Device^.SetLane(Lane := 1);
 		
 	IF SupportsTemperature THEN
 		Device^.CreateSensorEntity(
@@ -21423,7 +25037,7 @@ SUPER^.InitBaseMqtt();
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := 1,
 			Payload := Data,
 			Topic := CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -24019,7 +27633,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </variable>
             <variable name="FB_RS485_DUCO_DUCOBOX_HOME">
               <type>
-                <derived name="FB_RS485_DUCO_DUCOBOX_MQTT" />
+                <derived name="FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT" />
               </type>
             </variable>
             <variable name="FB_RS485_1WIRE_MULTISENSOR_01">
@@ -24206,7 +27820,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                     </variable>
                     <variable name="FB_RS485_DUCO_DUCOBOX_HOME">
                       <type>
-                        <derived name="FB_RS485_DUCO_DUCOBOX_MQTT" />
+                        <derived name="FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT" />
                       </type>
                     </variable>
                     <variable name="FB_RS485_1WIRE_MULTISENSOR_01">
@@ -26395,11 +30009,18 @@ GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.InitRS485(
 	DeviceAddress := 3					(* Device address of the modbus device *)
 );
 
-// Nodes: valves for example
+(* Nodes on the bench Ducobox. The names are what Home Assistant shows; the
+   topic keeps using the node number, so renaming a room moves no topic.
+
+   What each node IS - valve, sensor, wall control - is not declared here. The
+   block reads module type from read parameter 0 and announces the entity set
+   that type actually has, so swapping a valve for a sensor needs no edit. *)
 GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
+	FriendlyName := 'Bench node A',
 	DataPollingInterval := T#15S
 );
 GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.AddNode(
+	FriendlyName := 'Bench node B',
 	DataPollingInterval := T#15S
 );
 
@@ -26409,6 +30030,13 @@ GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.InitMqtt(
 	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
 	pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_RS485_MQTT)
 );
+
+(* Announces the box, and then each component as the bus reports what it is.
+   The entity set per component comes from its module type, so nothing here has
+   to describe what is on the network. *)
+GVL_RS485.FB_RS485_DUCO_DUCOBOX_HOME.InitMqttDiscovery(
+	DeviceName := 'Bench Ducobox',
+	overruleId := '');
 
 
 GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.InitMqtt(
@@ -26496,11 +30124,15 @@ IF fbDiagTimer.Q THEN
 	sDiagReport := CONCAT(sDiagReport, BYTE_TO_STRING(fbRs485Transport.LastFailFunc));
 	sDiagReport := CONCAT(sDiagReport, '/n');
 	sDiagReport := CONCAT(sDiagReport, UDINT_TO_STRING(fbRs485Transport.LastFailLen));
-	sDiagReport := CONCAT(sDiagReport, ' [');
+	(* Messages the publish queue threw away because a lane was full. Silent
+   until now, and the one number that says whether MQTT is keeping up. *)
+sDiagReport := CONCAT(sDiagReport, ' drop=');
+sDiagReport := CONCAT(sDiagReport, UDINT_TO_STRING(GVL_MQTT.fbMqttPublishQueue.DroppedCount));
+sDiagReport := CONCAT(sDiagReport, ' [');
 	sDiagReport := CONCAT(sDiagReport, fbRs485Transport.LastFailBytes);
 	sDiagReport := CONCAT(sDiagReport, ']');
 
-	GVL_MQTT.fbMqttPublishQueue.AddMessage(
+	GVL_MQTT.fbMqttPublishQueue.AddMessageOn(Lane := 1,
 		Payload := sDiagReport,
 		Topic := CONCAT(GVL_MQTT.MqttPubRS485Prefix, 'BUS_COUNTERS'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -28358,6 +31990,12 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="PublishReceived" ObjectId="b6447ece-f483-4ca8-8bca-bb718d21c763" />
           </Object>
         </Folder>
+        <Object Name="E_RS485_DUCO_NODE_TYPE" ObjectId="9e75d1f9-8ea1-42e6-b60c-b43e009681f0" />
+        <Object Name="F_DUCO_NODE_TYPE" ObjectId="a730fbaf-c9ea-4497-a9be-386ca0646f78" />
+        <Object Name="F_DUCO_SCALED_TEXT" ObjectId="d1b2eedd-88cb-49d7-85e9-aff1538f0b73" />
+        <Object Name="F_DUCO_STATUS_TEXT" ObjectId="914a5658-e401-4069-b24a-fb8acd0a3b5c" />
+        <Object Name="F_DUCO_TYPE_TEXT" ObjectId="41f7729e-a7a9-4e7c-8764-fd513ea5e2ed" />
+        <Object Name="F_JSON_RENAME_KEY" ObjectId="2070b78f-f5f5-4b1a-b4ae-caa8c985d0ad" />
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
             <Object Name="InitMqtt" ObjectId="69154081-2c02-43db-90a6-f8cbcade69d6" />
@@ -28389,6 +32027,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="AddMessage" ObjectId="4d8543b2-a77d-46bd-823d-ede80d21882c" />
             <Object Name="HasMessage" ObjectId="b909c7eb-3848-4d7f-834f-7f9a453932a8" />
             <Object Name="IsFull" ObjectId="2b910003-eb68-43e3-a4d2-a01423cd741f" />
+            <Object Name="AddMessageOn" ObjectId="cebb15f8-141d-4339-92ed-bd4d16a6f29a" />
           </Object>
           <Object Name="FB_MQTT_PUBLISH_WORKER" ObjectId="0204b2b3-9509-47d9-86ef-0cc71876ab14">
             <Object Name="Init" ObjectId="8770d8a6-0590-4d4b-a5b2-e147e5cb77e7" />
@@ -28426,6 +32065,9 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="FillCommonFields" ObjectId="def60523-6479-4453-92db-f3019ef2d61a" />
             <Object Name="PublishEntityConfig" ObjectId="d5e9838e-75b1-4870-af63-4249d4044e89" />
             <Object Name="CreateCoverEntityWithPosition" ObjectId="d26dec3e-c63e-441c-b7ac-a2426fd3105d" />
+            <Object Name="CreateNumberEntity" ObjectId="ab07f1d7-7c68-4d64-89c7-cce1607c7dcc" />
+            <Object Name="CreateButtonEntity" ObjectId="18765e16-d74e-4ab9-932a-f0eb3ecbedb8" />
+            <Object Name="SetLane" ObjectId="1c01710f-f7e8-469e-bb30-ac11b12ec559" />
           </Object>
           <Object Name="FB_PLC_MQTT_DISCOVERY_DEVICE" ObjectId="293181e9-7da9-47da-a441-3d6d4f05045c">
             <Object Name="FB_init" ObjectId="0f05dfeb-28e6-4f3a-a8d1-4516d94b21ba" />
@@ -28463,6 +32105,8 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="initDFRobotDevice" ObjectId="66acba07-0d4f-4587-b4cc-ebdf2ded258f" />
           </Object>
         </Folder>
+        <Object Name="MQTT_DISCOVERY_BUTTON" ObjectId="06fa2306-aee2-40b0-8f45-5f9070abcd23" />
+        <Object Name="MQTT_DISCOVERY_NUMBER" ObjectId="46229895-b518-43b2-b253-658445a839db" />
         <Folder Name="RS485">
           <Object Name="FB_RS485_BUSCONTROLLER" ObjectId="78495725-4a33-4565-949d-be98f9fefe52">
             <Object Name="FinishStep" ObjectId="baa4a88a-9cff-4795-a47d-2e944e2f37fb" />
@@ -28472,7 +32116,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="DeviceCount" ObjectId="187a9204-3b2f-4dca-8d83-dce996b725c7" />
             <Object Name="GetDevice" ObjectId="95e11ce6-599d-460e-a963-d70b3f95873a" />
           </Object>
-          <Object Name="FB_RS485_DUCO_DUCOBOX_MQTT" ObjectId="29734931-ba2e-4430-aef4-1e03b99c5ee7">
+          <Object Name="FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT" ObjectId="29734931-ba2e-4430-aef4-1e03b99c5ee7">
             <Object Name="InitRS485" ObjectId="c2945dbc-465a-4f64-8dfa-fa576b3dbd4d" />
             <Object Name="InitMqtt" ObjectId="1acdf6ad-df81-41e1-93a0-3cf00443eb34" />
             <Object Name="PubMqttMessage" ObjectId="b55a7636-ab07-4006-ba05-4980317331e4" />
@@ -28483,14 +32127,30 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="OnStepResult" ObjectId="1b0bfc57-2d8f-46bd-b8b6-299ce481bb9f" />
             <Object Name="OnTransactionDone" ObjectId="19217e46-705b-4875-9caa-e217541dbb59" />
             <Object Name="GetCommissioning" ObjectId="582612c4-dc65-4a88-a938-6f944915fd80" />
+            <Object Name="InitMqttDiscovery" ObjectId="d7bc979e-9ed9-46e1-ae25-5daa568663f2" />
+            <Object Name="AnnounceNode" ObjectId="bacf57e5-350c-4e17-a597-866aaa082cc9" />
+            <Object Name="PubAvailability" ObjectId="c07fd647-26dd-44c3-8941-95618e7bbf68" />
           </Object>
-          <Object Name="FB_RS485_DUCO_DUCOBOX_NODE_MQTT" ObjectId="46ab5ceb-94dd-4d3a-bf5a-cc5437baa505">
+          <Object Name="FB_RS485_DUCO_DUCOBOX_FOCUS_NODE_MQTT" ObjectId="46ab5ceb-94dd-4d3a-bf5a-cc5437baa505">
             <Object Name="RequestBusTime" ObjectId="4eb41ddf-aa3a-429a-b596-a697e467adb1" />
             <Object Name="InitNode" ObjectId="0410ee9f-f078-4696-8792-6983ae15aa92" />
             <Object Name="InitMqtt" ObjectId="5f690667-0d66-4ab5-a583-daae3a732eed" />
             <Object Name="PubMqttMessage" ObjectId="994381d9-cc7c-40fe-8aa5-8ede855a3c1f" />
             <Object Name="OnStepResult" ObjectId="dc01f847-3ef5-4ca0-a29d-49a7d30714eb" />
             <Object Name="GetStep" ObjectId="c9f7a275-0892-44b6-86a6-6e9ee1c21aeb" />
+            <Object Name="RequestLocation" ObjectId="d72357bd-bb0b-451f-b1d3-24ba6ae6ec38" />
+            <Object Name="GetLocationStep" ObjectId="b6434cd5-0fa7-405a-8db2-bdacf51ecfc5" />
+            <Object Name="OnLocationResult" ObjectId="57564664-af01-42f4-b9a5-a80a1968c56e" />
+            <Object Name="PublishDecoded" ObjectId="a648221a-229a-4215-82e7-5b4ba2659d4f" />
+            <Object Name="GetNodeType" ObjectId="0544ea41-f76e-4a0e-84dd-ae5255be546e" />
+            <Object Name="GetFriendlyName" ObjectId="bbafa9eb-34ba-41ad-9487-5c4d1c57a9b5" />
+            <Object Name="GetNodeNumber" ObjectId="973eae94-f14b-4ef0-99b8-7b06558d4a06" />
+            <Object Name="NeedsAnnounce" ObjectId="4d3ef725-128c-4775-a7ec-5a4ca940c6c3" />
+            <Object Name="SetAnnounced" ObjectId="45e80db4-cd57-4a29-a4a7-cf8664143236" />
+            <Object Name="SettingsMaskFor" ObjectId="72331d66-37c2-4542-bd38-bf8d3b78d3a6" />
+            <Object Name="RequestSettings" ObjectId="4ee11f8f-d867-42ca-849d-b0b3d7fb2cfc" />
+            <Object Name="GetSettingsStep" ObjectId="70b380d9-4c45-43bf-a847-8eae846d9656" />
+            <Object Name="OnSettingsResult" ObjectId="05837aaa-777b-455f-8d5d-d289cdfe1810" />
           </Object>
           <Object Name="FB_RS485_EASTRON_SDM220_MQTT" ObjectId="eab637e3-d8f7-4186-b929-5498800ef92e">
             <Object Name="InitMqtt" ObjectId="531fd49a-3de4-4190-bade-7b48ee517bb6" />

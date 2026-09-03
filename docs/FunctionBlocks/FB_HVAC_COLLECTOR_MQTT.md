@@ -23,10 +23,10 @@ ARRAY [1..ciValveCount] OF BOOL ──┤ THERMOSTAT               VALVE ├─�
 
 **Inputs**
 
-| Pin | Type | Description |
-|:--|:--|:--|
-| `THERMOSTAT` | ARRAY [1..ciValveCount] OF BOOL | Heat demand, one element per manifold circuit. When high the valve should be opened and flow provided by the pump. |
-| `PUMP_MIN_ONTIME_ACTIVE` | BOOL | Wire to the pump's `MIN_ONTIME_ACTIVE`. While it is high the circuits that were last flowing are held open, so the pump is never left turning against a shut manifold. Optional: left unwired it reads FALSE and the block behaves as it did before. |
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `THERMOSTAT` | ARRAY [1..ciValveCount] OF BOOL |  | Heat demand, one element per manifold circuit. When high the valve should be opened and flow provided by the pump. |
+| `PUMP_MIN_ONTIME_ACTIVE` | BOOL |  | Wire to the pump's `MIN_ONTIME_ACTIVE`. While it is high the circuits that were last flowing are held open, so the pump is never left turning against a shut manifold. Optional: left unwired it reads FALSE and the block behaves as it did before. |
 
 **Outputs**
 
