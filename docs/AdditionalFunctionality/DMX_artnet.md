@@ -6,7 +6,7 @@ DMX is a lighting protocol (an alternative to DALI). It is used in stage lightin
 
 ### **Setup**
 
-<ins>Global parameters</ins></br>
+#### **Global parameters**
 In `GVL_DMX` you can set an IP. This depends on your topology. Multicast works if the PLC and Art-Net node share the subnet mask.
 
     // unicast: 10.1.1.4
@@ -14,6 +14,22 @@ In `GVL_DMX` you can set an IP. This depends on your topology. Multicast works i
     // broadcast: 255.255.255.255
 
 In `PRG_DMX_SEND` you can set the universe. `0` is not recommended for Art-Net, so the default is `1`.
+
+#### **Channel numbering**
+`DmxChannel` is the channel the fixture is addressed to, 1 to 512, and it is the
+channel that lights. Anything outside that range is refused by `initDMX` and the
+block stays dormant.
+
+#### **Metadata-only inputs**
+`initDMX` also takes `DmxWidth` and `DmxUniverse`. Both are published in the Home
+Assistant discovery config, and **neither changes what is transmitted**:
+
+| Input | Effect |
+|:--|:--|
+| `DmxWidth` | none. One byte is written, at `DmxChannel`, so an RGB fixture gets one channel rather than three. |
+| `DmxUniverse` | none. Every block transmits on the single universe set in `PRG_DMX_SEND`, so declaring 2 here still sends on that one. |
+
+Set them to describe the fixture; do not expect them to drive it.
 
 ### **Debug**
 

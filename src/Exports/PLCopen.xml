@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-03T10:43:00.1487993" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-03T10:41:59.996856">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-03T13:24:03.4018365" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-03T13:22:40.8201954">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -421,14 +421,6 @@ Out of sequence at 24 because Duco added it after the 11..19 block was allocated
               </type>
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> mqtt qos</xhtml>
-              </documentation>
-            </variable>
-            <variable name="meta">
-              <type>
-                <derived name="JSONVAR" />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> extra metadata</xhtml>
               </documentation>
             </variable>
           </struct>
@@ -2347,14 +2339,6 @@ END_IF</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -2373,7 +2357,6 @@ END_IF</xhtml>
 	Device^.CreateBinarySensorEntity(
 		Id := id,
 		Name := name,
-		Meta := meta,
 		StateTopic := THIS^.sMQTTPublishTopic,
 		PayloadOn := 'ON',
 		PayloadOff := 'OFF',
@@ -2999,14 +2982,6 @@ THIS^.Delta_Dimm:=Delta_Dimm;</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -3070,7 +3045,6 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 	Device^.CreateEventEntity(
 		Name := Name,
 		Id := id,
-		Meta := meta,
 		StateTopic := THIS^.sMQTTPublishTopic,
 		EventTypes := eventTypes,
 		Deviceclass := 'button');
@@ -3078,13 +3052,11 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 	Device^.CreateSensorEntity(
 		Name := CONCAT(Name, ' level'),
 		Id := CONCAT(id, '_DIM'),
-		Meta := meta,
 		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/DIM'),
 		ExpiryAfter := 0);
 
 	bInitMqttDiscoveryDone := TRUE;
-END_IF
-</xhtml>
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -3348,14 +3320,6 @@ SUPER^.InitBaseMqtt();
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -3397,7 +3361,6 @@ SUPER^.InitBaseMqtt();
 	Device^.CreateEventEntity(
 		Name := name,
 		Id := id,
-		Meta := meta,
 		StateTopic := THIS^.sMQTTPublishTopic,
 		EventTypes := eventTypes,
 		Deviceclass := 'button');
@@ -3971,17 +3934,6 @@ END_IF
                       <xhtml xmlns="http://www.w3.org/1999/xhtml">Overrides the generated entity id. Leave empty to derive it from the function block name.</xhtml>
                     </documentation>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Extra JSON merged into the discovery config. Rarely needed.</xhtml>
-                    </documentation>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -4018,17 +3970,15 @@ END_IF
 	Device^.CreateSensorEntity(
 		Name := Name,
 		Id := id,
-		Meta := meta,
 		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/TEMP'),
 		ExpiryAfter := UDINT_TO_INT(TIME_TO_UDINT(HeartbeatInterval) * 3 / 1000),
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := '°C',
+		UnitOfMeasurement := 'Â°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'));
 
 	bInitMqttDiscoveryDone := TRUE;
-END_IF
-</xhtml>
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -4300,14 +4250,6 @@ bPreviousState := OUT;</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -4338,7 +4280,6 @@ bPreviousState := OUT;</xhtml>
 	Device^.CreateSirenEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
@@ -4381,14 +4322,6 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -4419,7 +4352,6 @@ END_IF		</xhtml>
 	Device^.CreateLockEntity(
 		Name := name,
 		Id := id,
-		Meta := meta,
 		CommandTopic := THIS^.sMQTTSubscribeTopic,
 		PayloadLock := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 		PayloadUnlock := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
@@ -4460,14 +4392,6 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -4498,7 +4422,6 @@ END_IF		</xhtml>
 	Device^.CreateLightEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
@@ -4545,14 +4468,6 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -4583,7 +4498,6 @@ END_IF		</xhtml>
 	Device^.CreateSwitchEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
@@ -4741,14 +4655,6 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -4779,13 +4685,12 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
 	Device^.CreateValveEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOpen := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadClosed := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.sMQTTPublishTopic,
-			StateOpen := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
-			StateClosed := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			StateOpen := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			StateClosed := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			Deviceclass := DeviceClass);
 
 	bInitMqttDiscoveryDone := TRUE;
@@ -4814,14 +4719,6 @@ END_IF		</xhtml>
                     </type>
                   </variable>
                   <variable name="overruleId">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
-                  <variable name="meta">
                     <type>
                       <string length="255" />
                     </type>
@@ -4861,15 +4758,13 @@ END_IF		</xhtml>
 	Device^.CreateFanEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.sMQTTPublishTopic);
 
 	bInitMqttDiscoveryDone := TRUE;
-END_IF
-</xhtml>
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -5125,14 +5020,6 @@ bPulseTrigger:=FALSE;</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -5163,7 +5050,6 @@ bPulseTrigger:=FALSE;</xhtml>
 	Device^.CreateLightEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
@@ -5202,14 +5088,6 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -5240,7 +5118,6 @@ END_IF		</xhtml>
 	Device^.CreateLockEntity(
 		Name := name,
 		Id := id,
-		Meta := meta,
 		CommandTopic := THIS^.sMQTTSubscribeTopic,
 		PayloadLock := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 		PayloadUnlock := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
@@ -5281,14 +5158,6 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -5319,7 +5188,6 @@ END_IF		</xhtml>
 	Device^.CreateSirenEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
@@ -5498,14 +5366,6 @@ END_IF </xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -5536,7 +5396,6 @@ END_IF </xhtml>
 	Device^.CreateSwitchEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
@@ -5578,14 +5437,6 @@ END_IF		</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="RelayType">
                     <type>
                       <derived name="E_RELAY_TYPE" />
@@ -5618,15 +5469,13 @@ END_IF		</xhtml>
 	Device^.CreateFanEntity(
 			Name := name,
 			Id := id,
-			Meta := meta,
 			CommandTopic := THIS^.sMQTTSubscribeTopic,
 			PayloadOn := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadOff := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.sMQTTPublishTopic);
 
 	bInitMqttDiscoveryDone := TRUE;
-END_IF
-</xhtml>
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -5999,14 +5848,6 @@ MD := fbLock.Q2;</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="DeviceClass">
                     <type>
                       <string length="50" />
@@ -6033,7 +5874,6 @@ MD := fbLock.Q2;</xhtml>
 	Device^.CreateCoverEntity(
 		Name := name,
 		Id := id,
-		Meta := meta,
 		CommandTopic := THIS^.sMQTTSubscribeTopic,
 		PayloadOpen := 'OPEN',
 		PayloadClose := 'CLOSE',
@@ -7068,17 +6908,6 @@ END_IF
                       <xhtml xmlns="http://www.w3.org/1999/xhtml">Overrides the generated entity id. Leave empty to derive it from the function block name.</xhtml>
                     </documentation>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                    <documentation>
-                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Extra JSON merged into the discovery config. Rarely needed.</xhtml>
-                    </documentation>
-                  </variable>
                   <variable name="DeviceClass">
                     <type>
                       <string length="50" />
@@ -7119,7 +6948,6 @@ END_IF
 	Device^.CreateCoverEntityWithPosition(
 		Name := name,
 		Id := id,
-		Meta := meta,
 		CommandTopic := THIS^.sMQTTSubscribeTopic,
 		PayloadOpen := 'OPEN',
 		PayloadClose := 'CLOSE',
@@ -7137,8 +6965,7 @@ END_IF
 		PositionClosed := 0);
 
 	bInitMqttDiscoveryDone := TRUE;
-END_IF
-</xhtml>
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -7906,14 +7733,6 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -7932,7 +7751,6 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
 	Device^.CreateLightDimmerEntity(
 		Name := name,
 		Id := Id,
-		Meta := meta,
 		CommandTopic := CONCAT(THIS^.sMQTTSubscribeTopic,'/Q'),
 		PayloadOn := 'TRUE',
 		PayloadOff := 'FALSE',
@@ -8199,14 +8017,6 @@ STATUS_LED := REAL_TO_BOOL(rDimValue);</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -8229,7 +8039,6 @@ STATUS_LED := REAL_TO_BOOL(rDimValue);</xhtml>
 	Device^.CreateLightDimmerEntity(
 		Name := name,
 		Id := Id,
-		Meta := meta,
 		CommandTopic := THIS^.sMQTTSubscribeTopic,
 		PayloadOn := 'ON',
 		PayloadOff := 'OFF',
@@ -8907,14 +8716,6 @@ END_IF</xhtml>
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -8933,7 +8734,6 @@ END_IF</xhtml>
 	Device^.CreateLightDimmerEntity(
 		Name := name,
 		Id := Id,
-		Meta := meta,
 		CommandTopic := CONCAT(THIS^.sMQTTSubscribeTopic,'/Q'),
 		PayloadOn := 'TRUE',
 		PayloadOff := 'FALSE',
@@ -8991,6 +8791,14 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">
+(* A channel outside 1..512 has no slot in the universe, and DmxChannel - 1 is
+   what indexes the buffer - so 0 would write BUFFER[-1]. Refusing to init is
+   the only report available here: the method returns nothing and the block
+   then stays dormant rather than corrupting whatever precedes the buffer. *)
+IF DmxChannel &lt; 1 OR DmxChannel &gt; 512 THEN
+	RETURN;
+END_IF
+
 IF NOT THIS^.bInitDmxDone THEN
 	THIS^.DmxChannel := DmxChannel;
 	THIS^.pDmxValues := pDmxValues;
@@ -9805,7 +9613,7 @@ fbActuator(
 	
 	
 IF ((bPreviousState &lt;&gt; OUT) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := BOOL_TO_STRING(OUT),
 		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -9890,14 +9698,6 @@ SUPER^.InitBaseMqtt();
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -9916,7 +9716,6 @@ SUPER^.InitBaseMqtt();
 	Device^.CreateBinarySensorEntity(
 		Id := id,
 		Name := name,
-		Meta := meta,
 		StateTopic := THIS^.sMQTTPublishTopic,
 		PayloadOn := 'TRUE',
 		PayloadOff := 'FALSE',
@@ -10250,7 +10049,7 @@ FOR iI := 1 TO ciValveCount DO
 	afbFTrigValve[iI](CLK := VALVE[iI]);
 
 	IF ((afbRTrigValve[iI].Q OR afbFTrigValve[iI].Q) OR bStartup) AND bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 			Payload := BOOL_TO_STRING(VALVE[iI]),
 			Topic := CONCAT(sMQTTPublishTopic, CONCAT('/Valves/', casValveNames[iI])),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -10603,7 +10402,7 @@ fbActuator(
 HEAT_REQUEST := PUMP;	
 	
 IF ((bPreviousState &lt;&gt; PUMP) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := BOOL_TO_STRING(PUMP),
 		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -10688,14 +10487,6 @@ SUPER^.InitBaseMqtt();
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -10714,7 +10505,6 @@ SUPER^.InitBaseMqtt();
 	Device^.CreateBinarySensorEntity(
 		Id := id,
 		Name := name,
-		Meta := meta,
 		StateTopic := THIS^.sMQTTPublishTopic,
 		PayloadOn := 'TRUE',
 		PayloadOff := 'FALSE',
@@ -10836,6 +10626,15 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
               <type>
                 <REAL />
               </type>
+              <initialValue>
+                <simpleValue value="0.5" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Zero would make this a bare comparison against the setpoint, and on a 50 ms
+	   task the output chatters at the setpoint - each flip a retained QoS 2
+	   publish. 0.5 matches the TempStep the climate entity is announced with,
+	   so the deadband is the smallest step Home Assistant can ask for. </xhtml>
+              </documentation>
             </variable>
             <variable name="rPreviousTemp">
               <type>
@@ -10996,25 +10795,25 @@ ELSIF ENABLED AND eHvacMode = E_HVAC_MODE.heat AND MEASURED_TEMP &gt; (rDesiredT
 END_IF
 
 IF bStartup AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(MaxAllowedTemp),
 		Topic := CONCAT(sMQTTPublishTopic, '/MAX_TEMP'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);	
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(MinAllowedTemp),
 		Topic := CONCAT(sMQTTPublishTopic, '/MIN_TEMP'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := TO_STRING(eHvacMode),
 		Topic := CONCAT(sMQTTPublishTopic, '/MODE'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);	
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(rDesiredTemp),
 		Topic := CONCAT(sMQTTPublishTopic, '/DESIRED_TEMP'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11023,7 +10822,7 @@ IF bStartup AND bInitMqttDone THEN
 END_IF
 
 IF ((bPreviousState &lt;&gt; OUT) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := BOOL_TO_STRING(OUT),
 		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11031,7 +10830,7 @@ IF ((bPreviousState &lt;&gt; OUT) OR bStartup) AND bInitMqttDone THEN
 	);	
 END_IF	
 IF ((rPreviousTemp &lt;&gt; MEASURED_TEMP) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(MEASURED_TEMP),
 		Topic := CONCAT(sMQTTPublishTopic, '/TEMP'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11040,7 +10839,7 @@ IF ((rPreviousTemp &lt;&gt; MEASURED_TEMP) OR bStartup) AND bInitMqttDone THEN
 END_IF
 
 IF ((rPreviousHum &lt;&gt; MEASURED_HUM) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(MEASURED_HUM),
 		Topic := CONCAT(sMQTTPublishTopic, '/HUM'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11050,7 +10849,7 @@ END_IF
 
 
 IF ((bPreviousFault &lt;&gt; bSensorFault) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := BOOL_TO_STRING(bSensorFault),
 		Topic := CONCAT(sMQTTPublishTopic, '/FAULT'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11158,14 +10957,6 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
                       <simpleValue value="''" />
                     </initialValue>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="255" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </inputVars>
                 <localVars>
                   <variable name="id">
@@ -11184,7 +10975,6 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
 	Device^.CreateClimateEntity(		
 		Id := id,
 		Name := name,
-		Meta := meta,
 		InitialDesiredTemperature := REAL_TO_INT(rDesiredTemp),
 		CurrentTemperatureTopic :=  CONCAT(sMQTTPublishTopic, '/TEMP'),
 		CurrentHumidityTopic := CONCAT(sMQTTPublishTopic, '/HUM'),
@@ -11233,7 +11023,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/DESIRED_TEMP') =  Data.TopicOut^ THEN
 		 // temperature requested higher then max allowed temp; set to max allowed temp
 		 IF STRING_TO_REAL(Data.PayloadString^) &gt; THIS^.MaxAllowedTemp THEN
 			 THIS^.rDesiredTemp := THIS^.MaxAllowedTemp;		 
-			 THIS^.pMqttPublishQueue^.AddMessage(
+			 THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 				Payload := REAL_TO_STRING(THIS^.MaxAllowedTemp),
 				Topic := CONCAT(sMQTTPublishTopic, '/DESIRED_TEMP'),
 				Qos := MQTT.QoS.ExactlyOnce,
@@ -11242,7 +11032,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/DESIRED_TEMP') =  Data.TopicOut^ THEN
 		 // temperature requested lower then min allowed temp: set to min allowed temp
 		 ELSIF STRING_TO_REAL(Data.PayloadString^) &lt; THIS^.MinAllowedTemp THEN
 			 THIS^.rDesiredTemp := THIS^.MinAllowedTemp;			 
-			 THIS^.pMqttPublishQueue^.AddMessage(
+			 THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 				Payload := REAL_TO_STRING(THIS^.MinAllowedTemp),
 				Topic := CONCAT(sMQTTPublishTopic, '/DESIRED_TEMP'),
 				Qos := MQTT.QoS.ExactlyOnce,
@@ -11250,7 +11040,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/DESIRED_TEMP') =  Data.TopicOut^ THEN
 			);
 		 ELSE
 			 THIS^.rDesiredTemp := STRING_TO_REAL(Data.PayloadString^);			 
-			 THIS^.pMqttPublishQueue^.AddMessage(
+			 THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 				Payload := Data.PayloadString^,
 				Topic := CONCAT(sMQTTPublishTopic, '/DESIRED_TEMP'),
 				Qos := MQTT.QoS.ExactlyOnce,
@@ -11265,7 +11055,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 	//check if the mode is known and if so set it
 	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('auto')) THEN
 		THIS^.eHvacMode := E_HVAC_MODE.auto;		
-	 	THIS^.pMqttPublishQueue^.AddMessage(
+	 	THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(sMQTTPublishTopic, '/MODE'),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -11273,7 +11063,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 		);
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('off')) THEN
 		THIS^.eHvacMode := E_HVAC_MODE.off;		
-	 	THIS^.pMqttPublishQueue^.AddMessage(
+	 	THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(sMQTTPublishTopic, '/MODE'),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -11281,7 +11071,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 		);
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('heat')) THEN
 		THIS^.eHvacMode := E_HVAC_MODE.heat;		
-	 	THIS^.pMqttPublishQueue^.AddMessage(
+	 	THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(sMQTTPublishTopic, '/MODE'),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -11588,6 +11378,15 @@ IF psMqttSubscribeTopicPrefix &lt;&gt; 0 THEN
 	END_IF
 END_IF
 
+(* The queue is dereferenced without a null check in every publishing block,
+   so refuse to be initialised without one. The derived InitMqtt assigns
+   THIS^.pMqttPublishQueue before calling this, which is why it can be read
+   here. A block left uninitialised publishes nothing; one initialised with a
+   null queue faults on its first publish instead. *)
+IF THIS^.pMqttPublishQueue = 0 THEN
+	RETURN;
+END_IF
+
 bInitMqttDone := TRUE;</xhtml>
                 </ST>
               </body>
@@ -11714,11 +11513,11 @@ END_IF</xhtml>
                 <INT />
               </type>
               <initialValue>
-                <simpleValue value="1" />
+                <simpleValue value="2" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest lane index. Lane 0 is the default for anything that does not ask
- for one; lane 1 is the RS485 task, which is by far the loudest producer.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest lane index. One per producing task: 0 MainTask, 1 the RS485 task,
+ 2 HvacTask. GVL_MQTT.MQTT_LANE_* names them for the producers.</xhtml>
               </documentation>
             </variable>
             <variable name="ciLaneN">
@@ -11726,11 +11525,12 @@ END_IF</xhtml>
                 <INT />
               </type>
               <initialValue>
-                <simpleValue value="511" />
+                <simpleValue value="340" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest slot index within a lane. Total storage is unchanged from the
- single ring this replaces.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest slot index within a lane. Chosen so that adding a lane does not
+ add storage: 3 x 341 is the 1024 slots the single ring had. A slot is
+ about 1.8 kB, so a lane costs roughly 600 kB and cannot just be added.</xhtml>
               </documentation>
             </variable>
           </localVars>
@@ -12210,6 +12010,14 @@ FOR diI := diContentLen - 1 TO 0 BY -1 DO
 END_FOR
 
 IF NOT bFoundEnd THEN
+    RETURN;
+END_IF
+
+// diEnd must come after diStart. It does not on JSON that was truncated or was
+// never well formed, and then diEnd - diStart is negative: DINT_TO_UDINT turns
+// that into ~4 GB for SysMemMove, and pJson[diEnd - diStart] writes in front of
+// the buffer. Neither reports anything.
+IF diEnd &lt;= diStart THEN
     RETURN;
 END_IF
 
@@ -12703,14 +12511,6 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                       <string />
                     </type>
                   </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                   <variable name="StateTopic">
                     <type>
                       <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
@@ -12761,38 +12561,17 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                       <simpleValue value="'sensor'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgSensorDiagnostic),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 //MqttDiscoverySensorMessage.ic.CharString := Icon;
@@ -12823,8 +12602,7 @@ IF THIS^.PublishEntityConfig(
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE,
 	);
-END_IF
-</xhtml>
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -12882,11 +12660,6 @@ END_IF
                       <string />
                     </type>
                   </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
                   <variable name="CommandTopic">
                     <type>
                       <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
@@ -12935,38 +12708,17 @@ END_IF
                       <simpleValue value="'switch'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgSwitch),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgSwitch.cmd_t.CharString := CommandTopic;
@@ -12984,8 +12736,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgSwitch),
 	StructSize := SIZEOF(stMqttDiscMsgSwitch),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13004,11 +12755,6 @@ THIS^.PublishEntityConfig(
                     </documentation>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -13096,38 +12842,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'light'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgLightDim),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgLightDim.cmd_t.CharString := CommandTopic;
@@ -13151,8 +12876,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgLightDim),
 	StructSize := SIZEOF(stMqttDiscMsgLightDim),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13174,14 +12898,6 @@ THIS^.PublishEntityConfig(
                     <type>
                       <string />
                     </type>
-                  </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
                   </variable>
                   <variable name="StateTopic">
                     <type>
@@ -13259,38 +12975,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'sensor'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgSensor),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 (* One entity can be made to go unavailable on its own. The PLC's discovery
    device fills both availability slots with the same topic, so slot 2 carries
@@ -13351,11 +13046,6 @@ THIS^.PublishEntityConfig(
                       <string />
                     </type>
                   </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
                   <variable name="CommandTopic">
                     <type>
                       <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
@@ -13399,38 +13089,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'siren'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgSiren),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgSiren.cmd_t.CharString := CommandTopic;
@@ -13447,8 +13116,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgSiren),
 	StructSize := SIZEOF(stMqttDiscMsgSiren),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13467,11 +13135,6 @@ THIS^.PublishEntityConfig(
                     </documentation>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -13519,38 +13182,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'lock'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgLock),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgLock.cmd_t.CharString := CommandTopic;
@@ -13567,8 +13209,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgLock),
 	StructSize := SIZEOF(stMqttDiscMsgLock),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13587,11 +13228,6 @@ THIS^.PublishEntityConfig(
                     </documentation>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -13629,38 +13265,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'light'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgLight),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgLight.cmd_t.CharString := CommandTopic;
@@ -13675,8 +13290,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgLight),
 	StructSize := SIZEOF(stMqttDiscMsgLight),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -13826,7 +13440,6 @@ THIS^.sMac := MacAddress;
 CreateBinarySensorEntityWithCategory(
 	Name := 'Availability',
 	Id := CONCAT(Identifiers,'_diag_availability'),
-	Meta := '',
 	StateTopic := THIS^.availabilityTopic2,
 	PayloadOn := availabilityOnline,
 	PayloadOff := availabilityOffline,
@@ -13837,9 +13450,7 @@ CreateBinarySensorEntityWithCategory(
 CreateDiagnosticSensorEntity(
 		Name := 'Log',
 		Id := CONCAT(Identifiers,'_diag_log'),
-		Meta := '',
 		StateTopic := CONCAT(MqttDiagnosticTopic, '/Log'));
-
 
 </xhtml>
                 </ST>
@@ -13863,14 +13474,6 @@ CreateDiagnosticSensorEntity(
                     <type>
                       <string />
                     </type>
-                  </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
                   </variable>
                   <variable name="CommandTopic">
                     <type>
@@ -13940,38 +13543,17 @@ CreateDiagnosticSensorEntity(
                       <simpleValue value="'cover'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgCover),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgCover.cmd_t.CharString := CommandTopic;
@@ -13993,8 +13575,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgCover),
 	StructSize := SIZEOF(stMqttDiscMsgCover),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14117,7 +13698,6 @@ IF bFoundUpdate THEN
 	CreateBinarySensorEntityWithCategory(
 		Name := 'Availability',
 		Id := CONCAT(ids,'_diag_availability'),
-		Meta := '',
 		StateTopic := availabilityTopic2,
 		PayloadOn := availabilityOnline,
 		PayloadOff := availabilityOffline,
@@ -14142,11 +13722,6 @@ END_IF</xhtml>
                     </documentation>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -14184,26 +13759,6 @@ END_IF</xhtml>
                       <simpleValue value="'binary_sensor'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -14215,14 +13770,13 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgBinSens),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgBinSens.stat_t.CharString := StateTopic;
@@ -14236,8 +13790,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgBinSens),
 	StructSize := SIZEOF(stMqttDiscMsgBinSens),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14256,11 +13809,6 @@ THIS^.PublishEntityConfig(
                     </documentation>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -14306,26 +13854,6 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'binary_sensor'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -14337,14 +13865,13 @@ THIS^.PublishEntityConfig(
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgBinSensWCat),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgBinSensWCat.stat_t.CharString := StateTopic;
@@ -14359,8 +13886,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgBinSensWCat),
 	StructSize := SIZEOF(stMqttDiscMsgBinSensWCat),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14379,11 +13905,6 @@ THIS^.PublishEntityConfig(
                     </documentation>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -14421,38 +13942,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'event'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgEvent),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgEvent.stat_t.CharString := StateTopic;
@@ -14467,8 +13967,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgEvent),
 	StructSize := SIZEOF(stMqttDiscMsgEvent),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14490,14 +13989,6 @@ THIS^.PublishEntityConfig(
                     <type>
                       <string />
                     </type>
-                  </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
                   </variable>
                   <variable name="CommandTopic">
                     <type>
@@ -14547,38 +14038,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'valve'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgValve),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgValve.cmd_t.CharString := CommandTopic;
@@ -14596,8 +14066,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgValve),
 	StructSize := SIZEOF(stMqttDiscMsgValve),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14619,14 +14088,6 @@ THIS^.PublishEntityConfig(
                     <type>
                       <string />
                     </type>
-                  </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
                   </variable>
                   <variable name="InitialDesiredTemperature">
                     <type>
@@ -14681,38 +14142,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'climate'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgClimate),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgClimate.init.Integer := InitialDesiredTemperature;
@@ -14734,8 +14174,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgClimate),
 	StructSize := SIZEOF(stMqttDiscMsgClimate),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14757,14 +14196,6 @@ THIS^.PublishEntityConfig(
                     <type>
                       <string />
                     </type>
-                  </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
                   </variable>
                   <variable name="StateTopic">
                     <type>
@@ -14799,38 +14230,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'valve'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgValveState),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgValveState.stat_t.CharString := StateTopic;
@@ -14845,8 +14255,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgValveState),
 	StructSize := SIZEOF(stMqttDiscMsgValveState),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -14865,11 +14274,6 @@ THIS^.PublishEntityConfig(
                     </documentation>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -14961,38 +14365,17 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'fan'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgFan),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 // command_topic is the only key Home Assistant requires for a fan.
@@ -15025,8 +14408,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgFan),
 	StructSize := SIZEOF(stMqttDiscMsgFan),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -15062,11 +14444,6 @@ THIS^.PublishEntityConfig(
                     </type>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -15110,11 +14487,7 @@ pBase^.dev.ids.CharString := THIS^.ids;
 pBase^.dev.sw.CharString := THIS^.sw;
 pBase^.dev.mdl.CharString := THIS^.mdl;
 pBase^.dev.mf.CharString := THIS^.mf;
-
-// Extra meta-data
-IF NOT CommonTypesAndFunctions.StrEquals(str1:= ADR(Meta), str2:= ADR('')) THEN
-	pBase^.meta.CharString := Meta;
-END_IF</xhtml>
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -15285,7 +14658,7 @@ bKeyRenamed := F_JSON_RENAME_KEY(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqtt
    check whose whole job is detecting values that got cut short. *)
 pJsonByte := ADR(sMqttJSON);
 diJsonLen := 0;
-FOR diI := 0 TO DINT#1499 DO
+FOR diI := 0 TO UDINT_TO_DINT(SIZEOF(sMqttJSON)) - 1 DO
 	IF pJsonByte[diI] = 0 THEN
 		diJsonLen := diI;
 		EXIT;
@@ -15330,14 +14703,6 @@ END_IF</xhtml>
                     <type>
                       <string />
                     </type>
-                  </variable>
-                  <variable name="Meta">
-                    <type>
-                      <string />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
                   </variable>
                   <variable name="CommandTopic">
                     <type>
@@ -15446,26 +14811,6 @@ END_IF</xhtml>
                       <simpleValue value="'cover'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -15490,8 +14835,7 @@ THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgCoverPos),
 	EntityId := EntityId,
 	Name := name,
-	Id := Id,
-	Meta := meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgCoverPos.cmd_t.CharString := CommandTopic;
@@ -15517,8 +14861,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgCoverPos),
 	StructSize := SIZEOF(stMqttDiscMsgCoverPos),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -15534,11 +14877,6 @@ THIS^.PublishEntityConfig(
                     </type>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -15619,14 +14957,13 @@ step, and a state topic carrying what the device actually holds.</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgNumber),
 	EntityId := EntityId,
 	Name := Name,
-	Id := Id,
-	Meta := Meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgNumber.cmd_t.CharString := CommandTopic;
@@ -15677,8 +15014,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgNumber),
 	StructSize := SIZEOF(stMqttDiscMsgNumber),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -15694,11 +15030,6 @@ THIS^.PublishEntityConfig(
                     </type>
                   </variable>
                   <variable name="Id">
-                    <type>
-                      <string />
-                    </type>
-                  </variable>
-                  <variable name="Meta">
                     <type>
                       <string />
                     </type>
@@ -15750,14 +15081,13 @@ device has an action but nothing readable that reports it back.</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability, device and meta are identical for every entity
-   type, so they are filled once through the shared base struct. *)
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
 THIS^.FillCommonFields(
 	pBase := ADR(stMqttDiscMsgButton),
 	EntityId := EntityId,
 	Name := Name,
-	Id := Id,
-	Meta := Meta);
+	Id := Id);
 
 // Entity related: Specific
 stMqttDiscMsgButton.cmd_t.CharString := CommandTopic;
@@ -15785,8 +15115,7 @@ THIS^.PublishEntityConfig(
 	pStruct := ADR(stMqttDiscMsgButton),
 	StructSize := SIZEOF(stMqttDiscMsgButton),
 	EntityId := EntityId,
-	Id := Id);
-</xhtml>
+	Id := Id);</xhtml>
                 </ST>
               </body>
               <addData />
@@ -16794,7 +16123,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.Transport := Transport;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Without this, bInitialised went TRUE for a null transport too, and the
+   guard on it only ever caught "Init was never called" - not "Init was
+   called with nothing to drive", which is the same crash one cycle later. *)
+IF Transport = 0 THEN
+	RETURN;
+END_IF
+
+THIS^.Transport := Transport;
 
 (* Zero means "keep the default", so a call site can supply only what it cares
    about and the block still starts with sane timings. *)
@@ -17258,7 +16594,7 @@ CASE iState OF
 	LastReport := sReport;
 
 	IF pQueue &lt;&gt; 0 AND psTopicPrefix &lt;&gt; 0 AND stRequest.ReportTopic &lt;&gt; '' THEN
-		pQueue^.AddMessageOn(Lane := 1,
+		pQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := sReport,
 			Topic := CONCAT(psTopicPrefix^, stRequest.ReportTopic),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -18089,7 +17425,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	Device^.CreateSensorEntity(
 		Name := 'Distance',
@@ -18143,7 +17479,7 @@ END_IF
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -19136,7 +18472,7 @@ END_FOR</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -19805,12 +19141,11 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-fbMqttDiscoveryDevice.SetLane(Lane := 1);
+fbMqttDiscoveryDevice.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	fbMqttDiscoveryDevice.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' status'),
 		Id := CONCAT(sDeviceId, '_STATUS'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/STATUS'),
 		ExpiryAfter := 0,
 		DeviceClass := '',
@@ -19821,7 +19156,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' ventilation position'),
 		Id := CONCAT(sDeviceId, '_POS'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/POS'),
 		ExpiryAfter := 0,
 		DeviceClass := '',
@@ -19832,7 +19166,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' power'),
 		Id := CONCAT(sDeviceId, '_PWR'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/PWR'),
 		ExpiryAfter := 0,
 		DeviceClass := 'power',
@@ -19843,7 +19176,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' average power'),
 		Id := CONCAT(sDeviceId, '_PWR_AVG'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/PWR_AVG'),
 		ExpiryAfter := 0,
 		DeviceClass := 'power',
@@ -19854,7 +19186,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' maximum power'),
 		Id := CONCAT(sDeviceId, '_PWR_MAX'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/PWR_MAX'),
 		ExpiryAfter := 0,
 		DeviceClass := 'power',
@@ -19865,7 +19196,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' target'),
 		Id := CONCAT(sDeviceId, '_W0'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/0'),
 		StateTopic := CONCAT(sOut, '/write/0'),
 		MinValue := -1, MaxValue := 100, StepValue := 5,
@@ -19875,7 +19205,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' auto minimum'),
 		Id := CONCAT(sDeviceId, '_W5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/5'),
 		StateTopic := CONCAT(sOut, '/write/5'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -19885,7 +19214,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' auto maximum'),
 		Id := CONCAT(sDeviceId, '_W6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/6'),
 		StateTopic := CONCAT(sOut, '/write/6'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -19913,7 +19241,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sDeviceId, '_A2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '2',
 		EntityCategory := 'config', DeviceClass := '');
@@ -19921,7 +19248,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sDeviceId, '_A3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '3',
 		EntityCategory := 'config', DeviceClass := '');
@@ -19929,7 +19255,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sDeviceId, '_A4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '4',
 		EntityCategory := 'config', DeviceClass := '');
@@ -19937,7 +19262,6 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Auto'),
 		Id := CONCAT(sDeviceId, '_A5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '5',
 		EntityCategory := 'config', DeviceClass := '');
@@ -19945,13 +19269,11 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	fbMqttDiscoveryDevice.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Unoccupied'),
 		Id := CONCAT(sDeviceId, '_A6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '6',
 		EntityCategory := 'config', DeviceClass := '');
 
-END_IF
-</xhtml>
+END_IF</xhtml>
                 </ST>
               </body>
               <addData />
@@ -20050,13 +19372,12 @@ Device^.initBaseDevice(
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 (* Common to every component that has them. *)
 Device^.CreateSensorEntity(
 	Name := CONCAT(sLabel, ' status'),
 	Id := CONCAT(sId, '_STATUS'),
-	Meta := '',
 	StateTopic := CONCAT(sOut, '/STATUS'),
 	ExpiryAfter := 0,
 	DeviceClass := '',
@@ -20067,7 +19388,6 @@ Device^.CreateSensorEntity(
 Device^.CreateSensorEntity(
 	Name := CONCAT(sLabel, ' zone'),
 	Id := CONCAT(sId, '_ZONE'),
-	Meta := '',
 	StateTopic := CONCAT(sOut, '/ZONE'),
 	ExpiryAfter := 0,
 	DeviceClass := '',
@@ -20084,7 +19404,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' position'),
 		Id := CONCAT(sId, '_POS'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/POS'),
 		ExpiryAfter := 0,
 		DeviceClass := '',
@@ -20095,11 +19414,10 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' temperature'),
 		Id := CONCAT(sId, '_TEMP'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/TEMP'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := '°C',
+		UnitOfMeasurement := 'Â°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
@@ -20107,7 +19425,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		Device^.CreateSensorEntity(
 			Name := CONCAT(sLabel, ' CO2'),
 			Id := CONCAT(sId, '_CO2'),
-			Meta := '',
 			StateTopic := CONCAT(sOut, '/CO2'),
 			ExpiryAfter := 0,
 			DeviceClass := 'carbon_dioxide',
@@ -20119,7 +19436,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		Device^.CreateNumberEntity(
 			Name := CONCAT(sLabel, ' CO2 setpoint'),
 			Id := CONCAT(sId, '_W1'),
-			Meta := '',
 			CommandTopic := CONCAT(sCmd, '/write/1'),
 			StateTopic := CONCAT(sOut, '/write/1'),
 			MinValue := 0, MaxValue := 2000, StepValue := 10,
@@ -20131,7 +19447,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		Device^.CreateSensorEntity(
 			Name := CONCAT(sLabel, ' humidity'),
 			Id := CONCAT(sId, '_RH'),
-			Meta := '',
 			StateTopic := CONCAT(sOut, '/RH'),
 			ExpiryAfter := 0,
 			DeviceClass := 'humidity',
@@ -20142,7 +19457,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		Device^.CreateNumberEntity(
 			Name := CONCAT(sLabel, ' humidity setpoint'),
 			Id := CONCAT(sId, '_W2'),
-			Meta := '',
 			CommandTopic := CONCAT(sCmd, '/write/2'),
 			StateTopic := CONCAT(sOut, '/write/2'),
 			MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20152,7 +19466,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		Device^.CreateSwitchEntity(
 			Name := CONCAT(sLabel, ' humidity delta control'),
 			Id := CONCAT(sId, '_W3'),
-			Meta := '',
 			CommandTopic := CONCAT(sCmd, '/write/3'),
 			PayloadOn := '1', PayloadOff := '0',
 			StateTopic := CONCAT(sOut, '/write/3'),
@@ -20163,7 +19476,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' target'),
 		Id := CONCAT(sId, '_W0'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/0'),
 		StateTopic := CONCAT(sOut, '/write/0'),
 		MinValue := -1, MaxValue := 100, StepValue := 5,
@@ -20173,17 +19485,15 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' flow'),
 		Id := CONCAT(sId, '_W4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/4'),
 		StateTopic := CONCAT(sOut, '/write/4'),
 		MinValue := 20, MaxValue := 200, StepValue := 5,
-		UnitOfMeasurement := 'm³/h', DeviceClass := '',
+		UnitOfMeasurement := 'mÂ³/h', DeviceClass := '',
 		EntityCategory := 'config', SliderMode := FALSE);
 
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' auto minimum'),
 		Id := CONCAT(sId, '_W5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/5'),
 		StateTopic := CONCAT(sOut, '/write/5'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20193,7 +19503,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' auto maximum'),
 		Id := CONCAT(sId, '_W6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/6'),
 		StateTopic := CONCAT(sOut, '/write/6'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20207,7 +19516,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '2',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20215,7 +19523,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '3',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20223,7 +19530,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '4',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20231,7 +19537,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Auto'),
 		Id := CONCAT(sId, '_A5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '5',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20239,7 +19544,6 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Unoccupied'),
 		Id := CONCAT(sId, '_A6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '6',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20248,7 +19552,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' position'),
 		Id := CONCAT(sId, '_POS'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/POS'),
 		ExpiryAfter := 0,
 		DeviceClass := '',
@@ -20259,18 +19562,16 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' temperature'),
 		Id := CONCAT(sId, '_TEMP'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/TEMP'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := '°C',
+		UnitOfMeasurement := 'Â°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' target'),
 		Id := CONCAT(sId, '_W0'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/0'),
 		StateTopic := CONCAT(sOut, '/write/0'),
 		MinValue := -1, MaxValue := 100, StepValue := 5,
@@ -20283,7 +19584,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' button 1'),
 		Id := CONCAT(sId, '_W4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/4'),
 		StateTopic := CONCAT(sOut, '/write/4'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20293,7 +19593,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' button 2'),
 		Id := CONCAT(sId, '_W5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/5'),
 		StateTopic := CONCAT(sOut, '/write/5'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20303,7 +19602,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' button 3'),
 		Id := CONCAT(sId, '_W6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/6'),
 		StateTopic := CONCAT(sOut, '/write/6'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20313,7 +19611,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' manual time'),
 		Id := CONCAT(sId, '_W7'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/7'),
 		StateTopic := CONCAT(sOut, '/write/7'),
 		MinValue := 5, MaxValue := 9995, StepValue := 5,
@@ -20327,7 +19624,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '2',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20335,7 +19631,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '3',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20343,7 +19638,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '4',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20351,7 +19645,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Auto'),
 		Id := CONCAT(sId, '_A5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '5',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20359,7 +19652,6 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Unoccupied'),
 		Id := CONCAT(sId, '_A6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '6',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20368,18 +19660,16 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' temperature'),
 		Id := CONCAT(sId, '_TEMP'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/TEMP'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := '°C',
+		UnitOfMeasurement := 'Â°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' CO2'),
 		Id := CONCAT(sId, '_CO2'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/CO2'),
 		ExpiryAfter := 0,
 		DeviceClass := 'carbon_dioxide',
@@ -20390,7 +19680,6 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' target'),
 		Id := CONCAT(sId, '_W0'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/0'),
 		StateTopic := CONCAT(sOut, '/write/0'),
 		MinValue := -1, MaxValue := 100, StepValue := 5,
@@ -20400,7 +19689,6 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' CO2 setpoint'),
 		Id := CONCAT(sId, '_W1'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/1'),
 		StateTopic := CONCAT(sOut, '/write/1'),
 		MinValue := 0, MaxValue := 2000, StepValue := 10,
@@ -20414,7 +19702,6 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '2',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20422,7 +19709,6 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '3',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20430,7 +19716,6 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '4',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20438,7 +19723,6 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Auto'),
 		Id := CONCAT(sId, '_A5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '5',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20446,7 +19730,6 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Unoccupied'),
 		Id := CONCAT(sId, '_A6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '6',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20455,18 +19738,16 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' temperature'),
 		Id := CONCAT(sId, '_TEMP'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/TEMP'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := '°C',
+		UnitOfMeasurement := 'Â°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' humidity'),
 		Id := CONCAT(sId, '_RH'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/RH'),
 		ExpiryAfter := 0,
 		DeviceClass := 'humidity',
@@ -20477,7 +19758,6 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' target'),
 		Id := CONCAT(sId, '_W0'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/0'),
 		StateTopic := CONCAT(sOut, '/write/0'),
 		MinValue := -1, MaxValue := 100, StepValue := 5,
@@ -20487,7 +19767,6 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' humidity setpoint'),
 		Id := CONCAT(sId, '_W2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/2'),
 		StateTopic := CONCAT(sOut, '/write/2'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20497,7 +19776,6 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateSwitchEntity(
 		Name := CONCAT(sLabel, ' humidity delta control'),
 		Id := CONCAT(sId, '_W3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/3'),
 		PayloadOn := '1', PayloadOff := '0',
 		StateTopic := CONCAT(sOut, '/write/3'),
@@ -20511,7 +19789,6 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '2',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20519,7 +19796,6 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '3',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20527,7 +19803,6 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '4',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20535,7 +19810,6 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Auto'),
 		Id := CONCAT(sId, '_A5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '5',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20543,7 +19817,6 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Unoccupied'),
 		Id := CONCAT(sId, '_A6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '6',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20552,7 +19825,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' opening'),
 		Id := CONCAT(sId, '_OPEN'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/OPEN'),
 		ExpiryAfter := 0,
 		DeviceClass := '',
@@ -20563,18 +19835,16 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' outdoor temperature'),
 		Id := CONCAT(sId, '_TEMP_OUT'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/TEMP_OUT'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := '°C',
+		UnitOfMeasurement := 'Â°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' target'),
 		Id := CONCAT(sId, '_W0'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/0'),
 		StateTopic := CONCAT(sOut, '/write/0'),
 		MinValue := -1, MaxValue := 100, StepValue := 5,
@@ -20584,7 +19854,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' inlet share'),
 		Id := CONCAT(sId, '_W4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/4'),
 		StateTopic := CONCAT(sOut, '/write/4'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20594,7 +19863,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' auto minimum'),
 		Id := CONCAT(sId, '_W5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/5'),
 		StateTopic := CONCAT(sOut, '/write/5'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20604,7 +19872,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' auto maximum'),
 		Id := CONCAT(sId, '_W6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/6'),
 		StateTopic := CONCAT(sOut, '/write/6'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20618,7 +19885,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '2',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20626,7 +19892,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '3',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20634,7 +19899,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '4',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20642,7 +19906,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Auto'),
 		Id := CONCAT(sId, '_A5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '5',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20650,7 +19913,6 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Unoccupied'),
 		Id := CONCAT(sId, '_A6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '6',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20659,7 +19921,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' position'),
 		Id := CONCAT(sId, '_POS'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/POS'),
 		ExpiryAfter := 0,
 		DeviceClass := '',
@@ -20670,7 +19931,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' target'),
 		Id := CONCAT(sId, '_W0'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/0'),
 		StateTopic := CONCAT(sOut, '/write/0'),
 		MinValue := -1, MaxValue := 100, StepValue := 5,
@@ -20683,7 +19943,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' switch mode'),
 		Id := CONCAT(sId, '_W1'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/1'),
 		StateTopic := CONCAT(sOut, '/write/1'),
 		MinValue := 0, MaxValue := 2, StepValue := 1,
@@ -20693,7 +19952,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' switch value'),
 		Id := CONCAT(sId, '_W2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/2'),
 		StateTopic := CONCAT(sOut, '/write/2'),
 		MinValue := 0, MaxValue := 255, StepValue := 5,
@@ -20707,7 +19965,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '2',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20715,7 +19972,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '3',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20723,7 +19979,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '4',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20731,7 +19986,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Auto'),
 		Id := CONCAT(sId, '_A5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '5',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20739,7 +19993,6 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Unoccupied'),
 		Id := CONCAT(sId, '_A6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '6',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20748,7 +20001,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' position'),
 		Id := CONCAT(sId, '_POS'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/POS'),
 		ExpiryAfter := 0,
 		DeviceClass := '',
@@ -20759,18 +20011,16 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' outdoor temperature'),
 		Id := CONCAT(sId, '_TEMP_OUT'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/TEMP_OUT'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := '°C',
+		UnitOfMeasurement := 'Â°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
 	Device^.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' PWM input'),
 		Id := CONCAT(sId, '_PWM'),
-		Meta := '',
 		StateTopic := CONCAT(sOut, '/PWM'),
 		ExpiryAfter := 0,
 		DeviceClass := '',
@@ -20781,7 +20031,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' target'),
 		Id := CONCAT(sId, '_W0'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/0'),
 		StateTopic := CONCAT(sOut, '/write/0'),
 		MinValue := -1, MaxValue := 100, StepValue := 5,
@@ -20791,7 +20040,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' hybrid value'),
 		Id := CONCAT(sId, '_W1'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/1'),
 		StateTopic := CONCAT(sOut, '/write/1'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20801,7 +20049,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' inlet share'),
 		Id := CONCAT(sId, '_W4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/4'),
 		StateTopic := CONCAT(sOut, '/write/4'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20811,7 +20058,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' auto minimum'),
 		Id := CONCAT(sId, '_W5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/5'),
 		StateTopic := CONCAT(sOut, '/write/5'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20821,7 +20067,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateNumberEntity(
 		Name := CONCAT(sLabel, ' auto maximum'),
 		Id := CONCAT(sId, '_W6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/6'),
 		StateTopic := CONCAT(sOut, '/write/6'),
 		MinValue := 0, MaxValue := 100, StepValue := 5,
@@ -20835,7 +20080,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '2',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20843,7 +20087,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '3',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20851,7 +20094,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '4',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20859,7 +20101,6 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Auto'),
 		Id := CONCAT(sId, '_A5'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '5',
 		EntityCategory := 'config', DeviceClass := '');
@@ -20867,15 +20108,13 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	Device^.CreateButtonEntity(
 		Name := CONCAT(sLabel, ' Unoccupied'),
 		Id := CONCAT(sId, '_A6'),
-		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
 		PayloadPress := '6',
 		EntityCategory := 'config', DeviceClass := '');
 
 END_CASE
 
-afbNodes[iN].SetAnnounced();
-</xhtml>
+afbNodes[iN].SetAnnounced();</xhtml>
                 </ST>
               </body>
               <addData />
@@ -20908,13 +20147,13 @@ uiAvailPubs := uiAvailPubs + 1;
 
 IF bInitMqttDone THEN
 	IF Online THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := 'online',
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := TRUE);
 	ELSE
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := 'offline',
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -21342,7 +20581,7 @@ THIS^.bInitMqttDone := TRUE;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(CONCAT(CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/'), UINT_TO_STRING(NodeNumber)), Suffix ),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -22216,7 +21455,7 @@ SUPER^.InitBaseMqtt();</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -22460,7 +21699,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	Device^.CreateSensorEntity(
 		Name := 'Active Power',
@@ -22940,7 +22179,7 @@ SUPER^.InitBaseMqtt();</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -23204,7 +22443,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	(* --- register block 1: the instantaneous electrical values ------------- *)
 
@@ -24103,7 +23342,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	Device^.CreateSensorEntity(
 		Name := 'L1 Active Power',
@@ -24327,7 +23566,7 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -24894,14 +24133,6 @@ END_IF
                       <string length="255" />
                     </type>
                   </variable>
-                  <variable name="meta">
-                    <type>
-                      <string length="20" />
-                    </type>
-                    <initialValue>
-                      <simpleValue value="''" />
-                    </initialValue>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -24920,7 +24151,7 @@ END_IF
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 		
 	IF SupportsTemperature THEN
 		Device^.CreateSensorEntity(
@@ -25037,7 +24268,7 @@ SUPER^.InitBaseMqtt();
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -25062,7 +24293,10 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.TEMPERATURE := WORD_TO_REAL(Data) / 100;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed: the gateway scales by 100 and encodes two's complement, and both
+   of these read below zero on an outdoor sensor. Unsigned turned -1 degree
+   into +655.35 and nothing could report frost. *)
+THIS^.TEMPERATURE := INT_TO_REAL(WORD_TO_INT(Data)) / 100;
 PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));</xhtml>
                 </ST>
               </body>
@@ -25122,7 +24356,10 @@ PubMqttMessage(Suffix := '/HUM', Data := REAL_TO_STRING(HUMIDITY));</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DEW_POINT := WORD_TO_REAL(Data) / 100;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed: the gateway scales by 100 and encodes two's complement, and both
+   of these read below zero on an outdoor sensor. Unsigned turned -1 degree
+   into +655.35 and nothing could report frost. *)
+THIS^.DEW_POINT := INT_TO_REAL(WORD_TO_INT(Data)) / 100;
 PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));</xhtml>
                 </ST>
               </body>
@@ -26007,13 +25244,6 @@ ELSIF NOT bGotFrame THEN
 		LastFailBytes := CONCAT(LastFailBytes, BYTE_TO_STRING(abyRx[iI]));
 		LastFailBytes := CONCAT(LastFailBytes, ' ');
 	END_FOR
-	FOR iI := 0 TO count - 1 DO
-		IF iI &gt;= 24 THEN
-			EXIT;
-		END_IF
-		LastFailBytes := CONCAT(LastFailBytes, BYTE_TO_STRING(abyRx[iI]));
-		LastFailBytes := CONCAT(LastFailBytes, ' ');
-	END_FOR
 
 ELSIF abyRx[iFirst] &lt;&gt; stStep.DeviceId THEN
 	(* Well formed, intact, and not ours. On a shared bus that is somebody
@@ -26609,7 +25839,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
               </data>
             </addData>
           </task>
-          <task name="Ping" interval="PT10S" priority="4">
+          <task name="Ping" interval="PT10S" priority="31">
             <pouInstance name="PRG_PING_DMX" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
@@ -27086,6 +26316,30 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
  through a healthy startup.</xhtml>
               </documentation>
             </variable>
+            <variable name="MQTT_LANE_MAIN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_RS485">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_HVAC">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+            </variable>
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                 <Attributes>
@@ -27121,6 +26375,30 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                       </type>
                       <initialValue>
                         <simpleValue value="64" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MQTT_LANE_MAIN">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MQTT_LANE_RS485">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="1" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MQTT_LANE_HVAC">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="2" />
                       </initialValue>
                     </variable>
                   </globalVars>
@@ -28696,9 +27974,16 @@ END_IF;
 
 size := 512+18;
 FOR iI:= 0 TO 511 DO (* check whether the DMX values ​​in the global variable have changed *)
-	// iI+2 is strange, buffers are not the same, its often offset with 2 sometimes by 1, todo
-	IF stSBuf1.BUFFER[iI+18] &lt;&gt; GVL_DMX.DMX.BUFFER[iI+2] THEN
-   		stSBuf1.BUFFER[iI+18]:= GVL_DMX.DMX.BUFFER[iI+2];
+	(* One convention, and it is asserted here: GVL_DMX.DMX.BUFFER[c - 1] holds
+	   DMX channel c, which is what FB_OUTPUT_DIMMER_DMX_MQTT writes. An ArtDmx
+	   packet carries its 18-byte header and then channel 1 at data offset 0, so
+	   buffer index iI goes to BUFFER[iI + 18] and nothing shifts on the way.
+
+	   This read used to be BUFFER[iI + 2] against a block writing BUFFER[c - 1]:
+	   channel c lit slot c - 2, and channels 1 and 2 could not be reached at all
+	   because no iteration ever read buffer index 0 or 1. *)
+	IF stSBuf1.BUFFER[iI+18] &lt;&gt; GVL_DMX.DMX.BUFFER[iI] THEN
+   		stSBuf1.BUFFER[iI+18]:= GVL_DMX.DMX.BUFFER[iI];
 		iStep := 1;
 	END_IF
 END_FOR
@@ -28840,26 +28125,22 @@ END_CASE
                         <UDINT />
                       </type>
                     </variable>
-                    <variable name="udiIpublishers">
-                      <type>
-                        <UDINT />
-                      </type>
-                      <initialValue>
-                        <simpleValue value="40" />
-                      </initialValue>
-                      <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> variables for MQTT publishing </xhtml>
-                      </documentation>
-                    </variable>
                     <variable name="afbPublishers">
                       <type>
                         <array>
-                          <dimension lower="0" upper="39" />
+                          <dimension lower="0" upper="(cudiPublishers - 1)" />
                           <baseType>
                             <derived name="FB_MQTT_PUBLISH_WORKER" />
                           </baseType>
                         </array>
                       </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> variables for MQTT publishing. The pool size is a constant and the array is
+	   sized from it: they used to be two literals that had to agree by hand, and
+	   the count was a plain VAR - writable from an online view, where setting it
+	   to 0 made FOR udiI := 0 TO (count - 1) underflow UDINT to 4294967295 and
+	   walk off the end of the array. </xhtml>
+                      </documentation>
                     </variable>
                     <variable name="udiI">
                       <type>
@@ -28896,6 +28177,16 @@ END_CASE
                       <type>
                         <derived name="MQTT.MQTTSubscribe" />
                       </type>
+                    </variable>
+                  </localVars>
+                  <localVars constant="true">
+                    <variable name="cudiPublishers">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="40" />
+                      </initialValue>
                     </variable>
                   </localVars>
                   <addData>
@@ -28969,7 +28260,7 @@ END_IF
 (* Check if Mqtt is initialized AND if there are elements on the queue to process AND if a stMQTTBirthMessage has been published successfully *)
 IF initMqtt AND GVL_MQTT.fbMqttPublishQueue.HasMessage() AND bMQTTPublishBirth = FALSE AND fbMQTTBirthPublisher.SendDone THEN	
 	(* Loop through all free afbPublishers untill there are no more elements in the queue or no more free afbPublishers *)
-	FOR udiI:=0 TO (udiIpublishers-1) DO			
+	FOR udiI:=0 TO (cudiPublishers-1) DO			
 		(* use the afbPublishers that are free  *)
 		IF afbPublishers[udiI].SendDone AND GVL_MQTT.fbMqttPublishQueue.HasMessage() THEN	
 			(* Pass message from the queue to a publisher *)
@@ -28993,7 +28284,7 @@ IF initMqtt THEN
 		
 	fbMQTTBirthPublisher();
 	
-	FOR udiI := 0 TO (udiIpublishers-1) DO
+	FOR udiI := 0 TO (cudiPublishers-1) DO
   		afbPublishers[udiI]();
 	END_FOR
 
@@ -29042,7 +28333,7 @@ IF NOT initMqtt THEN
 	 fbMQTTBirthHartbeat(ENQ:=TRUE, PTH:=T#0S, PTL:=GVL_MQTT.MQTTAvailabilityHartbeatTime);
 	
 	(* INIT MQTT PUBLISH STUFF *)
-	FOR udiIcounter := 0 TO (udiIpublishers-1) DO		
+	FOR udiIcounter := 0 TO (cudiPublishers-1) DO		
 		afbPublishers[udiIcounter].Init(inputMQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 	END_FOR 
 	
@@ -30132,7 +29423,7 @@ sDiagReport := CONCAT(sDiagReport, ' [');
 	sDiagReport := CONCAT(sDiagReport, fbRs485Transport.LastFailBytes);
 	sDiagReport := CONCAT(sDiagReport, ']');
 
-	GVL_MQTT.fbMqttPublishQueue.AddMessageOn(Lane := 1,
+	GVL_MQTT.fbMqttPublishQueue.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 		Payload := sDiagReport,
 		Topic := CONCAT(GVL_MQTT.MqttPubRS485Prefix, 'BUS_COUNTERS'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -30992,6 +30283,30 @@ END_IF
               </type>
               <initialValue>
                 <simpleValue value="64" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_MAIN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_RS485">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_HVAC">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
               </initialValue>
             </variable>
             <addData>

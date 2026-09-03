@@ -70,8 +70,8 @@ BOOL ──┤ RST                       │
 
 | Parameter | Type | Default | Description |
 |:--|:--|:--|:--|
-| `DmxChannel` | INT |  | Which channel, 1-256 (not 0). |
-| `DmxWidth` | INT | `1` | Width of the channel, in channels (often 1 or 2). |
+| `DmxChannel` | INT |  | Which channel, 1-512. `initDMX` refuses anything outside that and leaves the block dormant: the buffer is indexed as `DmxChannel - 1`, so 0 would write in front of it. |
+| `DmxWidth` | INT | `1` | Width of the fixture, in channels (often 1 or 2). Metadata for MQTT discovery only; the block writes the single byte at `DmxChannel` whatever this says, so an RGB fixture still gets one channel. |
 | `DmxUniverse` | INT | `1` | Universe number. Metadata for MQTT discovery only; it does not affect the DMX output. |
 | `pDmxValues` | POINTER TO oscat_network.NETWORK_BUFFER_SHORT |  | Pointer to a global buffer. There is currently only one buffer, and thus one universe. |
 
@@ -94,7 +94,6 @@ BOOL ──┤ RST                       │
 | `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 
 **`PublishReceived`** — Callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 

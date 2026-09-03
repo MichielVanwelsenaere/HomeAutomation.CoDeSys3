@@ -53,7 +53,6 @@ BOOL ──┤ TOGGLE                │
 | `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 | `RelayType` | E_RELAY_TYPE | `E_RELAY_TYPE.NO` | Which way round the driven contact sits: `E_RELAY_TYPE.NO` (the default) means the load is live when the output is TRUE, `E_RELAY_TYPE.NC` means it is live when the output is FALSE. Swaps the payload pair so the entity reports the state of the load rather than of the coil. |
 
 **`InitMqttDiscoveryAsLight`** — Publishes a Home Assistant MQTT discovery config for this block as a **light** entity. Call once at startup, after `InitMqtt`.
@@ -63,7 +62,6 @@ BOOL ──┤ TOGGLE                │
 | `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 | `RelayType` | E_RELAY_TYPE | `E_RELAY_TYPE.NO` | Which way round the driven contact sits: `E_RELAY_TYPE.NO` (the default) means the load is live when the output is TRUE, `E_RELAY_TYPE.NC` means it is live when the output is FALSE. Swaps the payload pair so the entity reports the state of the load rather than of the coil. |
 
 **`InitMqttDiscoveryAsLock`** — Publishes a Home Assistant MQTT discovery config for this block as a **lock** entity. Call once at startup, after `InitMqtt`.
@@ -73,7 +71,6 @@ BOOL ──┤ TOGGLE                │
 | `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 | `RelayType` | E_RELAY_TYPE | `E_RELAY_TYPE.NO` | Which way round the driven contact sits: `E_RELAY_TYPE.NO` (the default) means the load is live when the output is TRUE, `E_RELAY_TYPE.NC` means it is live when the output is FALSE. Swaps the payload pair so the entity reports the state of the load rather than of the coil. |
 
 **`InitMqttDiscoveryAsSiren`** — Publishes a Home Assistant MQTT discovery config for this block as a **siren** entity. Call once at startup, after `InitMqtt`.
@@ -83,7 +80,6 @@ BOOL ──┤ TOGGLE                │
 | `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 | `RelayType` | E_RELAY_TYPE | `E_RELAY_TYPE.NO` | Which way round the driven contact sits: `E_RELAY_TYPE.NO` (the default) means the load is live when the output is TRUE, `E_RELAY_TYPE.NC` means it is live when the output is FALSE. Swaps the payload pair so the entity reports the state of the load rather than of the coil. |
 
 **`InitMqttDiscoveryAsSwitch`** — Publishes a Home Assistant MQTT discovery config for this block as a **switch** entity. Call once at startup, after `InitMqtt`.
@@ -94,7 +90,6 @@ BOOL ──┤ TOGGLE                │
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `DeviceClass` | STRING(100) | `'outlet'` | Home Assistant device class for the entity. Leave empty for the default. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 | `RelayType` | E_RELAY_TYPE | `E_RELAY_TYPE.NO` | Which way round the driven contact sits: `E_RELAY_TYPE.NO` (the default) means the load is live when the output is TRUE, `E_RELAY_TYPE.NC` means it is live when the output is FALSE. Swaps the payload pair so the entity reports the state of the load rather than of the coil. |
 
 **`InitMqttDiscoveryAsValve`** — Publishes a Home Assistant MQTT discovery config for this block as a **valve** entity. Call once at startup, after `InitMqtt`.
@@ -105,7 +100,6 @@ BOOL ──┤ TOGGLE                │
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `DeviceClass` | STRING(100) | `'water'` | Home Assistant device class for the entity. Leave empty for the default. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 | `RelayType` | E_RELAY_TYPE | `E_RELAY_TYPE.NO` | Which way round the driven contact sits: `E_RELAY_TYPE.NO` (the default) means the load is live when the output is TRUE, `E_RELAY_TYPE.NC` means it is live when the output is FALSE. Swaps the payload pair so the entity reports the state of the load rather than of the coil. |
 
 **`PublishReceived`** — Callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.

@@ -42,6 +42,14 @@ Nevertheless, adding a new device is a simple task, feel free to reach out.
 
 ----------------------------
 
+:bulb: **Temperature and dew point are signed.** The gateway scales both by 100 and
+encodes them in two's complement, so they are read back through
+`INT_TO_REAL(WORD_TO_INT(...))`. Humidity, air quality and brightness are unsigned
+and stay that way. This matters on any outdoor sensor: read unsigned, -1 °C comes
+back as +655.35 °C and frost cannot be reported at all.
+
+----------------------------
+
 <!-- fb-interface:start -->
 ### **Block diagram**
 

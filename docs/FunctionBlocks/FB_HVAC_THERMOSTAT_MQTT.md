@@ -46,7 +46,7 @@ BOOL ──┤ SENSOR_VALID            │
 |:--|:--|:--|:--|
 | `MinAllowedTemp` | REAL |  | Minimum allowed temperature in the room. If the thermostat is on 'auto' mode the thermostat will heat up the room when the temperature drops below this value. Not possible to set the thermostat to a lower temperature value. |
 | `MaxAllowedTemp` | REAL |  | Maximum allowed temperature in the room. Not possible to set the thermostat to a higher temperature value. |
-| `Hysteresis` | REAL |  | Allowed temperature delta from the target temperature. If the measured temperature drops below the target temperature minus the hysteresis value the heating will be turned on. |
+| `Hysteresis` | REAL |  | Allowed temperature delta from the target temperature. If the measured temperature drops below the target temperature minus the hysteresis value the heating will be turned on. Calling this method is optional: the block defaults to 0.5, which matches the `TempStep` the climate entity is announced with. Zero would make the comparison exact, and on a 50 ms task the output chatters at the setpoint. |
 
 **`InitMqtt`** — Enables MQTT on the function block. Call once at startup.
 
@@ -65,7 +65,6 @@ BOOL ──┤ SENSOR_VALID            │
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `TempStep` | REAL |  | Step size for the target temperature in the Home Assistant thermostat card. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 
 **`PublishReceived`** — Callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 

@@ -61,7 +61,6 @@ BOOL ──┤ ProcessImageValid     EVENT ├── BOOL
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `DeviceClass` | STRING(100) | `'smoke'` | Home Assistant device class for the entity. Leave empty for the default. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 <!-- fb-interface:end -->
 
 ### **MQTT publish behavior**

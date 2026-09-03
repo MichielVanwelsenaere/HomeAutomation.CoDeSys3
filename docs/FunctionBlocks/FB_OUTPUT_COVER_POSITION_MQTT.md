@@ -97,7 +97,6 @@ BYTE ──┤ PublishStep                   │
 | `Device` | POINTER TO FB_PLC_MQTT_DISCOVERY_DEVICE |  | Pointer to the discovery device this entity belongs to, normally `GVL_MQTT.PLC_Device`. |
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 | `DeviceClass` | STRING(50) | `'shutter'` | Home Assistant device class for the entity. Leave empty for the default. |
 
 **`PublishReceived`** — Callback invoked by the callback collector when a message arrives on the subscribed topic. Not called directly.

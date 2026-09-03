@@ -53,15 +53,45 @@ VAR_GLOBAL
     MqttSubRS485Topic : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttSubRS485Prefix, '#');
     MqttSubHVACTopic : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttSubHVACPrefix, '#');
     bBrokerReachable : BOOL := TRUE;
+    MQTT_LANE_MAIN : INT := 0;
+    MQTT_LANE_RS485 : INT := 1;
+    MQTT_LANE_HVAC : INT := 2;
 END_VAR
 ```
 <!-- gvl:end -->
 
 ## The publish queue
 
-Every block publishes by handing a message to `GVL_MQTT.fbMqttPublishQueue`, a
-ring buffer of 1025 slots. `PRG_MQTT.MQTT_PUBLISH` drains it and hands messages
-to a pool of 40 `FB_MQTT_PUBLISH_WORKER` instances, which do the actual sending.
+Every block publishes by handing a message to `GVL_MQTT.fbMqttPublishQueue`.
+`PRG_MQTT.MQTT_PUBLISH` drains it and hands messages to a pool of
+`FB_MQTT_PUBLISH_WORKER` instances — `PRG_MQTT.cudiPublishers` of them, which is
+also what the pool array is sized from — and those do the actual sending.
+
+### **One lane per producing task**
+
+The queue is not one ring. It is a ring **per producing task**, drained round-robin
+by the single consumer, because a ring shared between tasks cannot be made safe here
+without a lock nobody can afford (see below). A lane is single-producer /
+single-consumer: its write index is advanced only by the task that owns it, its read
+index only by the drain, and each side merely reads the other's — one aligned `INT`
+load on this 32-bit target, which cannot tear.
+
+| Lane | Constant | Owner |
+|:--|:--|:--|
+| 0 | `GVL_MQTT.MQTT_LANE_MAIN` | MainTask — the default for anything that does not name a lane |
+| 1 | `GVL_MQTT.MQTT_LANE_RS485` | the RS485 task, by far the loudest producer |
+| 2 | `GVL_MQTT.MQTT_LANE_HVAC` | HvacTask |
+
+`AddMessage` writes lane 0. `AddMessageOn(Lane := ...)` names one, and a block that
+runs in its own task must use it. A discovery device takes its lane through
+`SetLane`, once, after init.
+
+**Name the lane, do not count.** The constants exist so that a new producer picks a
+lane by naming the task it runs in; a bare number is how two tasks end up sharing
+one. Adding a lane is not free either: a slot holds a `STRING(1500)` payload and a
+`STRING(160)` topic, so it is about 1.8 kB, and the three lanes hold 341 slots each
+to keep the total at the 1024 the single ring had. Widening `ciLanes` without
+narrowing `ciLaneN` adds roughly 600 kB of static RAM per lane.
 
 ### **Reading its state**
 
@@ -69,36 +99,52 @@ to a pool of 40 `FB_MQTT_PUBLISH_WORKER` instances, which do the actual sending.
 |:--|:--|:--|
 | `HasMessage()` | METHOD : BOOL | Something is queued. This is what the drain loop gates on. |
 | `IsFull()` | METHOD : BOOL | No room for another message. Reports full one slot early. |
-| `DroppedCount` | VAR_OUTPUT : UDINT | Messages discarded because the ring was full. Should stay at 0. |
+| `DroppedCount` | VAR_OUTPUT : UDINT | Messages discarded because a lane was full. Should stay at 0. It rides in the RS485 diagnostic as `drop=`. |
 
 `HasMessage()` and `IsFull()` are **methods, not flags** — call them, do not read a
-stored value. There used to be `EMPTY` and `FULL` outputs and removing them was the
-point: with the read and write index equal, the ring is either completely empty or
-completely full, so a stored flag was the only thing distinguishing the two cases,
-and both the producers and the consumer wrote it. Losing that race either left a
-non-empty queue looking empty — the workers stop draining and a retained state
-change sits unsent until something else publishes — or cleared `FULL` while the ring
-really was full, letting a writer overwrite messages not yet sent.
+stored value. Both are computed from the read and write indices, so nothing shared is
+mutable: the write index is only ever advanced by `AddMessage`, the read index only by
+`GetMessage`, and each side merely reads the other's.
 
-Computing them from the indices instead means nothing shared is mutable: the write
-index is only ever advanced by `AddMessage`, the read index only by `GetMessage`, and
-each side merely reads the other's. Reporting full one slot early is what pays for
-it, and is why the usable capacity is 1024 rather than 1025.
+A stored flag could not be safe here. With the two indices equal a lane is either
+completely empty or completely full, so the flag would be the only thing telling those
+apart, and both the producers and the consumer would have to write it — leaving a
+non-empty lane looking empty, where the workers stop draining and a retained state
+change sits unsent, or clearing `IsFull()` while the lane really is full, where a
+writer overwrites a message not yet sent. Reporting full one slot early is what pays
+for computing them instead, and is why a lane of 341 slots carries 340 messages. `HasMessage()` answers for
+any lane; `GetMessage` picks up where the last drain left off, so a loud lane cannot
+starve a quiet one.
+
+### **Why lanes rather than a lock**
+
+Two tasks in `AddMessage` on the same ring both read the same write index, leave one
+message in that slot built from each other's fields, and leave the next slot never
+written — one publish corrupted, the next carrying whatever was in that slot a lap
+earlier. Nothing detects it, because the slot count still balances. What reaches the
+broker is a device publishing a payload it never sent, on a topic belonging to
+another block, and its own counters still add up.
+
+A lock is not the alternative. It would have to be held across a 1.5 kB payload copy,
+and MainTask blocking on one held by the RS485 task is priority inversion on the task
+that also drives the covers. `SysTask`, `CmpIecTask` and `SysCpuHandling` are all
+unresolved on this device, so there is no runtime task identity to key a lock on and
+no atomics to build one from either. Splitting the ring removes the shared mutable
+index instead of guarding it.
 
 ### **What is still not safe**
 
-One race remains. Two tasks calling `AddMessage` at the same time can both read the
-same write index, leave one message in that slot built from each other's fields, and
-leave the next slot never written at all — so one publish is corrupted and the next
-carries whatever was in that slot a lap earlier. Nothing detects it, because the
-slot count still balances.
+**A discovery device shared between tasks publishes on one lane.** A lane is set per
+device, and `GVL_MQTT.PLC_Device` is announced to from MainTask's blocks *and* from
+the HVAC blocks, so it cannot take a lane of its own without moving one task's
+discovery onto the other's. Its publishes therefore stay on lane 0 and two tasks can
+still collide there.
 
-Four tasks write to this queue (MainTask, HvacTask, RS485, MqttCommunication, plus
-Ping), so it is reachable. Fixing it needs one ring per producing task rather than a
-lock: a lock would have to be held across a 1.5 kB payload copy, and MainTask
-blocking on one held by RS485 is priority inversion on the task that also drives the
-covers. `SysTask`, `CmpIecTask` and `SysCpuHandling` are all unresolved on this
-device, so there is no runtime task identity and no atomics to build on either.
+The window is startup, when discovery configs and the first availability messages go
+out; steady-state publishing is unaffected, because each block's own state publishes
+name their task's lane. Giving it a lane per caller means either a discovery device
+per task or a lane argument threaded through every `Create*Entity`, and neither has
+been done.
 
 ## MQTT Birth and Last Will message
 
