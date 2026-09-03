@@ -121,7 +121,7 @@ yourself when the declaration cannot express what you need:
 
 - a second broker, or a publish queue other than `GVL_MQTT.fbMqttPublishQueue`
 - a topic prefix that is not the standard one for that block's category
-- a `DeviceClass`, `overruleId` or `meta` on the discovery config
+- a `DeviceClass` or an `overruleId` on the discovery config
 - a per-instance Home Assistant device rather than the shared `PLC_Device`
 
 Leave `FriendlyName` empty when you do, so the block does not also wire itself.

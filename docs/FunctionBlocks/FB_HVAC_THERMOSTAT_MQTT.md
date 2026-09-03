@@ -65,7 +65,6 @@ BOOL ──┤ SENSOR_VALID            │
 | `Name` | STRING(255) |  | Name shown in the Home Assistant front-end. |
 | `TempStep` | REAL |  | Step size for the target temperature in the Home Assistant thermostat card. |
 | `overruleId` | STRING(255) | `''` | Overrides the generated entity id. Leave empty to derive it from the function block name. |
-| `meta` | STRING(255) | `''` | Extra JSON merged into the discovery config. Leave empty for none. |
 
 **`PublishReceived`** — Callback method called by the callback collector when a message is received on the subscribed topic by the callback collector.
 
