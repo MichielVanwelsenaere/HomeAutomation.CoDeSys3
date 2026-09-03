@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-01T22:20:33.4842795" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-01T22:19:59.3567525">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-03T10:43:00.1487993" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-03T10:41:59.996856">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -19896,11 +19896,14 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	   different encoding - status 4 is what action 2 produces - so a select would
 	   have to be optimistic and would drift out of step.
 
-	   Actions 2, 3 and 4 are TEMPORARY manual settings: L8000009 gives them 15
-	   minutes on an extraction system, after which the box returns to automatic on
-	   its own. The duration is in the entity name because nothing else says it -
-	   the status the box reports back is a plain 'Manual low', with no hint that
-	   it will lapse.
+	   Actions 2, 3 and 4 are TEMPORARY manual settings: the zone returns to
+	   automatic on its own, after 15 minutes on an extraction system and 8 hours on
+	   a supply one. The name says 'timed' rather than a number because the number
+	   is not fixed - a room operating unit carries the duration in holding 7,
+	   settable from 5 to 9995 minutes and announced here as its manual time
+	   control. The box has no such register, and says nothing about the timer
+	   either: the status it reports back is a plain 'Manual low', with no hint that
+	   it lapses. Which is why the name has to carry that at all.
 
 	   The 10, 20 and 30 minute high settings cannot be requested here. They exist
 	   only as INPUT 1 status values, so a physical control can produce one and this
@@ -19908,7 +19911,7 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 	   percentage, is the other way to overrule - a level with no timer, already
 	   exposed as the target number. *)
 	fbMqttDiscoveryDevice.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Low (15 min)'),
+		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sDeviceId, '_A2'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -19916,7 +19919,7 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 		EntityCategory := 'config', DeviceClass := '');
 
 	fbMqttDiscoveryDevice.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Medium (15 min)'),
+		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sDeviceId, '_A3'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -19924,7 +19927,7 @@ fbMqttDiscoveryDevice.SetLane(Lane := 1);
 		EntityCategory := 'config', DeviceClass := '');
 
 	fbMqttDiscoveryDevice.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' High (15 min)'),
+		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sDeviceId, '_A4'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20202,7 +20205,7 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 	   'Manual low' is 2 and the status that reports it is 4 - so a select would
 	   have to be optimistic and would drift. A button claims no state. *)
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Low (15 min)'),
+		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20210,7 +20213,7 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Medium (15 min)'),
+		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20218,7 +20221,7 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' High (15 min)'),
+		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20322,7 +20325,7 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 	   'Manual low' is 2 and the status that reports it is 4 - so a select would
 	   have to be optimistic and would drift. A button claims no state. *)
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Low (15 min)'),
+		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20330,7 +20333,7 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Medium (15 min)'),
+		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20338,7 +20341,7 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' High (15 min)'),
+		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20409,7 +20412,7 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 	   'Manual low' is 2 and the status that reports it is 4 - so a select would
 	   have to be optimistic and would drift. A button claims no state. *)
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Low (15 min)'),
+		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20417,7 +20420,7 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Medium (15 min)'),
+		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20425,7 +20428,7 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' High (15 min)'),
+		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20506,7 +20509,7 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 	   'Manual low' is 2 and the status that reports it is 4 - so a select would
 	   have to be optimistic and would drift. A button claims no state. *)
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Low (15 min)'),
+		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20514,7 +20517,7 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Medium (15 min)'),
+		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20522,7 +20525,7 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' High (15 min)'),
+		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20613,7 +20616,7 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 	   'Manual low' is 2 and the status that reports it is 4 - so a select would
 	   have to be optimistic and would drift. A button claims no state. *)
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Low (15 min)'),
+		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20621,7 +20624,7 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Medium (15 min)'),
+		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20629,7 +20632,7 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' High (15 min)'),
+		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20702,7 +20705,7 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 	   'Manual low' is 2 and the status that reports it is 4 - so a select would
 	   have to be optimistic and would drift. A button claims no state. *)
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Low (15 min)'),
+		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20710,7 +20713,7 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Medium (15 min)'),
+		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20718,7 +20721,7 @@ E_RS485_DUCO_NODE_TYPE.SwitchSensor:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' High (15 min)'),
+		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20830,7 +20833,7 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 	   'Manual low' is 2 and the status that reports it is 4 - so a select would
 	   have to be optimistic and would drift. A button claims no state. *)
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Low (15 min)'),
+		Name := CONCAT(sLabel, ' Low (timed)'),
 		Id := CONCAT(sId, '_A2'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20838,7 +20841,7 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' Medium (15 min)'),
+		Name := CONCAT(sLabel, ' Medium (timed)'),
 		Id := CONCAT(sId, '_A3'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),
@@ -20846,7 +20849,7 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 		EntityCategory := 'config', DeviceClass := '');
 
 	Device^.CreateButtonEntity(
-		Name := CONCAT(sLabel, ' High (15 min)'),
+		Name := CONCAT(sLabel, ' High (timed)'),
 		Id := CONCAT(sId, '_A4'),
 		Meta := '',
 		CommandTopic := CONCAT(sCmd, '/write/9'),

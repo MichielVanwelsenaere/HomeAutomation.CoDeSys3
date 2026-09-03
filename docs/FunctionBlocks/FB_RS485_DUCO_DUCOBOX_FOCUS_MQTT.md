@@ -119,7 +119,11 @@ DUCO DUCOBOX Focus data:
 <!-- fb-interface:end -->
 
 ### **MQTT publish behavior**
-Requires method call `InitMQTT` to enable MQTT capabilities.
+
+Set the block's own `FriendlyName` in the declaration and it wires itself — see
+[MQTT self-wiring](../AdditionalFunctionality/MQTT_SelfWiring.md). That name is the box's;
+each component keeps the name its `AddNode` call gave it. Leave `FriendlyName` empty and
+call `InitMqtt` and `InitMqttDiscovery` yourself instead.
 
 Read parameter 0 of every node is its module type, and it decides what the other
 registers mean. The block resolves it on each read and publishes the values under
@@ -162,7 +166,8 @@ the network is re-paired, so it is requested when a node's type is first
 established and not polled after that.
 
 ### **MQTT subscribe behavior**
-Requires method call `InitMQTT` to enable MQTT capabilities.
+Subscribing takes the same wiring as publishing above — the self-wiring prologue, or an
+`InitMqtt` call of your own.
 Commands are executed by the FB if the topic `MQTTSubscribeTopic` matches the MQTT topic and the payload exists in the table below.
 
 | Command | Description | expected payload | Additional notes | 
@@ -175,10 +180,11 @@ Upon a successful write operation the received payload will be published on the 
 
 ### **Code example**
 
-- variables initiation:
+- variables initiation. The initialiser names the box in Home Assistant and is what
+  makes the block wire itself:
 ```
-MQTTPubRS485Prefix                :STRING(100) := 'Devices/PLC/Lab/Out/RS485/';
-FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001    :FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT;
+FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001 : FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT
+                                     := (FriendlyName := 'Ventilation');
 ```
 
 - Init RS485 method call (called once during startup):
@@ -189,15 +195,10 @@ FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001.InitRS485(
 );
 ```
 
-- Init MQTT method call (called once during startup):
-```
-FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001.InitMqtt(
-	MQTTPublishPrefix:= ADR(MqttRS485Prefix),                       (* pointer to string prefix for the mqtt publish topic *)
-	pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue)      (* pointer to MqttPublishQueue to send a new Mqtt event *)
-);
-
-```
-The MQTT publish topic in this code example will be `Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001` (MQTTPubSwitchPrefix variable + function block name).
+No `InitMqtt` or `InitMqttDiscovery` call is needed: the block takes both prefixes, the
+publish queue and the callback collector from `GVL_MQTT` on its first cyclic call. The
+publish topic is that prefix plus the instance name, so with the lab prefix it is
+`Devices/PLC/Lab/Out/RS485/FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001`.
 
 - Adding the components on the network (called once during startup, after
   `InitRS485`). The name is the room; what the component *is* is read off the bus,
@@ -214,13 +215,35 @@ FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001.AddNode(
 RS485BusController.RegisterDevice(device := FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001);
 ```
 
+- and calling it cyclically, in `RS485_RUN`:
+```
+FB_RS485_DUCO_DUCOBOX_FOCUS_MQTT_001();
+```
+
+**A block wired this way must be called cyclically** — an instance whose body never runs
+stays unwired and never appears in Home Assistant, and nothing warns about it.
+
 ### **Home Assistant**
 
-Nothing to configure. Call `InitMqttDiscovery` once at startup and the box
-announces itself, then each component as the bus reports what it is. Every
-component becomes a device of its own named by the `FriendlyName` its `AddNode`
-call supplied, carrying the sensors its module type has and a number, switch or
-button for every write parameter that type defines.
+Nothing to configure. The box announces itself on its first cyclic call, then each
+component as the bus reports what it is. Every component becomes a device of its own
+named by the `FriendlyName` its `AddNode` call supplied, carrying the sensors its
+module type has and a number, switch or button for every write parameter that type
+defines.
 
 The component set is discovered, not declared: a valve replaced by a sensor
 re-announces as a sensor on its next read, with no change here.
+
+:bulb: **`Low (timed)`, `Medium (timed)` and `High (timed)` lapse on their own.** They
+are holding 9 actions 2, 3 and 4 — *temporary* manual settings, after which the zone
+returns to automatic by itself. The duration is 15 minutes on an extraction system and
+8 hours on a supply one, and it is not fixed: a room operating unit holds it in write
+parameter 7, settable from 5 to 9995 minutes and announced as that component's `manual
+time` control. Which is why the buttons say `timed` and not a number. `Auto` and
+`Unoccupied` are the two open-ended actions.
+
+:bulb: **The 10, 20 and 30 minute high settings cannot be requested.** They exist only
+as read parameter 1 status values, so a physical control can produce one and this block
+reports it, but no action value asks for one. The other way to overrule is `target`,
+holding 0 — a level with no timer at all, which stays until something else changes the
+setting or it is written back to -1.
