@@ -1,0 +1,27 @@
+{
+  "_comment": [
+    "Moves the Ping task off MainTask's priority on the lab controller.",
+    "",
+    "PRG_PING_DMX makes two SysSockPing calls with ulTimeout := 100, and the task",
+    "sat at priority 4 - MainTask's own, which runs every 50 ms and drives the",
+    "pushbuttons and the covers. Up to 200 ms of blocking at that priority is the",
+    "stall FB_OUTPUT_COVER_POSITION_MQTT keeps a cudiMaxTickMs := 500 guard for.",
+    "",
+    "31 is the lowest priority the device allows: the G1 PFC200 description",
+    "(0000 0013 / 4.19.0.0) sets maxtaskpriority to 31, unlike the G2's 15. A ping",
+    "every 10 s is the one thing here that can always wait.",
+    "",
+    "Run it with:",
+    "  ./tools/ai/codesys.ps1 scaffold -Scaffold tools/ai/scaffold/g1-ping-priority.json -Force",
+    "",
+    "The task already exists, so this updates it: no interval and no calls are",
+    "given, and both are left as they are."
+  ],
+  "objects": [
+    {
+      "application": "Wago_PFC200_G1_Lab",
+      "task": "Ping",
+      "priority": 31
+    }
+  ]
+}

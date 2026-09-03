@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-03T10:43:00.1487993" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-03T10:41:59.996856">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-03T13:04:37.7198722" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-03T13:03:42.7481519">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -4784,8 +4784,8 @@ pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the col
 			PayloadOpen := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
 			PayloadClosed := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			StateTopic := THIS^.sMQTTPublishTopic,
-			StateOpen := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
-			StateClosed := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			StateOpen := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NO),
+			StateClosed := BOOL_TO_STRING(RelayType = E_RELAY_TYPE.NC),
 			Deviceclass := DeviceClass);
 
 	bInitMqttDiscoveryDone := TRUE;
@@ -8991,6 +8991,14 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">
+(* A channel outside 1..512 has no slot in the universe, and DmxChannel - 1 is
+   what indexes the buffer - so 0 would write BUFFER[-1]. Refusing to init is
+   the only report available here: the method returns nothing and the block
+   then stays dormant rather than corrupting whatever precedes the buffer. *)
+IF DmxChannel &lt; 1 OR DmxChannel &gt; 512 THEN
+	RETURN;
+END_IF
+
 IF NOT THIS^.bInitDmxDone THEN
 	THIS^.DmxChannel := DmxChannel;
 	THIS^.pDmxValues := pDmxValues;
@@ -9805,7 +9813,7 @@ fbActuator(
 	
 	
 IF ((bPreviousState &lt;&gt; OUT) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := BOOL_TO_STRING(OUT),
 		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -10250,7 +10258,7 @@ FOR iI := 1 TO ciValveCount DO
 	afbFTrigValve[iI](CLK := VALVE[iI]);
 
 	IF ((afbRTrigValve[iI].Q OR afbFTrigValve[iI].Q) OR bStartup) AND bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessage(
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 			Payload := BOOL_TO_STRING(VALVE[iI]),
 			Topic := CONCAT(sMQTTPublishTopic, CONCAT('/Valves/', casValveNames[iI])),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -10603,7 +10611,7 @@ fbActuator(
 HEAT_REQUEST := PUMP;	
 	
 IF ((bPreviousState &lt;&gt; PUMP) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := BOOL_TO_STRING(PUMP),
 		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -10836,6 +10844,15 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
               <type>
                 <REAL />
               </type>
+              <initialValue>
+                <simpleValue value="0.5" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Zero would make this a bare comparison against the setpoint, and on a 50 ms
+	   task the output chatters at the setpoint - each flip a retained QoS 2
+	   publish. 0.5 matches the TempStep the climate entity is announced with,
+	   so the deadband is the smallest step Home Assistant can ask for. </xhtml>
+              </documentation>
             </variable>
             <variable name="rPreviousTemp">
               <type>
@@ -10996,25 +11013,25 @@ ELSIF ENABLED AND eHvacMode = E_HVAC_MODE.heat AND MEASURED_TEMP &gt; (rDesiredT
 END_IF
 
 IF bStartup AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(MaxAllowedTemp),
 		Topic := CONCAT(sMQTTPublishTopic, '/MAX_TEMP'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);	
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(MinAllowedTemp),
 		Topic := CONCAT(sMQTTPublishTopic, '/MIN_TEMP'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := TO_STRING(eHvacMode),
 		Topic := CONCAT(sMQTTPublishTopic, '/MODE'),
 		Qos := MQTT.QoS.ExactlyOnce,
 		MqttRetain := TRUE
 	);	
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(rDesiredTemp),
 		Topic := CONCAT(sMQTTPublishTopic, '/DESIRED_TEMP'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11023,7 +11040,7 @@ IF bStartup AND bInitMqttDone THEN
 END_IF
 
 IF ((bPreviousState &lt;&gt; OUT) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := BOOL_TO_STRING(OUT),
 		Topic := sMQTTPublishTopic,
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11031,7 +11048,7 @@ IF ((bPreviousState &lt;&gt; OUT) OR bStartup) AND bInitMqttDone THEN
 	);	
 END_IF	
 IF ((rPreviousTemp &lt;&gt; MEASURED_TEMP) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(MEASURED_TEMP),
 		Topic := CONCAT(sMQTTPublishTopic, '/TEMP'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11040,7 +11057,7 @@ IF ((rPreviousTemp &lt;&gt; MEASURED_TEMP) OR bStartup) AND bInitMqttDone THEN
 END_IF
 
 IF ((rPreviousHum &lt;&gt; MEASURED_HUM) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := REAL_TO_STRING(MEASURED_HUM),
 		Topic := CONCAT(sMQTTPublishTopic, '/HUM'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11050,7 +11067,7 @@ END_IF
 
 
 IF ((bPreviousFault &lt;&gt; bSensorFault) OR bStartup) AND bInitMqttDone THEN
-	pMqttPublishQueue^.AddMessage(
+	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 		Payload := BOOL_TO_STRING(bSensorFault),
 		Topic := CONCAT(sMQTTPublishTopic, '/FAULT'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -11233,7 +11250,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/DESIRED_TEMP') =  Data.TopicOut^ THEN
 		 // temperature requested higher then max allowed temp; set to max allowed temp
 		 IF STRING_TO_REAL(Data.PayloadString^) &gt; THIS^.MaxAllowedTemp THEN
 			 THIS^.rDesiredTemp := THIS^.MaxAllowedTemp;		 
-			 THIS^.pMqttPublishQueue^.AddMessage(
+			 THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 				Payload := REAL_TO_STRING(THIS^.MaxAllowedTemp),
 				Topic := CONCAT(sMQTTPublishTopic, '/DESIRED_TEMP'),
 				Qos := MQTT.QoS.ExactlyOnce,
@@ -11242,7 +11259,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/DESIRED_TEMP') =  Data.TopicOut^ THEN
 		 // temperature requested lower then min allowed temp: set to min allowed temp
 		 ELSIF STRING_TO_REAL(Data.PayloadString^) &lt; THIS^.MinAllowedTemp THEN
 			 THIS^.rDesiredTemp := THIS^.MinAllowedTemp;			 
-			 THIS^.pMqttPublishQueue^.AddMessage(
+			 THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 				Payload := REAL_TO_STRING(THIS^.MinAllowedTemp),
 				Topic := CONCAT(sMQTTPublishTopic, '/DESIRED_TEMP'),
 				Qos := MQTT.QoS.ExactlyOnce,
@@ -11250,7 +11267,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/DESIRED_TEMP') =  Data.TopicOut^ THEN
 			);
 		 ELSE
 			 THIS^.rDesiredTemp := STRING_TO_REAL(Data.PayloadString^);			 
-			 THIS^.pMqttPublishQueue^.AddMessage(
+			 THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 				Payload := Data.PayloadString^,
 				Topic := CONCAT(sMQTTPublishTopic, '/DESIRED_TEMP'),
 				Qos := MQTT.QoS.ExactlyOnce,
@@ -11265,7 +11282,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 	//check if the mode is known and if so set it
 	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('auto')) THEN
 		THIS^.eHvacMode := E_HVAC_MODE.auto;		
-	 	THIS^.pMqttPublishQueue^.AddMessage(
+	 	THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(sMQTTPublishTopic, '/MODE'),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -11273,7 +11290,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 		);
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('off')) THEN
 		THIS^.eHvacMode := E_HVAC_MODE.off;		
-	 	THIS^.pMqttPublishQueue^.AddMessage(
+	 	THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(sMQTTPublishTopic, '/MODE'),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -11281,7 +11298,7 @@ ELSIF CONCAT(sMQTTSubscribeTopic,'/MODE') =  Data.TopicOut^ THEN
 		);
 	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('heat')) THEN
 		THIS^.eHvacMode := E_HVAC_MODE.heat;		
-	 	THIS^.pMqttPublishQueue^.AddMessage(
+	 	THIS^.pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
 			Payload := Data.PayloadString^,
 			Topic := CONCAT(sMQTTPublishTopic, '/MODE'),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -11588,6 +11605,15 @@ IF psMqttSubscribeTopicPrefix &lt;&gt; 0 THEN
 	END_IF
 END_IF
 
+(* The queue is dereferenced without a null check in every publishing block,
+   so refuse to be initialised without one. The derived InitMqtt assigns
+   THIS^.pMqttPublishQueue before calling this, which is why it can be read
+   here. A block left uninitialised publishes nothing; one initialised with a
+   null queue faults on its first publish instead. *)
+IF THIS^.pMqttPublishQueue = 0 THEN
+	RETURN;
+END_IF
+
 bInitMqttDone := TRUE;</xhtml>
                 </ST>
               </body>
@@ -11714,11 +11740,11 @@ END_IF</xhtml>
                 <INT />
               </type>
               <initialValue>
-                <simpleValue value="1" />
+                <simpleValue value="2" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest lane index. Lane 0 is the default for anything that does not ask
- for one; lane 1 is the RS485 task, which is by far the loudest producer.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest lane index. One per producing task: 0 MainTask, 1 the RS485 task,
+ 2 HvacTask. GVL_MQTT.MQTT_LANE_* names them for the producers.</xhtml>
               </documentation>
             </variable>
             <variable name="ciLaneN">
@@ -11726,11 +11752,12 @@ END_IF</xhtml>
                 <INT />
               </type>
               <initialValue>
-                <simpleValue value="511" />
+                <simpleValue value="340" />
               </initialValue>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest slot index within a lane. Total storage is unchanged from the
- single ring this replaces.</xhtml>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest slot index within a lane. Chosen so that adding a lane does not
+ add storage: 3 x 341 is the 1024 slots the single ring had. A slot is
+ about 1.8 kB, so a lane costs roughly 600 kB and cannot just be added.</xhtml>
               </documentation>
             </variable>
           </localVars>
@@ -12210,6 +12237,14 @@ FOR diI := diContentLen - 1 TO 0 BY -1 DO
 END_FOR
 
 IF NOT bFoundEnd THEN
+    RETURN;
+END_IF
+
+// diEnd must come after diStart. It does not on JSON that was truncated or was
+// never well formed, and then diEnd - diStart is negative: DINT_TO_UDINT turns
+// that into ~4 GB for SysMemMove, and pJson[diEnd - diStart] writes in front of
+// the buffer. Neither reports anything.
+IF diEnd &lt;= diStart THEN
     RETURN;
 END_IF
 
@@ -12761,26 +12796,6 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
                       <simpleValue value="'sensor'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -12935,26 +12950,6 @@ END_IF
                       <simpleValue value="'switch'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -13095,26 +13090,6 @@ THIS^.PublishEntityConfig(
                     <initialValue>
                       <simpleValue value="'light'" />
                     </initialValue>
-                  </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
                   </variable>
                 </localVars>
               </interface>
@@ -13259,26 +13234,6 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'sensor'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -13399,26 +13354,6 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'siren'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -13519,26 +13454,6 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'lock'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -13628,26 +13543,6 @@ THIS^.PublishEntityConfig(
                     <initialValue>
                       <simpleValue value="'light'" />
                     </initialValue>
-                  </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
                   </variable>
                 </localVars>
               </interface>
@@ -13940,26 +13835,6 @@ CreateDiagnosticSensorEntity(
                       <simpleValue value="'cover'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -14184,26 +14059,6 @@ END_IF</xhtml>
                       <simpleValue value="'binary_sensor'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -14306,26 +14161,6 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'binary_sensor'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
                 <addData>
                   <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -14420,26 +14255,6 @@ THIS^.PublishEntityConfig(
                     <initialValue>
                       <simpleValue value="'event'" />
                     </initialValue>
-                  </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
                   </variable>
                 </localVars>
               </interface>
@@ -14546,26 +14361,6 @@ THIS^.PublishEntityConfig(
                     <initialValue>
                       <simpleValue value="'valve'" />
                     </initialValue>
-                  </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
                   </variable>
                 </localVars>
               </interface>
@@ -14681,26 +14476,6 @@ THIS^.PublishEntityConfig(
                       <simpleValue value="'climate'" />
                     </initialValue>
                   </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
-                  </variable>
                 </localVars>
               </interface>
               <body>
@@ -14798,26 +14573,6 @@ THIS^.PublishEntityConfig(
                     <initialValue>
                       <simpleValue value="'valve'" />
                     </initialValue>
-                  </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
                   </variable>
                 </localVars>
               </interface>
@@ -14960,26 +14715,6 @@ THIS^.PublishEntityConfig(
                     <initialValue>
                       <simpleValue value="'fan'" />
                     </initialValue>
-                  </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
                   </variable>
                 </localVars>
               </interface>
@@ -15285,7 +15020,7 @@ bKeyRenamed := F_JSON_RENAME_KEY(pJson := ADR(sMqttJSON), uiSize := SIZEOF(sMqtt
    check whose whole job is detecting values that got cut short. *)
 pJsonByte := ADR(sMqttJSON);
 diJsonLen := 0;
-FOR diI := 0 TO DINT#1499 DO
+FOR diI := 0 TO UDINT_TO_DINT(SIZEOF(sMqttJSON)) - 1 DO
 	IF pJsonByte[diI] = 0 THEN
 		diJsonLen := diI;
 		EXIT;
@@ -15445,26 +15180,6 @@ END_IF</xhtml>
                     <initialValue>
                       <simpleValue value="'cover'" />
                     </initialValue>
-                  </variable>
-                  <variable name="fbComposeJSON">
-                    <type>
-                      <derived name="STRUCT_TO_JSON" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttJSON">
-                    <type>
-                      <string length="1500" />
-                    </type>
-                  </variable>
-                  <variable name="sMqttTopic">
-                    <type>
-                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
-                    </type>
-                  </variable>
-                  <variable name="bStripJsonRootOk">
-                    <type>
-                      <BOOL />
-                    </type>
                   </variable>
                 </localVars>
               </interface>
@@ -16794,7 +16509,14 @@ END_IF
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.Transport := Transport;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Without this, bInitialised went TRUE for a null transport too, and the
+   guard on it only ever caught "Init was never called" - not "Init was
+   called with nothing to drive", which is the same crash one cycle later. *)
+IF Transport = 0 THEN
+	RETURN;
+END_IF
+
+THIS^.Transport := Transport;
 
 (* Zero means "keep the default", so a call site can supply only what it cares
    about and the block still starts with sane timings. *)
@@ -17258,7 +16980,7 @@ CASE iState OF
 	LastReport := sReport;
 
 	IF pQueue &lt;&gt; 0 AND psTopicPrefix &lt;&gt; 0 AND stRequest.ReportTopic &lt;&gt; '' THEN
-		pQueue^.AddMessageOn(Lane := 1,
+		pQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := sReport,
 			Topic := CONCAT(psTopicPrefix^, stRequest.ReportTopic),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -18089,7 +17811,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	Device^.CreateSensorEntity(
 		Name := 'Distance',
@@ -18143,7 +17865,7 @@ END_IF
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -19136,7 +18858,7 @@ END_FOR</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -19805,7 +19527,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-fbMqttDiscoveryDevice.SetLane(Lane := 1);
+fbMqttDiscoveryDevice.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	fbMqttDiscoveryDevice.CreateSensorEntity(
 		Name := CONCAT(sLabel, ' status'),
@@ -20050,7 +19772,7 @@ Device^.initBaseDevice(
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 (* Common to every component that has them. *)
 Device^.CreateSensorEntity(
@@ -20908,13 +20630,13 @@ uiAvailPubs := uiAvailPubs + 1;
 
 IF bInitMqttDone THEN
 	IF Online THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := 'online',
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
 			Qos := MQTT.QoS.ExactlyOnce,
 			MqttRetain := TRUE);
 	ELSE
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := 'offline',
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -21342,7 +21064,7 @@ THIS^.bInitMqttDone := TRUE;</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(CONCAT(CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), '/'), UINT_TO_STRING(NodeNumber)), Suffix ),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -22216,7 +21938,7 @@ SUPER^.InitBaseMqtt();</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -22460,7 +22182,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	Device^.CreateSensorEntity(
 		Name := 'Active Power',
@@ -22940,7 +22662,7 @@ SUPER^.InitBaseMqtt();</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -23204,7 +22926,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	(* --- register block 1: the instantaneous electrical values ------------- *)
 
@@ -24103,7 +23825,7 @@ IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 
 	Device^.CreateSensorEntity(
 		Name := 'L1 Active Power',
@@ -24327,7 +24049,7 @@ END_IF</xhtml>
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(THIS^.sMQTTPublishTopic, Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -24920,7 +24642,7 @@ END_IF
 
 (* This device publishes from the RS485 task, so its messages take that
    task's queue lane. A lane may only ever have one producing task. *)
-Device^.SetLane(Lane := 1);
+Device^.SetLane(Lane := GVL_MQTT.MQTT_LANE_RS485);
 		
 	IF SupportsTemperature THEN
 		Device^.CreateSensorEntity(
@@ -25037,7 +24759,7 @@ SUPER^.InitBaseMqtt();
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone THEN
-		pMqttPublishQueue^.AddMessageOn(Lane := 1,
+		pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 			Payload := Data,
 			Topic := CONCAT(CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix), Suffix),
 			Qos := MQTT.QoS.ExactlyOnce,
@@ -25062,7 +24784,10 @@ END_IF</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.TEMPERATURE := WORD_TO_REAL(Data) / 100;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed: the gateway scales by 100 and encodes two's complement, and both
+   of these read below zero on an outdoor sensor. Unsigned turned -1 degree
+   into +655.35 and nothing could report frost. *)
+THIS^.TEMPERATURE := INT_TO_REAL(WORD_TO_INT(Data)) / 100;
 PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));</xhtml>
                 </ST>
               </body>
@@ -25122,7 +24847,10 @@ PubMqttMessage(Suffix := '/HUM', Data := REAL_TO_STRING(HUMIDITY));</xhtml>
               </interface>
               <body>
                 <ST>
-                  <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.DEW_POINT := WORD_TO_REAL(Data) / 100;
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed: the gateway scales by 100 and encodes two's complement, and both
+   of these read below zero on an outdoor sensor. Unsigned turned -1 degree
+   into +655.35 and nothing could report frost. *)
+THIS^.DEW_POINT := INT_TO_REAL(WORD_TO_INT(Data)) / 100;
 PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));</xhtml>
                 </ST>
               </body>
@@ -26007,13 +25735,6 @@ ELSIF NOT bGotFrame THEN
 		LastFailBytes := CONCAT(LastFailBytes, BYTE_TO_STRING(abyRx[iI]));
 		LastFailBytes := CONCAT(LastFailBytes, ' ');
 	END_FOR
-	FOR iI := 0 TO count - 1 DO
-		IF iI &gt;= 24 THEN
-			EXIT;
-		END_IF
-		LastFailBytes := CONCAT(LastFailBytes, BYTE_TO_STRING(abyRx[iI]));
-		LastFailBytes := CONCAT(LastFailBytes, ' ');
-	END_FOR
 
 ELSIF abyRx[iFirst] &lt;&gt; stStep.DeviceId THEN
 	(* Well formed, intact, and not ours. On a shared bus that is somebody
@@ -26609,7 +26330,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
               </data>
             </addData>
           </task>
-          <task name="Ping" interval="PT10S" priority="4">
+          <task name="Ping" interval="PT10S" priority="31">
             <pouInstance name="PRG_PING_DMX" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
@@ -27086,6 +26807,30 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
  through a healthy startup.</xhtml>
               </documentation>
             </variable>
+            <variable name="MQTT_LANE_MAIN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_RS485">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_HVAC">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+            </variable>
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                 <Attributes>
@@ -27121,6 +26866,30 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                       </type>
                       <initialValue>
                         <simpleValue value="64" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MQTT_LANE_MAIN">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="0" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MQTT_LANE_RS485">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="1" />
+                      </initialValue>
+                    </variable>
+                    <variable name="MQTT_LANE_HVAC">
+                      <type>
+                        <INT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="2" />
                       </initialValue>
                     </variable>
                   </globalVars>
@@ -28696,9 +28465,16 @@ END_IF;
 
 size := 512+18;
 FOR iI:= 0 TO 511 DO (* check whether the DMX values ​​in the global variable have changed *)
-	// iI+2 is strange, buffers are not the same, its often offset with 2 sometimes by 1, todo
-	IF stSBuf1.BUFFER[iI+18] &lt;&gt; GVL_DMX.DMX.BUFFER[iI+2] THEN
-   		stSBuf1.BUFFER[iI+18]:= GVL_DMX.DMX.BUFFER[iI+2];
+	(* One convention, and it is asserted here: GVL_DMX.DMX.BUFFER[c - 1] holds
+	   DMX channel c, which is what FB_OUTPUT_DIMMER_DMX_MQTT writes. An ArtDmx
+	   packet carries its 18-byte header and then channel 1 at data offset 0, so
+	   buffer index iI goes to BUFFER[iI + 18] and nothing shifts on the way.
+
+	   This read used to be BUFFER[iI + 2] against a block writing BUFFER[c - 1]:
+	   channel c lit slot c - 2, and channels 1 and 2 could not be reached at all
+	   because no iteration ever read buffer index 0 or 1. *)
+	IF stSBuf1.BUFFER[iI+18] &lt;&gt; GVL_DMX.DMX.BUFFER[iI] THEN
+   		stSBuf1.BUFFER[iI+18]:= GVL_DMX.DMX.BUFFER[iI];
 		iStep := 1;
 	END_IF
 END_FOR
@@ -28840,26 +28616,22 @@ END_CASE
                         <UDINT />
                       </type>
                     </variable>
-                    <variable name="udiIpublishers">
-                      <type>
-                        <UDINT />
-                      </type>
-                      <initialValue>
-                        <simpleValue value="40" />
-                      </initialValue>
-                      <documentation>
-                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> variables for MQTT publishing </xhtml>
-                      </documentation>
-                    </variable>
                     <variable name="afbPublishers">
                       <type>
                         <array>
-                          <dimension lower="0" upper="39" />
+                          <dimension lower="0" upper="(cudiPublishers - 1)" />
                           <baseType>
                             <derived name="FB_MQTT_PUBLISH_WORKER" />
                           </baseType>
                         </array>
                       </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> variables for MQTT publishing. The pool size is a constant and the array is
+	   sized from it: they used to be two literals that had to agree by hand, and
+	   the count was a plain VAR - writable from an online view, where setting it
+	   to 0 made FOR udiI := 0 TO (count - 1) underflow UDINT to 4294967295 and
+	   walk off the end of the array. </xhtml>
+                      </documentation>
                     </variable>
                     <variable name="udiI">
                       <type>
@@ -28896,6 +28668,16 @@ END_CASE
                       <type>
                         <derived name="MQTT.MQTTSubscribe" />
                       </type>
+                    </variable>
+                  </localVars>
+                  <localVars constant="true">
+                    <variable name="cudiPublishers">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="40" />
+                      </initialValue>
                     </variable>
                   </localVars>
                   <addData>
@@ -28969,7 +28751,7 @@ END_IF
 (* Check if Mqtt is initialized AND if there are elements on the queue to process AND if a stMQTTBirthMessage has been published successfully *)
 IF initMqtt AND GVL_MQTT.fbMqttPublishQueue.HasMessage() AND bMQTTPublishBirth = FALSE AND fbMQTTBirthPublisher.SendDone THEN	
 	(* Loop through all free afbPublishers untill there are no more elements in the queue or no more free afbPublishers *)
-	FOR udiI:=0 TO (udiIpublishers-1) DO			
+	FOR udiI:=0 TO (cudiPublishers-1) DO			
 		(* use the afbPublishers that are free  *)
 		IF afbPublishers[udiI].SendDone AND GVL_MQTT.fbMqttPublishQueue.HasMessage() THEN	
 			(* Pass message from the queue to a publisher *)
@@ -28993,7 +28775,7 @@ IF initMqtt THEN
 		
 	fbMQTTBirthPublisher();
 	
-	FOR udiI := 0 TO (udiIpublishers-1) DO
+	FOR udiI := 0 TO (cudiPublishers-1) DO
   		afbPublishers[udiI]();
 	END_FOR
 
@@ -29042,7 +28824,7 @@ IF NOT initMqtt THEN
 	 fbMQTTBirthHartbeat(ENQ:=TRUE, PTH:=T#0S, PTL:=GVL_MQTT.MQTTAvailabilityHartbeatTime);
 	
 	(* INIT MQTT PUBLISH STUFF *)
-	FOR udiIcounter := 0 TO (udiIpublishers-1) DO		
+	FOR udiIcounter := 0 TO (cudiPublishers-1) DO		
 		afbPublishers[udiIcounter].Init(inputMQTT_IN_OUT:= ADR(MQTT_IN_OUT));
 	END_FOR 
 	
@@ -30132,7 +29914,7 @@ sDiagReport := CONCAT(sDiagReport, ' [');
 	sDiagReport := CONCAT(sDiagReport, fbRs485Transport.LastFailBytes);
 	sDiagReport := CONCAT(sDiagReport, ']');
 
-	GVL_MQTT.fbMqttPublishQueue.AddMessageOn(Lane := 1,
+	GVL_MQTT.fbMqttPublishQueue.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_RS485,
 		Payload := sDiagReport,
 		Topic := CONCAT(GVL_MQTT.MqttPubRS485Prefix, 'BUS_COUNTERS'),
 		Qos := MQTT.QoS.ExactlyOnce,
@@ -30992,6 +30774,30 @@ END_IF
               </type>
               <initialValue>
                 <simpleValue value="64" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_MAIN">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_RS485">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+            <variable name="MQTT_LANE_HVAC">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
               </initialValue>
             </variable>
             <addData>
