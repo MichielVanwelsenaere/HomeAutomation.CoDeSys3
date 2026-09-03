@@ -6,7 +6,7 @@ DMX is a lighting protocol (an alternative to DALI). It is used in stage lightin
 
 ### **Setup**
 
-<ins>Global parameters</ins></br>
+#### **Global parameters**
 In `GVL_DMX` you can set an IP. This depends on your topology. Multicast works if the PLC and Art-Net node share the subnet mask.
 
     // unicast: 10.1.1.4
@@ -15,27 +15,21 @@ In `GVL_DMX` you can set an IP. This depends on your topology. Multicast works i
 
 In `PRG_DMX_SEND` you can set the universe. `0` is not recommended for Art-Net, so the default is `1`.
 
-<ins>Channel numbering</ins></br>
-One convention, and both halves are written to it: **`GVL_DMX.DMX.BUFFER[c - 1]` is
-DMX channel `c`.** `FB_OUTPUT_DIMMER_DMX_MQTT` writes that slot, and `PRG_DMX_SEND`
-copies buffer index `i` into `stSBuf1.BUFFER[i + 18]` — an ArtDmx packet carries its
-18-byte header first and then channel 1 at data offset 0, so nothing shifts along
-the way. A channel outside 1..512 is refused by `initDMX`, which leaves the block
-dormant rather than indexing outside the buffer.
+#### **Channel numbering**
+`DmxChannel` is the channel the fixture is addressed to, 1 to 512, and it is the
+channel that lights. Anything outside that range is refused by `initDMX` and the
+block stays dormant.
 
-<ins>What a block declares and what actually happens</ins></br>
-`initDMX` takes `DmxWidth` and `DmxUniverse`, and both reach the Home Assistant
-discovery config — but neither changes what is transmitted:
+#### **Metadata-only inputs**
+`initDMX` also takes `DmxWidth` and `DmxUniverse`. Both are published in the Home
+Assistant discovery config, and **neither changes what is transmitted**:
 
-| Input | Declared as | What the code does |
-|:--|:--|:--|
-| `DmxChannel` | the fixture's channel | written, one byte per block |
-| `DmxWidth` | how many channels the fixture spans | **not acted on** — only the single byte at `DmxChannel` is ever written, so an RGB fixture gets one channel |
-| `DmxUniverse` | which universe to transmit on | **not acted on** — `PRG_DMX_SEND` sends one universe, its own `iUniverse`, for every block |
+| Input | Effect |
+|:--|:--|
+| `DmxWidth` | none. One byte is written, at `DmxChannel`, so an RGB fixture gets one channel rather than three. |
+| `DmxUniverse` | none. Every block transmits on the single universe set in `PRG_DMX_SEND`, so declaring 2 here still sends on that one. |
 
-So a block declaring universe 2 transmits on whatever `PRG_DMX_SEND` is set to. Both
-are published in discovery because that is where a fixture's addressing belongs; the
-sending side has yet to grow a second universe or a multi-channel write.
+Set them to describe the fixture; do not expect them to drive it.
 
 ### **Debug**
 

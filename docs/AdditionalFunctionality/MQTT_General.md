@@ -102,18 +102,17 @@ narrowing `ciLaneN` adds roughly 600 kB of static RAM per lane.
 | `DroppedCount` | VAR_OUTPUT : UDINT | Messages discarded because a lane was full. Should stay at 0. It rides in the RS485 diagnostic as `drop=`. |
 
 `HasMessage()` and `IsFull()` are **methods, not flags** — call them, do not read a
-stored value. There used to be `EMPTY` and `FULL` outputs and removing them was the
-point: with the read and write index equal, the ring is either completely empty or
-completely full, so a stored flag was the only thing distinguishing the two cases,
-and both the producers and the consumer wrote it. Losing that race either left a
-non-empty queue looking empty — the workers stop draining and a retained state
-change sits unsent until something else publishes — or cleared `FULL` while the ring
-really was full, letting a writer overwrite messages not yet sent.
+stored value. Both are computed from the read and write indices, so nothing shared is
+mutable: the write index is only ever advanced by `AddMessage`, the read index only by
+`GetMessage`, and each side merely reads the other's.
 
-Computing them from the indices instead means nothing shared is mutable: the write
-index is only ever advanced by `AddMessage`, the read index only by `GetMessage`, and
-each side merely reads the other's. Reporting full one slot early is what pays for
-it, and is why a lane of 341 slots carries 340 messages. `HasMessage()` answers for
+A stored flag could not be safe here. With the two indices equal a lane is either
+completely empty or completely full, so the flag would be the only thing telling those
+apart, and both the producers and the consumer would have to write it — leaving a
+non-empty lane looking empty, where the workers stop draining and a retained state
+change sits unsent, or clearing `IsFull()` while the lane really is full, where a
+writer overwrites a message not yet sent. Reporting full one slot early is what pays
+for computing them instead, and is why a lane of 341 slots carries 340 messages. `HasMessage()` answers for
 any lane; `GetMessage` picks up where the last drain left off, so a loud lane cannot
 starve a quiet one.
 
@@ -122,9 +121,9 @@ starve a quiet one.
 Two tasks in `AddMessage` on the same ring both read the same write index, leave one
 message in that slot built from each other's fields, and leave the next slot never
 written — one publish corrupted, the next carrying whatever was in that slot a lap
-earlier. Nothing detects it, because the slot count still balances. On a live
-controller it showed up as a device publishing `offline` it had never sent: three
-availability messages by its own count against seventeen on the broker.
+earlier. Nothing detects it, because the slot count still balances. What reaches the
+broker is a device publishing a payload it never sent, on a topic belonging to
+another block, and its own counters still add up.
 
 A lock is not the alternative. It would have to be held across a 1.5 kB payload copy,
 and MainTask blocking on one held by the RS485 task is priority inversion on the task
