@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-03T13:24:03.4018365" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-03T13:22:40.8201954">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-04T09:32:14.4720428" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-04T09:30:15.0082113">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -3973,7 +3973,7 @@ END_IF
 		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/TEMP'),
 		ExpiryAfter := UDINT_TO_INT(TIME_TO_UDINT(HeartbeatInterval) * 3 / 1000),
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := 'Â°C',
+		UnitOfMeasurement := '°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := CONCAT(THIS^.sMQTTPublishTopic, '/availability'));
 
@@ -19417,7 +19417,7 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		StateTopic := CONCAT(sOut, '/TEMP'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := 'Â°C',
+		UnitOfMeasurement := '°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
@@ -19488,7 +19488,7 @@ E_RS485_DUCO_NODE_TYPE.ValveHumidityCO2:
 		CommandTopic := CONCAT(sCmd, '/write/4'),
 		StateTopic := CONCAT(sOut, '/write/4'),
 		MinValue := 20, MaxValue := 200, StepValue := 5,
-		UnitOfMeasurement := 'mÂ³/h', DeviceClass := '',
+		UnitOfMeasurement := 'm³/h', DeviceClass := '',
 		EntityCategory := 'config', SliderMode := FALSE);
 
 	Device^.CreateNumberEntity(
@@ -19565,7 +19565,7 @@ E_RS485_DUCO_NODE_TYPE.UserControl:
 		StateTopic := CONCAT(sOut, '/TEMP'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := 'Â°C',
+		UnitOfMeasurement := '°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
@@ -19663,7 +19663,7 @@ E_RS485_DUCO_NODE_TYPE.SensorCO2:
 		StateTopic := CONCAT(sOut, '/TEMP'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := 'Â°C',
+		UnitOfMeasurement := '°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
@@ -19741,7 +19741,7 @@ E_RS485_DUCO_NODE_TYPE.SensorHumidity:
 		StateTopic := CONCAT(sOut, '/TEMP'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := 'Â°C',
+		UnitOfMeasurement := '°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
@@ -19838,7 +19838,7 @@ E_RS485_DUCO_NODE_TYPE.WindowVentilator:
 		StateTopic := CONCAT(sOut, '/TEMP_OUT'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := 'Â°C',
+		UnitOfMeasurement := '°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
@@ -20014,7 +20014,7 @@ E_RS485_DUCO_NODE_TYPE.ActuatorBoard:
 		StateTopic := CONCAT(sOut, '/TEMP_OUT'),
 		ExpiryAfter := 0,
 		DeviceClass := 'temperature',
-		UnitOfMeasurement := 'Â°C',
+		UnitOfMeasurement := '°C',
 		StateClass := 'measurement',
 		AvailabilityTopic := '');
 
