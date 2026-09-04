@@ -331,6 +331,38 @@ py tools/ai/check_mqtt_discovery.py     # what the broker actually received
 `PRG_RS485.sDiagReport` at `STRING(400)` and `FB_MQTT_PUBLISH_QUEUE`'s `Payload`
 at `STRING(1500)` are the other places this can happen.
 
+## A non-ASCII literal must reach the project as ASCII
+
+**Write every non-ASCII character in an edits spec as a JSON `\u` escape**, and
+save the spec as ASCII — `json.dumps(..., ensure_ascii=True)` rather than a hand
+edit. `codesys.ps1` reads the spec with `Get-Content -Raw`, and Windows
+PowerShell 5.1 falls back to the ANSI codepage for a file with no BOM. So a
+UTF-8 `°` (bytes `C2 B0`) arrives as the **two** characters `Â°`.
+`ConvertFrom-Json` decodes `°` correctly whatever the file encoding is,
+which is the whole reason the escape form is safe and the literal is not.
+
+A CODESYS `STRING` is a byte string and `STRUCT_TO_JSON` escapes every byte above
+`0x7F` as `\u00XX`, so the mistake survives all the way to the broker: one
+character publishes `°`, two publish `Â°`. Home Assistant
+validates `unit_of_measurement` against `device_class`, and `Â°C` is not one of
+the three units a `temperature` sensor may carry — so it drops the entity and
+shows *"no longer provided by the mqtt integration"* against a registry entry
+nothing fills. Six DucoBox temperatures and the Pt1000 block shipped that way
+while the PLC went on publishing perfectly good readings to a state topic nothing
+was listening to. Only the units with a validating device class failed; the
+flow control's `mÂ³/h` was accepted and merely displayed wrong, which is why the
+symptom looked narrower than the bug.
+
+```powershell
+py tools/ai/check_export_encoding.py    # U+00C2 glued to another non-ASCII char
+```
+
+Confirm a repair **by bytes in the export, never by eye**: correct is
+`\xc2\xb0`, broken is `\xc3\x82\xc2\xb0`, and a terminal will happily render
+either as something plausible. `FB_RS485_EASTRON_SDM220_MQTT`,
+`FB_RS485_EASTRON_SDM630_MQTT` and `FB_RS485_ESERA_OWD_MQTT` are the known-good
+reference.
+
 ## An application's dynamic-memory setting is IDE-only
 
 Adding a device, and filling its application with a GVL, a program and a task,
