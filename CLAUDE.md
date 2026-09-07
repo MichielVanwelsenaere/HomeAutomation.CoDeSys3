@@ -40,6 +40,7 @@ XML.
 | Regenerate or check the generated regions of `docs/FunctionBlocks/*.md` | **`update-fb-docs`** |
 | Check whether the logic actually *works* — lights, pushbuttons, covers, HVAC — on a real PLC | **`test-plc-logic`** |
 | Bring a real building's installation project up to this project's function blocks, or check whether it is still version-compatible | **`sync-implementation-project`** |
+| Find out why a PLC stopped — a dead building, an exception, a crash, a restart nobody explained, or what a red LED on a cabinet means | **`troubleshoot-plc-exception`** |
 
 **Naming is decided, not open.** Objects are `PREFIX_` + SCREAMING_SNAKE (`FB_`,
 `F_`, `PRG_`, `I_`, `E_`, `ST_`, `A_`, `GVL_`); variables are a type prefix plus

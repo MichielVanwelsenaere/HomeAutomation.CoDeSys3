@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-04T09:32:14.4720428" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-04T09:30:15.0082113">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-07T20:43:02.3719521" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-07T20:42:02.5978019">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -25817,7 +25817,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
               </data>
             </addData>
           </task>
-          <task name="MqttCommunication" priority="5">
+          <task name="MqttCommunication" interval="PT0.02S" priority="5">
             <pouInstance name="PRG_MQTT" typeName="">
               <documentation>
                 <xhtml xmlns="http://www.w3.org/1999/xhtml" />
@@ -25830,7 +25830,7 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
             </pouInstance>
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/tasksettings" handleUnknown="implementation">
-                <TaskSettings KindOfTask="Freewheeling" Interval="t#20ms" IntervalUnit="ms" WithinSPSTimeSlicing="true">
+                <TaskSettings KindOfTask="Cyclic" Interval="t#20ms" IntervalUnit="ms" WithinSPSTimeSlicing="true">
                   <Watchdog Enabled="false" TimeUnit="ms" Sensitivity="1" />
                 </TaskSettings>
               </data>

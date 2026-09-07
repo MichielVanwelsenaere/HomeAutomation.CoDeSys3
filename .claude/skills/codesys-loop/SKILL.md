@@ -86,7 +86,7 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 | `./tools/ai/codesys.ps1 device -RemoveNode <name> -Force` | Unplug a device or module. |
 | `./tools/ai/codesys.ps1 device -MapIo <spec.json> -Force` | Name a terminal's I/O channels, which is what makes a freshly added module readable from IEC code at all. `{ "map_io": [ { "node", "channel", "variable" } ] }`; each mapping is read back and a mismatch is an error. |
 | `./tools/ai/codesys.ps1 device -RenameNode <name> -NodeName <new> -Force` | Rename a device or module. Re-record the baseline afterwards: a device's name is in every message's object path. |
-| `./tools/ai/codesys.ps1 scaffold -Scaffold <spec.json> -Force` | Create GVLs, programs and tasks inside an application. |
+| `./tools/ai/codesys.ps1 scaffold -Scaffold <spec.json> -Force` | Create **or update** GVLs, programs and tasks inside an application, including a task's kind, interval and priority. |
 | `./tools/ai/codesys.ps1 scan` | List PLCs answering on each gateway. Read-only, needs no project. |
 | `./tools/ai/codesys.ps1 download -Force` | Full download of the real project to the real PLC, then start it. |
 | `./tools/ai/codesys.ps1 export` | Rewrite `src/Exports/PLCopen.xml` from the project. |
@@ -98,7 +98,7 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 | `./tools/ai/codesys.ps1 rename -Map <map.json> -Force` | Rename objects and identifiers, rewriting every reference. Refuses to save unless it builds. |
 | `./tools/ai/codesys.ps1 probe` | Dump real .NET signatures of the scripting API. |
 | `./tools/ai/codesys.ps1 info` | Read-only: IDE version, libraries, devices, and a hash of every object's code. |
-| `./tools/ai/codesys.ps1 compare -Project A -Against B` | CODESYS's own object-level diff between two projects. |
+| `./tools/ai/codesys.ps1 compare -Project A -Against B` | CODESYS's own object-level diff between two projects. **Broken on 3.5.21.30**: `compare_to` rejects the flags it is given with *"Cannot convert numeric value 5 to ComparisonFlags. The value must be zero."* Diff two `export`s instead. |
 | `./tools/ai/codesys.ps1 libs` | Read-only: every library reference against every version installed on this machine. |
 | `./tools/ai/codesys.ps1 libs -RemoveLib '#Name'` | Drop a library reference. Builds first, refuses to save if it does not build. |
 
@@ -481,6 +481,20 @@ Library Manager and nothing else, so `scaffold` fills it in:
 A scaffold spec creates GVLs, programs and tasks inside a named application,
 idempotently by name, and it takes `*_file` fragments exactly as an edits spec
 does. `Wago_PFC200_G2_Virtual` in this project is the worked example.
+
+A task item takes `kind`, `interval`, `priority` and `calls`, and an item naming
+a task that already exists **updates** it — which is how an existing task's
+scheduling is changed without the GUI. `tools/ai/scaffold/g1-ping-priority.json`
+is the priority example and `tools/ai/scaffold/mqtt-task-cyclic.json` the
+`kind` one, taking `MqttCommunication` from Freewheeling to Cyclic. Omitted
+fields are left alone.
+
+`kind` is set **before** `interval`, because a task that is still Freewheeling
+has no period to set and CODESYS may ignore or reject one; and it is read back
+afterwards, with a mismatch reported as an error. Which ScriptEngine global
+holds the task kinds is undocumented and `dir()` reveals nothing, so
+`task_kind_candidates` tries every plausible container and spelling and lets the
+read-back decide — the same shape as a scaffold item's `"set"`.
 
 Four things learned building that, each of which cost a run:
 
