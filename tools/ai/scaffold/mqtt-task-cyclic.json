@@ -1,0 +1,62 @@
+{
+  "_comment": [
+    "Takes the MqttCommunication task off Freewheeling on both site",
+    "controllers, because a freewheeling task consumes every spare cycle by",
+    "definition and that is what stopped the Bijbouw house twice.",
+    "",
+    "WAGO arms a processor-load watchdog in the runtime's own configuration:",
+    "  [CmpSchedule] ProcessorLoad.Enable=1 / Maximum=95 / Interval=5000",
+    "When a 5-second sample of plcload passes 95% the runtime raises",
+    "ProcessorLoadWatchdog against App=[all], Task=[all] - it stops everything",
+    "and leaves it stopped. Bijbouw's codesyscontrol.log has it twice, on 1 Sep",
+    "and 7 Sep 2026, both reading 'plcload=99, maxplcload=95', and nothing in the",
+    "six months of log before that.",
+    "",
+    "Measured per thread on Bijbouw (CODESYS names its task threads, so top -H",
+    "attributes this directly): MqttCommunication 27.8% instantaneous and ~32%",
+    "of the CPU averaged over uptime, against MainTask - the actual house logic,",
+    "cyclic 50 ms - at 1.5%. The MQTT task costs twenty times the control logic",
+    "because it never sleeps, so the controller sits permanently near the ceiling",
+    "and any burst tips one sample over it.",
+    "",
+    "20 ms is not a new number: the task settings already carry Interval=t#20ms,",
+    "which CODESYS ignores while the kind is Freewheeling. This makes the kind",
+    "match the period that was always declared.",
+    "",
+    "Stal is included even though it has never tripped - same design, same",
+    "waste, and it is the control that proved the diagnosis: load average 2.0",
+    "against Bijbouw's 3.0-3.6, MQTT thread 13% against 32%, no trips in 7 days",
+    "of uptime. Fixing one and not the other would leave the comparison useless",
+    "the next time either misbehaves.",
+    "",
+    "Run it against a working copy, never the building's project directly:",
+    "  ./tools/ai/codesys.ps1 scaffold -Project .ai/sync/<Site>/<Site>.project \\",
+    "      -Scaffold tools/ai/scaffold/mqtt-task-cyclic.json -Force",
+    "",
+    "Both tasks already exist, so this updates them. No priority is given: 5 is",
+    "correct and stays: below MainTask's 4 so the control logic still preempts",
+    "publishing, above RS485's 15 and Ping's 31.",
+    "",
+    "AFTER THE DOWNLOAD, WATCH drop=. A cyclic task drains the publish queue 50",
+    "times a second instead of as fast as it can, and the number that says",
+    "whether that is enough is DroppedCount, published as drop= in the RS485",
+    "BUS_COUNTERS topic every 30 s. It has been 0 throughout; if it starts",
+    "climbing on Bijbouw - the Ducobox is the loudest producer on either bus -",
+    "the period is too slow and 10 ms is the next step, not a return to",
+    "freewheeling."
+  ],
+  "objects": [
+    {
+      "application": "Wago_G1_Bijbouw",
+      "task": "MqttCommunication",
+      "kind": "Cyclic",
+      "interval": "t#20ms"
+    },
+    {
+      "application": "Wago_G1_Stal",
+      "task": "MqttCommunication",
+      "kind": "Cyclic",
+      "interval": "t#20ms"
+    }
+  ]
+}

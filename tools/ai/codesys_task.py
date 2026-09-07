@@ -2929,6 +2929,32 @@ def set_property(result, obj, name, *candidates):
     return False
 
 
+def task_kind_candidates(name):
+    """Every plausible spelling of a task kind, most specific first.
+
+    Which ScriptEngine global carries the task kinds is not documented, and
+    `dir()` on these objects answers nothing (the same reason a scaffold item
+    has a `set`), so the enum cannot be discovered - only tried. Each container
+    that might hold it is looked up by name and a missing one is skipped rather
+    than raising, which is why this returns a list instead of naming one value.
+    The plain string is the last resort: some of these properties accept one and
+    some silently keep their old value, which is why the caller reads the kind
+    back rather than trusting that the set took.
+    """
+    out = []
+    for container in (u"TaskKind", u"KindOfTask", u"ScriptTaskKind",
+                      u"TaskKindOfTask", u"ETaskKind"):
+        enum = globals().get(container)
+        if enum is None:
+            continue
+        for spelling in (name, name.capitalize(), name.upper(), name.lower()):
+            member = getattr(enum, spelling, None)
+            if member is not None and member not in out:
+                out.append(member)
+    out.append(u(name))
+    return out
+
+
 def scaffold_item(cfg, result, proj, item):
     """Create one GVL, program or task, and set its text. Idempotent by name."""
     app = find_application(result, proj, item.get("application"))
@@ -2982,6 +3008,23 @@ def scaffold_item(cfg, result, proj, item):
         created = task is None
         if created:
             task = config.create_task(name)
+        # Kind before interval. A Freewheeling task has no period to set, so
+        # CODESYS is entitled to ignore or reject one while it is still
+        # freewheeling: make it Cyclic first, then give it the period.
+        if item.get("kind"):
+            wanted = u(item["kind"])
+            if not set_property(result, task, "kind_of_task",
+                                *task_kind_candidates(wanted)):
+                return
+            # Read it back and insist. A kind that did not take leaves the task
+            # scheduled exactly as it was while the spec claims it changed -
+            # the silent success this harness exists to catch.
+            landed = u(str(safe(lambda: task.kind_of_task, u"?")))
+            if wanted.lower() not in landed.lower():
+                result["errors"].append(
+                    u"task %s: asked for kind %s, reads back %s"
+                    % (name, wanted, landed))
+                return
         if item.get("interval"):
             if not set_property(result, task, "interval", u(item["interval"])):
                 return
