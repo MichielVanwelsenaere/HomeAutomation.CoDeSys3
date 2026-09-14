@@ -386,6 +386,40 @@ knowing before spending a run on it.
 It is a one-time click that then lives in the committed binary forever, like the
 `Wago_PFC200_G2_Virtual` device it belongs to.
 
+## There is no read-only login: `login(..., False)` downloads anyway
+
+**An "attach without downloading" task was built, and it stopped the lab PLC.**
+The ScriptEngine's `IOnlineApplication.login(OnlineChangeOption.Never, False)` is
+documented as a login that does not force a download, and the second argument
+reads exactly like the guard you want. It is not one. Against a PLC running the
+*same* project, unmodified since its own download, the call did a full download
+and left the application **stopped**, which the report showed as `app state:
+stop` - and every variable read back at its declared initial value:
+`initMqtt=FALSE`, `CountConnectAttempt=ULINT#0`, `step=INT#0`.
+
+That is the worst possible failure for a diagnostic tool. It destroys precisely
+the state it was written to observe, and it reports success while doing it: there
+is no "downloaded" flag in the result, and the only tell is that the values look
+suspiciously fresh. The run was meant to name the `ERRORS` code behind a
+reconnect loop; instead it erased the loop and the PLC stopped publishing
+entirely.
+
+Consequences:
+
+- **Runtime state on a PFC can only be read by a session that is allowed to
+  download.** `download` already does that, and its restart is at least honest.
+- A task that goes online must **start the application**, or leave the PLC
+  stopped. `do_download` starts it; anything new that logs in has to as well.
+- If an attach is attempted again, the next thing to try is
+  `OnlineChangeOption.Try` rather than `Never`, and the result must be checked
+  against a value that could not survive a download - a counter known to be
+  non-zero beforehand - *before* any conclusion is drawn from it. Do not trust
+  the flags; trust a value the download would have cleared.
+
+The alternative that needs no CODESYS session at all: the controller's own log
+over SSH, which `troubleshoot-plc-exception` documents, and which leaves the
+application running.
+
 ## Open: an edit that reports success and does not take effect
 
 Not resolved, so do not assume an edit landed just because the report says so —
