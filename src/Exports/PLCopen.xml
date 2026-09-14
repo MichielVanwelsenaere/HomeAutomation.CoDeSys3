@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-07T20:43:02.3719521" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-07T20:42:02.5978019">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-14T20:36:57.2716108" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-14T20:35:48.0989634">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -11808,6 +11808,15 @@ END_IF
                 <xhtml xmlns="http://www.w3.org/1999/xhtml"> Bounds how long a single fbPublish may hold this worker.</xhtml>
               </documentation>
             </variable>
+            <variable name="bSendOverdue">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Latches an overdue publish so it is counted once rather than every cycle.
+	   Cleared when the worker accepts a new message. </xhtml>
+              </documentation>
+            </variable>
           </localVars>
         </interface>
         <body>
@@ -11835,15 +11844,31 @@ IF fbPublish.done THEN
 	 bRequestToSend:=FALSE;
 	 Send:=FALSE;
 	 fbSendTimeout(IN := FALSE);
-ELSIF fbSendTimeout.Q THEN
-	(* Give the worker back to the pool rather than losing it for good. A fbPublish
-	   that never completes - a broker dropping the connection mid-QoS-2
-	   handshake, say - used to strand this instance forever. *)
+ELSIF fbSendTimeout.Q AND NOT bSendOverdue THEN
+	(* Count an overdue publish, but do NOT hand the worker back. Handing it back
+	   is what poisoned the next message.
+
+	   MqttPublish builds its packet once, on the rising edge of send: it captures
+	   LEN(Topic) into MqttTopicLength and keeps only a POINTER to the topic, and
+	   it clears dataBuild when the publish completes - not when the connection
+	   drops, where it deliberately leaves the build standing so the packet is
+	   re-sent on reconnect. A recycled worker therefore does not rebuild: the next
+	   message reaches the library through that same pointer while the length stays
+	   that of the previous topic, so a shorter topic publishes with a longer
+	   length. The topic field runs past its terminator into NULs and the tail of
+	   the topic before it, which is not a valid MQTT topic - a topic may not
+	   contain U+0000 - and the broker answers by closing the connection.
+
+	   Captured on the bench: a 30-character topic declared as 56 bytes, a broker
+	   FIN 160 ms after CONNACK, and a reconnect loop nothing but restarting the
+	   application could clear, because the poisoned build was replayed on every
+	   new session.
+
+	   SendDone now waits for fbPublish instead of for the clock. A worker holding
+	   an unfinished publish through an outage finishes it on reconnect, when
+	   MqttPublish re-sends the packet it already built, and rejoins the pool then. *)
 	 SendErrorCount := SendErrorCount + 1;
-	 SendDone := TRUE;
-	 bRequestToSend:=FALSE;
-	 Send:=FALSE;
-	 fbSendTimeout(IN := FALSE);
+	 bSendOverdue := TRUE;
 END_IF</xhtml>
           </ST>
         </body>
@@ -11893,6 +11918,7 @@ SendDone := TRUE;
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">stLocalMqttMessage := MqttMessage;
 
+bSendOverdue := FALSE;
 bRequestToSend:=TRUE;</xhtml>
                 </ST>
               </body>
@@ -26340,6 +26366,64 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                 <simpleValue value="2" />
               </initialValue>
             </variable>
+            <variable name="tMqttReconnectRestMin">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Reconnect pacing, read by PRG_MQTT. They live here rather than in an
+	   FB_init argument or an initialiser because both of those are stored
+	   outside the declaration text, where a scripted edit cannot reach them. 
+ First pause after a session drops, and the ceiling the pause doubles
+	   towards. One second is short enough that an ordinary reconnect is not
+	   noticeably slower; a minute is the worst the broker ever sees. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="tMqttReconnectRestMax">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1m0s0ms" />
+              </initialValue>
+            </variable>
+            <variable name="tMqttSessionStable">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#30s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long a session has to last before it counts as a real one. Long
+	   enough that a session which dies on arrival cannot clear the backoff,
+	   short enough that a healthy reconnect clears it well before the next
+	   heartbeat. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="tMqttStall">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#5m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> No stable session for this long is a stall, not bad luck: the client
+	   stops trying for tMqttStallCoolDown and then starts again. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="tMqttStallCoolDown">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1m0s0ms" />
+              </initialValue>
+            </variable>
             <addData>
               <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                 <Attributes>
@@ -26399,6 +26483,64 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
                       </type>
                       <initialValue>
                         <simpleValue value="2" />
+                      </initialValue>
+                    </variable>
+                    <variable name="tMqttReconnectRestMin">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#1s0ms" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Reconnect pacing, read by PRG_MQTT. They live here rather than in an
+	   FB_init argument or an initialiser because both of those are stored
+	   outside the declaration text, where a scripted edit cannot reach them. 
+ First pause after a session drops, and the ceiling the pause doubles
+	   towards. One second is short enough that an ordinary reconnect is not
+	   noticeably slower; a minute is the worst the broker ever sees. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="tMqttReconnectRestMax">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#1m0s0ms" />
+                      </initialValue>
+                    </variable>
+                    <variable name="tMqttSessionStable">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#30s0ms" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long a session has to last before it counts as a real one. Long
+	   enough that a session which dies on arrival cannot clear the backoff,
+	   short enough that a healthy reconnect clears it well before the next
+	   heartbeat. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="tMqttStall">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#5m0s0ms" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> No stable session for this long is a stall, not bad luck: the client
+	   stops trying for tMqttStallCoolDown and then starts again. </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="tMqttStallCoolDown">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TIME#1m0s0ms" />
                       </initialValue>
                     </variable>
                   </globalVars>
@@ -28189,6 +28331,91 @@ END_CASE
                       </initialValue>
                     </variable>
                   </localVars>
+                  <localVars>
+                    <variable name="fbSessionDrop">
+                      <type>
+                        <derived name="F_TRIG" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> a session ended: one will at the broker </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="fbSessionStable">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> connected long enough to count as working </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="fbMqttStalled">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> nothing has worked for a long time </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="fbMqttCoolDown">
+                      <type>
+                        <derived name="TON" />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> how long ENABLE stays off after a stall </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="bMqttEnable">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="TRUE" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> drives the client's ENABLE pin </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="bSessionWasStable">
+                      <type>
+                        <BOOL />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> so the log fires once per recovery </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="tMqttRest">
+                      <type>
+                        <TIME />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="GVL_MQTT.tMqttReconnectRestMin" />
+                      </initialValue>
+                    </variable>
+                    <variable name="udiSessionDrops">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> drops since the last stable session </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="udiSessionDropsTotal">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> drops since the application started </xhtml>
+                      </documentation>
+                    </variable>
+                    <variable name="udiMqttCoolDowns">
+                      <type>
+                        <UDINT />
+                      </type>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> stalls that needed ENABLE cycling </xhtml>
+                      </documentation>
+                    </variable>
+                  </localVars>
                   <addData>
                     <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
                       <Attributes>
@@ -28251,7 +28478,10 @@ IF initMqtt AND (fbMQTTConnectTrigger.Q OR fbMQTTBirthHartbeat.Q) THEN
 END_IF
 
 (* On connect or reconnect publish a birth message using the dedicated birth publisher *)
-IF bMQTTPublishBirth THEN
+(* Gated on SendDone: handing the birth publisher a new message while its
+   previous publish is still outstanding is the same fault the pool workers
+   had, and the flag stays set so the birth goes out as soon as it is free. *)
+IF bMQTTPublishBirth AND fbMQTTBirthPublisher.SendDone THEN
 	fbMQTTBirthPublisher.PublishMessage(MqttMessage := stMQTTBirthMessage);
 	bMQTTPublishBirth:=FALSE;
 END_IF
@@ -28277,7 +28507,7 @@ END_IF
 IF initMqtt THEN	
 	MQTT_IN_OUT.clientFB(
 		MQTT_IN_OUT:= MQTT_IN_OUT, 
-		ENABLE:= TRUE, 
+		ENABLE:= bMqttEnable, 
 		URL:= GVL_MQTT.broker, 
 		TIMEOUT:= T#1S, 
 		TLS:= FALSE);		
@@ -28288,6 +28518,74 @@ IF initMqtt THEN
   		afbPublishers[udiI]();
 	END_FOR
 
+END_IF
+
+(* --- Reconnect supervision -------------------------------------------------
+   Every reconnect attempt costs one 'offline' on the availability topic, so the
+   rate of attempts is the rate of the will. MqttClient never leaves politely on
+   a fault - step 40 sets COM.MQTT_ABORT, which closes the socket without a
+   DISCONNECT packet - and it has no idea whether trying again is working, so
+   left alone it will hammer a broker for as long as the fault lasts.
+
+   Two things happen here. The pause between attempts doubles while attempts
+   keep failing, so a fault costs a message a minute rather than three a second;
+   and a client that has achieved nothing for a long time is switched off for a
+   while, which is both quieter and the only graceful exit available - ENABLE
+   going FALSE takes the client through step 50, where COM.MQTT_ABORT stays
+   clear and MQTT_CONTROL sends a real DISCONNECT, so the broker has no will to
+   fire at all. *)
+fbSessionStable(IN := stMQTTInfo.MQTT_CONNECTED, PT := GVL_MQTT.tMqttSessionStable);
+fbSessionDrop(CLK := stMQTTInfo.MQTT_CONNECTED);
+
+IF fbSessionDrop.Q THEN
+	udiSessionDrops := udiSessionDrops + 1;
+	udiSessionDropsTotal := udiSessionDropsTotal + 1;
+	(* Doubling by addition: TIME + TIME is defined, where multiplying a TIME by
+	   a literal invites an implicit conversion nobody wants to read. *)
+	IF tMqttRest &lt; GVL_MQTT.tMqttReconnectRestMax THEN
+		tMqttRest := tMqttRest + tMqttRest;
+	END_IF
+	IF tMqttRest &gt; GVL_MQTT.tMqttReconnectRestMax THEN
+		tMqttRest := GVL_MQTT.tMqttReconnectRestMax;
+	END_IF
+END_IF
+
+IF fbSessionStable.Q THEN
+	(* A session this old is a working one, so forget the backoff. Report what it
+	   took to get here as well: a storm that has ended leaves no other trace,
+	   and the count is the difference between a flapping link and a clean
+	   restart. *)
+	IF NOT bSessionWasStable THEN
+		bSessionWasStable := TRUE;
+		IF udiSessionDrops &gt; 0 THEN
+			GVL_MQTT.PLC_Device.SendLogMessage(CONCAT('MQTT session stable after ',
+				CONCAT(UDINT_TO_STRING(udiSessionDrops), ' dropped sessions')));
+		END_IF
+		udiSessionDrops := 0;
+	END_IF
+	tMqttRest := GVL_MQTT.tMqttReconnectRestMin;
+ELSIF NOT stMQTTInfo.MQTT_CONNECTED THEN
+	bSessionWasStable := FALSE;
+END_IF
+
+(* The client reads this in step 70, which it reaches between every attempt once
+   MQTT_INIT has set RestAfterDisconect. Writing it every cycle rather than on
+   the edge keeps one owner for the value. *)
+MQTT_IN_OUT.RestTime := tMqttRest;
+
+(* A stall is a client that has not held a working session for a long time. It
+   is not going to fix itself by trying again sooner, so it stops trying for a
+   while. The count is kept because it is the one symptom that says the fault is
+   here rather than at the broker. *)
+fbMqttStalled(IN := bMqttEnable AND NOT fbSessionStable.Q, PT := GVL_MQTT.tMqttStall);
+fbMqttCoolDown(IN := NOT bMqttEnable, PT := GVL_MQTT.tMqttStallCoolDown);
+
+IF fbMqttStalled.Q THEN
+	bMqttEnable := FALSE;
+	udiMqttCoolDowns := udiMqttCoolDowns + 1;
+END_IF
+IF fbMqttCoolDown.Q THEN
+	bMqttEnable := TRUE;
 END_IF
 </xhtml>
                       </ST>
@@ -28312,6 +28610,14 @@ IF NOT initMqtt THEN
 	MQTT_IN_OUT.WillTopicBase := '';
 	MQTT_IN_OUT.ClientWillTopic := GVL_MQTT.MqttAvailabilityTopic;
 	MQTT_IN_OUT.ClientWillMessage := GVL_MQTT.MqttAvailabilityOfflinePayload;
+	
+	(* Rest between reconnect attempts instead of going straight round again.
+	   The library only honours RestTime when this is set: with it FALSE, step 60
+	   returns to step 0 on the next cycle and the retry rate is whatever the task
+	   allows. MQTT_PUBLISH owns the value in RestTime and moves it as the
+	   connection behaves. *)
+	MQTT_IN_OUT.RestAfterDisconect := TRUE;
+	MQTT_IN_OUT.RestTime := tMqttRest;
 	
 	(* Set the birth message *)
 	stMQTTBirthMessage.Payload := GVL_MQTT.MqttAvailabilityOnlinePayload;

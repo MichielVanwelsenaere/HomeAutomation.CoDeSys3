@@ -56,6 +56,11 @@ VAR_GLOBAL
     MQTT_LANE_MAIN : INT := 0;
     MQTT_LANE_RS485 : INT := 1;
     MQTT_LANE_HVAC : INT := 2;
+    tMqttReconnectRestMin : TIME := TIME#1s0ms;
+    tMqttReconnectRestMax : TIME := TIME#1m0s0ms;
+    tMqttSessionStable : TIME := TIME#30s0ms;
+    tMqttStall : TIME := TIME#5m0s0ms;
+    tMqttStallCoolDown : TIME := TIME#1m0s0ms;
 END_VAR
 ```
 <!-- gvl:end -->
@@ -168,6 +173,36 @@ Note that the topics and payloads can be changed in the code. The Birth message 
 The Birth message is also published on connect and on **re**connect, off the rising
 edge of the client's `MQTT_CONNECTED` flag in `PRG_MQTT` - the same edge that drives
 the [U1 LED](User_leds_CODESYS3S_runtime.md).
+
+### **Reconnect pacing**
+
+The broker publishes the LWT once per ungraceful disconnect, and `MqttClient` ends
+a session by aborting the socket rather than sending a `DISCONNECT` packet, so
+every reconnect attempt costs one `offline` on the availability topic. `PRG_MQTT`
+paces the attempts so a fault cannot turn that into a flood:
+
+| | Value | What it does |
+|:--|:--|:--|
+| `GVL_MQTT.tMqttReconnectRestMin` | 1 s | pause after the first dropped session |
+| `GVL_MQTT.tMqttReconnectRestMax` | 1 min | the pause doubles towards this while attempts keep failing |
+| `GVL_MQTT.tMqttSessionStable` | 30 s | a session that lasts this long counts as working, and resets the pause |
+| `GVL_MQTT.tMqttStall` | 5 min | no working session for this long is a stall |
+| `GVL_MQTT.tMqttStallCoolDown` | 1 min | how long the client stays switched off after a stall |
+
+The pause is the MQTT library's own `MQTT_IN_OUT.RestTime`, which it honours only
+because `MQTT_INIT` sets `RestAfterDisconect`; without that the client returns to
+its first step on the next cycle and retries as fast as the task runs.
+
+A stall switches the client off for `tMqttStallCoolDown` by dropping its `ENABLE`
+pin. That is quieter, and it is also the only graceful exit the library has: with
+`ENABLE` low the client leaves through a step that sends a real `DISCONNECT`, so
+the broker has no will left to fire.
+
+Three counters in `PRG_MQTT` say what has been happening, and are worth reading
+before blaming the broker: `udiSessionDrops` (drops since the last working
+session), `udiSessionDropsTotal` and `udiMqttCoolDowns`. A recovery that took more
+than one attempt also logs `MQTT session stable after N dropped sessions` to
+`Devices/PLC/Lab/diagnostic/Log`.
 
 ## Device diagnostics
 
