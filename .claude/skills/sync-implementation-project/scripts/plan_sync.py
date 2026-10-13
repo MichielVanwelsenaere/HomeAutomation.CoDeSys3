@@ -361,6 +361,7 @@ def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
     if not os.path.isdir(folder):
         os.makedirs(folder)
     edits = []
+    written = set()
     for entry in additions:
         gvl = entry["gvl"]
         path = entry.get("path") or ""
@@ -373,6 +374,7 @@ def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
                 "END_VAR",
             ]
             fragment = os.path.join(folder, "%s.%s.decl" % (gvl, member["member"]))
+            written.add(os.path.basename(fragment))
             with io.open(fragment, "w", encoding="utf-8", newline="\r\n") as handle:
                 handle.write("\n".join(lines) + "\n")
             edit = {
@@ -395,6 +397,16 @@ def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
         with io.open(migrations_path, encoding="utf-8") as handle:
             migrations = json.load(handle).get("edits", [])
 
+    # A fragment left by an EARLIER sync is not inert. The spec below is rebuilt
+    # from this run, but a stale .decl beside it is still a file someone can
+    # point an edit at, and it declares a constant against a project state that
+    # no longer holds. Clear whatever this run did not just write.
+    stale = []
+    for name in sorted(os.listdir(folder)):
+        if name.endswith(".decl") and name not in written:
+            os.remove(os.path.join(folder, name))
+            stale.append(name)
+
     with io.open(os.path.join(folder, "edits.json"), "w", encoding="utf-8", newline="\n") as handle:
         handle.write(json.dumps({
             "edits": edits + migrations,
@@ -403,6 +415,7 @@ def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
             # import share one spec file.
             "import_conflict": "replace",
         }, indent=2, ensure_ascii=False))
+    return len(edits), len(migrations), stale
 
 
 def main() -> int:
@@ -533,8 +546,13 @@ def main() -> int:
         required = None  # type: ignore[assignment]
 
     gvl_additions = plan_gvl_additions(ref_objects, impl_objects, selected, impl) if have_source else None
-    if args.emit_edits and gvl_additions:
-        write_edits(args.emit_edits, gvl_additions)
+    # Not `and gvl_additions`. A sync that needs no GVL constants - every one of
+    # them already appended by an earlier sync - still has a spec to write: the
+    # hand-authored migrations.json is folded in HERE, so skipping this left a
+    # §6b call-site migration out of edits.json with nothing to say so. It also
+    # left the previous sync's edits.json in place, still naming that run's
+    # constants, for this run's `-Edits` to pick up.
+    emitted = write_edits(args.emit_edits, gvl_additions or []) if args.emit_edits else None
 
     plan = {
         "reference": ref["info"]["path"],
@@ -606,10 +624,22 @@ def main() -> int:
                 # as a duplicate rather than as one append per controller.
                 owner = (entry.get("path") or "").split("/")[0] or entry["gvl"]
                 print("  %-24s %-22s %s" % (owner, member["block"], terse))
-        if args.emit_edits:
-            print("  edits spec: %s" % os.path.join(args.emit_edits, "edits.json"))
-        else:
+        if not args.emit_edits:
             print("  NOT emitted - pass --emit-edits DIR to generate them")
+        print("")
+
+    # Unconditional: "no constants to append" is the case where the spec used to
+    # be left at whatever the last sync wrote, so it is the one worth printing.
+    if emitted is not None:
+        appends, folded, stale = emitted
+        print("EDITS SPEC  %s" % os.path.join(args.emit_edits, "edits.json"))
+        print("  GVL appends generated      : %d" % appends)
+        print("  hand-authored migrations   : %d%s"
+              % (folded, "" if folded else "  (none in migrations.json)"))
+        if stale:
+            print("  stale fragments removed    : %s" % ", ".join(stale))
+        if not appends and not folded:
+            print("  nothing to apply - pass -Edits none to verify and apply")
         print("")
     print("ALREADY IDENTICAL (%d)" % len(unchanged))
     print("")

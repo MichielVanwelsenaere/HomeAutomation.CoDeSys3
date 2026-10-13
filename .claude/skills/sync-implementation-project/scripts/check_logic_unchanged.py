@@ -22,6 +22,7 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import os
 import re
 import sys
 from typing import Any
@@ -157,7 +158,10 @@ def main() -> int:
     additive = {entry["gvl"] for entry in (plan.get("gvl_additions") or [])}
     migrated: set[str] = set()
     deletions: set[str] = set()
-    if args.migrations:
+    # Absent is the ordinary case, not an error: migrations.json exists only when
+    # a human authored one, and this is the final gate of the whole sync - it
+    # must not die on a traceback because nobody needed a call-site migration.
+    if args.migrations and os.path.isfile(args.migrations):
         for edit in load(args.migrations).get("edits", []):
             if edit.get("delete_pou"):
                 deletions.add(edit["pou"])

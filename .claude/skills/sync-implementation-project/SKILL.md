@@ -175,6 +175,16 @@ does not declare anything twice. `check_logic_unchanged.py` re-verifies that
 append-only property line by line afterwards. Anything beyond an append is a
 human's call.
 
+**The spec is rewritten on every run that passes `--emit-edits`, including a run
+that needs no constants at all**, and `.decl` fragments the run did not write are
+deleted. Both matter on a *second* sync of the same building, which is the normal
+case: the constants went in the first time, so there is nothing to append, and
+the planner used to leave the previous sync's `edits.json` and fragments sitting
+there to be picked up as if they were this run's. It also folds `migrations.json`
+in here — so skipping the write dropped every hand-authored §6b migration
+whenever the same sync happened to need no GVL constants. Read the `EDITS SPEC`
+block it prints; `nothing to apply` there is what licenses `-Edits none` below.
+
 ### 5. Lift the blocks out of the reference
 
 ```powershell
@@ -191,7 +201,7 @@ structure, which the import needs.
 
 ```powershell
 & "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" verify -Project $copy -Candidates "$env:HA_CODESYS_REPO\.ai\sync\candidates" `
-    -ImportFolders -ImportConflict replace -Edits none
+    -ImportFolders -ImportConflict replace -Edits "$env:HA_CODESYS_REPO\.ai\sync\edits\edits.json"
 ```
 
 All four flags are load-bearing:
@@ -206,7 +216,12 @@ All four flags are load-bearing:
   nothing. The two flags fail the same way and are needed together.
 - `-Candidates` keeps the sync's set separate from `.ai/candidates`, so a
   half-finished block edit cannot ride along into a building's project.
-- `-Edits none` because this repo's edit spec targets the reference project.
+- **`-Edits` names the sync's own spec**, the one §4 generated. Two wrong values
+  either side of it: left off entirely, `-Edits` defaults to `.ai/edits/edits.json`,
+  which is *this repo's* spec and targets the reference project; set to `none`,
+  the GVL constant appends and every §6b call-site migration are silently
+  dropped, because that one file carries both. Pass `none` only when the planner
+  printed `nothing to apply`, which it now says in so many words.
 
 `verify` sandboxes into `.ai/work` — the working copy is not written yet.
 
@@ -363,8 +378,12 @@ installation's and see whether they are the same shape.
 
 ```powershell
 & "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" apply -Project $copy -Force -Candidates "$env:HA_CODESYS_REPO\.ai\sync\candidates" `
-    -ImportFolders -ImportConflict replace -Edits none
+    -ImportFolders -ImportConflict replace -Edits "$env:HA_CODESYS_REPO\.ai\sync\edits\edits.json"
 ```
+
+Same `-Edits` as §6, and for the same reason — the spec carries the GVL appends
+and the call-site migrations, so `none` here applies the blocks and none of the
+wiring they need.
 
 Writes and saves the **copy**. `apply` refuses to save if the build fails, and
 injects no harness — so verify first, always.
