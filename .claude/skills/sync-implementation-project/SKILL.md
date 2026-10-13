@@ -175,6 +175,26 @@ does not declare anything twice. `check_logic_unchanged.py` re-verifies that
 append-only property line by line afterwards. Anything beyond an append is a
 human's call.
 
+**The spec is rewritten on every run that passes `--emit-edits`, including a run
+that needs no constants at all**, and `.decl` fragments the run did not write are
+deleted. Both matter on a *second* sync of the same building, which is the normal
+case: the constants went in the first time, so there is nothing to append, and
+the planner used to leave the previous sync's `edits.json` and fragments sitting
+there to be picked up as if they were this run's. It also folds `migrations.json`
+in here — so skipping the write dropped every hand-authored §6b migration
+whenever the same sync happened to need no GVL constants.
+
+A fragment is only reclaimed if **this** run did not write it *and* no folded
+migration names it, and only once the replacement spec is safely on disk — a
+hand-authored fragment is somebody's work and `.ai/` is gitignored, so there is
+nothing to restore it from.
+
+Read the `EDITS SPEC` block it prints. It distinguishes three states, and the
+third is the one that used to be invisible: a spec written, a spec deliberately
+not written because the additions **could not be worked out** (a reference report
+without `-Full`), and `--emit-edits` never passed. Only the first means the file
+§6 wants is there.
+
 ### 5. Lift the blocks out of the reference
 
 ```powershell
@@ -191,7 +211,7 @@ structure, which the import needs.
 
 ```powershell
 & "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" verify -Project $copy -Candidates "$env:HA_CODESYS_REPO\.ai\sync\candidates" `
-    -ImportFolders -ImportConflict replace -Edits none
+    -ImportFolders -ImportConflict replace -Edits "$env:HA_CODESYS_REPO\.ai\sync\edits\edits.json"
 ```
 
 All four flags are load-bearing:
@@ -206,7 +226,16 @@ All four flags are load-bearing:
   nothing. The two flags fail the same way and are needed together.
 - `-Candidates` keeps the sync's set separate from `.ai/candidates`, so a
   half-finished block edit cannot ride along into a building's project.
-- `-Edits none` because this repo's edit spec targets the reference project.
+- **`-Edits` names the sync's own spec**, the one §4 generated. Two wrong values
+  either side of it: left off entirely, `-Edits` defaults to `.ai/edits/edits.json`,
+  which is *this repo's* spec and targets the reference project; set to `none`,
+  the GVL constant appends and every §6b call-site migration are silently
+  dropped, because that one file carries both.
+
+  **This file only exists if §4 was run with `--emit-edits`**, and an explicit
+  `-Edits` path that is not there is a hard error (`Edit spec not found`), not a
+  fallback — so run §4 that way every time. An *empty* spec is fine and needs no
+  special case: pass it anyway. The planner prints which of those you have.
 
 `verify` sandboxes into `.ai/work` — the working copy is not written yet.
 
@@ -234,7 +263,12 @@ own code, so:
 
 Author them in `.ai/sync/edits/migrations.json`, which `plan_sync.py` folds into
 the generated `edits.json` — its own file, so re-running the planner cannot wipe
-it:
+it.
+
+**Then re-run §4.** The folding happens at plan time and nowhere else, so a
+migration authored here after §4 has run is not in the spec that §7 applies.
+This section sits after §6 because that is when the compiler tells you which
+call sites broke; the planner has to see the result:
 
 ```json
 { "edits": [
@@ -301,13 +335,18 @@ in `MAIN_INIT` per instance. Detect and generate it:
 
 ```powershell
 py "$env:HA_CODESYS_REPO\.claude\skills\sync-implementation-project\scripts\plan_declaration_migration.py" `
-   --implementation "$env:HA_CODESYS_REPO\.ai\sync\after.json" --out "$env:HA_CODESYS_REPO\.ai\sync\decl\migrations.json"
+   --implementation "$env:HA_CODESYS_REPO\.ai\sync\after.json" --out "$env:HA_CODESYS_REPO\.ai\sync\edits\migrations.json"
 ```
 
 Run it **after** the block sync, against the post-sync inventory — the
 self-wiring prologue only exists in the project once the blocks have landed.
-Then verify and apply it as a second pass, exactly like §6b but with no
-candidates.
+Then **re-run §4's planner** to fold the result into `edits.json`, and verify and
+apply it as a second pass, exactly like §6b but with no candidates.
+
+**That `--out` path is load-bearing.** The folding reads `migrations.json` from
+the `--emit-edits` directory and nowhere else, so a migration written anywhere
+but there is generated, reported as a success, and never applied — in the one
+pass this page already calls the easiest to skip and the hardest to notice.
 
 Three things it gets right that a careless hand edit does not:
 
@@ -363,8 +402,12 @@ installation's and see whether they are the same shape.
 
 ```powershell
 & "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" apply -Project $copy -Force -Candidates "$env:HA_CODESYS_REPO\.ai\sync\candidates" `
-    -ImportFolders -ImportConflict replace -Edits none
+    -ImportFolders -ImportConflict replace -Edits "$env:HA_CODESYS_REPO\.ai\sync\edits\edits.json"
 ```
+
+Same `-Edits` as §6, and for the same reason — the spec carries the GVL appends
+and the call-site migrations, so `none` here applies the blocks and none of the
+wiring they need.
 
 Writes and saves the **copy**. `apply` refuses to save if the build fails, and
 injects no harness — so verify first, always.
