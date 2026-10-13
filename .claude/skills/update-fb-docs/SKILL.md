@@ -5,6 +5,13 @@ description: Regenerate the machine-owned parts of the function block docs from 
 
 # Update function block docs
 
+> **Paths.** This skill is reachable from any working directory -
+> `~/.claude/skills` links to the copy inside the reference clone - so every
+> command below is rooted at `$env:HA_CODESYS_REPO`, which
+> `~/.claude/settings.json` sets. Bare paths in prose (`src/Exports/PLCopen.xml`,
+> `.ai/reports/`, `docs/`) are relative to that same clone, wherever you are
+> working. `codesys.ps1` reported as not found means the variable is unset.
+
 The mechanical parts of `docs/FunctionBlocks/*.md` are **generated** from
 `src/Exports/PLCopen.xml`, so they cannot drift from the code they document.
 Two regions per page are machine-owned — never hand-edit inside them:
@@ -25,16 +32,16 @@ wiring — is hand-written and left alone.
 
 Run from the repo root. On Windows use `py` rather than `python3`: the python.org
 build that `winget` installs ships no `python3.exe`, and the bare name hits the
-Microsoft Store alias instead. `./tools/ai/codesys.ps1 doctor` reports whether a
+Microsoft Store alias instead. `codesys.ps1 doctor` reports whether a
 usable interpreter is present, and the `codesys-loop` skill has the install
 command.
 
 | Task | Command |
 |:--|:--|
-| Regenerate everything | `python3 .claude/skills/update-fb-docs/scripts/gen_fb_docs.py` |
-| Check without writing | `python3 .claude/skills/update-fb-docs/scripts/gen_fb_docs.py --check` |
-| Scaffold a new page | `python3 .claude/skills/update-fb-docs/scripts/gen_fb_docs.py --new FB_NAME` |
-| Preview one block | `python3 .claude/skills/update-fb-docs/scripts/gen_fb_docs.py --print FB_NAME` |
+| Regenerate everything | `py "$env:HA_CODESYS_REPO\.claude\skills\update-fb-docs\scripts\gen_fb_docs.py"` |
+| Check without writing | `py "$env:HA_CODESYS_REPO\.claude\skills\update-fb-docs\scripts\gen_fb_docs.py" --check` |
+| Scaffold a new page | `py "$env:HA_CODESYS_REPO\.claude\skills\update-fb-docs\scripts\gen_fb_docs.py" --new FB_NAME` |
+| Preview one block | `py "$env:HA_CODESYS_REPO\.claude\skills\update-fb-docs\scripts\gen_fb_docs.py" --print FB_NAME` |
 
 `--check` exits non-zero and names what is stale. Use it to answer "do the docs
 still match the code?" without touching the working tree.
@@ -121,7 +128,7 @@ meant to be checked in at all.
 ## Adding a new function block
 
 ```
-python3 .claude/skills/update-fb-docs/scripts/gen_fb_docs.py --new FB_NEW_THING
+py "$env:HA_CODESYS_REPO\.claude\skills\update-fb-docs\scripts\gen_fb_docs.py" --new FB_NEW_THING
 ```
 
 This writes a complete page: badge, block diagram, interface tables and method

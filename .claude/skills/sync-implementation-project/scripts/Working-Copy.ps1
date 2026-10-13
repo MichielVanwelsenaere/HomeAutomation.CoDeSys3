@@ -43,7 +43,24 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$repo = (Resolve-Path (Join-Path $PSScriptRoot '..\..\..\..')).Path
+# This script is reachable from outside the clone - ~/.claude/skills links to
+# the skill folder - and from there $PSScriptRoot counts up into the home
+# directory instead, silently, so working copies would land in ~\.ai\sync. The
+# environment variable wins when set; the count is the fallback for a plain
+# clone that never set it; neither is accepted without the project file there.
+function Resolve-Repo {
+    if ($env:HA_CODESYS_REPO -and
+        (Test-Path (Join-Path $env:HA_CODESYS_REPO 'src\HomeAutomation.project'))) {
+        return (Resolve-Path $env:HA_CODESYS_REPO).Path
+    }
+    $guess = Join-Path $PSScriptRoot '..\..\..\..'
+    if (Test-Path (Join-Path $guess 'src\HomeAutomation.project')) {
+        return (Resolve-Path $guess).Path
+    }
+    throw 'Reference clone not found. Set $env:HA_CODESYS_REPO to its root.'
+}
+
+$repo = Resolve-Repo
 $syncRoot = Join-Path $repo '.ai\sync'
 
 function Get-Slot {

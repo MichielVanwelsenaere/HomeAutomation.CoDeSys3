@@ -5,9 +5,16 @@ description: Exercise the PLC's actual behaviour on real hardware - lights, push
 
 # Test the PLC logic on hardware
 
+> **Paths.** This skill is reachable from any working directory -
+> `~/.claude/skills` links to the copy inside the reference clone - so every
+> command below is rooted at `$env:HA_CODESYS_REPO`, which
+> `~/.claude/settings.json` sets. Bare paths in prose (`src/Exports/PLCopen.xml`,
+> `.ai/reports/`, `docs/`) are relative to that same clone, wherever you are
+> working. `codesys.ps1` reported as not found means the variable is unset.
+
 The compiler is the only automated gate this project has. It cannot tell you
 whether pressing a button turns on a light, or whether a thermostat opens a valve —
-[CODESYS simulation cannot run this project at all](../../../CLAUDE.md), so *behaviour
+`CLAUDE.md`, so *behaviour
 is only observable on a real PFC*.
 
 Two ways in, and the difference matters:
@@ -23,9 +30,9 @@ broken, which is a failure mode this project has actually had.
 ## Before you start
 
 ```powershell
-./tools/ai/codesys.ps1 doctor            # mosquitto_sub present?
-(Test-NetConnection 10.101.1.232 -Port 11740).TcpTestSucceeded   # runtime up?
-./tools/ai/Mqtt-Snapshot.ps1 -Watch -Seconds 12 -Topics 'Devices/PLC/Lab/availability'
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" doctor            # mosquitto_sub present?
+(Test-NetConnection 10.101.1.69 -Port 11740).TcpTestSucceeded   # runtime up?
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Watch -Seconds 12 -Topics 'Devices/PLC/Lab/availability'
 ```
 
 **`availability` must publish `online` live, and it has to be `-Watch` that asks.**
@@ -42,7 +49,7 @@ during the download rather than a cause to go hunting for passwords.
 Take a baseline before changing anything, so you can diff at the end:
 
 ```powershell
-./tools/ai/Mqtt-Snapshot.ps1 -Out .ai/mqtt/before.txt
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Out "$env:HA_CODESYS_REPO\.ai\mqtt\before.txt"
 ```
 
 ## Watching what happens
@@ -51,7 +58,7 @@ Retained snapshots show *state*; they cannot show an event that was published an
 superseded. To watch live traffic while you command something:
 
 ```powershell
-./tools/ai/Mqtt-Snapshot.ps1 -Watch -Seconds 30
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Watch -Seconds 30
 ```
 
 Run that in one shell (or background it) and publish from another. Pushbutton
@@ -94,7 +101,7 @@ proves *why*. Do both: a download spec's `expect` fails the run on mismatch, whi
 is what makes this a test rather than a look around.
 
 ```powershell
-./tools/ai/codesys.ps1 download -Force -Ip 10.101.1.232 -Spec .ai/edits/<name>.json
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" download -Force -Ip 10.101.1.69 -Spec "$env:HA_CODESYS_REPO\.ai\edits\<name>.json"
 ```
 
 `download` re-downloads and restarts the application, so use it to *arrive* at a
@@ -154,8 +161,8 @@ sensor is made healthy, or the chain starts before the spec thinks it did.
 Finish with a diff, which catches damage you were not looking for:
 
 ```powershell
-./tools/ai/Mqtt-Snapshot.ps1 -Out .ai/mqtt/after.txt
-./tools/ai/Mqtt-Snapshot.ps1 -Diff .ai/mqtt/before.txt,.ai/mqtt/after.txt
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Out "$env:HA_CODESYS_REPO\.ai\mqtt\after.txt"
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Diff "$env:HA_CODESYS_REPO\.ai\mqtt\before.txt","$env:HA_CODESYS_REPO\.ai\mqtt\after.txt"
 ```
 
 `IDENTICAL` after a pure refactor is the strongest result available here. After a
@@ -240,7 +247,7 @@ here is also a cover test.
 → end stop → 60%, asserting the **coils** as well as the block outputs at every step.
 
 ```powershell
-./tools/ai/codesys.ps1 download -Force -Address 00E8 -Spec .claude/skills/test-plc-logic/specs/cover-position.json
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" download -Force -Address 00E8 -Spec .claude/skills/test-plc-logic/specs/cover-position.json
 ```
 
 `fbDoCover002.MU` and `MD` are wired to `DO_005` and `DO_006` on the second
@@ -362,7 +369,7 @@ have commanded anything is that, not a bug. Read every thermostat's `/MODE` and
 an existing `FB_init` argument changed from a script updates the declaration text
 while the compiler keeps reading the old `InputAssignments`, so the PLC runs the old
 value with a clean build and a matching export
-([CLAUDE.md](../../../CLAUDE.md) has the detail). It is also the wrong place — 5-second
+(`CLAUDE.md` has the detail). It is also the wrong place — 5-second
 valve travel in source can reach an installation with real pipes.
 
 **Write the members at runtime instead**, which is what
@@ -412,7 +419,7 @@ The one HVAC test that is a **regression test** rather than a walk through the
 chain, and the only one that fails on purpose against older code.
 
 ```powershell
-./tools/ai/codesys.ps1 download -Force -Address 00E8 `
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" download -Force -Address 00E8 `
     -Spec .claude/skills/test-plc-logic/specs/hvac-valve-pump-interlock.json
 ```
 
@@ -605,7 +612,7 @@ register `30013`, so the comparison is available on the broker at any time witho
 touching the project:
 
 ```powershell
-./tools/ai/Mqtt-Snapshot.ps1 -Watch -Seconds 60 `
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Watch -Seconds 60 `
   -Topics 'Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM220_1/ACTP',
           'Devices/PLC/Lab/Out/RS485/FB_RS485_EASTRON_SDM_POWER_1/ACTP'
 ```
@@ -634,7 +641,7 @@ Do not chase a decode bug without that control.
 
 Steady green while the PLC can talk to the broker, blinking red while it cannot —
 see
-[User_leds_CODESYS3S_runtime.md](../../../docs/AdditionalFunctionality/User_leds_CODESYS3S_runtime.md).
+`docs/AdditionalFunctionality/User_leds_CODESYS3S_runtime.md`.
 Two programs decide it: `PRG_PING_DMX` pings the broker every 10 s and writes
 `GVL_MQTT.bBrokerReachable`; `PRG_MQTT` owns the LED and ANDs that with the client's
 own `MQTT_CONNECTED`.
@@ -647,7 +654,7 @@ last wrote to U1, and it is what the change detector compares against.
 ### `specs/mqtt-broker-led.json`
 
 ```powershell
-./tools/ai/codesys.ps1 download -Force -Address 00E8 `
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" download -Force -Address 00E8 `
     -Spec .claude/skills/test-plc-logic/specs/mqtt-broker-led.json
 ```
 

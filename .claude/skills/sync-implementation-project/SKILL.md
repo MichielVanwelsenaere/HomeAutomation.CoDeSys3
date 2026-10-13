@@ -5,6 +5,13 @@ description: Bring an installation's CODESYS project up to date with this refere
 
 # Syncing an installation project to the reference
 
+> **Paths.** This skill is reachable from any working directory -
+> `~/.claude/skills` links to the copy inside the reference clone - so every
+> command below is rooted at `$env:HA_CODESYS_REPO`, which
+> `~/.claude/settings.json` sets. Bare paths in prose (`src/Exports/PLCopen.xml`,
+> `.ai/reports/`, `docs/`) are relative to that same clone, wherever you are
+> working. `codesys.ps1` reported as not found means the variable is unset.
+
 This repository is the **reference project**. Real buildings run **installation
 projects** — separate `.project` files, in other repositories, each wired to its
 own I/O, its own rooms, its own equipment. They share the function blocks and
@@ -33,7 +40,7 @@ site's own `FB_VIRTUAL_BOOL_MQTT` under `VIRTUAL/` is left alone and a site's
 ### The names on this page are the installation's, not the reference's
 
 The reference project renamed its objects to the convention in
-[docs/CodingStyle.md](../../../docs/CodingStyle.md): `MqttVariables` is
+`docs/CodingStyle.md`: `MqttVariables` is
 `GVL_MQTT` there, `PersistentVars` is `GVL_PERSISTENT`, `PLC_PRG_MAIN` is
 `PRG_MAIN`. An installation keeps its own spelling until it is migrated, which is
 exactly why the names above are still the old ones — they name objects this skill
@@ -78,9 +85,9 @@ lands in `.ai/`, which is gitignored.
 ### 1. Toolchain and working copy
 
 ```powershell
-./tools/ai/codesys.ps1 doctor
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" doctor
 $impl = 'C:\path\to\SiteA.project'
-./.claude/skills/sync-implementation-project/scripts/Working-Copy.ps1 new -Target $impl
+& "$env:HA_CODESYS_REPO\.claude\skills\sync-implementation-project\scripts\Working-Copy.ps1" new -Target $impl
 ```
 
 The copy lands at `.ai/sync/<stem>/<stem>.project`. Everything from here on
@@ -90,9 +97,9 @@ read-only to describe what is actually deployed.
 ### 2. Describe both projects
 
 ```powershell
-$copy = '.ai\sync\SiteA\SiteA.project'
-./tools/ai/codesys.ps1 info -Full -Output .ai\sync\reference.json
-./tools/ai/codesys.ps1 info -Full -Project $copy -Output .ai\sync\before.json
+$copy = "$env:HA_CODESYS_REPO\.ai\sync\SiteA\SiteA.project"
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" info -Full -Output "$env:HA_CODESYS_REPO\.ai\sync\reference.json"
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" info -Full -Project $copy -Output "$env:HA_CODESYS_REPO\.ai\sync\before.json"
 ```
 
 `info` opens a project **read-only with `VersionUpdateFlags.NoUpdates`**, so
@@ -107,7 +114,7 @@ from the reference" means here — not a text diff, not the XML.
 ### 3. Does the installation project still build as it is?
 
 ```powershell
-./tools/ai/codesys.ps1 verify -Baseline -Project $copy
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" verify -Baseline -Project $copy
 ```
 
 **This is the version-compatibility gate, and it is the one that matters.** The
@@ -128,10 +135,10 @@ broken cannot be assessed, because every later message is ambiguous.
 ### 4. Plan
 
 ```powershell
-py .claude/skills/sync-implementation-project/scripts/plan_sync.py `
-   --reference .ai/sync/reference.json `
-   --implementation .ai/sync/before.json `
-   --out .ai/sync/plan.json --emit-edits .ai/sync/edits
+py "$env:HA_CODESYS_REPO\.claude\skills\sync-implementation-project\scripts\plan_sync.py" `
+   --reference "$env:HA_CODESYS_REPO\.ai\sync\reference.json" `
+   --implementation "$env:HA_CODESYS_REPO\.ai\sync\before.json" `
+   --out "$env:HA_CODESYS_REPO\.ai\sync\plan.json" --emit-edits "$env:HA_CODESYS_REPO\.ai\sync\edits"
 ```
 
 The plan prints a compatibility verdict and five lists: what to update, what was
@@ -171,9 +178,9 @@ human's call.
 ### 5. Lift the blocks out of the reference
 
 ```powershell
-$plan = Get-Content .ai/sync/plan.json -Raw | ConvertFrom-Json
-Remove-Item .ai\sync\candidates -Recurse -Force -ErrorAction SilentlyContinue
-./tools/ai/codesys.ps1 export -Only $plan.export -Output .ai\sync\candidates\shared.xml
+$plan = Get-Content "$env:HA_CODESYS_REPO\.ai\sync\plan.json" -Raw | ConvertFrom-Json
+Remove-Item "$env:HA_CODESYS_REPO\.ai\sync\candidates" -Recurse -Force -ErrorAction SilentlyContinue
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" export -Only $plan.export -Output "$env:HA_CODESYS_REPO\.ai\sync\candidates\shared.xml"
 ```
 
 `-Only` exports exactly those objects and errors out by name if one is not
@@ -183,7 +190,7 @@ structure, which the import needs.
 ### 6. Verify the sync on a sandbox
 
 ```powershell
-./tools/ai/codesys.ps1 verify -Project $copy -Candidates .ai\sync\candidates `
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" verify -Project $copy -Candidates "$env:HA_CODESYS_REPO\.ai\sync\candidates" `
     -ImportFolders -ImportConflict replace -Edits none
 ```
 
@@ -293,8 +300,8 @@ FB_DO_LIGHT_001  :FB_OUTPUT_BINARY_MQTT := (FriendlyName := 'Landing spots',
 in `MAIN_INIT` per instance. Detect and generate it:
 
 ```powershell
-py .claude/skills/sync-implementation-project/scripts/plan_declaration_migration.py `
-   --implementation .ai/sync/after.json --out .ai/sync/decl/migrations.json
+py "$env:HA_CODESYS_REPO\.claude\skills\sync-implementation-project\scripts\plan_declaration_migration.py" `
+   --implementation "$env:HA_CODESYS_REPO\.ai\sync\after.json" --out "$env:HA_CODESYS_REPO\.ai\sync\decl\migrations.json"
 ```
 
 Run it **after** the block sync, against the post-sync inventory — the
@@ -355,7 +362,7 @@ installation's and see whether they are the same shape.
 ### 7. Apply to the working copy
 
 ```powershell
-./tools/ai/codesys.ps1 apply -Project $copy -Force -Candidates .ai\sync\candidates `
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" apply -Project $copy -Force -Candidates "$env:HA_CODESYS_REPO\.ai\sync\candidates" `
     -ImportFolders -ImportConflict replace -Edits none
 ```
 
@@ -365,10 +372,10 @@ injects no harness — so verify first, always.
 ### 8. Prove it changed only what it was supposed to
 
 ```powershell
-./tools/ai/codesys.ps1 info -Full -Project $copy -Output .ai\sync\after.json
-py .claude/skills/sync-implementation-project/scripts/check_logic_unchanged.py `
-   --before .ai/sync/before.json --after .ai/sync/after.json `
-   --plan .ai/sync/plan.json --migrations .ai/sync/edits/migrations.json
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" info -Full -Project $copy -Output "$env:HA_CODESYS_REPO\.ai\sync\after.json"
+py "$env:HA_CODESYS_REPO\.claude\skills\sync-implementation-project\scripts\check_logic_unchanged.py" `
+   --before "$env:HA_CODESYS_REPO\.ai\sync\before.json" --after "$env:HA_CODESYS_REPO\.ai\sync\after.json" `
+   --plan "$env:HA_CODESYS_REPO\.ai\sync\plan.json" --migrations "$env:HA_CODESYS_REPO\.ai\sync\edits\migrations.json"
 ```
 
 A clean build says the project compiles. It does not say the sync left the
@@ -402,7 +409,7 @@ compiler messages new versus baseline, and the check result. Then **ask** whethe
 to replace the original. Only after they say yes:
 
 ```powershell
-./.claude/skills/sync-implementation-project/scripts/Working-Copy.ps1 promote -Target $impl -Force
+& "$env:HA_CODESYS_REPO\.claude\skills\sync-implementation-project\scripts\Working-Copy.ps1" promote -Target $impl -Force
 ```
 
 `promote` takes a timestamped backup of the original into
@@ -448,7 +455,7 @@ is close enough to it to be worth checking rather than trusting. Export the
 program and look at how CODESYS stored it:
 
 ```powershell
-./tools/ai/codesys.ps1 export -Project $copy -Only PLC_PRG_MAIN -Output .ai\sync\decl\PLC_PRG_MAIN.xml
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" export -Project $copy -Only PLC_PRG_MAIN -Output "$env:HA_CODESYS_REPO\.ai\sync\decl\PLC_PRG_MAIN.xml"
 ```
 
 Two things to find, and both were confirmed present for SiteA:
