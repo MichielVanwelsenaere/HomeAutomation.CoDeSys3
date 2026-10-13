@@ -161,6 +161,12 @@ def main() -> int:
     # Absent is the ordinary case, not an error: migrations.json exists only when
     # a human authored one, and this is the final gate of the whole sync - it
     # must not die on a traceback because nobody needed a call-site migration.
+    # Say which, though: a mistyped path is otherwise indistinguishable from
+    # "none authored", and it surfaces as a wall of unexplained changed-object
+    # findings for the migrated POUs.
+    if args.migrations and not os.path.isfile(args.migrations):
+        print("migrations: none at %s" % args.migrations)
+        print("")
     if args.migrations and os.path.isfile(args.migrations):
         for edit in load(args.migrations).get("edits", []):
             if edit.get("delete_pou"):
