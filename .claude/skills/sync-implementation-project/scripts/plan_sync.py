@@ -342,8 +342,13 @@ def compatibility(
 PROVENANCE = "synced from the reference project"
 
 
-def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
+def write_edits(folder: str, additions: list[dict[str, Any]]) -> tuple[int, int, list[str]]:
     """Emit an edits spec that appends the missing GVL members, and nothing else.
+
+    Returns (GVL appends generated, migrations folded in, stale fragments
+    removed). Call it only when `additions` is genuinely known to be the whole
+    list - an empty list means "nothing to append", and this rewrites the spec
+    and reclaims fragments on that basis.
 
     `decl_append` with a `skip_if_contains` sentinel: append-only, so no existing
     declaration can be rewritten or dropped, and idempotent, so re-running a
@@ -361,6 +366,7 @@ def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
     if not os.path.isdir(folder):
         os.makedirs(folder)
     edits = []
+    written = set()
     for entry in additions:
         gvl = entry["gvl"]
         path = entry.get("path") or ""
@@ -373,6 +379,7 @@ def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
                 "END_VAR",
             ]
             fragment = os.path.join(folder, "%s.%s.decl" % (gvl, member["member"]))
+            written.add(os.path.basename(fragment))
             with io.open(fragment, "w", encoding="utf-8", newline="\r\n") as handle:
                 handle.write("\n".join(lines) + "\n")
             edit = {
@@ -403,6 +410,33 @@ def write_edits(folder: str, additions: list[dict[str, Any]]) -> None:
             # import share one spec file.
             "import_conflict": "replace",
         }, indent=2, ensure_ascii=False))
+
+    # Only now, and only ours. A fragment left by an EARLIER sync is not inert -
+    # it declares a constant against a project state that no longer holds, and
+    # `-Edits` resolves a *_file relative to this folder - so it has to go. But:
+    #
+    #   - AFTER the spec that replaces it is on disk. Deleting first meant a
+    #     failure mid-loop left the fragments gone and the previous run's
+    #     edits.json still in place, which is the exact state this prevents.
+    #   - never a fragment a hand-authored migration names. Those are somebody's
+    #     work, they are not regenerated, and .ai/ is gitignored so there is no
+    #     copy to restore from.
+    claimed = set()
+    for edit in migrations:
+        for key, value in edit.items():
+            if key.endswith("_file") and isinstance(value, str):
+                claimed.add(os.path.basename(value))
+    stale = []
+    for name in sorted(os.listdir(folder)):
+        if not name.endswith(".decl") or name in written or name in claimed:
+            continue
+        try:
+            os.remove(os.path.join(folder, name))
+        except OSError as exc:
+            print("  WARNING could not remove stale fragment %s: %s" % (name, exc))
+            continue
+        stale.append(name)
+    return len(edits), len(migrations), stale
 
 
 def main() -> int:
@@ -533,8 +567,24 @@ def main() -> int:
         required = None  # type: ignore[assignment]
 
     gvl_additions = plan_gvl_additions(ref_objects, impl_objects, selected, impl) if have_source else None
-    if args.emit_edits and gvl_additions:
-        write_edits(args.emit_edits, gvl_additions)
+    # Three states, not two, and collapsing the last two is a trap:
+    #
+    #   None      --emit-edits was not passed; write nothing.
+    #   "unknown" the reference report carried no source, so the additions could
+    #             not be worked out - see `have_source`. NOT the same as "none
+    #             needed": writing an empty spec here would reclaim the previous
+    #             run's fragments and then report "nothing to apply".
+    #   tuple     genuinely computed, possibly empty.
+    #
+    # Empty is still written, deliberately. A sync that needs no GVL constants -
+    # every one already appended by an earlier sync - still has a spec to write,
+    # because the hand-authored migrations.json is folded in HERE.
+    emitted: tuple[int, int, list[str]] | str | None = None
+    if args.emit_edits:
+        if gvl_additions is None:
+            emitted = "unknown"
+        else:
+            emitted = write_edits(args.emit_edits, gvl_additions)
 
     plan = {
         "reference": ref["info"]["path"],
@@ -606,11 +656,30 @@ def main() -> int:
                 # as a duplicate rather than as one append per controller.
                 owner = (entry.get("path") or "").split("/")[0] or entry["gvl"]
                 print("  %-24s %-22s %s" % (owner, member["block"], terse))
-        if args.emit_edits:
-            print("  edits spec: %s" % os.path.join(args.emit_edits, "edits.json"))
-        else:
-            print("  NOT emitted - pass --emit-edits DIR to generate them")
         print("")
+
+    # Unconditional, all three states. "No constants to append" is the case the
+    # spec used to be left at whatever the last sync wrote, and "could not be
+    # worked out" is the case that must never read as "nothing to do", so both
+    # are worth saying out loud.
+    if emitted is None:
+        print("EDITS SPEC  NOT emitted - pass --emit-edits DIR to generate one")
+        print("  §6 and §7 take this file; without it they have nothing to pass.")
+    elif emitted == "unknown":
+        print("EDITS SPEC  NOT written - GVL additions could not be worked out")
+        print("  The reference report carries no source text; re-run `info -Full`.")
+        print("  The previous spec and fragments are left exactly as they were.")
+    else:
+        appends, folded, stale = emitted
+        print("EDITS SPEC  %s" % os.path.join(args.emit_edits, "edits.json"))
+        print("  GVL appends generated      : %d" % appends)
+        print("  hand-authored migrations   : %d%s"
+              % (folded, "" if folded else "  (none in migrations.json)"))
+        if stale:
+            print("  stale fragments removed    : %s" % ", ".join(stale))
+        if not appends and not folded:
+            print("  the spec is empty - pass it to -Edits anyway, which is fine")
+    print("")
     print("ALREADY IDENTICAL (%d)" % len(unchanged))
     print("")
     print("LEFT ALONE - the installation's own (%d)" % len(site_only))
