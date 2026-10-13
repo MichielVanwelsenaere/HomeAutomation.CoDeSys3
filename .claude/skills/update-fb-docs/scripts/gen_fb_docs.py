@@ -29,12 +29,36 @@ from __future__ import annotations
 import argparse
 import pathlib
 import json
+import os
 import re
 import sys
 import xml.etree.ElementTree as ET
 
 NS = {"p": "http://www.plcopen.org/xml/tc6_0200"}
-REPO = pathlib.Path(__file__).resolve().parents[4]
+
+
+def _find_repo():
+    """Locate the reference clone.
+
+    This script is reachable from outside it - ~/.claude/skills links to the
+    skill folder - and from there counting parents lands in the home directory
+    instead, silently, leaving every path below pointing at nothing. So
+    $HA_CODESYS_REPO wins when it is set, the parent count is the fallback for
+    a plain clone that never set it, and neither is accepted without the
+    project file actually being there.
+    """
+    env = os.environ.get("HA_CODESYS_REPO")
+    if env:
+        p = pathlib.Path(env).expanduser()
+        if (p / "src" / "HomeAutomation.project").is_file():
+            return p.resolve()
+    p = pathlib.Path(__file__).resolve().parents[4]
+    if (p / "src" / "HomeAutomation.project").is_file():
+        return p
+    sys.exit("reference clone not found - set $HA_CODESYS_REPO to its root")
+
+
+REPO = _find_repo()
 EXPORT = REPO / "src" / "Exports" / "PLCopen.xml"
 DOCS = REPO / "docs" / "FunctionBlocks"
 
@@ -830,7 +854,11 @@ def main() -> int:
             print("Out of date with " + str(EXPORT.relative_to(REPO)) + ":")
             for s in stale:
                 print("  -", s)
-            print("\nRun: python3 " + str(pathlib.Path(__file__).relative_to(REPO)))
+            # Not __file__ relative to REPO: reached through the ~/.claude/skills
+            # link those two are on different roots and relative_to raises. And
+            # python3 on Windows is the Store stub, so name the py launcher.
+            print('\nRun: py "$env:HA_CODESYS_REPO'
+                  '\\.claude\\skills\\update-fb-docs\\scripts\\gen_fb_docs.py"')
         return 1 if (stale or orphaned or drift) else 0
 
     if drift:

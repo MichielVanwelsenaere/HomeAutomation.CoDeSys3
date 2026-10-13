@@ -5,6 +5,13 @@ description: Read, write and compile-check CODESYS code in this project without 
 
 # CODESYS development loop
 
+> **Paths.** This skill is reachable from any working directory -
+> `~/.claude/skills` links to the copy inside the reference clone - so every
+> command below is rooted at `$env:HA_CODESYS_REPO`, which
+> `~/.claude/settings.json` sets. Bare paths in prose (`src/Exports/PLCopen.xml`,
+> `.ai/reports/`, `docs/`) are relative to that same clone, wherever you are
+> working. `codesys.ps1` reported as not found means the variable is unset.
+
 `src/HomeAutomation.project` is a **binary**. It cannot be read, diffed or edited
 as text. The way in and out is **PLCopen XML**, which CODESYS both exports and
 imports — and because CODESYS ships a ScriptEngine and runs with `--noUI`, the
@@ -21,7 +28,7 @@ them too, not only agents:
 ## Check the toolchain first
 
 ```powershell
-./tools/ai/codesys.ps1 doctor
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" doctor
 ```
 
 Fast, does not launch CODESYS. Required:
@@ -60,7 +67,7 @@ message:
 
 - `winget` installs the python.org build, which provides `python.exe` and the
   `py` launcher but **no `python3.exe`**. On this machine, invoke the docs
-  generator as `py .claude/skills/update-fb-docs/scripts/gen_fb_docs.py`.
+  generator as `py "$env:HA_CODESYS_REPO\.claude\skills\update-fb-docs\scripts\gen_fb_docs.py"`.
 - Windows ships an App Execution Alias stub for `python`/`python3` that opens the
   Microsoft Store instead of running anything. If a bare `python` still opens the
   Store after installing, turn the aliases off under
@@ -78,29 +85,29 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 
 | Command | Effect |
 |:--|:--|
-| `./tools/ai/codesys.ps1 doctor` | Toolchain check. No CODESYS launch. |
-| `./tools/ai/codesys.ps1 tree` | Dump the project object tree. |
-| `./tools/ai/codesys.ps1 device` | Report the device tree, the configured gateway, address and simulation flag. Connects to nothing. |
-| `./tools/ai/codesys.ps1 device -AddModule <ModuleId> -Under <node> -Force` | Plug a module into the device tree. Builds first and refuses to save a project that does not build. |
-| `./tools/ai/codesys.ps1 device -AddDevice <type:id:version> -NodeName <name> [-Under <node>] -Force` | Add a device — a module, or a whole second controller at the project root. |
-| `./tools/ai/codesys.ps1 device -RemoveNode <name> -Force` | Unplug a device or module. |
-| `./tools/ai/codesys.ps1 device -MapIo <spec.json> -Force` | Name a terminal's I/O channels, which is what makes a freshly added module readable from IEC code at all. `{ "map_io": [ { "node", "channel", "variable" } ] }`; each mapping is read back and a mismatch is an error. |
-| `./tools/ai/codesys.ps1 device -RenameNode <name> -NodeName <new> -Force` | Rename a device or module. Re-record the baseline afterwards: a device's name is in every message's object path. |
-| `./tools/ai/codesys.ps1 scaffold -Scaffold <spec.json> -Force` | Create **or update** GVLs, programs and tasks inside an application, including a task's kind, interval and priority. |
-| `./tools/ai/codesys.ps1 scan` | List PLCs answering on each gateway. Read-only, needs no project. |
-| `./tools/ai/codesys.ps1 download -Force` | Full download of the real project to the real PLC, then start it. |
-| `./tools/ai/codesys.ps1 export` | Rewrite `src/Exports/PLCopen.xml` from the project. |
-| `./tools/ai/codesys.ps1 verify -Baseline` | Build the untouched project, store its messages as the baseline. |
-| `./tools/ai/codesys.ps1 verify` | Import `.ai/candidates/*.xml` into a sandbox copy, build, report. |
-| `./tools/ai/codesys.ps1 simulate` | Download to a simulated PLC and run a test spec. **Currently blocked — see below.** |
-| `./tools/ai/codesys.ps1 apply -Force` | Import candidates into the **real** project and save. |
-| `./tools/ai/codesys.ps1 rename -Map <map.json> -DryRun` | Report what a rename would touch. Writes nothing, builds nothing. |
-| `./tools/ai/codesys.ps1 rename -Map <map.json> -Force` | Rename objects and identifiers, rewriting every reference. Refuses to save unless it builds. |
-| `./tools/ai/codesys.ps1 probe` | Dump real .NET signatures of the scripting API. |
-| `./tools/ai/codesys.ps1 info` | Read-only: IDE version, libraries, devices, and a hash of every object's code. |
-| `./tools/ai/codesys.ps1 compare -Project A -Against B` | CODESYS's own object-level diff between two projects. **Broken on 3.5.21.30**: `compare_to` rejects the flags it is given with *"Cannot convert numeric value 5 to ComparisonFlags. The value must be zero."* Diff two `export`s instead. |
-| `./tools/ai/codesys.ps1 libs` | Read-only: every library reference against every version installed on this machine. |
-| `./tools/ai/codesys.ps1 libs -RemoveLib '#Name'` | Drop a library reference. Builds first, refuses to save if it does not build. |
+| `codesys.ps1 doctor` | Toolchain check. No CODESYS launch. |
+| `codesys.ps1 tree` | Dump the project object tree. |
+| `codesys.ps1 device` | Report the device tree, the configured gateway, address and simulation flag. Connects to nothing. |
+| `codesys.ps1 device -AddModule <ModuleId> -Under <node> -Force` | Plug a module into the device tree. Builds first and refuses to save a project that does not build. |
+| `codesys.ps1 device -AddDevice <type:id:version> -NodeName <name> [-Under <node>] -Force` | Add a device — a module, or a whole second controller at the project root. |
+| `codesys.ps1 device -RemoveNode <name> -Force` | Unplug a device or module. |
+| `codesys.ps1 device -MapIo <spec.json> -Force` | Name a terminal's I/O channels, which is what makes a freshly added module readable from IEC code at all. `{ "map_io": [ { "node", "channel", "variable" } ] }`; each mapping is read back and a mismatch is an error. |
+| `codesys.ps1 device -RenameNode <name> -NodeName <new> -Force` | Rename a device or module. Re-record the baseline afterwards: a device's name is in every message's object path. |
+| `codesys.ps1 scaffold -Scaffold <spec.json> -Force` | Create **or update** GVLs, programs and tasks inside an application, including a task's kind, interval and priority. |
+| `codesys.ps1 scan` | List PLCs answering on each gateway. Read-only, needs no project. |
+| `codesys.ps1 download -Force` | Full download of the real project to the real PLC, then start it. |
+| `codesys.ps1 export` | Rewrite `src/Exports/PLCopen.xml` from the project. |
+| `codesys.ps1 verify -Baseline` | Build the untouched project, store its messages as the baseline. |
+| `codesys.ps1 verify` | Import `.ai/candidates/*.xml` into a sandbox copy, build, report. |
+| `codesys.ps1 simulate` | Download to a simulated PLC and run a test spec. **Currently blocked — see below.** |
+| `codesys.ps1 apply -Force` | Import candidates into the **real** project and save. |
+| `codesys.ps1 rename -Map <map.json> -DryRun` | Report what a rename would touch. Writes nothing, builds nothing. |
+| `codesys.ps1 rename -Map <map.json> -Force` | Rename objects and identifiers, rewriting every reference. Refuses to save unless it builds. |
+| `codesys.ps1 probe` | Dump real .NET signatures of the scripting API. |
+| `codesys.ps1 info` | Read-only: IDE version, libraries, devices, and a hash of every object's code. |
+| `codesys.ps1 compare -Project A -Against B` | CODESYS's own object-level diff between two projects. **Broken on 3.5.21.30**: `compare_to` rejects the flags it is given with *"Cannot convert numeric value 5 to ComparisonFlags. The value must be zero."* Diff two `export`s instead. |
+| `codesys.ps1 libs` | Read-only: every library reference against every version installed on this machine. |
+| `codesys.ps1 libs -RemoveLib '#Name'` | Drop a library reference. Builds first, refuses to save if it does not build. |
 
 ### Working on another project
 
@@ -126,7 +133,7 @@ lifted out of another project needs both.
 1. **Confirm the export is current** before trusting it:
 
    ```
-   git log -1 --format=%cd -- src/Exports/PLCopen.xml src/HomeAutomation.project
+   git log -1 --format=%cd -- "$env:HA_CODESYS_REPO\src\Exports\PLCopen.xml" "$env:HA_CODESYS_REPO\src\HomeAutomation.project"
    ```
 
    If the project is newer, run `export` first. Regenerating docs or reasoning
@@ -152,7 +159,7 @@ lifted out of another project needs both.
    For anything non-trivial, copy the shape of a comparable existing block out of
    `PLCopen.xml` rather than inventing structure.
 
-5. **Verify** — `./tools/ai/codesys.ps1 verify`. This copies the project to
+5. **Verify** — `codesys.ps1 verify`. This copies the project to
    `.ai/work`, imports the candidates, builds, and reports every message with
    object, line and column. Iterate here; the real project is untouched. Read the
    `harness` section of the report, not just the result line (see below).
@@ -233,8 +240,8 @@ Renaming is its own task because `node.rename()` renames an object and updates
 ScriptEngine. The references are the harness's job:
 
 ```powershell
-./tools/ai/codesys.ps1 rename -Map tools/ai/rename/179-objects.json -DryRun
-./tools/ai/codesys.ps1 rename -Map tools/ai/rename/179-objects.json -Force
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" rename -Map tools/ai/rename/179-objects.json -DryRun
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" rename -Map tools/ai/rename/179-objects.json -Force
 ```
 
 The map holds `objects` (a type, block, program or GVL — the name is
@@ -407,11 +414,11 @@ reports that they exist. Two ways that bites:
 reachable from the IDE.
 
 ```powershell
-./tools/ai/codesys.ps1 libs                        # what is referenced, and what is installed
-./tools/ai/codesys.ps1 libs -LibFilter modbus      # also: every installed Modbus library
-./tools/ai/codesys.ps1 libs -RemoveLib '#IoDrvModbus'
-./tools/ai/codesys.ps1 libs -AddLib 'SysCom, 3.5.17.0 (System)'
-./tools/ai/codesys.ps1 libs -UpdateLib 'PRO_JSON'  # repoint a PLACEHOLDER at the newest installed
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" libs                        # what is referenced, and what is installed
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" libs -LibFilter modbus      # also: every installed Modbus library
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" libs -RemoveLib '#IoDrvModbus'
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" libs -AddLib 'SysCom, 3.5.17.0 (System)'
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" libs -UpdateLib 'PRO_JSON'  # repoint a PLACEHOLDER at the newest installed
 ```
 
 Read-only without `-RemoveLib` / `-AddLib` / `-UpdateLib`. With any of them it
@@ -455,8 +462,8 @@ per version and matches nothing.
 project only the IDE could reach:
 
 ```powershell
-./tools/ai/codesys.ps1 device                                   # read-only: the tree
-./tools/ai/codesys.ps1 device -AddModule '0287_75x_647' -Under 'Pfc200Bus' -Force
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" device                                   # read-only: the tree
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" device -AddModule '0287_75x_647' -Under 'Pfc200Bus' -Force
 ```
 
 A whole device, including a second controller, goes in the same way — but a
@@ -464,9 +471,9 @@ device carries its own identification, so it has to be given:
 
 ```powershell
 # type:id:version, read out of the device description
-./tools/ai/codesys.ps1 device -AddDevice '4096:1006 1209:6.4.5.11' -NodeName 'Wago_PFC200_G2_Virtual' -Force
-./tools/ai/codesys.ps1 device -AddDevice '32776:07530647000000002424:2.0.0.20' -Under 'Kbus' -NodeName 'DALI_753_647' -Force
-./tools/ai/codesys.ps1 device -RemoveNode '_75x_647' -Force        # and back out again
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" device -AddDevice '4096:1006 1209:6.4.5.11' -NodeName 'Wago_PFC200_G2_Virtual' -Force
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" device -AddDevice '32776:07530647000000002424:2.0.0.20' -Under 'Kbus' -NodeName 'DALI_753_647' -Force
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" device -RemoveNode '_75x_647' -Force        # and back out again
 ```
 
 **A second controller is how an otherwise-uncompiled block gets covered.** A
@@ -475,7 +482,7 @@ still compiled. Adding a controller creates `Plc Logic/Application` with a
 Library Manager and nothing else, so `scaffold` fills it in:
 
 ```powershell
-./tools/ai/codesys.ps1 scaffold -Scaffold tools/ai/scaffold/g2-dali-verify.json -Force
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" scaffold -Scaffold tools/ai/scaffold/g2-dali-verify.json -Force
 ```
 
 A scaffold spec creates GVLs, programs and tasks inside a named application,
@@ -618,7 +625,7 @@ The spec format, for when it is usable — or as the model for a device-side tes
 ] }
 ```
 
-Run with `./tools/ai/codesys.ps1 simulate -Spec path\to\spec.json`. Values are
+Run with `codesys.ps1 simulate -Spec path\to\spec.json`. Values are
 strings in both directions, and `download -Spec` runs the same format against real
 hardware. A failed `expect` lands in `test_failures` and fails the run, distinct
 from a compiler error.
@@ -636,10 +643,10 @@ everything the PLC publishes** — which is where the runtime checks live. Use t
 around every download:
 
 ```powershell
-./tools/ai/Mqtt-Snapshot.ps1 -Out .ai/mqtt/before.txt      # BEFORE the download
-./tools/ai/codesys.ps1 download -Force -Ip 10.101.1.232
-./tools/ai/Mqtt-Snapshot.ps1 -Out .ai/mqtt/after.txt       # after, once settled
-./tools/ai/Mqtt-Snapshot.ps1 -Diff .ai/mqtt/before.txt,.ai/mqtt/after.txt
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Out "$env:HA_CODESYS_REPO\.ai\mqtt\before.txt"      # BEFORE the download
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" download -Force -Ip 10.101.1.69
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Out "$env:HA_CODESYS_REPO\.ai\mqtt\after.txt"       # after, once settled
+& "$env:HA_CODESYS_REPO\tools\ai\Mqtt-Snapshot.ps1" -Diff "$env:HA_CODESYS_REPO\.ai\mqtt\before.txt","$env:HA_CODESYS_REPO\.ai\mqtt\after.txt"
 ```
 
 The snapshot captures **retained** topics only (`--retained-only`), so it is
@@ -668,15 +675,15 @@ retain=0, the broker's replay with retain=1.
 
 ```powershell
 # 1. record what Home Assistant currently knows
-py tools/ai/check_mqtt_discovery.py --device Wago_PFC200_G1_Lab \
-    --snapshot .ai/mqtt/expect.json
+py "$env:HA_CODESYS_REPO\tools\ai\check_mqtt_discovery.py" --device Wago_PFC200_G1_Lab \
+    --snapshot "$env:HA_CODESYS_REPO\.ai\mqtt\expect.json"
 
 # 2. watch, and download while it runs (background one of them)
-py tools/ai/check_mqtt_discovery.py --watch 240 --expect .ai/mqtt/expect.json \
+py "$env:HA_CODESYS_REPO\tools\ai\check_mqtt_discovery.py" --watch 240 --expect "$env:HA_CODESYS_REPO\.ai\mqtt\expect.json" \
     --device Wago_PFC200_G1_Lab
 
 # structure only, against whatever is retained now - needs no PLC
-py tools/ai/check_mqtt_discovery.py
+py "$env:HA_CODESYS_REPO\tools\ai\check_mqtt_discovery.py"
 ```
 
 It also fails on a `composed truncated json` / `failed json root strip` /
@@ -712,8 +719,8 @@ covers and lights. So:
   something to infer from a device name.
 
 ```powershell
-./tools/ai/codesys.ps1 scan                              # what is actually reachable
-./tools/ai/codesys.ps1 download -Force -Address 003E     # target one node, this run only
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" scan                              # what is actually reachable
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" download -Force -Address 003E     # target one node, this run only
 ```
 
 **The stored address goes stale.** The committed project points at node `00E8`,

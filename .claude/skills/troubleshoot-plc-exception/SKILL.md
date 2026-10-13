@@ -5,6 +5,13 @@ description: Find out why a PFC200 stopped - an application that died, a buildin
 
 # Why a PFC200 stopped
 
+> **Paths.** This skill is reachable from any working directory -
+> `~/.claude/skills` links to the copy inside the reference clone - so every
+> command below is rooted at `$env:HA_CODESYS_REPO`, which
+> `~/.claude/settings.json` sets. Bare paths in prose (`src/Exports/PLCopen.xml`,
+> `.ai/reports/`, `docs/`) are relative to that same clone, wherever you are
+> working. `codesys.ps1` reported as not found means the variable is unset.
+
 The runtime writes down exactly why it stopped, and the record survives a
 restart. Almost all the time lost to a failure like this goes on not reading it:
 the file is not where the CODESYS documentation implies, the controller's clock
@@ -21,7 +28,7 @@ system to investigate and the answers are all free:
 | Check | Command | What a positive proves |
 |:--|:--|:--|
 | Application publishing | `mosquitto_sub -h <broker> -R -t 'Devices/PLC/<site>/availability'` | The application is running **now** |
-| Runtime process alive | `./tools/ai/codesys.ps1 scan` | The runtime answers the gateway, whatever the application is doing |
+| Runtime process alive | `codesys.ps1 scan` | The runtime answers the gateway, whatever the application is doing |
 | Runtime's own view | PLC Shell `getprgstat` | `[Run]` vs stopped, and whether an exception flag is set |
 | **Did the wall pushbuttons work during the outage?** | ask the person | **The single most useful question.** Dead buttons mean the application was gone; working buttons with no Home Assistant mean only the MQTT path failed |
 
@@ -199,7 +206,7 @@ wrong, because **nothing in the IEC layer allocates**:
 
 ```bash
 grep -cE "__NEW|__DELETE|SysMemAllocData|SysMemFreeData|MemAlloc|MemFree|MALLOC" \
-  src/Exports/PLCopen.xml
+  "$env:HA_CODESYS_REPO\src\Exports\PLCopen.xml"
 ```
 
 Zero in this project's own code, and zero in `PRO_JSON 1.0.21.0` — whose only
@@ -276,7 +283,7 @@ A task's kind, period and priority are `scaffold` fields, so this class of fix
 is a spec file rather than a GUI session:
 
 ```powershell
-./tools/ai/codesys.ps1 scaffold -Project .ai/sync/<Site>/<Site>.project \
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" scaffold -Project "$env:HA_CODESYS_REPO\.ai\sync\<Site>\<Site>.project" \
     -Scaffold tools/ai/scaffold/mqtt-task-cyclic.json -Force
 ```
 
