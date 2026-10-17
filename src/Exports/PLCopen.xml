@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-17T10:56:20.1972749" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-17T10:55:32.3648072">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-17T12:54:38.5943049" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-17T12:53:43.5856084">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -13273,13 +13273,25 @@ stMqttDiscMsgSensorDiagnostic.stat_t.CharString := StateTopic;
 stMqttDiscMsgSensorDiagnostic.exp_aft.Integer := ExpiryAfter;
 stMqttDiscMsgSensorDiagnostic.ent_cat.CharString := 'diagnostic';
 
-(* Optional, and left out of the JSON entirely when not given, so every existing
-   diagnostic entity is unaffected. *)
+(* Optional, and left out of the JSON entirely when not given.
+
+   Cleared explicitly when not given, because stMqttDiscMsgSensorDiagnostic is one
+   struct reused for every diagnostic entity this device announces. Setting a field
+   only when it is given meant the first entity with a unit handed it to every
+   entity announced after it: a block announcing 'Link quality' in % and then a
+   firmware version published the firmware as a percentage, with a state class,
+   so Home Assistant started keeping statistics on it. *)
 IF NOT CommonTypesAndFunctions.StrEquals(str1 := ADR(UnitOfMeasurement), str2 := ADR('')) THEN
 	stMqttDiscMsgSensorDiagnostic.unit_of_meas.CharString := UnitOfMeasurement;
+ELSE
+	stMqttDiscMsgSensorDiagnostic.unit_of_meas.CharString := '';
+	stMqttDiscMsgSensorDiagnostic.unit_of_meas.Null := '';
 END_IF
 IF NOT CommonTypesAndFunctions.StrEquals(str1 := ADR(StateClass), str2 := ADR('')) THEN
 	stMqttDiscMsgSensorDiagnostic.stat_cla.CharString := StateClass;
+ELSE
+	stMqttDiscMsgSensorDiagnostic.stat_cla.CharString := '';
+	stMqttDiscMsgSensorDiagnostic.stat_cla.Null := '';
 END_IF
 
 
