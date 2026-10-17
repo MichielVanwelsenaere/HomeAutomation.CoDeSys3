@@ -46,6 +46,7 @@ VAR_GLOBAL
     MqttSubRS485Prefix : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttBaseTopic, 'In/RS485/');
     MqttPubHVACPrefix : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttBaseTopic, 'Out/HVAC/');
     MqttPubAnalogInputPrefix : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttBaseTopic, 'Out/AnalogInputs/');
+    MqttPubCounterPrefix : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttBaseTopic, 'Out/Counters/');
     MqttSubHVACPrefix : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttBaseTopic, 'In/HVAC/');
     MqttSubSwitchTopic : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttSubSwitchPrefix, '+');
     MqttSubCoverTopic : STRING(GVL_MQTT.MQTT_TOPIC_LEN) := CONCAT(MqttSubCoverPrefix, '#');
