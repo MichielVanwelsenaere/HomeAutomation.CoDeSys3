@@ -44,9 +44,10 @@ param(
     # lets the sync-implementation-project skill drive an installation project
     # that lives in a different repository entirely.
     #
-    # `download` REFUSES a -Project override: shipping a foreign project to a PLC
-    # from this repo's tooling is never what was meant, and the mistake is not
-    # undoable.
+    # `download` accepts a -Project override only together with -Controller,
+    # naming the one PLC in that project to ship. An installation project often
+    # holds several controllers, and "the first device" would then be a coin flip
+    # over which building gets the download.
     [string]$Project,
 
     # info/compare/export: where the report artefact goes. `export` needs it
@@ -89,6 +90,12 @@ param(
     # -Ip takes an IP. The project is never saved, so committed settings stand.
     [string]$Address,
     [string]$Ip,
+
+    # download only: the controller (top-level device) to ship, by node name as
+    # `device` lists it, e.g. Wago_G1_Annex. Only that controller's application is
+    # logged into. Required with -Project; without it the reference project's
+    # first controller is used, as before.
+    [string]$Controller,
 
     # libs only: change the project's library references. Without any of these
     # `libs` is read-only and just reports what is referenced against what is
@@ -614,13 +621,24 @@ Pass -Output <path> to say where the foreign export should go.
         }
     }
     'download' {
-        if ($Project) {
+        if ($Project -and -not $Controller) {
             throw @'
-download refuses a -Project override. This repository's tooling ships THIS
-project to a PLC; pointing it at an installation project would put reference
-code onto a building's controller from the wrong working copy, and there is no
-undo. Open that project in the IDE and download it from there.
+download -Project needs -Controller <name>. An installation project usually
+holds more than one PLC, and a download must name the one it is for. Run
+`device -Project <path>` to list them.
 '@
+        }
+        if ($Project -and $targetProject -like (Join-Path $repo '.ai\*')) {
+            throw @'
+download -Project points inside .ai/ - a sandbox or sync working copy. Download
+the installation project's own file, so what runs on the PLC is what its
+repository records, and its .bootinfo/.compileinfo stay in step for a later
+online change from the IDE.
+'@
+        }
+        if ($Controller) {
+            $cfg.controller = $Controller
+            Write-Host "controller: $Controller"
         }
         if (-not $Force) {
             throw @'

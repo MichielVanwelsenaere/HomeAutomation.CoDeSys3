@@ -114,7 +114,15 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 `-Project <path>` points any task at a different `.project` file — that is how
 `sync-implementation-project` drives a building's installation project. Reports
 are then stem-qualified (`baseline.SiteA.json`), so a foreign build
-cannot overwrite this project's baseline. `download` **refuses** `-Project`.
+cannot overwrite this project's baseline. `download` takes `-Project` only with
+`-Controller <node name>` (an installation project usually holds several PLCs,
+and only the named one's application is logged into), and refuses a project under
+`.ai/` - ship the installation's own file, so its `.bootinfo`/`.compileinfo` stay
+in step with the PLC:
+
+```powershell
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" download -Force -Project C:\path\to\SiteA.project -Controller Wago_G1_Annex
+```
 
 Four companions to it:
 
