@@ -58,9 +58,10 @@ belongs to the major release, not to a routine sync.
 An installation project is a building's running control program. Two rules, and
 neither is negotiable:
 
-- **Never download.** `codesys.ps1 download` refuses a `-Project` override
-  outright. Do not work around it. This skill changes files on disk and nothing
-  else.
+- **Never download.** This skill changes files on disk and nothing else. Shipping
+  an installation project is a separate, deliberate act the user asks for:
+  `download -Project <the installation's own file> -Controller <name> -Force`,
+  which refuses a working copy under `.ai/`, so a sync copy cannot reach a PLC.
 - **Never sync in place.** The installation project may not be under source
   control. Work on a copy in `.ai/sync/`, and only replace the original once the
   copy has built cleanly, passed the logic-unchanged check, *and* the user has

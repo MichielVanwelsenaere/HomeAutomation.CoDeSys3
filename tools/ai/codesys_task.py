@@ -2249,7 +2249,22 @@ def do_download(cfg, result):
         if not devices:
             result["errors"].append("no top-level device found to download to")
             return
-        device = devices[0]
+        # A named controller, when the wrapper passed one. An installation project
+        # can hold several PLCs; the first device is only a safe default for the
+        # reference project, whose second controller is never downloaded.
+        wanted = cfg.get("controller")
+        if wanted:
+            matches = [d for d in devices
+                       if u(safe(lambda: d.get_name(), u"")).lower() == u(wanted).lower()]
+            if len(matches) != 1:
+                result["errors"].append(
+                    "controller %r matched %d top-level device(s); the project has: %s"
+                    % (wanted, len(matches),
+                       ", ".join(u(safe(lambda: d.get_name(), u"?")) for d in devices)))
+                return
+            device = matches[0]
+        else:
+            device = devices[0]
         online_info["device"] = u(object_path(device))
         online_info["gateway"] = u(safe(lambda: device.get_gateway()))
         online_info["address"] = u(safe(lambda: device.get_address()))
@@ -2291,9 +2306,15 @@ def do_download(cfg, result):
 
         apps = [c for c in list(safe(lambda: proj.get_children(True), []) or [])
                 if safe(lambda: c.is_application, False)]
+        # Only the chosen controller's application. With two controllers apps[0]
+        # is whichever CODESYS lists first, which need not be the device above.
+        prefix = object_path(device) + u"/"
+        apps = [a for a in apps if object_path(a).startswith(prefix)]
         if not apps:
-            result["errors"].append("no application to download")
+            result["errors"].append("no application under %s to download" % online_info["device"])
             return
+        online_info["application"] = u(object_path(apps[0]))
+        log("application=%s" % online_info["application"])
 
         # Credentials come from the environment via the wrapper, never from a
         # committed file. Without them we fall back to whatever CODESYS has
