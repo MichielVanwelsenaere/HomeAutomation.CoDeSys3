@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-09-14T20:36:57.2716108" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-09-14T20:35:48.0989634">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-17T10:56:20.1972749" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-17T10:55:32.3648072">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -62,6 +62,73 @@
         <addData>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>7e70064f-6492-4dc1-92cd-358022349669</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="E_PULSE_METER_TYPE">
+        <baseType>
+          <enum>
+            <values>
+              <value name="GENERIC" value="0" />
+              <value name="WATER_L" value="1" />
+              <value name="WATER_M3" value="2" />
+              <value name="GAS_M3" value="3" />
+              <value name="ENERGY_WH" value="4" />
+              <value name="ENERGY_KWH" value="5" />
+            </values>
+          </enum>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/enumvaluedocumentation" handleUnknown="implementation">
+            <EnumValueDocumentation>
+              <EnumValue>
+                <Name>GENERIC</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">No Home Assistant device class, and the unit is whatever GenericUnit says.
+Kept in statistics like any other meter, but it does not appear in the energy
+dashboard, which only lists the quantities it knows.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>WATER_L</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Water, in litres. device_class water.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>WATER_M3</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Water, in cubic metres. device_class water.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>GAS_M3</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Gas, in cubic metres. device_class gas.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ENERGY_WH</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Energy, in watt-hours. device_class energy.</xhtml>
+                </Documentation>
+              </EnumValue>
+              <EnumValue>
+                <Name>ENERGY_KWH</Name>
+                <Documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Energy, in kilowatt-hours. device_class energy.</xhtml>
+                </Documentation>
+              </EnumValue>
+            </EnumValueDocumentation>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+            <Attributes>
+              <Attribute Name="qualified_only" Value="" />
+              <Attribute Name="strict" Value="" />
+            </Attributes>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>4b01a1b6-54a2-4067-9c9e-665c0cd161fd</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -2409,6 +2476,607 @@ SUPER^.InitBaseMqtt();
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>63aef430-0697-418d-919b-7de1dc965413</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_INPUT_PULSE_COUNTER_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="Pulse">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The digital input the meter's pulse output is wired to. A pulse is counted
+ on its rising edge, once it has been high for MinPulseTime.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ProcessImageValid">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE once the K-bus is exchanging process data. Wire it to
+ Pfc200Bus.xConfigFinished.
+
+ While FALSE nothing is counted, and the first scan after it rises takes the
+ input as it finds it rather than counting it. A meter that stopped with its
+ reed contact closed reads FALSE before the bus is up and TRUE after, and
+ without this gate that is one phantom pulse per restart.
+
+ Defaults to FALSE, so a forgotten wire counts nothing - which is loud -
+ rather than a pulse per restart, which is not.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="Total">
+              <type>
+                <LREAL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Consumption since the PLC started, in the unit MeterType names. Starts at 0
+ on every start and only ever rises.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="EVENT">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> High for one cycle on every counted pulse, after the MinPulseTime filter.</xhtml>
+              </documentation>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="sInstancePath">
+              <type>
+                <string />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="noinit" />
+                    <Attribute Name="instance-path" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="eMeterType">
+              <type>
+                <derived name="E_PULSE_METER_TYPE" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Configuration, set once by FB_init. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="liWeightMicro">
+              <type>
+                <LINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> PulseWeight in millionths of the published unit.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="usiDecimals">
+              <type>
+                <USINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How many decimals PulseWeight has, and so how many the total is published
+ with: every total is a whole number of pulses, so it never has more.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="liDecimalDivisor">
+              <type>
+                <LINT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> 10^(6 - usiDecimals): divides the millionths down to usiDecimals digits.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="sGenericUnit">
+              <type>
+                <string length="16" />
+              </type>
+            </variable>
+            <variable name="tMinPulseTime">
+              <type>
+                <TIME />
+              </type>
+            </variable>
+            <variable name="liTotalMicro">
+              <type>
+                <LINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The running total in millionths of the published unit. Whole numbers, so
+ a decade of pulses accumulates with no rounding at all.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bFiltered">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The input as the filter last accepted it.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bArmed">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> FALSE until the first scan with a valid process image has taken the input
+ as its reference.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="fbHighTimer">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="fbLowTimer">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="liPublishedMicro">
+              <type>
+                <LINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Publishing. </xhtml>
+              </documentation>
+            </variable>
+            <variable name="bStartup">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The zero that tells Home Assistant a new meter cycle began is still owed.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bPublish">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="fbPublishGap">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="fbHeartbeat">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="sPayload">
+              <type>
+                <string length="32" />
+              </type>
+            </variable>
+            <variable name="sFraction">
+              <type>
+                <string length="8" />
+              </type>
+            </variable>
+          </localVars>
+          <localVars constant="true">
+            <variable name="ctMinPublishInterval">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#10s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The total is published at most this often, however fast the pulses come. A
+ 1000 imp/kWh meter under a 10 kW load pulses about three times a second;
+ publishing each one would only fill the queue, and Home Assistant keeps
+ statistics per five minutes at the finest.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ctHeartbeatInterval">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#5m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Republish even when nothing changed, so a quiet meter can be told from a
+ stopped PLC.</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Set FriendlyName at the declaration and this block wires itself from GVL_MQTT
+   on its first cyclic call, then announces itself to Home Assistant. Same idiom,
+   and the same reasons, as every other block here: see
+   FB_INPUT_BINARYSENSOR_MQTT.
+
+   A block wired this way MUST be called cyclically. An instance whose body never
+   runs stays unwired and never appears in Home Assistant, and nothing warns
+   about it. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT bInitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubCounterPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue));
+	END_IF
+
+	IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(GVL_MQTT.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+(* --- counting ----------------------------------------------------------------
+   An edge counts once the input has held its new level for MinPulseTime, both
+   ways, which is what rejects the bounce of a reed contact. A bounce shorter than
+   that restarts the timer and is never seen.
+
+   Nothing is counted until the process image is valid, and the first valid scan
+   takes the input as its reference rather than as an edge: the bus reads FALSE
+   until it is up, so a contact resting closed would otherwise be a pulse on every
+   restart. The same holds when the bus drops out and comes back. *)
+EVENT := FALSE;
+
+IF NOT ProcessImageValid THEN
+	bArmed := FALSE;
+	fbHighTimer(IN := FALSE);
+	fbLowTimer(IN := FALSE);
+ELSIF NOT bArmed THEN
+	bFiltered := Pulse;
+	bArmed := TRUE;
+ELSE
+	fbHighTimer(IN := Pulse AND NOT bFiltered, PT := tMinPulseTime);
+	fbLowTimer(IN := bFiltered AND NOT Pulse, PT := tMinPulseTime);
+	IF fbHighTimer.Q THEN
+		bFiltered := TRUE;
+		liTotalMicro := liTotalMicro + liWeightMicro;
+		EVENT := TRUE;
+	ELSIF fbLowTimer.Q THEN
+		bFiltered := FALSE;
+	END_IF
+END_IF
+
+Total := LINT_TO_LREAL(liTotalMicro) / 1.0E6;
+
+(* --- publishing --------------------------------------------------------------
+   The first publish after a start is always 0. That is what keeps Home
+   Assistant's statistics right across a restart: under total_increasing, a value
+   that falls by 10 % or more is a new meter cycle and the sum carries on, while a
+   smaller fall is subtracted as negative consumption. Publishing 0 makes every
+   restart a fall of 100 %, however long the PLC ran before it.
+
+   After that: on a change, no more often than ctMinPublishInterval, and on the
+   heartbeat. Retained, so a Home Assistant that restarts has the count at once. *)
+fbHeartbeat(IN := NOT fbHeartbeat.Q, PT := ctHeartbeatInterval);
+fbPublishGap(IN := TRUE, PT := ctMinPublishInterval);
+
+IF bInitMqttDone THEN
+	IF bStartup THEN
+		sPayload := '0';
+		liPublishedMicro := 0;
+		bStartup := FALSE;
+		bPublish := TRUE;
+	ELSIF fbHeartbeat.Q OR ((liTotalMicro &lt;&gt; liPublishedMicro) AND fbPublishGap.Q) THEN
+		(* Formatted from the integer rather than through LREAL_TO_STRING, which
+		   would publish 1234.5670000000001 for a total of 1234.567. *)
+		sPayload := LINT_TO_STRING(liTotalMicro / 1000000);
+		IF usiDecimals &gt; 0 THEN
+			sFraction := LINT_TO_STRING((liTotalMicro MOD 1000000) / liDecimalDivisor);
+			WHILE LEN(sFraction) &lt; USINT_TO_INT(usiDecimals) DO
+				sFraction := CONCAT('0', sFraction);
+			END_WHILE
+			sPayload := CONCAT(CONCAT(sPayload, '.'), sFraction);
+		END_IF
+		liPublishedMicro := liTotalMicro;
+		bPublish := TRUE;
+	END_IF
+
+	IF bPublish THEN
+		pMqttPublishQueue^.AddMessage(
+			Payload := sPayload,
+			Topic := CONCAT(THIS^.sMQTTPublishTopic, '/TOTAL'),
+			Qos := MQTT.QoS.ExactlyOnce,
+			MqttRetain := TRUE);
+		fbPublishGap(IN := FALSE);
+		bPublish := FALSE;
+	END_IF
+END_IF
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="FB_init" ObjectId="8dbd0579-badc-4f47-ac48-13a84b93c081">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="bInitRetains">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the retain variables are initialized (reset warm / reset cold)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="bInCopyCode">
+                    <type>
+                      <BOOL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">TRUE: the instance will be copied to the copy code afterward (online change)</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MeterType">
+                    <type>
+                      <derived name="E_PULSE_METER_TYPE" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">What is measured and the unit Total is in. Sets the Home Assistant device_class and unit.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="PulseWeight">
+                    <type>
+                      <LREAL />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Units of Total per pulse: the inverse of the impulse constant on the meter. Values below one millionth, and zero or negative values, count nothing.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="GenericUnit">
+                    <type>
+                      <string length="16" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">The unit published for MeterType GENERIC, and ignored otherwise: pass '' for every other type. ASCII only.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MinPulseTime">
+                    <type>
+                      <TIME />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">How long Pulse must stay high, and then low, before an edge counts. Filters reed contact bounce. T#20MS suits reed contacts and S0 outputs alike.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">CODESYS constructor. These parameters are supplied in the instance declaration, not by calling a method, and are applied once at startup.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* What the meter is describes the wiring, not a mode, so it is fixed for the
+   life of the instance. Changing it afterwards means editing the declaration in
+   the IDE: CODESYS stores an instance's FB_init arguments beside the declaration
+   text, where no script can reach them. *)
+eMeterType := MeterType;
+sGenericUnit := GenericUnit;
+tMinPulseTime := MinPulseTime;
+
+(* Rounded to a millionth once, here, so every pulse after adds exactly the same
+   whole number. Anything under a millionth, zero or negative counts nothing. *)
+IF PulseWeight &gt; 0.0 THEN
+	liWeightMicro := LREAL_TO_LINT(PulseWeight * 1.0E6);
+ELSE
+	liWeightMicro := 0;
+END_IF
+
+(* Publish with as many decimals as one pulse has: 0.001 gives three, 10.0 none. *)
+usiDecimals := 6;
+liDecimalDivisor := 1;
+IF liWeightMicro = 0 THEN
+	usiDecimals := 0;
+	liDecimalDivisor := 1000000;
+ELSE
+	WHILE (usiDecimals &gt; 0) AND ((liWeightMicro / liDecimalDivisor) MOD 10 = 0) DO
+		usiDecimals := usiDecimals - 1;
+		liDecimalDivisor := liDecimalDivisor * 10;
+	END_WHILE
+END_IF
+
+FB_init := TRUE;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt" ObjectId="7feb063c-8dba-4917-96a0-b90d5a064232">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the MQTT publish prefix used for this block. The function block name is appended automatically.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the shared MQTT queue that carries messages to the broker.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Enables MQTT on the function block. Call once at startup. Not needed when FriendlyName is set at the declaration: the block then wires itself.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._sInstancePath := THIS^.sInstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.psMqttPublishTopicPrefix := MQTTPublishPrefix;
+SUPER^.InitBaseMqtt();
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="79fd5830-ae55-495f-a8bc-82d2da5cc98d">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Pointer to the discovery device this entity belongs to, normally GVL_MQTT.PLC_Device.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Name of the entity in Home Assistant. The self-wiring prologue passes FriendlyName.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Overrides the generated entity id. Leave empty to derive it from the function block name.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="sDeviceClass">
+                    <type>
+                      <string length="16" />
+                    </type>
+                  </variable>
+                  <variable name="sUnit">
+                    <type>
+                      <string length="16" />
+                    </type>
+                  </variable>
+                </localVars>
+                <documentation>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">Publishes the Home Assistant discovery config for the consumption sensor. Call once at startup, after InitMqtt.</xhtml>
+                </documentation>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+
+	id := SUPER^.ResolveEntityId(overruleId);
+
+	(* The meter type decides the unit and the device class together, because
+	   Home Assistant validates them as a pair and drops an entity whose unit its
+	   device class does not allow. *)
+	CASE eMeterType OF
+		E_PULSE_METER_TYPE.WATER_L:
+			sDeviceClass := 'water';
+			sUnit := 'L';
+		E_PULSE_METER_TYPE.WATER_M3:
+			sDeviceClass := 'water';
+			sUnit := 'm³';
+		E_PULSE_METER_TYPE.GAS_M3:
+			sDeviceClass := 'gas';
+			sUnit := 'm³';
+		E_PULSE_METER_TYPE.ENERGY_WH:
+			sDeviceClass := 'energy';
+			sUnit := 'Wh';
+		E_PULSE_METER_TYPE.ENERGY_KWH:
+			sDeviceClass := 'energy';
+			sUnit := 'kWh';
+	ELSE
+		sDeviceClass := '';
+		sUnit := sGenericUnit;
+	END_CASE
+
+	(* total_increasing is the whole point of this block: it is what makes Home
+	   Assistant keep long-term statistics, and what makes it read the zero
+	   published after every restart as a new meter cycle rather than as
+	   consumption running backwards. No expire_after: a meter that is quiet for
+	   a week has used nothing, and that is not the same as unavailable. *)
+	Device^.CreateSensorEntity(
+		Name := Name,
+		Id := id,
+		StateTopic := CONCAT(THIS^.sMQTTPublishTopic, '/TOTAL'),
+		DeviceClass := sDeviceClass,
+		UnitOfMeasurement := sUnit,
+		StateClass := 'total_increasing');
+
+	bInitMqttDiscoveryDone := TRUE;
+END_IF
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>1759dc95-df6b-4c6b-8636-6eeb0176fef3</ObjectId>
           </data>
         </addData>
       </pou>
@@ -26264,6 +26932,18 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
 	   is nothing to command on an input. </xhtml>
               </documentation>
             </variable>
+            <variable name="MqttPubCounterPrefix">
+              <type>
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+              </type>
+              <initialValue>
+                <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Counters/')" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Pulse counters: water, gas and energy meters read one pulse at a time.
+	   Publish only - a counter takes no commands. </xhtml>
+              </documentation>
+            </variable>
             <variable name="MqttSubHVACPrefix">
               <type>
                 <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
@@ -26884,6 +27564,18 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
 	   is nothing to command on an input. </xhtml>
                       </documentation>
                     </variable>
+                    <variable name="MqttPubCounterPrefix">
+                      <type>
+                        <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                      </type>
+                      <initialValue>
+                        <simpleValue value="CONCAT(MqttBaseTopic, 'Out/Counters/')" />
+                      </initialValue>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> Pulse counters: water, gas and energy meters read one pulse at a time.
+	   Publish only - a counter takes no commands. </xhtml>
+                      </documentation>
+                    </variable>
                     <variable name="MqttSubHVACPrefix">
                       <type>
                         <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
@@ -27453,6 +28145,45 @@ keep sweeping stSettings or go and look at the wiring.</xhtml>
 	   docs/AnalogInputs/UsingRTDSensors.md. </xhtml>
                       </documentation>
                     </variable>
+                    <variable name="fbDiPulse001">
+                      <type>
+                        <derived name="FB_INPUT_PULSE_COUNTER_MQTT" />
+                      </type>
+                      <initialValue>
+                        <structValue>
+                          <value member="FriendlyName">
+                            <simpleValue value="'Pulse counter 001'" />
+                          </value>
+                        </structValue>
+                      </initialValue>
+                      <addData>
+                        <data name="http://www.3s-software.com/plcopenxml/inputassignments" handleUnknown="implementation">
+                          <InputAssignments>
+                            <InputAssignment>
+                              <Name>MeterType</Name>
+                              <Value>E_PULSE_METER_TYPE.WATER_L</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>PulseWeight</Name>
+                              <Value>1.0</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>GenericUnit</Name>
+                              <Value>''</Value>
+                            </InputAssignment>
+                            <InputAssignment>
+                              <Name>MinPulseTime</Name>
+                              <Value>TIME#20ms</Value>
+                            </InputAssignment>
+                          </InputAssignments>
+                        </data>
+                      </addData>
+                      <documentation>
+                        <xhtml xmlns="http://www.w3.org/1999/xhtml"> PULSE COUNTER FUNCTION BLOCKS 
+ On DI_003, a free input on this bench: a pushbutton on it counts one litre
+	   per press. </xhtml>
+                      </documentation>
+                    </variable>
                     <variable name="fbDoBin001">
                       <type>
                         <derived name="FB_OUTPUT_BINARY_MQTT" />
@@ -27644,6 +28375,7 @@ fbDiPb002(PB:= DI_002);
    ProcessImageValid left FALSE the block reports the reading as invalid, which
    is exactly what an unwired input is. *)
 fbAiRtdUnwired(Raw := 0);
+fbDiPulse001(Pulse := DI_003, ProcessImageValid := Pfc200Bus.xConfigFinished);
 
 
 (* K-BUS CONTROL. Written every cycle so that setting either flag in an online
@@ -31591,6 +32323,12 @@ keep sweeping settings or go and look at the wiring.</xhtml>
           <Object Name="FB_INPUT_TEMPERATURE_RTD_MQTT" ObjectId="0b5f67f0-1d06-40c9-a1b0-e55e67270658">
             <Object Name="InitMqttDiscovery" ObjectId="89f42edd-399b-4977-8303-148a3159263e" />
             <Object Name="InitMqtt" ObjectId="c9218a71-bd22-426a-ae8a-b28c0b98615d" />
+          </Object>
+          <Object Name="E_PULSE_METER_TYPE" ObjectId="4b01a1b6-54a2-4067-9c9e-665c0cd161fd" />
+          <Object Name="FB_INPUT_PULSE_COUNTER_MQTT" ObjectId="1759dc95-df6b-4c6b-8636-6eeb0176fef3">
+            <Object Name="FB_init" ObjectId="8dbd0579-badc-4f47-ac48-13a84b93c081" />
+            <Object Name="InitMqtt" ObjectId="7feb063c-8dba-4917-96a0-b90d5a064232" />
+            <Object Name="InitMqttDiscovery" ObjectId="79fd5830-ae55-495f-a8bc-82d2da5cc98d" />
           </Object>
         </Folder>
         <Folder Name="DALI">
