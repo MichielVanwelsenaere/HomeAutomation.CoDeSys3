@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-17T12:54:38.5943049" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-17T12:53:43.5856084">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-22T16:25:37.0098082" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-22T16:24:54.9895849">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -10139,6 +10139,167 @@ F_JSON_RENAME_KEY := TRUE;</xhtml>
           </data>
         </addData>
       </pou>
+      <pou name="FB_FILTER_SPIKE" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="IN">
+              <type>
+                <REAL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The new sample.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="LOWER_LIMIT">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="-50" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Lowest value the sensor can physically report. Anything below is discarded.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="UPPER_LIMIT">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="100" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest value the sensor can physically report. Anything above is discarded.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="MAX_STEP">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Largest change between two samples that is believed straight away.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="CONFIRM_COUNT">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Readings in a row that must agree before a larger change is believed. 1 turns
+ the step test off and leaves only the limits.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="OUT">
+              <type>
+                <REAL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The last accepted sample. Holds its value while samples are being rejected.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ACCEPTED">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE for the call that accepted IN into OUT, FALSE when IN was rejected.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="REJECT_COUNT">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Samples rejected since startup.</xhtml>
+              </documentation>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="bHasValue">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="rCandidate">
+              <type>
+                <REAL />
+              </type>
+            </variable>
+            <variable name="uiAgreeCount">
+              <type>
+                <UINT />
+              </type>
+            </variable>
+          </localVars>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Call once per new sample, never cyclically: every call is a reading, and the
+   confirmation count is counted in calls.
+
+   Two tests, in this order:
+
+   1. Outside LOWER_LIMIT..UPPER_LIMIT is never believed, however often it repeats.
+      That is what a sensor cannot physically report, so there is nothing to confirm.
+   2. More than MAX_STEP away from the last accepted value is a suspected spike. It
+      is held back, and only believed once CONFIRM_COUNT readings in a row agree with
+      each other to within MAX_STEP. A single corrupt read never reaches OUT; a real
+      jump - a sensor moved, a window opened beside it - arrives one poll late.
+
+   The very first reading in range is accepted as it is. There is nothing to compare
+   it with, and holding it back would leave OUT at 0 while the caller already reports
+   the sensor as available. If that first reading is itself a spike the filter
+   recovers on its own: the real readings that follow agree with each other, so they
+   are confirmed CONFIRM_COUNT readings later. *)
+ACCEPTED := FALSE;
+
+IF IN &lt; LOWER_LIMIT OR IN &gt; UPPER_LIMIT THEN
+	// Also breaks a confirmation in progress: an impossible value agrees with nothing.
+	uiAgreeCount := 0;
+	REJECT_COUNT := REJECT_COUNT + 1;
+	RETURN;
+END_IF
+
+IF NOT bHasValue OR ABS(IN - OUT) &lt;= MAX_STEP THEN
+	OUT := IN;
+	bHasValue := TRUE;
+	uiAgreeCount := 0;
+	ACCEPTED := TRUE;
+	RETURN;
+END_IF
+
+// A jump. The candidate follows the latest reading, so a value still drifting while
+// it is being confirmed is confirmed where it ends up, not where it started.
+IF uiAgreeCount &gt; 0 AND ABS(IN - rCandidate) &lt;= MAX_STEP THEN
+	uiAgreeCount := uiAgreeCount + 1;
+ELSE
+	uiAgreeCount := 1;
+END_IF
+rCandidate := IN;
+
+IF uiAgreeCount &gt;= CONFIRM_COUNT THEN
+	OUT := IN;
+	uiAgreeCount := 0;
+	ACCEPTED := TRUE;
+ELSE
+	REJECT_COUNT := REJECT_COUNT + 1;
+END_IF</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>5f06ee81-16a9-457c-bf0a-91a3944ef058</ObjectId>
+          </data>
+        </addData>
+      </pou>
       <pou name="FB_HVAC_BURNER_MQTT" pouType="functionBlock">
         <interface>
           <outputVars>
@@ -10547,6 +10708,17 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
  is shorter than the time the valves take to close.</xhtml>
               </documentation>
             </variable>
+            <variable name="PUMP_EXERCISE_REQUEST">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE while the pump this manifold feeds wants an exercise run. Wire it to
+ the pump's EXERCISE_REQUEST. While no circuit asks for heat, every valve is
+ opened, and EXERCISE_READY tells the pump when they have had ValveCycleTime
+ to get there.</xhtml>
+              </documentation>
+            </variable>
           </inputVars>
           <outputVars>
             <variable name="VALVE">
@@ -10563,6 +10735,15 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
               <type>
                 <BOOL />
               </type>
+            </variable>
+            <variable name="EXERCISE_READY">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE once every valve has been open for ValveCycleTime for an exercise run.
+ Wire it to the pump's EXERCISE_PERMIT.</xhtml>
+              </documentation>
             </variable>
           </outputVars>
           <localVars>
@@ -10591,6 +10772,11 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
               </initialValue>
             </variable>
             <variable name="fbPumpDelay">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="fbExerciseDelay">
               <type>
                 <derived name="TON" />
               </type>
@@ -10692,6 +10878,14 @@ IF bHeatRequest THEN
 		VALVE[iI] := THERMOSTAT[iI];
 		abValveHeld[iI] := THERMOSTAT[iI];
 	END_FOR
+ELSIF PUMP_EXERCISE_REQUEST THEN
+	// The pump is due an exercise run and no circuit is asking for heat. Every
+	// valve opens: the pump needs a path, and a valve that has stood shut all
+	// summer is as likely to stick as the pump is. No heat is requested, so this
+	// only moves the water that is already in the circuits.
+	FOR iI := 1 TO ciValveCount DO
+		VALVE[iI] := TRUE;
+	END_FOR
 ELSE
 	// No circuit is asking for heat: the valves are shut unless the pump is still
 	// running out its minimum on-time, in which case the ones that were flowing
@@ -10706,6 +10900,12 @@ fbPumpDelay(IN := bHeatRequest,
 	PT := ValveCycleTime);
 
 PUMP := bHeatRequest AND fbPumpDelay.Q;
+
+// An exercise run may only start once the valves have had their travel time, for
+// the same reason a heating run may not.
+fbExerciseDelay(IN := PUMP_EXERCISE_REQUEST AND NOT bHeatRequest,
+	PT := ValveCycleTime);
+EXERCISE_READY := fbExerciseDelay.Q;
 
 // Detect edges on valves for MQTT messaging, and publish only the ones that moved.
 // The topics are retained because Home Assistant reads them on reconnect, which is
@@ -10908,7 +11108,8 @@ code. You can evaluate the return value.</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Alias of PUMP, kept deliberately: PRG_HVAC ORs both pumps' HEAT_REQUEST
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> PUMP, except while the pump runs for its daily exercise: that run moves
+	   water, it does not ask for heat. PRG_HVAC ORs both pumps' HEAT_REQUEST
 	   into the gas burner's demand input, so this is the name that expresses
 	   "this pump is asking for heat" at the call site. </xhtml>
               </documentation>
@@ -10917,6 +11118,23 @@ code. You can evaluate the return value.</xhtml>
               <type>
                 <BOOL />
               </type>
+            </variable>
+            <variable name="EXERCISE_REQUEST">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE from the moment an exercise run is due until the pump has stopped
+ again. Tells a manifold to open a path for the run.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="EXERCISE_ACTIVE">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE while the pump is running for exercise rather than for heat.</xhtml>
+              </documentation>
             </variable>
           </outputVars>
           <localVars>
@@ -10981,6 +11199,32 @@ code. You can evaluate the return value.</xhtml>
                 <UDINT />
               </type>
             </variable>
+            <variable name="fbExerciseIdle">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Counts how long the pump has stood still.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="fbExerciseRun">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Counts the exercise run, from the moment the pump is actually running.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bExerciseDue">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="bExerciseRunning">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
           </localVars>
           <localVars persistent="true">
             <variable name="bPreviousState">
@@ -10997,6 +11241,44 @@ code. You can evaluate the return value.</xhtml>
               <type>
                 <BOOL />
               </type>
+            </variable>
+            <variable name="EXERCISE_DAILY">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Run the pump for MIN_ONTIME once it has stood still for EXERCISE_INTERVAL,
+ so it cannot seize over a summer. The run asks nothing of the burner.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="EXERCISE_INTERVAL">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1440m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long the pump must have stood still before an exercise run is due.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="EXERCISE_PERMIT">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE when the pump has somewhere to push water. Leave it at TRUE for a
+ circuit that is always open, such as a floor heating loop without zone
+ valves. Behind a manifold, wire it to the collector's EXERCISE_READY, and
+ EXERCISE_REQUEST to the collector's PUMP_EXERCISE_REQUEST, so the run waits
+ for the valves to open.</xhtml>
+              </documentation>
             </variable>
           </inputVars>
           <addData>
@@ -11054,8 +11336,33 @@ END_IF
 fbMinOntimeTimer(IN := IN, PT := MIN_ONTIME);
 MIN_ONTIME_ACTIVE := NOT(fbMinOntimeTimer.Q) AND PUMP;
 
+(* --- daily exercise ----------------------------------------------------------
+   A circulator that stands still all summer can seize: the rotor sticks in the
+   scale and the motor cannot break it free in autumn. Running it for MIN_ONTIME
+   once it has been idle for EXERCISE_INTERVAL prevents that, and in the heating
+   season costs nothing because the pump never stands still that long.
+
+   The run is not heat demand. It is kept out of HEAT_REQUEST, so the burner does
+   not fire for it, and real demand ends it at once and takes the pump over.
+
+   It waits for EXERCISE_PERMIT, because a pump behind a manifold whose valves are
+   all shut would run dead-headed. EXERCISE_REQUEST goes high as soon as the run
+   is due, so a collector can open its valves first; see FB_HVAC_COLLECTOR_MQTT. *)
+fbExerciseIdle(IN := EXERCISE_DAILY AND NOT PUMP, PT := EXERCISE_INTERVAL);
+IF fbExerciseIdle.Q THEN
+	bExerciseDue := TRUE;
+END_IF
+IF IN OR NOT EXERCISE_DAILY THEN
+	bExerciseDue := FALSE;
+END_IF
+
+fbExerciseRun(IN := bExerciseDue AND EXERCISE_PERMIT AND PUMP, PT := MIN_ONTIME);
+IF fbExerciseRun.Q THEN
+	bExerciseDue := FALSE;
+END_IF
+
 fbActuator(
-	IN := IN,
+	IN := IN OR (bExerciseDue AND EXERCISE_PERMIT),
 	MANUAL := FALSE,
 	RST := FALSE,
 	MIN_ONTIME := MIN_ONTIME,
@@ -11067,7 +11374,20 @@ fbActuator(
 	
 //Timer to keep track of ontime
 
-HEAT_REQUEST := PUMP;	
+(* The run lasts until the pump has actually stopped, not until the timer says
+   so: the actuator may hold PUMP a cycle longer, and in that cycle it must not
+   turn into a heat request, or the burner fires for its whole minimum on-time. *)
+IF IN THEN
+	bExerciseRunning := FALSE;
+ELSIF bExerciseDue AND EXERCISE_PERMIT THEN
+	bExerciseRunning := TRUE;
+ELSIF NOT PUMP THEN
+	bExerciseRunning := FALSE;
+END_IF
+EXERCISE_ACTIVE := bExerciseRunning AND PUMP;
+EXERCISE_REQUEST := bExerciseDue OR EXERCISE_ACTIVE;
+
+HEAT_REQUEST := PUMP AND NOT EXERCISE_ACTIVE;	
 	
 IF ((bPreviousState &lt;&gt; PUMP) OR bStartup) AND bInitMqttDone THEN
 	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
@@ -24524,7 +24844,66 @@ GetCommissioning := FALSE;
                 <simpleValue value="0" />
               </initialValue>
             </variable>
+            <variable name="fbTemperatureFilter">
+              <type>
+                <derived name="FB_FILTER_SPIKE" />
+              </type>
+            </variable>
+            <variable name="fbDewPointFilter">
+              <type>
+                <derived name="FB_FILTER_SPIKE" />
+              </type>
+            </variable>
           </localVars>
+          <inputVars>
+            <variable name="PlausibleMin">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="-50" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The range of temperature this sensor could plausibly be measuring, in
+ degrees Celsius. A reading outside it is discarded, whatever the gateway
+ says. The default suits air; widen it deliberately for a sensor on a pipe
+ or a boiler.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="PlausibleMax">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="100" />
+              </initialValue>
+            </variable>
+            <variable name="MaxStep">
+              <type>
+                <REAL />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Largest temperature change between two polls that is believed straight
+ away, in K. A larger one is held back until SpikeConfirmCount polls in a
+ row agree on it.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="SpikeConfirmCount">
+              <type>
+                <UINT />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Polls in a row that must agree before a jump larger than MaxStep is
+ believed. 1 turns the step check off.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
           <outputVars>
             <variable name="OWD_VOLTAGE">
               <type>
@@ -24589,6 +24968,14 @@ GetCommissioning := FALSE;
               <initialValue>
                 <simpleValue value="FALSE" />
               </initialValue>
+            </variable>
+            <variable name="SpikesRejected">
+              <type>
+                <UDINT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Temperature and dew point readings discarded as spikes since startup.</xhtml>
+              </documentation>
             </variable>
           </outputVars>
           <addData>
@@ -25001,9 +25388,24 @@ END_IF</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed: the gateway scales by 100 and encodes two's complement, and both
    of these read below zero on an outdoor sensor. Unsigned turned -1 degree
-   into +655.35 and nothing could report frost. *)
-THIS^.TEMPERATURE := INT_TO_REAL(WORD_TO_INT(Data)) / 100;
-PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));</xhtml>
+   into +655.35 and nothing could report frost.
+
+   Filtered: a 1-Wire bus corrupts the odd reading - a few degrees off, or
+   hundreds - while the gateway's status register still reports success. A
+   rejected reading is not published and leaves TEMPERATURE where it was. *)
+fbTemperatureFilter(
+	IN := INT_TO_REAL(WORD_TO_INT(Data)) / 100,
+	LOWER_LIMIT := PlausibleMin,
+	UPPER_LIMIT := PlausibleMax,
+	MAX_STEP := MaxStep,
+	CONFIRM_COUNT := SpikeConfirmCount);
+SpikesRejected := fbTemperatureFilter.REJECT_COUNT + fbDewPointFilter.REJECT_COUNT;
+
+IF fbTemperatureFilter.ACCEPTED THEN
+	THIS^.TEMPERATURE := fbTemperatureFilter.OUT;
+	PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));
+END_IF
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -25064,9 +25466,24 @@ PubMqttMessage(Suffix := '/HUM', Data := REAL_TO_STRING(HUMIDITY));</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed: the gateway scales by 100 and encodes two's complement, and both
    of these read below zero on an outdoor sensor. Unsigned turned -1 degree
-   into +655.35 and nothing could report frost. *)
-THIS^.DEW_POINT := INT_TO_REAL(WORD_TO_INT(Data)) / 100;
-PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));</xhtml>
+   into +655.35 and nothing could report frost.
+
+   Filtered: a 1-Wire bus corrupts the odd reading - a few degrees off, or
+   hundreds - while the gateway's status register still reports success. A
+   rejected reading is not published and leaves DEW_POINT where it was. *)
+fbDewPointFilter(
+	IN := INT_TO_REAL(WORD_TO_INT(Data)) / 100,
+	LOWER_LIMIT := PlausibleMin,
+	UPPER_LIMIT := PlausibleMax,
+	MAX_STEP := MaxStep,
+	CONFIRM_COUNT := SpikeConfirmCount);
+SpikesRejected := fbTemperatureFilter.REJECT_COUNT + fbDewPointFilter.REJECT_COUNT;
+
+IF fbDewPointFilter.ACCEPTED THEN
+	THIS^.DEW_POINT := fbDewPointFilter.OUT;
+	PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));
+END_IF
+</xhtml>
                 </ST>
               </body>
               <addData />
@@ -29958,8 +30375,11 @@ END_IF
 
 // FLoorheating
 fbThermostat1(MEASURED_TEMP := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error);
+(* No zone valves on this loop, so the pump always has a path and its exercise
+   run needs no permit. *)
 fbPump1(
-	IN := fbThermostat1.OUT
+	IN := fbThermostat1.OUT,
+	EXERCISE_DAILY := TRUE
 	(* Coil dropped: DO_005..DO_008 are the bench's spare LEDs now, and the
 	   cover block uses two of them. The pump logic and its MQTT entity are
 	   untouched - only the physical output is gone. *)
@@ -29985,11 +30405,18 @@ fbPump2Collector.THERMOSTAT[2] := fbThermostat3.OUT;
    is released a cycle late, never engaged a cycle late. *)
 fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE := fbPump2.MIN_ONTIME_ACTIVE;
 
+(* The pump's daily exercise run, handshaken with the manifold: the pump asks,
+   the collector opens every valve, and the pump runs only once they are open.
+   Same one-cycle lag as above, again in the safe direction. *)
+fbPump2Collector.PUMP_EXERCISE_REQUEST := fbPump2.EXERCISE_REQUEST;
+
 fbPump2Collector();
 
 
 fbPump2(
-	IN := fbPump2Collector.PUMP
+	IN := fbPump2Collector.PUMP,
+	EXERCISE_DAILY := TRUE,
+	EXERCISE_PERMIT := fbPump2Collector.EXERCISE_READY
 );
 
 // Heat source for both pumps
@@ -32367,6 +32794,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
         <Object Name="F_DUCO_STATUS_TEXT" ObjectId="914a5658-e401-4069-b24a-fb8acd0a3b5c" />
         <Object Name="F_DUCO_TYPE_TEXT" ObjectId="41f7729e-a7a9-4e7c-8764-fd513ea5e2ed" />
         <Object Name="F_JSON_RENAME_KEY" ObjectId="2070b78f-f5f5-4b1a-b4ae-caa8c985d0ad" />
+        <Object Name="FB_FILTER_SPIKE" ObjectId="5f06ee81-16a9-457c-bf0a-91a3944ef058" />
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
             <Object Name="InitMqtt" ObjectId="69154081-2c02-43db-90a6-f8cbcade69d6" />

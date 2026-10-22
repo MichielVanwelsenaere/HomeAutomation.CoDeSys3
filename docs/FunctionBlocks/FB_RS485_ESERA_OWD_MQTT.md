@@ -50,25 +50,73 @@ back as +655.35 °C and frost cannot be reported at all.
 
 ----------------------------
 
+:bulb: **Temperature and dew point are spike-filtered.** A 1-Wire bus corrupts the
+odd reading — a few degrees off, or hundreds — while the gateway's status register
+still reports the read as good, so the status check cannot catch it. Each reading
+therefore passes two tests before it reaches `TEMPERATURE` or `DEW_POINT`:
+
+1. **Plausible range.** A reading outside `PlausibleMin`..`PlausibleMax` (-50 to
+   100 °C by default) is discarded, however often it repeats. The default suits
+   air; widen it deliberately for a sensor on a pipe, a boiler or a solar
+   collector.
+2. **Step.** A reading more than `MaxStep` (2 K by default) away from the last
+   accepted one is held back, and only believed once `SpikeConfirmCount` polls in
+   a row (2 by default) agree on it to within `MaxStep`. A single bad read never
+   gets through; a genuine jump — a window opened beside the sensor — arrives one
+   poll late.
+
+A discarded reading is not published and leaves the output where it was, so Home
+Assistant and any thermostat reading the block simply see the previous value.
+`SpikesRejected` counts the discards, which is the way to tell a noisy bus from a
+quiet one. The first reading after startup is accepted as it is, since there is
+nothing to compare it with; if that one is itself a spike, the readings after it
+agree with each other and replace it `SpikeConfirmCount` polls later.
+
+`MaxStep` is per poll, so it is a rate: 2 K per 30 s poll is far faster than a room
+changes temperature. A sensor polled much faster can afford a smaller step, and an
+outdoor sensor in direct sun may want a larger one. Set them where the block is
+called, in RS485_Run, rather than in an initialiser on the declaration: a call
+argument can be changed like any other line of code.
+
+```
+GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01(MaxStep := 3);
+```
+
+Humidity, air quality and brightness are published as read. They legitimately jump
+— a shower, a light switched on — so a step filter would delay the real events it
+exists to report.
+
+----------------------------
+
 <!-- fb-interface:start -->
 ### **Block diagram**
 
 ```text
-   ┌─────────────────────────┐
-   │ FB_RS485_ESERA_OWD_MQTT │
-   ├─────────────────────────┤
-   │             OWD_VOLTAGE ├── REAL
-   │             TEMPERATURE ├── REAL
-   │                HUMIDITY ├── REAL
-   │               DEW_POINT ├── REAL
-   │             AIR_QUALITY ├── REAL
-   │              BRIGHTNESS ├── REAL
-   │           DataAvailable ├── BOOL
-   │                   Error ├── BOOL
-   └─────────────────────────┘
+       ┌────────────────────────────────────┐
+       │      FB_RS485_ESERA_OWD_MQTT       │
+       ├────────────────────────────────────┤
+REAL ──┤ PlausibleMin           OWD_VOLTAGE ├── REAL
+REAL ──┤ PlausibleMax           TEMPERATURE ├── REAL
+REAL ──┤ MaxStep                   HUMIDITY ├── REAL
+UINT ──┤ SpikeConfirmCount        DEW_POINT ├── REAL
+       │                        AIR_QUALITY ├── REAL
+       │                         BRIGHTNESS ├── REAL
+       │                      DataAvailable ├── BOOL
+       │                              Error ├── BOOL
+       │                     SpikesRejected ├── UDINT
+       └────────────────────────────────────┘
 ```
 
 ### **Interface**
+
+**Inputs**
+
+| Pin | Type | Default | Description |
+|:--|:--|:--|:--|
+| `PlausibleMin` | REAL | `-50` | Lowest temperature this sensor could plausibly be measuring, in °C. Lower readings are discarded. Applies to temperature and dew point. |
+| `PlausibleMax` | REAL | `100` | Highest temperature this sensor could plausibly be measuring, in °C. Higher readings are discarded. Widen it for a sensor on a pipe or a boiler. |
+| `MaxStep` | REAL | `2` | Largest change between two polls that is believed straight away, in K. A larger jump is held back until `SpikeConfirmCount` polls agree on it. |
+| `SpikeConfirmCount` | UINT | `2` | Polls in a row that must agree before a jump larger than `MaxStep` is believed. `1` turns the step check off and leaves only the plausible range. |
 
 **Outputs**
 
@@ -82,6 +130,7 @@ back as +655.35 °C and frost cannot be reported at all.
 | `BRIGHTNESS` | REAL | Measured brightness, in Lux. |
 | `DataAvailable` | BOOL | High once the block has completed a successful read. Low only at startup. |
 | `Error` | BOOL | High when an error occurred while executing the Modbus read command. |
+| `SpikesRejected` | UDINT | Temperature and dew point readings discarded as spikes since startup. |
 
 ### **Methods**
 
