@@ -167,6 +167,12 @@ param(
     # channels are named, and this is the alternative to a double-click each.
     [string]$MapIo,
 
+    # device only: the task that exchanges the K-bus process image, i.e.
+    # PLC settings -> "Bus cycle task" on the controller named by -Under.
+    # Unspecified, CODESYS picks the shortest cyclic task, which here is the MQTT
+    # task - and a blocked MQTT task then freezes every input and output.
+    [string]$BusCycleTask,
+
     # scaffold only: JSON spec of objects to create inside an application - a
     # GVL, a program, or a task calling one. Adding a device gives you an
     # application with a Library Manager and nothing else, so this is what makes
@@ -516,10 +522,14 @@ switch ($Task) {
         $cfg.scaffold = Resolve-Scaffold
     }
     'device' {
-        if ($AddModule -or $AddDevice -or $RemoveNode -or $RenameNode -or $MapIo) {
+        if ($AddModule -or $AddDevice -or $RemoveNode -or $RenameNode -or $MapIo -or $BusCycleTask) {
             if (-not $Force) {
-                throw "device -AddModule/-AddDevice/-RemoveNode/-RenameNode/-MapIo writes to $targetProject. Re-run with -Force."
+                throw "device -AddModule/-AddDevice/-RemoveNode/-RenameNode/-MapIo/-BusCycleTask writes to $targetProject. Re-run with -Force."
             }
+            if ($BusCycleTask -and -not $Under) {
+                throw 'device -BusCycleTask needs -Under <controller>, whose PLC settings to change.'
+            }
+            if ($BusCycleTask) { $cfg.bus_cycle_task = $BusCycleTask }
             if ($RenameNode -and -not $NodeName) {
                 throw 'device -RenameNode needs -NodeName <name>, the name to rename it to.'
             }
@@ -928,6 +938,7 @@ switch ($Task) {
         foreach ($d in @($report.devices)) {
             $note = ''
             if ($d.gateway) { $note = "  gateway $($d.gateway) address $($d.address) simulation $($d.simulation)" }
+            if ($d.bus_cycle_task) { $note += " bus cycle task $($d.bus_cycle_task)" }
             Write-Host ("  {0,-52}{1}" -f $d.path, $note)
         }
         if ($report.device_order) {
