@@ -93,6 +93,7 @@ sandbox. Never keep anything there. Edit fragments belong in `.ai/edits/`.
 | `codesys.ps1 device -RemoveNode <name> -Force` | Unplug a device or module. |
 | `codesys.ps1 device -MapIo <spec.json> -Force` | Name a terminal's I/O channels, which is what makes a freshly added module readable from IEC code at all. `{ "map_io": [ { "node", "channel", "variable" } ] }`; each mapping is read back and a mismatch is an error. |
 | `codesys.ps1 device -RenameNode <name> -NodeName <new> -Force` | Rename a device or module. Re-record the baseline afterwards: a device's name is in every message's object path. |
+| `codesys.ps1 device -BusCycleTask <task> -Under <controller> -Force` | Set PLC settings → *Bus cycle task*, through the device's `driver_info`. The task must exist under that controller, and the value is read back. The read-only `device` report shows the current value. It is **not in the PLCopen export**, so the export does not change. |
 | `codesys.ps1 scaffold -Scaffold <spec.json> -Force` | Create **or update** GVLs, programs and tasks inside an application, including a task's kind, interval and priority. |
 | `codesys.ps1 scan` | List PLCs answering on each gateway. Read-only, needs no project. |
 | `codesys.ps1 download -Force` | Full download of the real project to the real PLC, then start it. |

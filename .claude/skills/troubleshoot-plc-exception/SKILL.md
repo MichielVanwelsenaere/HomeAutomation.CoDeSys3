@@ -40,7 +40,9 @@ a running controller is dead.
 Three shapes, three different investigations:
 
 - **Everything dead, buttons included** → the application stopped or was stopped.
-  Read the log (§4). This is the case this page is mostly about.
+  Read the log (§4). This is the case this page is mostly about. **If it is
+  still dead, capture §12 before anyone power-cycles it** — a hang that leaves
+  no log entry can only be diagnosed while it is happening.
 - **Buttons dead, MQTT fine** → the K-bus. Look for `bus is not communicating`
   in the log, and remember the DI process image reads *zero* while the bus is
   down, which through a normally-closed loop is the tripped state.
@@ -132,7 +134,7 @@ grep -inE "exception|fatal|abort|watchdog|out of memory" codesyscontrol.log
 lives in `CODESYSControl_User.cfg` so `logsetfilter` can change it. Check it
 before concluding that a silent log means a clean run — but note that at `0x0F`
 exceptions **are** recorded, so a genuinely silent log means the application did
-not fault.
+not fault. A building that went dead **with** a silent log is §12.
 
 ## 5. ProcessorLoadWatchdog: the one that stops a whole building
 
@@ -295,3 +297,131 @@ project directly, and `scaffold` builds before it saves.
 
 Nothing here reaches a PLC. A download to a building is a deliberate, separate
 act and needs the owner's go-ahead.
+
+## 12. A silent stop: dead building, nothing in the log
+
+The shape: pushbuttons, MQTT and RS485 all stop in the same second, the box
+still looks powered, and afterwards the runtime log, the core dump directory and
+`/log/wagolog.log` hold **nothing** for the moment of failure. Stal did exactly
+this on 27 Oct 2026 21:27 UTC, after four days of clean running; a power cycle
+next morning fixed it and left no evidence. That run is the reason for this
+section.
+
+### What a silent log already rules out
+
+| Explanation | Why it is out |
+|:--|:--|
+| ProcessorLoadWatchdog | It logs an `*EXCEPTION*` (§5) |
+| An IEC fault | It logs an exception and writes a `.core` |
+| A clean stop or download | `Performing shutdown` / `loaded via [Download]` would be there |
+| An IEC task spinning forever | See the priorities below: the box would have rebooted itself |
+| Broker or network | Check the sibling controller's history over the same window (§6) |
+
+The priorities are the non-obvious part. Measured on Stal, `SCHED_FIFO`, with
+**RT throttling disabled** (`/proc/sys/kernel/sched_rt_runtime_us = -1`):
+
+| rt prio | Thread |
+|--:|:--|
+| 86 | kbus / spi IRQ threads |
+| 83 | runtime `Schedule` |
+| 52 | **`MainTask`** |
+| 51 | `MqttCommunication`, `KBUS dbus` |
+| 50 | **`watchdogd`**, eth0 IRQ threads |
+| — | `SchedProcessorLoad` (the §5 watchdog), OPC UA, `sshd`: ordinary priority |
+
+A spinning `MainTask` would therefore starve `watchdogd` and the network
+interrupts, and `watchdogd` feeds `/dev/watchdog1` (120 s): the board resets
+itself within minutes, and the next boot shows a watchdog reset. A box that
+stays dead for hours and then boots with `reset_state=POR` (read
+`/proc/cmdline`) did **not** spin. Something *blocked* while Linux carried on.
+The candidates are: the MQTT task stuck and taking the K-bus with it (below,
+the leading suspect), a deadlock in a thread every task depends on
+(`Schedule`, the K-bus driver), or the process dying without its signal handler
+running. Telling those apart needs the state while it is hung.
+
+### Capture before restarting
+
+SSH in (§2) and run this before anything else. `/var/log` and `dmesg` are lost
+on reboot (§3), so copy them to `/home`:
+
+```sh
+D=/home/hang-$(date +%Y%m%d-%H%M%S); mkdir -p $D
+P=$(for p in /proc/[0-9]*; do case "$(cat $p/comm 2>/dev/null)" in codesyscontrol*) basename $p;; esac; done | head -1)
+{ date; uptime; cat /proc/cmdline; free; echo "runtime pid=$P"; ps; } > $D/system.txt 2>&1
+top -H -b -n 2 -d 3 > $D/top.txt 2>&1
+for t in /proc/$P/task/*; do
+  echo "$(cat $t/comm) state=$(sed 's/^.*) //' $t/stat | cut -d' ' -f1) wchan=$(cat $t/wchan)"
+done > $D/threads.txt 2>&1
+dmesg > $D/dmesg.txt 2>&1
+cp /var/log/kernel.log* /var/log/messages /var/log/runtime.log $D/ 2>/dev/null
+tail -200 /home/codesyscontrol/var/opt/codesys/codesyscontrol.log > $D/codesys.txt
+ls -la /home/codesyscontrol/var/opt/codesys/PlcLogic/*/ >> $D/codesys.txt
+```
+
+How to read it:
+
+| Capture shows | Means |
+|:--|:--|
+| No `codesyscontrol` process | It died. `dmesg` names the signal, or an OOM kill |
+| An IEC task thread whose `wchan` is not in the healthy baseline below | That task is blocked there; the `wchan` names where (socket, lock, bus) |
+| A task thread `R` at high %CPU | It *is* spinning after all, and the watchdog reasoning above is wrong for this box |
+| `KBUS dbus` or the kbus IRQ thread stuck | The I/O driver, not our code |
+| SSH itself does not answer | The kernel is in trouble; record that and power-cycle |
+
+Healthy baseline, Stal, 29 Oct 2026, sampled three times. Most runtime
+service threads sit in `futex_wait_queue_me` when idle, so a futex wait on its
+own proves nothing:
+
+| Thread | Healthy `wchan` |
+|:--|:--|
+| `Schedule`, `MainTask`, `RS485`, `Ping` | `hrtimer_nanosleep` (waiting for their next cycle) |
+| `MqttCommunication` | `hrtimer_nanosleep` or **`kbus_spi_sync`** |
+| `KBUS dbus` | `futex_wait_queue_me` |
+
+### The MQTT task carries the K-bus
+
+That `kbus_spi_sync` matters. The K-bus I/O exchange runs in **whichever task
+is the bus cycle task**. With that left unspecified in the PLC settings,
+CODESYS picks the cyclic task with the shortest interval. Since #200 (7 Sep
+2026) that is `MqttCommunication` at 20 ms, not `MainTask` at 50 ms. The bus
+cycle setting is in the device object, not the PLCopen export, so grepping the
+export will not find it.
+
+The consequence: **if the MQTT task blocks** (a socket call that does not
+return, a broker that half-closes), the K-bus stops being exchanged. Inputs
+freeze, so the pushbuttons are dead. Outputs freeze, and MQTT is dead too.
+`MainTask` keeps running against stale I/O, at no CPU cost and with no
+exception, so nothing is logged. That is exactly the silent-stop shape, and it
+needs no runtime bug to explain it. In the capture, look for
+`MqttCommunication` parked in a socket `wchan` (`sk_wait_data`,
+`inet_csk_wait_for_connect`, `wait_woken`…) while `MainTask` still cycles in
+`hrtimer_nanosleep`.
+
+The structural fix is to name `MainTask` as the bus cycle task explicitly
+(device → PLC settings → *Bus cycle task*). The I/O then belongs to the control
+logic, and a stuck publish costs Home Assistant but not the light switches. The
+reference project's `Wago_PFC200_G1_Lab` names `MainTask` since 29 Oct 2026. An
+installation project needs the same change on each controller, made against a
+working copy:
+
+```powershell
+& "$env:HA_CODESYS_REPO\tools\ai\codesys.ps1" device -Project <working copy> \
+    -BusCycleTask MainTask -Under <controller> -Force
+```
+
+The read-only `device` report prints each controller's current bus cycle task.
+The setting is not in the PLCopen export, so a sync from the reference does
+not carry it across.
+
+Afterwards try `/etc/init.d/runtime restart` before pulling power. If the
+runtime alone brings the building back, the hang was in the process and not in
+Linux. That restart stops the application, so it needs the owner's go-ahead
+like any other stop.
+
+### Worth noting when it happens
+
+- Any handled exceptions in the run before it, e.g. Stal's single
+  `*HANDLED EXCPT* AccessViolation in CH_COMM_CYCLE` a month earlier. A handled
+  access violation means something read bad memory and got away with it once.
+- What last changed on that controller, and how long it ran since the download.
+- RSS of the runtime against the §7 slope, to keep the leak question closed.
