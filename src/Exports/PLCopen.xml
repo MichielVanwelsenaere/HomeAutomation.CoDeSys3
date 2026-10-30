@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-17T12:54:38.5943049" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-17T12:53:43.5856084">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-30T14:48:59.9696459" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-30T14:48:26.8676261">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -10547,6 +10547,17 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
  is shorter than the time the valves take to close.</xhtml>
               </documentation>
             </variable>
+            <variable name="PUMP_EXERCISE_REQUEST">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE while the pump this manifold feeds wants an exercise run. Wire it to
+ the pump's EXERCISE_REQUEST. While no circuit asks for heat, every valve is
+ opened, and EXERCISE_READY tells the pump when they have had ValveCycleTime
+ to get there.</xhtml>
+              </documentation>
+            </variable>
           </inputVars>
           <outputVars>
             <variable name="VALVE">
@@ -10563,6 +10574,15 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
               <type>
                 <BOOL />
               </type>
+            </variable>
+            <variable name="EXERCISE_READY">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE once every valve has been open for ValveCycleTime for an exercise run.
+ Wire it to the pump's EXERCISE_PERMIT.</xhtml>
+              </documentation>
             </variable>
           </outputVars>
           <localVars>
@@ -10591,6 +10611,11 @@ THIS^.MIN_OFFTIME := MIN_OFFTIME;</xhtml>
               </initialValue>
             </variable>
             <variable name="fbPumpDelay">
+              <type>
+                <derived name="TON" />
+              </type>
+            </variable>
+            <variable name="fbExerciseDelay">
               <type>
                 <derived name="TON" />
               </type>
@@ -10692,6 +10717,15 @@ IF bHeatRequest THEN
 		VALVE[iI] := THERMOSTAT[iI];
 		abValveHeld[iI] := THERMOSTAT[iI];
 	END_FOR
+ELSIF PUMP_EXERCISE_REQUEST THEN
+	// The pump is due an exercise run and no circuit is asking for heat. Every
+	// valve opens: the pump needs a path, and a valve that has stood shut all
+	// summer is as likely to stick as the pump is. This run requests no heat,
+	// but the burner may already be firing for another pump on the same boiler,
+	// and then this circulates that hot water through every circuit.
+	FOR iI := 1 TO ciValveCount DO
+		VALVE[iI] := TRUE;
+	END_FOR
 ELSE
 	// No circuit is asking for heat: the valves are shut unless the pump is still
 	// running out its minimum on-time, in which case the ones that were flowing
@@ -10706,6 +10740,12 @@ fbPumpDelay(IN := bHeatRequest,
 	PT := ValveCycleTime);
 
 PUMP := bHeatRequest AND fbPumpDelay.Q;
+
+// An exercise run may only start once the valves have had their travel time, for
+// the same reason a heating run may not.
+fbExerciseDelay(IN := PUMP_EXERCISE_REQUEST AND NOT bHeatRequest,
+	PT := ValveCycleTime);
+EXERCISE_READY := fbExerciseDelay.Q;
 
 // Detect edges on valves for MQTT messaging, and publish only the ones that moved.
 // The topics are retained because Home Assistant reads them on reconnect, which is
@@ -10908,7 +10948,8 @@ code. You can evaluate the return value.</xhtml>
                 <BOOL />
               </type>
               <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Alias of PUMP, kept deliberately: PRG_HVAC ORs both pumps' HEAT_REQUEST
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> PUMP, except while the pump runs for its daily exercise: that run moves
+	   water, it does not ask for heat. PRG_HVAC ORs both pumps' HEAT_REQUEST
 	   into the gas burner's demand input, so this is the name that expresses
 	   "this pump is asking for heat" at the call site. </xhtml>
               </documentation>
@@ -10917,6 +10958,23 @@ code. You can evaluate the return value.</xhtml>
               <type>
                 <BOOL />
               </type>
+            </variable>
+            <variable name="EXERCISE_REQUEST">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE from the moment an exercise run is due until the pump has stopped
+ again. Tells a manifold to open a path for the run.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="EXERCISE_ACTIVE">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE while the pump is running for exercise rather than for heat.</xhtml>
+              </documentation>
             </variable>
           </outputVars>
           <localVars>
@@ -10981,6 +11039,32 @@ code. You can evaluate the return value.</xhtml>
                 <UDINT />
               </type>
             </variable>
+            <variable name="fbExerciseIdle">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Counts how long the pump has stood still.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="fbExerciseRun">
+              <type>
+                <derived name="TON" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Counts the exercise run, from the moment the pump is actually running.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bExerciseDue">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="bExerciseRunning">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
           </localVars>
           <localVars persistent="true">
             <variable name="bPreviousState">
@@ -10997,6 +11081,44 @@ code. You can evaluate the return value.</xhtml>
               <type>
                 <BOOL />
               </type>
+            </variable>
+            <variable name="EXERCISE_DAILY">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="FALSE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Run the pump for MIN_ONTIME once it has stood still for EXERCISE_INTERVAL,
+ so it cannot seize over a summer. The run asks nothing of the burner.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="EXERCISE_INTERVAL">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1440m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long the pump must have stood still before an exercise run is due.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="EXERCISE_PERMIT">
+              <type>
+                <BOOL />
+              </type>
+              <initialValue>
+                <simpleValue value="TRUE" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE when the pump has somewhere to push water. Leave it at TRUE for a
+ circuit that is always open, such as a floor heating loop without zone
+ valves. Behind a manifold, wire it to the collector's EXERCISE_READY, and
+ EXERCISE_REQUEST to the collector's PUMP_EXERCISE_REQUEST, so the run waits
+ for the valves to open.</xhtml>
+              </documentation>
             </variable>
           </inputVars>
           <addData>
@@ -11054,8 +11176,33 @@ END_IF
 fbMinOntimeTimer(IN := IN, PT := MIN_ONTIME);
 MIN_ONTIME_ACTIVE := NOT(fbMinOntimeTimer.Q) AND PUMP;
 
+(* --- daily exercise ----------------------------------------------------------
+   A circulator that stands still all summer can seize: the rotor sticks in the
+   scale and the motor cannot break it free in autumn. Running it for MIN_ONTIME
+   once it has been idle for EXERCISE_INTERVAL prevents that, and in the heating
+   season costs nothing because the pump never stands still that long.
+
+   The run is not heat demand. It is kept out of HEAT_REQUEST, so the burner does
+   not fire for it, and real demand ends it at once and takes the pump over.
+
+   It waits for EXERCISE_PERMIT, because a pump behind a manifold whose valves are
+   all shut would run dead-headed. EXERCISE_REQUEST goes high as soon as the run
+   is due, so a collector can open its valves first; see FB_HVAC_COLLECTOR_MQTT. *)
+fbExerciseIdle(IN := EXERCISE_DAILY AND NOT PUMP, PT := EXERCISE_INTERVAL);
+IF fbExerciseIdle.Q THEN
+	bExerciseDue := TRUE;
+END_IF
+IF IN OR NOT EXERCISE_DAILY THEN
+	bExerciseDue := FALSE;
+END_IF
+
+fbExerciseRun(IN := bExerciseDue AND EXERCISE_PERMIT AND PUMP, PT := MIN_ONTIME);
+IF fbExerciseRun.Q THEN
+	bExerciseDue := FALSE;
+END_IF
+
 fbActuator(
-	IN := IN,
+	IN := IN OR (bExerciseDue AND EXERCISE_PERMIT),
 	MANUAL := FALSE,
 	RST := FALSE,
 	MIN_ONTIME := MIN_ONTIME,
@@ -11067,7 +11214,20 @@ fbActuator(
 	
 //Timer to keep track of ontime
 
-HEAT_REQUEST := PUMP;	
+(* The run lasts until the pump has actually stopped, not until the timer says
+   so: the actuator may hold PUMP a cycle longer, and in that cycle it must not
+   turn into a heat request, or the burner fires for its whole minimum on-time. *)
+IF IN THEN
+	bExerciseRunning := FALSE;
+ELSIF bExerciseDue AND EXERCISE_PERMIT THEN
+	bExerciseRunning := TRUE;
+ELSIF NOT PUMP THEN
+	bExerciseRunning := FALSE;
+END_IF
+EXERCISE_ACTIVE := bExerciseRunning AND PUMP;
+EXERCISE_REQUEST := bExerciseDue OR EXERCISE_ACTIVE;
+
+HEAT_REQUEST := PUMP AND NOT EXERCISE_ACTIVE;	
 	
 IF ((bPreviousState &lt;&gt; PUMP) OR bStartup) AND bInitMqttDone THEN
 	pMqttPublishQueue^.AddMessageOn(Lane := GVL_MQTT.MQTT_LANE_HVAC,
@@ -29958,8 +30118,11 @@ END_IF
 
 // FLoorheating
 fbThermostat1(MEASURED_TEMP := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.TEMPERATURE, MEASURED_HUM := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.HUMIDITY, SENSOR_VALID := GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.DataAvailable AND NOT GVL_RS485.FB_RS485_1WIRE_MULTISENSOR_01.Error);
+(* No zone valves on this loop, so the pump always has a path and its exercise
+   run needs no permit. *)
 fbPump1(
-	IN := fbThermostat1.OUT
+	IN := fbThermostat1.OUT,
+	EXERCISE_DAILY := TRUE
 	(* Coil dropped: DO_005..DO_008 are the bench's spare LEDs now, and the
 	   cover block uses two of them. The pump logic and its MQTT entity are
 	   untouched - only the physical output is gone. *)
@@ -29985,11 +30148,18 @@ fbPump2Collector.THERMOSTAT[2] := fbThermostat3.OUT;
    is released a cycle late, never engaged a cycle late. *)
 fbPump2Collector.PUMP_MIN_ONTIME_ACTIVE := fbPump2.MIN_ONTIME_ACTIVE;
 
+(* The pump's daily exercise run, handshaken with the manifold: the pump asks,
+   the collector opens every valve, and the pump runs only once they are open.
+   Same one-cycle lag as above, again in the safe direction. *)
+fbPump2Collector.PUMP_EXERCISE_REQUEST := fbPump2.EXERCISE_REQUEST;
+
 fbPump2Collector();
 
 
 fbPump2(
-	IN := fbPump2Collector.PUMP
+	IN := fbPump2Collector.PUMP,
+	EXERCISE_DAILY := TRUE,
+	EXERCISE_PERMIT := fbPump2Collector.EXERCISE_READY
 );
 
 // Heat source for both pumps
