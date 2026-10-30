@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-22T16:25:37.0098082" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-22T16:24:54.9895849">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-30T14:48:59.9696459" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-30T14:48:26.8676261">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -10139,167 +10139,6 @@ F_JSON_RENAME_KEY := TRUE;</xhtml>
           </data>
         </addData>
       </pou>
-      <pou name="FB_FILTER_SPIKE" pouType="functionBlock">
-        <interface>
-          <inputVars>
-            <variable name="IN">
-              <type>
-                <REAL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The new sample.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="LOWER_LIMIT">
-              <type>
-                <REAL />
-              </type>
-              <initialValue>
-                <simpleValue value="-50" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Lowest value the sensor can physically report. Anything below is discarded.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="UPPER_LIMIT">
-              <type>
-                <REAL />
-              </type>
-              <initialValue>
-                <simpleValue value="100" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Highest value the sensor can physically report. Anything above is discarded.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="MAX_STEP">
-              <type>
-                <REAL />
-              </type>
-              <initialValue>
-                <simpleValue value="2" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Largest change between two samples that is believed straight away.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="CONFIRM_COUNT">
-              <type>
-                <UINT />
-              </type>
-              <initialValue>
-                <simpleValue value="2" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Readings in a row that must agree before a larger change is believed. 1 turns
- the step test off and leaves only the limits.</xhtml>
-              </documentation>
-            </variable>
-          </inputVars>
-          <outputVars>
-            <variable name="OUT">
-              <type>
-                <REAL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The last accepted sample. Holds its value while samples are being rejected.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="ACCEPTED">
-              <type>
-                <BOOL />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> TRUE for the call that accepted IN into OUT, FALSE when IN was rejected.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="REJECT_COUNT">
-              <type>
-                <UDINT />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Samples rejected since startup.</xhtml>
-              </documentation>
-            </variable>
-          </outputVars>
-          <localVars>
-            <variable name="bHasValue">
-              <type>
-                <BOOL />
-              </type>
-            </variable>
-            <variable name="rCandidate">
-              <type>
-                <REAL />
-              </type>
-            </variable>
-            <variable name="uiAgreeCount">
-              <type>
-                <UINT />
-              </type>
-            </variable>
-          </localVars>
-        </interface>
-        <body>
-          <ST>
-            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Call once per new sample, never cyclically: every call is a reading, and the
-   confirmation count is counted in calls.
-
-   Two tests, in this order:
-
-   1. Outside LOWER_LIMIT..UPPER_LIMIT is never believed, however often it repeats.
-      That is what a sensor cannot physically report, so there is nothing to confirm.
-   2. More than MAX_STEP away from the last accepted value is a suspected spike. It
-      is held back, and only believed once CONFIRM_COUNT readings in a row agree with
-      each other to within MAX_STEP. A single corrupt read never reaches OUT; a real
-      jump - a sensor moved, a window opened beside it - arrives one poll late.
-
-   The very first reading in range is accepted as it is. There is nothing to compare
-   it with, and holding it back would leave OUT at 0 while the caller already reports
-   the sensor as available. If that first reading is itself a spike the filter
-   recovers on its own: the real readings that follow agree with each other, so they
-   are confirmed CONFIRM_COUNT readings later. *)
-ACCEPTED := FALSE;
-
-IF IN &lt; LOWER_LIMIT OR IN &gt; UPPER_LIMIT THEN
-	// Also breaks a confirmation in progress: an impossible value agrees with nothing.
-	uiAgreeCount := 0;
-	REJECT_COUNT := REJECT_COUNT + 1;
-	RETURN;
-END_IF
-
-IF NOT bHasValue OR ABS(IN - OUT) &lt;= MAX_STEP THEN
-	OUT := IN;
-	bHasValue := TRUE;
-	uiAgreeCount := 0;
-	ACCEPTED := TRUE;
-	RETURN;
-END_IF
-
-// A jump. The candidate follows the latest reading, so a value still drifting while
-// it is being confirmed is confirmed where it ends up, not where it started.
-IF uiAgreeCount &gt; 0 AND ABS(IN - rCandidate) &lt;= MAX_STEP THEN
-	uiAgreeCount := uiAgreeCount + 1;
-ELSE
-	uiAgreeCount := 1;
-END_IF
-rCandidate := IN;
-
-IF uiAgreeCount &gt;= CONFIRM_COUNT THEN
-	OUT := IN;
-	uiAgreeCount := 0;
-	ACCEPTED := TRUE;
-ELSE
-	REJECT_COUNT := REJECT_COUNT + 1;
-END_IF</xhtml>
-          </ST>
-        </body>
-        <addData>
-          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
-            <ObjectId>5f06ee81-16a9-457c-bf0a-91a3944ef058</ObjectId>
-          </data>
-        </addData>
-      </pou>
       <pou name="FB_HVAC_BURNER_MQTT" pouType="functionBlock">
         <interface>
           <outputVars>
@@ -10881,8 +10720,9 @@ IF bHeatRequest THEN
 ELSIF PUMP_EXERCISE_REQUEST THEN
 	// The pump is due an exercise run and no circuit is asking for heat. Every
 	// valve opens: the pump needs a path, and a valve that has stood shut all
-	// summer is as likely to stick as the pump is. No heat is requested, so this
-	// only moves the water that is already in the circuits.
+	// summer is as likely to stick as the pump is. This run requests no heat,
+	// but the burner may already be firing for another pump on the same boiler,
+	// and then this circulates that hot water through every circuit.
 	FOR iI := 1 TO ciValveCount DO
 		VALVE[iI] := TRUE;
 	END_FOR
@@ -24844,66 +24684,7 @@ GetCommissioning := FALSE;
                 <simpleValue value="0" />
               </initialValue>
             </variable>
-            <variable name="fbTemperatureFilter">
-              <type>
-                <derived name="FB_FILTER_SPIKE" />
-              </type>
-            </variable>
-            <variable name="fbDewPointFilter">
-              <type>
-                <derived name="FB_FILTER_SPIKE" />
-              </type>
-            </variable>
           </localVars>
-          <inputVars>
-            <variable name="PlausibleMin">
-              <type>
-                <REAL />
-              </type>
-              <initialValue>
-                <simpleValue value="-50" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The range of temperature this sensor could plausibly be measuring, in
- degrees Celsius. A reading outside it is discarded, whatever the gateway
- says. The default suits air; widen it deliberately for a sensor on a pipe
- or a boiler.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="PlausibleMax">
-              <type>
-                <REAL />
-              </type>
-              <initialValue>
-                <simpleValue value="100" />
-              </initialValue>
-            </variable>
-            <variable name="MaxStep">
-              <type>
-                <REAL />
-              </type>
-              <initialValue>
-                <simpleValue value="2" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Largest temperature change between two polls that is believed straight
- away, in K. A larger one is held back until SpikeConfirmCount polls in a
- row agree on it.</xhtml>
-              </documentation>
-            </variable>
-            <variable name="SpikeConfirmCount">
-              <type>
-                <UINT />
-              </type>
-              <initialValue>
-                <simpleValue value="2" />
-              </initialValue>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Polls in a row that must agree before a jump larger than MaxStep is
- believed. 1 turns the step check off.</xhtml>
-              </documentation>
-            </variable>
-          </inputVars>
           <outputVars>
             <variable name="OWD_VOLTAGE">
               <type>
@@ -24968,14 +24749,6 @@ GetCommissioning := FALSE;
               <initialValue>
                 <simpleValue value="FALSE" />
               </initialValue>
-            </variable>
-            <variable name="SpikesRejected">
-              <type>
-                <UDINT />
-              </type>
-              <documentation>
-                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Temperature and dew point readings discarded as spikes since startup.</xhtml>
-              </documentation>
             </variable>
           </outputVars>
           <addData>
@@ -25388,24 +25161,9 @@ END_IF</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed: the gateway scales by 100 and encodes two's complement, and both
    of these read below zero on an outdoor sensor. Unsigned turned -1 degree
-   into +655.35 and nothing could report frost.
-
-   Filtered: a 1-Wire bus corrupts the odd reading - a few degrees off, or
-   hundreds - while the gateway's status register still reports success. A
-   rejected reading is not published and leaves TEMPERATURE where it was. *)
-fbTemperatureFilter(
-	IN := INT_TO_REAL(WORD_TO_INT(Data)) / 100,
-	LOWER_LIMIT := PlausibleMin,
-	UPPER_LIMIT := PlausibleMax,
-	MAX_STEP := MaxStep,
-	CONFIRM_COUNT := SpikeConfirmCount);
-SpikesRejected := fbTemperatureFilter.REJECT_COUNT + fbDewPointFilter.REJECT_COUNT;
-
-IF fbTemperatureFilter.ACCEPTED THEN
-	THIS^.TEMPERATURE := fbTemperatureFilter.OUT;
-	PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));
-END_IF
-</xhtml>
+   into +655.35 and nothing could report frost. *)
+THIS^.TEMPERATURE := INT_TO_REAL(WORD_TO_INT(Data)) / 100;
+PubMqttMessage(Suffix := '/TEMP', Data := REAL_TO_STRING(TEMPERATURE));</xhtml>
                 </ST>
               </body>
               <addData />
@@ -25466,24 +25224,9 @@ PubMqttMessage(Suffix := '/HUM', Data := REAL_TO_STRING(HUMIDITY));</xhtml>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Signed: the gateway scales by 100 and encodes two's complement, and both
    of these read below zero on an outdoor sensor. Unsigned turned -1 degree
-   into +655.35 and nothing could report frost.
-
-   Filtered: a 1-Wire bus corrupts the odd reading - a few degrees off, or
-   hundreds - while the gateway's status register still reports success. A
-   rejected reading is not published and leaves DEW_POINT where it was. *)
-fbDewPointFilter(
-	IN := INT_TO_REAL(WORD_TO_INT(Data)) / 100,
-	LOWER_LIMIT := PlausibleMin,
-	UPPER_LIMIT := PlausibleMax,
-	MAX_STEP := MaxStep,
-	CONFIRM_COUNT := SpikeConfirmCount);
-SpikesRejected := fbTemperatureFilter.REJECT_COUNT + fbDewPointFilter.REJECT_COUNT;
-
-IF fbDewPointFilter.ACCEPTED THEN
-	THIS^.DEW_POINT := fbDewPointFilter.OUT;
-	PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));
-END_IF
-</xhtml>
+   into +655.35 and nothing could report frost. *)
+THIS^.DEW_POINT := INT_TO_REAL(WORD_TO_INT(Data)) / 100;
+PubMqttMessage(Suffix := '/DEWP', Data := REAL_TO_STRING(DEW_POINT));</xhtml>
                 </ST>
               </body>
               <addData />
@@ -32794,7 +32537,6 @@ keep sweeping settings or go and look at the wiring.</xhtml>
         <Object Name="F_DUCO_STATUS_TEXT" ObjectId="914a5658-e401-4069-b24a-fb8acd0a3b5c" />
         <Object Name="F_DUCO_TYPE_TEXT" ObjectId="41f7729e-a7a9-4e7c-8764-fd513ea5e2ed" />
         <Object Name="F_JSON_RENAME_KEY" ObjectId="2070b78f-f5f5-4b1a-b4ae-caa8c985d0ad" />
-        <Object Name="FB_FILTER_SPIKE" ObjectId="5f06ee81-16a9-457c-bf0a-91a3944ef058" />
         <Folder Name="HVAC">
           <Object Name="FB_HVAC_BURNER_MQTT" ObjectId="47aa128a-1262-42dd-8b54-2c77b39a7884">
             <Object Name="InitMqtt" ObjectId="69154081-2c02-43db-90a6-f8cbcade69d6" />

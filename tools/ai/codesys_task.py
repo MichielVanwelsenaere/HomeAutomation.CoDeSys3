@@ -2607,6 +2607,61 @@ def remove_node(cfg, result, proj):
     return True
 
 
+def set_bus_cycle_task(cfg, result, proj):
+    """Name the controller's bus cycle task: PLC settings -> "Bus cycle task".
+
+    The bus cycle task is the one that exchanges the K-bus process image. Left
+    unspecified, CODESYS gives the job to the cyclic task with the shortest
+    interval, and once `MqttCommunication` went from Freewheeling to Cyclic 20 ms
+    (#200) that was the MQTT task rather than `MainTask` at 50 ms. The kernel
+    shows it: on a healthy Stal, `MqttCommunication` is caught in
+    `kbus_spi_sync`. An MQTT task blocked in a socket call then freezes every
+    input and output on the rail - dead pushbuttons with no load, no exception
+    and nothing in the log. Naming `MainTask` gives the I/O to the control logic.
+
+    `driver_info` is the scripted face of the PLC settings tab. Its setter
+    accepts any string, so the task is checked to exist under the controller
+    first and the value is read back afterwards.
+
+    Returns True when the bus cycle task was set.
+    """
+    task_name = u(cfg.get("bus_cycle_task") or u"")
+    node = resolve_node(result, proj, cfg.get("node_under"))
+    if node is None:
+        return False
+    where = object_path(node)
+    tasks = [t for t in list(safe(lambda: node.get_children(True), []) or [])
+             if u(safe(lambda: t.get_name(), u"")) == task_name
+             and u"Task Configuration/" in object_path(t)]
+    if len(tasks) != 1:
+        result["errors"].append(
+            "%s has %d tasks called %r - need exactly one"
+            % (where, len(tasks), task_name))
+        return False
+    info = safe(lambda: node.driver_info, None)
+    if info is None:
+        result["errors"].append("%s has no driver_info - is it a controller?" % where)
+        return False
+    before = u(safe(lambda: info.bus_cycle_task_by_name, u""))
+    try:
+        info.set_bus_cycle_task(task_name)
+    except Exception:
+        trace = traceback.format_exc()
+        result["errors"].append(
+            "setting the bus cycle task of %s to %r failed:\n%s" % (where, task_name, trace))
+        log("set_bus_cycle_task failed:\n%s" % trace)
+        return False
+    after = u(safe(lambda: info.bus_cycle_task_by_name, u""))
+    if after != task_name:
+        result["errors"].append(
+            "bus cycle task of %s reads back %r after setting %r" % (where, after, task_name))
+        return False
+    change = u"bus cycle task of %s: %s -> %s" % (where, before or u"<unspecified>", after)
+    result.setdefault("device_changes", []).append(change)
+    log(change)
+    return True
+
+
 def add_module(cfg, result, proj):
     """Plug a module into a node of the device tree, by ModuleId.
 
@@ -2815,7 +2870,7 @@ def do_device(cfg, result):
     """
     mutating = bool(cfg.get("module_add") or cfg.get("device_add")
                     or cfg.get("node_remove") or cfg.get("node_rename")
-                    or cfg.get("map_io"))
+                    or cfg.get("map_io") or cfg.get("bus_cycle_task"))
     proj = projects.open(cfg["project"], allow_readonly=not mutating)  # noqa: F821
     try:
         if cfg.get("node_rename"):
@@ -2836,18 +2891,25 @@ def do_device(cfg, result):
             # alone: an unmapped channel has no name for IEC code to read.
             if not map_io(cfg, result, proj):
                 return
+        if cfg.get("bus_cycle_task"):
+            if not set_bus_cycle_task(cfg, result, proj):
+                return
         devices = []
         for node in list(safe(lambda: proj.get_children(True), []) or []):
             if not safe(lambda: node.is_device, False):
                 continue
-            devices.append(
-                {
-                    "path": u(object_path(node)),
-                    "gateway": u(safe(lambda: node.get_gateway())),
-                    "address": u(safe(lambda: node.get_address())),
-                    "simulation": safe(lambda: bool(node.get_simulation_mode())),
-                }
-            )
+            entry = {
+                "path": u(object_path(node)),
+                "gateway": u(safe(lambda: node.get_gateway())),
+                "address": u(safe(lambda: node.get_address())),
+                "simulation": safe(lambda: bool(node.get_simulation_mode())),
+            }
+            # Only a controller has a PLC settings tab; on a module this is empty.
+            bus_task = u(safe(lambda: node.driver_info.bus_cycle_task_by_name, u"") or u"")
+            if bus_task:
+                entry["bus_cycle_task"] = bus_task
+                log("bus cycle task %s: %s" % (entry["path"], bus_task))
+            devices.append(entry)
         result["devices"] = devices
         # Sibling order per node, which is CREATION order and NOT the order of
         # terminals on the rail. Both were confused for each other once, at the cost

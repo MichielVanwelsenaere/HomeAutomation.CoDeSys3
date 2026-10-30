@@ -159,9 +159,11 @@ does not start on its own. It asks, and this block answers:
    `EXERCISE_READY` goes high and the pump runs for its `MIN_ONTIME`.
 4. The pump drops its request once it has stopped, and the valves close.
 
-No heat is requested at any point: the pump keeps `HEAT_REQUEST` low for an
-exercise run, so the burner stays off and only the water already in the circuits
-moves. Real demand during the run takes over the ordinary way — the valves follow
+The exercise run requests no heat: the pump keeps `HEAT_REQUEST` low, so the run
+never starts the burner. It does not keep the water cold, though. If another pump
+on the same boiler is calling for heat, the burner is already firing, and with
+every valve open that hot water reaches every circuit on this manifold for the
+length of the run. Real demand during the run takes over the ordinary way — the valves follow
 `THERMOSTAT` again, and the pump starts for heat once they have had their travel
 time.
 

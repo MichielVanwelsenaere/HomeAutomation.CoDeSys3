@@ -108,9 +108,14 @@ never stands still that long, so the run only happens when it is needed.
 
 An exercise run is not heat demand:
 
-- **The burner stays off.** `HEAT_REQUEST` is low for the whole run, including the
-  cycle in which the pump is stopping. A single cycle of `HEAT_REQUEST` would be
-  enough to start the burner for its full minimum on-time.
+- **It does not start the burner.** `HEAT_REQUEST` is low for the whole run,
+  including the cycle in which the pump is stopping. A single cycle of
+  `HEAT_REQUEST` would be enough to start the burner for its full minimum on-time.
+- **It does not keep the water cold either.** If another pump on the same boiler
+  is asking for heat, the burner is already firing, and the exercise run
+  circulates that hot water through its own circuit. In `PRG_HVAC` the floor
+  heating and the radiators share one boiler, so a radiator call during the floor
+  pump's run sends boiler water into the floor, and the other way round.
 - **Real demand takes over.** `IN` going high ends the exercise at once and the
   pump carries on as a heating run, with `HEAT_REQUEST` following `PUMP` as usual.
 - **The interval runs from when the pump last stopped**, for any reason, and
@@ -124,11 +129,12 @@ What the pump needs before it may start depends on what it is pumping into.
 **A circuit that is always open** — a floor heating loop on its own pump, with no
 zone valves — needs nothing. `EXERCISE_PERMIT` defaults to `TRUE`, so setting
 `EXERCISE_DAILY` is the whole job. Two things are worth checking on the hydraulics,
-though neither is the PLC's to solve: if the loop shares a boiler with domestic hot
-water, the run circulates whatever is in the flow pipe, so the floor's mixing valve
-or high-limit thermostat is what keeps a slug of hot water out of the screed; and
-if the loop has a thermal actuator or zone valve that the PLC does not control, it
-must open on its own or the run is dead-headed.
+though neither is the PLC's to solve: the run circulates whatever is in the flow
+pipe, which is hot whenever the boiler is firing for another circuit or for
+domestic hot water, so the floor's mixing valve or high-limit thermostat is what
+keeps that water out of the screed; and if the loop has a thermal actuator or
+zone valve that the PLC does not control, it must open on its own or the run is
+dead-headed.
 
 **A manifold with valves** needs a path opened first. With no thermostat asking for
 heat, every valve on it is shut, and a pump started against them runs dead-headed —
