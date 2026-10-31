@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-17T12:54:38.5943049" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-17T12:53:43.5856084">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-31T13:34:59.3102457" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-31T13:33:19.083136">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -1519,6 +1519,78 @@ is what puts a slider on the entity rather than three buttons.</xhtml>
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>f5343dd6-2f9e-4c6a-bbe1-4f06148c221a</ObjectId>
+          </data>
+        </addData>
+      </dataType>
+      <dataType name="MQTT_DISCOVERY_TEXT">
+        <baseType>
+          <struct>
+            <variable name="cmd_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">command_topic</xhtml>
+              </documentation>
+            </variable>
+            <variable name="stat_t">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">state_topic - the value the device actually holds, read back rather than assumed</xhtml>
+              </documentation>
+            </variable>
+            <variable name="min_val">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">min - shortest accepted text, in characters</xhtml>
+              </documentation>
+            </variable>
+            <variable name="max_val">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">max - longest accepted text, in characters; Home Assistant allows at most 255</xhtml>
+              </documentation>
+            </variable>
+            <variable name="mode">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">mode - 'text' or 'password'</xhtml>
+              </documentation>
+            </variable>
+            <variable name="pattern">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">pattern - a regular expression the text has to match before Home Assistant sends it, can be null</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ent_cat">
+              <type>
+                <derived name="JSONVAR" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml">entity_category - 'config' keeps a setting out of the main dashboard, can be null</xhtml>
+              </documentation>
+            </variable>
+          </struct>
+        </baseType>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/datatypeinheritance" handleUnknown="implementation">
+            <Inheritance>
+              <Extends>MQTT_DISCOVERY_BASE</Extends>
+            </Inheritance>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>820be405-a24d-4357-9614-a99c5dbeac83</ObjectId>
           </data>
         </addData>
       </dataType>
@@ -13173,6 +13245,14 @@ THIS^.pMqttPublishQueue := pMqttPublishQueue; </xhtml>
 	   owner sets it, defaulting to the same lane everything else uses. </xhtml>
               </documentation>
             </variable>
+            <variable name="stMqttDiscMsgText">
+              <type>
+                <derived name="MQTT_DISCOVERY_TEXT" />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The text entity's config struct, reused across announcements like the others.</xhtml>
+              </documentation>
+            </variable>
           </localVars>
           <addData>
             <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
@@ -15845,6 +15925,134 @@ from the block that owns it - and only with the lane of the task it runs in.</xh
               <body>
                 <ST>
                   <xhtml xmlns="http://www.w3.org/1999/xhtml">THIS^.iQueueLane := Lane;
+</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="CreateTextEntity" ObjectId="836e5856-41a3-4473-ac6c-711d8d500045">
+              <interface>
+                <inputVars>
+                  <variable name="Name">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="Id">
+                    <type>
+                      <string />
+                    </type>
+                  </variable>
+                  <variable name="CommandTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                  </variable>
+                  <variable name="StateTopic">
+                    <type>
+                      <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Where the text the device actually holds is published.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MinLength">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="0" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Shortest accepted text, in characters.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="MaxLength">
+                    <type>
+                      <INT />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="255" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Longest accepted text, in characters. Home Assistant allows at most 255.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="Pattern">
+                    <type>
+                      <string length="100" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> Regular expression the text has to match before Home Assistant sends it. Empty for none.</xhtml>
+                    </documentation>
+                  </variable>
+                  <variable name="EntityCategory">
+                    <type>
+                      <string />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml"> 'config' keeps a setting off the main dashboard. Empty for none.</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="EntityId">
+                    <type>
+                      <string length="25" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="'text'" />
+                    </initialValue>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">(* Announce a Home Assistant text: a value somebody types, such as a time of day,
+   which MQTT discovery has no entity of its own for. Pattern lets Home Assistant
+   refuse a malformed value before it is sent; the device's own check stays the
+   one that counts.
+
+   Name, id, availability and device are identical for every entity type, so
+   they are filled once through the shared base struct. *)
+THIS^.FillCommonFields(
+	pBase := ADR(stMqttDiscMsgText),
+	EntityId := EntityId,
+	Name := Name,
+	Id := Id);
+
+// Entity related: Specific
+stMqttDiscMsgText.cmd_t.CharString := CommandTopic;
+stMqttDiscMsgText.stat_t.CharString := StateTopic;
+(* min_val / max_val for the same reason as on a number: MIN and MAX are IEC
+   operators, and PublishEntityConfig renames both keys on the way out. *)
+stMqttDiscMsgText.min_val.Integer := MinLength;
+stMqttDiscMsgText.max_val.Integer := MaxLength;
+stMqttDiscMsgText.mode.CharString := 'text';
+IF Pattern &lt;&gt; '' THEN
+	stMqttDiscMsgText.pattern.CharString := Pattern;
+ELSE
+	stMqttDiscMsgText.pattern.Null := 'null';
+END_IF
+IF EntityCategory &lt;&gt; '' THEN
+	stMqttDiscMsgText.ent_cat.CharString := EntityCategory;
+ELSE
+	stMqttDiscMsgText.ent_cat.Null := 'null';
+END_IF
+
+THIS^.PublishEntityConfig(
+	pStruct := ADR(stMqttDiscMsgText),
+	StructSize := SIZEOF(stMqttDiscMsgText),
+	EntityId := EntityId,
+	Id := Id);
 </xhtml>
                 </ST>
               </body>
@@ -32439,6 +32647,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="CreateNumberEntity" ObjectId="ab07f1d7-7c68-4d64-89c7-cce1607c7dcc" />
             <Object Name="CreateButtonEntity" ObjectId="18765e16-d74e-4ab9-932a-f0eb3ecbedb8" />
             <Object Name="SetLane" ObjectId="1c01710f-f7e8-469e-bb30-ac11b12ec559" />
+            <Object Name="CreateTextEntity" ObjectId="836e5856-41a3-4473-ac6c-711d8d500045" />
           </Object>
           <Object Name="FB_PLC_MQTT_DISCOVERY_DEVICE" ObjectId="293181e9-7da9-47da-a441-3d6d4f05045c">
             <Object Name="FB_init" ObjectId="0f05dfeb-28e6-4f3a-a8d1-4516d94b21ba" />
@@ -32465,6 +32674,7 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="E_MQTT_ENTITY" ObjectId="aef53a6b-9c40-421a-a8ff-44d7415f7bab" />
             <Object Name="MQTT_DISCOVERY_FAN" ObjectId="fb3fe26d-fe23-4358-87c1-ffeea777d962" />
             <Object Name="MQTT_DISCOVERY_COVER_POSITION" ObjectId="da529542-8240-4724-b774-dd369f156566" />
+            <Object Name="MQTT_DISCOVERY_TEXT" ObjectId="820be405-a24d-4357-9614-a99c5dbeac83" />
           </Folder>
           <Folder Name="FUNCTION">
             <Object Name="F_STRIP_JSON_ROOT" ObjectId="b4e04fa1-7370-47e1-a5b3-eb4645c8d421" />
