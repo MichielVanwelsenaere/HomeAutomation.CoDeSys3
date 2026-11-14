@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <project xmlns="http://www.plcopen.org/xml/tc6_0200">
-  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-10-31T13:34:59.3102457" />
-  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-10-31T13:33:19.083136">
+  <fileHeader companyName="" productName="CODESYS" productVersion="CODESYS V3.5 SP21 Patch 3" creationDateTime="2026-11-14T10:33:02.7842329" />
+  <contentHeader name="HomeAutomation.project" modificationDateTime="2026-11-14T10:32:28.8551772">
     <coordinateInfo>
       <fbd>
         <scaling x="1" y="1" />
@@ -7787,6 +7787,833 @@ pMqttCallbackCollector^.put(instance := THIS^); // register the FB against the c
           </data>
           <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
             <ObjectId>92cee984-f36c-4945-afb6-94a21cf49a1e</ObjectId>
+          </data>
+        </addData>
+      </pou>
+      <pou name="FB_OUTPUT_COVER_PULSE_MQTT" pouType="functionBlock">
+        <interface>
+          <inputVars>
+            <variable name="IsOpen">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The controller's "fully open" contact.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="IsClosed">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The controller's "fully closed" contact.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="TOGGLE">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> A rising edge sends one pulse, the same as a press on the controller's own
+ button: a local pushbutton goes here. Any command still being worked
+ through is dropped.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="T_Pulse">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#800ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long the contact is closed per pulse. Long enough for the controller to
+ see it, short enough that it does not read as a held button.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="T_PulseGap">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#1s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Contact open between two pulses of one command, e.g. a stop and the start
+ the other way.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="T_Travel">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#3m0s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Longer than the slowest full travel. A cover believed to be moving for this
+ long without reaching an end contact is taken to have stopped half-way.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="T_Confirm">
+              <type>
+                <TIME />
+              </type>
+              <initialValue>
+                <simpleValue value="TIME#5s0ms" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> How long an end contact may take to drop once the cover starts away from
+ it. Still made after this, the controller took the pulse as a stop instead.</xhtml>
+              </documentation>
+            </variable>
+          </inputVars>
+          <outputVars>
+            <variable name="PULSE">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The command contact. Wire it through a potential-free relay contact: these
+ controllers supply their own control voltage on that input.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Moving">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The cover is believed to be moving.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="Fault">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The last command could not be carried out, or both end contacts are made
+ at once. Details on the diagnostic log; cleared by the next end position
+ reached or the next command.</xhtml>
+              </documentation>
+            </variable>
+          </outputVars>
+          <localVars>
+            <variable name="sInstancePath">
+              <type>
+                <string length="GVL_MQTT.MQTT_TOPIC_LEN" />
+              </type>
+              <addData>
+                <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+                  <Attributes>
+                    <Attribute Name="noinit" />
+                    <Attribute Name="instance-path" Value="" />
+                  </Attributes>
+                </data>
+              </addData>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> object's full instance name</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bMoving">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- the model of the controller ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iConfirmFrom">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The end position the last pulse should have left, while that is being
+ checked; ciDirUnknown when nothing is.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iTarget">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- the command being worked through ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="iPulsesLeft">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="iMisses">
+              <type>
+                <INT />
+              </type>
+            </variable>
+            <variable name="bSatisfied">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="bFire">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- the pulse itself ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bInGap">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="bBusy">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="fbPulse">
+              <type>
+                <derived name="Standard.TP" />
+              </type>
+            </variable>
+            <variable name="fbGap">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="fbTravel">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="fbConfirm">
+              <type>
+                <derived name="Standard.TON" />
+              </type>
+            </variable>
+            <variable name="fbOpenRise">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="fbOpenFall">
+              <type>
+                <derived name="Standard.F_TRIG" />
+              </type>
+            </variable>
+            <variable name="fbClosedRise">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="fbClosedFall">
+              <type>
+                <derived name="Standard.F_TRIG" />
+              </type>
+            </variable>
+            <variable name="fbBothRise">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="fbToggle">
+              <type>
+                <derived name="Standard.R_TRIG" />
+              </type>
+            </variable>
+            <variable name="bMqttRequestOpen">
+              <type>
+                <BOOL />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> --- MQTT ---</xhtml>
+              </documentation>
+            </variable>
+            <variable name="bMqttRequestClose">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="bMqttRequestStop">
+              <type>
+                <BOOL />
+              </type>
+            </variable>
+            <variable name="sState">
+              <type>
+                <string length="10" />
+              </type>
+            </variable>
+            <variable name="sPublishedState">
+              <type>
+                <string length="10" />
+              </type>
+            </variable>
+          </localVars>
+          <localVars persistent="true">
+            <variable name="iDir">
+              <type>
+                <INT />
+              </type>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The direction of the current travel, or of the last one if the cover is at
+ rest: the next pulse on a cover at rest goes the other way. Kept across a
+ restart because the controller keeps it too, and a cover resting half-way
+ gives no other clue. Needs an entry in the persistent variable list.</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <localVars constant="true">
+            <variable name="ciDirUnknown">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="ciDirOpen">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+            <variable name="ciDirClose">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="ciTargetNone">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="0" />
+              </initialValue>
+            </variable>
+            <variable name="ciTargetOpen">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="1" />
+              </initialValue>
+            </variable>
+            <variable name="ciTargetClose">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="-1" />
+              </initialValue>
+            </variable>
+            <variable name="ciTargetStop">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+            </variable>
+            <variable name="ciMaxPulses">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="4" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> The most one command can need: a cover at rest half-way that last went
+ the wrong way takes three (start, stop, start back), and one end position
+ the controller treated as still moving takes one more.</xhtml>
+              </documentation>
+            </variable>
+            <variable name="ciMaxMisses">
+              <type>
+                <INT />
+              </type>
+              <initialValue>
+                <simpleValue value="2" />
+              </initialValue>
+              <documentation>
+                <xhtml xmlns="http://www.w3.org/1999/xhtml"> Pulses in a row that left the cover at its end position before the
+ command is given up: the controller is locked out or in error.</xhtml>
+              </documentation>
+            </variable>
+          </localVars>
+          <addData>
+            <data name="http://www.3s-software.com/plcopenxml/pouinheritance" handleUnknown="implementation">
+              <Inheritance>
+                <Extends>FB_MQTT_BASE</Extends>
+                <Implements>MQTT.MQTT_SUBSCRIBE_CALLBACK</Implements>
+              </Inheritance>
+            </data>
+            <data name="http://www.3s-software.com/plcopenxml/attributes" handleUnknown="implementation">
+              <Attributes>
+                <Attribute Name="reflection" Value="" />
+              </Attributes>
+            </data>
+          </addData>
+          <documentation>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml"> A cover whose motor controller has ONE command input that steps through
+ OPEN -&gt; STOP -&gt; CLOSE -&gt; STOP on every contact closure, and reports its end
+ positions on two contacts of its own. Garage doors, gates and many
+ self-contained cover controllers work this way: they run the motor, count its
+ travel and stop at the ends themselves, so the PLC only ever gives them a pulse.
+
+ A pulse cannot say which way to go, so this block keeps a model of the
+ controller - moving or not, and the direction of its last travel - and works
+ out how many pulses a command needs. The model is corrected from the end
+ position contacts whenever they change, including when the cover was moved
+ from the controller's own key switch or button.</xhtml>
+          </documentation>
+        </interface>
+        <body>
+          <ST>
+            <xhtml xmlns="http://www.w3.org/1999/xhtml">(* --- self-wiring prologue ----------------------------------------------------
+   Set FriendlyName at the declaration and this block wires itself from GVL_MQTT
+   on its first cyclic call, then announces itself to Home Assistant. It shares
+   the cover prefix and the cover collector with FB_OUTPUT_COVER_MQTT: both are
+   covers on the wire, and PublishReceived only answers for its own topic.
+
+   Dormant while FriendlyName is empty, so a call site that wires the block by
+   hand keeps working. A block wired this way MUST be called cyclically. *)
+IF FriendlyName &lt;&gt; '' THEN
+
+	IF NOT bInitMqttDone THEN
+		THIS^.InitMqtt(
+			MQTTPublishPrefix := ADR(GVL_MQTT.MqttPubCoverPrefix),
+			MQTTSubscribePrefix := ADR(GVL_MQTT.MqttSubCoverPrefix),
+			pMqttPublishQueue := ADR(GVL_MQTT.fbMqttPublishQueue),
+			pMqttCallbackCollector := ADR(GVL_MQTT.collector_FB_OUTPUT_COVER_MQTT));
+	END_IF
+
+	IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+		THIS^.InitMqttDiscovery(
+			Device := ADR(GVL_MQTT.PLC_Device),
+			Name := FriendlyName);
+	END_IF
+
+END_IF
+
+
+(* --- 1. what the end contacts say ---------------------------------------------
+   These are the only facts there are, so each change overrides the model.
+   Arriving at an end means the travel is over and went that way. Leaving one
+   means the cover is travelling away from it, whoever started it - this block,
+   or the controller's own key switch. An end contact already made at power-up
+   counts as arriving, which is what gives the model its first direction. *)
+fbOpenRise(CLK := IsOpen);
+fbOpenFall(CLK := IsOpen);
+fbClosedRise(CLK := IsClosed);
+fbClosedFall(CLK := IsClosed);
+
+IF fbOpenRise.Q THEN
+	bMoving := FALSE;
+	iDir := ciDirOpen;
+	iConfirmFrom := ciDirUnknown;
+	Fault := FALSE;
+END_IF
+
+IF fbClosedRise.Q THEN
+	bMoving := FALSE;
+	iDir := ciDirClose;
+	iConfirmFrom := ciDirUnknown;
+	Fault := FALSE;
+END_IF
+
+IF fbOpenFall.Q THEN
+	IF iConfirmFrom = ciDirOpen THEN
+		iConfirmFrom := ciDirUnknown;
+		iMisses := 0;
+	END_IF
+	IF NOT (bMoving AND iDir = ciDirClose) THEN
+		bMoving := TRUE;
+		iDir := ciDirClose;
+		fbTravel(IN := FALSE);
+	END_IF
+END_IF
+
+IF fbClosedFall.Q THEN
+	IF iConfirmFrom = ciDirClose THEN
+		iConfirmFrom := ciDirUnknown;
+		iMisses := 0;
+	END_IF
+	IF NOT (bMoving AND iDir = ciDirOpen) THEN
+		bMoving := TRUE;
+		iDir := ciDirOpen;
+		fbTravel(IN := FALSE);
+	END_IF
+END_IF
+
+(* Both ends at once is a wiring fault, not a position. Nothing is sent while it
+   lasts: every command reads as already done. *)
+fbBothRise(CLK := IsOpen AND IsClosed);
+IF fbBothRise.Q THEN
+	Fault := TRUE;
+	iTarget := ciTargetNone;
+	IF bInitMqttDone THEN
+		GVL_MQTT.PLC_Device.SendLogMessage(str := 'open and closed contacts both made: check the wiring', instance := sInstancePath);
+	END_IF
+END_IF
+
+
+(* --- 2. run time ----------------------------------------------------------------
+   No contact says the cover has stopped half-way: the controller's own runtime
+   limit, or someone at its key switch. Believed moving for longer than any
+   travel takes, it is taken to have stopped. *)
+fbTravel(IN := bMoving, PT := T_Travel);
+IF fbTravel.Q THEN
+	bMoving := FALSE;
+	fbTravel(IN := FALSE);
+END_IF
+
+
+(* --- 3. did the pulse leave the end position? -----------------------------------
+   Whether reaching an end counts as the STOP step is up to the controller: if it
+   does not, the first pulse there is taken as a stop and the cover stays put. The
+   end contact still being made after T_Confirm shows it, and the model is put
+   back to "at rest, last travel towards this end", so the next pulse goes the
+   right way. Twice in a row means the controller is not moving at all. *)
+fbConfirm(IN := iConfirmFrom &lt;&gt; ciDirUnknown, PT := T_Confirm);
+IF fbConfirm.Q THEN
+	bMoving := FALSE;
+	iDir := iConfirmFrom;
+	iConfirmFrom := ciDirUnknown;
+	fbConfirm(IN := FALSE);
+	iMisses := iMisses + 1;
+	IF iMisses &gt;= ciMaxMisses THEN
+		Fault := TRUE;
+		iTarget := ciTargetNone;
+		IF bInitMqttDone THEN
+			GVL_MQTT.PLC_Device.SendLogMessage(str := 'cover did not leave its end position: controller locked out or in error?', instance := sInstancePath);
+		END_IF
+	END_IF
+END_IF
+
+
+(* --- 4. commands -----------------------------------------------------------------
+   Set on the MQTT task, taken here. A new command replaces the one being worked
+   through, with a fresh pulse budget. STOP is taken last so it wins a tie. *)
+fbToggle(CLK := TOGGLE);
+
+IF bMqttRequestOpen THEN
+	bMqttRequestOpen := FALSE;
+	iTarget := ciTargetOpen;
+	iPulsesLeft := ciMaxPulses;
+	iMisses := 0;
+	Fault := FALSE;
+END_IF
+IF bMqttRequestClose THEN
+	bMqttRequestClose := FALSE;
+	iTarget := ciTargetClose;
+	iPulsesLeft := ciMaxPulses;
+	iMisses := 0;
+	Fault := FALSE;
+END_IF
+IF bMqttRequestStop THEN
+	bMqttRequestStop := FALSE;
+	iTarget := ciTargetStop;
+	iPulsesLeft := ciMaxPulses;
+	iMisses := 0;
+	Fault := FALSE;
+END_IF
+
+
+(* --- 5. the next pulse -----------------------------------------------------------
+   One pulse at a time, each followed by T_PulseGap, and none while a pulse is
+   still being checked against an end contact. A command is done as soon as the
+   model has the cover where it was asked, or on its way there: the controller
+   finishes the travel itself. *)
+bBusy := fbPulse.Q OR bInGap;
+IF NOT bBusy AND iConfirmFrom = ciDirUnknown THEN
+	IF fbToggle.Q THEN
+		iTarget := ciTargetNone;
+		bFire := TRUE;
+	ELSIF iTarget &lt;&gt; ciTargetNone THEN
+		CASE iTarget OF
+			ciTargetOpen:
+				bSatisfied := IsOpen OR (bMoving AND iDir = ciDirOpen);
+			ciTargetClose:
+				bSatisfied := IsClosed OR (bMoving AND iDir = ciDirClose);
+		ELSE
+			bSatisfied := NOT bMoving;
+		END_CASE
+
+		IF bSatisfied THEN
+			iTarget := ciTargetNone;
+		ELSIF iPulsesLeft &lt;= 0 THEN
+			iTarget := ciTargetNone;
+			Fault := TRUE;
+			IF bInitMqttDone THEN
+				GVL_MQTT.PLC_Device.SendLogMessage(str := 'command given up: the cover did not follow the pulses', instance := sInstancePath);
+			END_IF
+		ELSE
+			iPulsesLeft := iPulsesLeft - 1;
+			bFire := TRUE;
+		END_IF
+	END_IF
+END_IF
+
+
+(* --- 6. the model follows the pulse ----------------------------------------------
+   A pulse stops a moving cover, and starts one at rest the other way from its
+   last travel. With no last travel known - a first start, or a missing entry in
+   the persistent list, with the cover half-way - the end it rests at decides,
+   and half-way the guess is "open": the next end contact puts the model right
+   either way. *)
+IF bFire THEN
+	IF bMoving THEN
+		bMoving := FALSE;
+	ELSE
+		IF iDir = ciDirOpen THEN
+			iDir := ciDirClose;
+		ELSIF iDir = ciDirClose THEN
+			iDir := ciDirOpen;
+		ELSIF IsOpen THEN
+			iDir := ciDirClose;
+		ELSE
+			iDir := ciDirOpen;
+		END_IF
+		bMoving := TRUE;
+		IF IsOpen AND iDir = ciDirClose THEN
+			iConfirmFrom := ciDirOpen;
+		ELSIF IsClosed AND iDir = ciDirOpen THEN
+			iConfirmFrom := ciDirClose;
+		END_IF
+	END_IF
+	bInGap := TRUE;
+END_IF
+
+fbPulse(IN := bFire, PT := T_Pulse);
+bFire := FALSE;
+PULSE := fbPulse.Q;
+
+fbGap(IN := bInGap AND NOT fbPulse.Q, PT := T_PulseGap);
+IF fbGap.Q THEN
+	bInGap := FALSE;
+END_IF
+
+Moving := bMoving;
+
+
+(* --- 7. state ---------------------------------------------------------------------
+   Published when it changes, retained, the same five states FB_OUTPUT_COVER_MQTT
+   uses. The first cycle after MQTT is up publishes too, since nothing has been. *)
+IF IsOpen AND IsClosed THEN
+	sState := 'STOPPED';
+	Fault := TRUE;
+ELSIF bMoving AND iDir = ciDirOpen THEN
+	sState := 'OPENING';
+ELSIF bMoving THEN
+	sState := 'CLOSING';
+ELSIF IsOpen THEN
+	sState := 'OPEN';
+ELSIF IsClosed THEN
+	sState := 'CLOSED';
+ELSE
+	sState := 'STOPPED';
+END_IF
+
+IF bInitMqttDone AND sState &lt;&gt; sPublishedState THEN
+	pMqttPublishQueue^.AddMessage(
+		Payload := sState,
+		Topic := CONCAT(psMqttPublishTopicPrefix^, MqttPublishTopicSuffix),
+		Qos := MQTT.QoS.ExactlyOnce,
+		MqttRetain := TRUE
+	);
+	sPublishedState := sState;
+END_IF
+</xhtml>
+          </ST>
+        </body>
+        <addData>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqttDiscovery" ObjectId="d1f892d6-e430-48b4-b88d-397b61d43ad9">
+              <interface>
+                <inputVars>
+                  <variable name="Device">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_PLC_MQTT_DISCOVERY_DEVICE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="Name">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                  <variable name="overruleId">
+                    <type>
+                      <string length="255" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                  <variable name="DeviceClass">
+                    <type>
+                      <string length="50" />
+                    </type>
+                    <initialValue>
+                      <simpleValue value="''" />
+                    </initialValue>
+                  </variable>
+                </inputVars>
+                <localVars>
+                  <variable name="id">
+                    <type>
+                      <string length="255" />
+                    </type>
+                  </variable>
+                </localVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">IF bInitMqttDone AND NOT bInitMqttDiscoveryDone THEN
+	
+	id := SUPER^.ResolveEntityId(overruleId);
+	
+	Device^.CreateCoverEntity(
+		Name := name,
+		Id := id,
+		CommandTopic := THIS^.sMQTTSubscribeTopic,
+		PayloadOpen := 'OPEN',
+		PayloadClose := 'CLOSE',
+		PayloadStop := 'STOP',
+		StateTopic := THIS^.sMQTTPublishTopic,
+		StateOpen := 'OPEN',
+		StateOpening := 'OPENING',
+		StateClosed := 'CLOSED',
+		StateClosing := 'CLOSING',
+		StateStopped := 'STOPPED',
+		DeviceClass := DeviceClass
+	);
+
+	bInitMqttDiscoveryDone := TRUE;
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="PublishReceived" ObjectId="cf652aea-d58c-45cd-8815-57d90020fbaa">
+              <interface>
+                <returnType>
+                  <BOOL />
+                </returnType>
+                <inputVars>
+                  <variable name="Data">
+                    <type>
+                      <derived name="MQTT.CALLBACK_DATA" />
+                    </type>
+                    <documentation>
+                      <xhtml xmlns="http://www.w3.org/1999/xhtml">Collection of recived Data</xhtml>
+                    </documentation>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">//first check if Mqtt is initialized, otherwise do nothing
+IF NOT(bInitMqttDone) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+//check if the packet is for this FB
+ELSIF CommonTypesAndFunctions.StrEquals(str1:= ADR(sMQTTSubscribeTopic), str2:= Data.TopicOut) THEN
+	//mark the interface call from the collector as done
+	PublishReceived := TRUE;
+	//now process the data
+	IF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('STOP')) THEN			
+		THIS^.bMqttRequestStop:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('OPEN')) THEN
+		THIS^.bMqttRequestOpen:=TRUE;
+	ELSIF CommonTypesAndFunctions.StrEquals(str1:= Data.PayloadString, str2:= ADR('CLOSE')) THEN
+		THIS^.bMqttRequestClose:=TRUE;
+	END_IF
+
+END_IF</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/method" handleUnknown="implementation">
+            <Method name="InitMqtt" ObjectId="40b04d6a-f948-4118-88e2-05cb51031245">
+              <interface>
+                <inputVars>
+                  <variable name="MQTTPublishPrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="MQTTSubscribePrefix">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <string />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttPublishQueue">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="FB_MQTT_PUBLISH_QUEUE" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                  <variable name="pMqttCallbackCollector">
+                    <type>
+                      <pointer>
+                        <baseType>
+                          <derived name="MQTT.CallbackCollector" />
+                        </baseType>
+                      </pointer>
+                    </type>
+                  </variable>
+                </inputVars>
+              </interface>
+              <body>
+                <ST>
+                  <xhtml xmlns="http://www.w3.org/1999/xhtml">SUPER^._sInstancePath := THIS^.sInstancePath; // Due to reflection its location is important
+
+(*pass trough*)
+THIS^.pMqttPublishQueue := pMqttPublishQueue;
+THIS^.psMqttPublishTopicPrefix:=MQTTPublishPrefix;
+THIS^.psMqttSubscribeTopicPrefix:=MQTTSubscribePrefix;
+
+SUPER^.InitBaseMqtt();
+pMqttCallbackCollector^.put(instance:= THIS^); // register the FB agains the collector so mqtt events can be received</xhtml>
+                </ST>
+              </body>
+              <addData />
+            </Method>
+          </data>
+          <data name="http://www.3s-software.com/plcopenxml/objectid" handleUnknown="discard">
+            <ObjectId>7ed01085-354e-4e41-a40d-5168afd162cd</ObjectId>
           </data>
         </addData>
       </pou>
@@ -32549,6 +33376,11 @@ keep sweeping settings or go and look at the wiring.</xhtml>
             <Object Name="FB_init" ObjectId="8dbd0579-badc-4f47-ac48-13a84b93c081" />
             <Object Name="InitMqtt" ObjectId="7feb063c-8dba-4917-96a0-b90d5a064232" />
             <Object Name="InitMqttDiscovery" ObjectId="79fd5830-ae55-495f-a8bc-82d2da5cc98d" />
+          </Object>
+          <Object Name="FB_OUTPUT_COVER_PULSE_MQTT" ObjectId="7ed01085-354e-4e41-a40d-5168afd162cd">
+            <Object Name="InitMqttDiscovery" ObjectId="d1f892d6-e430-48b4-b88d-397b61d43ad9" />
+            <Object Name="PublishReceived" ObjectId="cf652aea-d58c-45cd-8815-57d90020fbaa" />
+            <Object Name="InitMqtt" ObjectId="40b04d6a-f948-4118-88e2-05cb51031245" />
           </Object>
         </Folder>
         <Folder Name="DALI">
